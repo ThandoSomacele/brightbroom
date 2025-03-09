@@ -10,8 +10,12 @@ This document outlines the tactical next steps to implement the BrightBroom appl
 
 - [x] Create SvelteKit project with TypeScript
 - [x] Configure Tailwind CSS with BrightBroom theme
-- [ ] Set up Prisma ORM and database schema
-- [ ] Configure Lucia Auth for authentication
+- [x] Set up Prisma ORM and database schema
+- [x] Configure Lucia Auth for authentication
+- [ ] Password Reset: Create a forgot password flow
+- [ ] Email Verification: Add email verification for new accounts
+- [ ] OAuth Integration: Add social login (Google, Facebook, etc.)
+- [ ] Admin Dashboard: Build admin-specific pages for managing users
 - [ ] Set up basic folder structure and organization
 - [ ] Implement theme support (light/dark mode)
 
