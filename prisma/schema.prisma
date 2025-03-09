@@ -11,20 +11,76 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  passwordHash  String
-  firstName     String
-  lastName      String
-  phone         String?
-  role          UserRole  @default(CUSTOMER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  addresses     Address[]
-  bookings      Booking[]
-  payments      Payment[]
-  cleanerBookings Booking[] @relation("CleanerBookings")
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  phone        String?
+  role         UserRole @default(CUSTOMER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  addresses       Address[]
+  bookings        Booking[]
+  payments        Payment[]
+  cleanerBookings Booking[]       @relation("CleanerBookings")
+  cleanerProfile  CleanerProfile?
+}
+
+model CleanerProfile {
+  id               String           @id @default(uuid())
+  userId           String           @unique
+  idType           IdType
+  idNumber         String
+  taxNumber        String?
+  bankAccount      String?
+  workLocationLat  Float
+  workLocationLng  Float
+  workAddress      String
+  workRadius       Float
+  bio              String?
+  petCompatibility PetCompatibility @default(NONE)
+  availableDays    DayOfWeek[] // Using PostgreSQL array type
+  rating           Float?
+  isAvailable      Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  user            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specializations CleanerSpecialization[]
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum IdType {
+  SOUTH_AFRICAN_ID
+  PASSPORT
+}
+
+enum PetCompatibility {
+  NONE
+  DOGS
+  CATS
+  BOTH
+}
+
+model CleanerSpecialization {
+  id               String @id @default(uuid())
+  cleanerProfileId String
+  serviceId        String
+  experience       Int // In months
+
+  cleanerProfile CleanerProfile @relation(fields: [cleanerProfileId], references: [id], onDelete: Cascade)
+  service        Service        @relation(fields: [serviceId], references: [id])
 }
 
 enum UserRole {
@@ -34,32 +90,33 @@ enum UserRole {
 }
 
 model Address {
-  id            String    @id @default(uuid())
-  userId        String
-  street        String
-  aptUnit       String?
-  city          String
-  state         String
-  zipCode       String
-  instructions  String?
-  isDefault     Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bookings      Booking[]
+  id           String   @id @default(uuid())
+  userId       String
+  street       String
+  aptUnit      String?
+  city         String
+  state        String
+  zipCode      String
+  instructions String?
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings Booking[]
 }
 
 model Service {
-  id            String    @id @default(uuid())
+  id            String   @id @default(uuid())
   name          String
   description   String
-  basePrice     Decimal   @db.Decimal(10, 2)
+  basePrice     Decimal  @db.Decimal(10, 2)
   durationHours Int
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  bookings      Booking[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  bookings              Booking[]
+  CleanerSpecialization CleanerSpecialization[]
 }
 
 model Booking {
@@ -70,17 +127,17 @@ model Booking {
   cleanerId     String?
   status        BookingStatus @default(PENDING)
   scheduledDate DateTime
-  duration      Int           // Duration in minutes
+  duration      Int // Duration in minutes
   price         Decimal       @db.Decimal(10, 2)
   notes         String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  
-  user          User          @relation(fields: [userId], references: [id])
-  address       Address       @relation(fields: [addressId], references: [id])
-  service       Service       @relation(fields: [serviceId], references: [id])
-  cleaner       User?         @relation("CleanerBookings", fields: [cleanerId], references: [id])
-  payment       Payment?
+
+  user    User     @relation(fields: [userId], references: [id])
+  address Address  @relation(fields: [addressId], references: [id])
+  service Service  @relation(fields: [serviceId], references: [id])
+  cleaner User?    @relation("CleanerBookings", fields: [cleanerId], references: [id])
+  payment Payment?
 }
 
 enum BookingStatus {
@@ -92,23 +149,23 @@ enum BookingStatus {
 }
 
 model Payment {
-  id                String        @id @default(uuid())
-  bookingId         String        @unique
-  userId            String
-  amount            Decimal       @db.Decimal(10, 2)
-  status            PaymentStatus @default(PENDING)
-  paymentMethod     PaymentMethod @default(CREDIT_CARD)
-  
+  id            String        @id @default(uuid())
+  bookingId     String        @unique
+  userId        String
+  amount        Decimal       @db.Decimal(10, 2)
+  status        PaymentStatus @default(PENDING)
+  paymentMethod PaymentMethod @default(CREDIT_CARD)
+
   // PayFast specific fields
-  payFastId         String?       // PayFast payment ID
-  payFastToken      String?       // PayFast token for recurring payments
-  merchantReference String?       // Your own reference number
-  
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  
-  booking           Booking       @relation(fields: [bookingId], references: [id])
-  user              User          @relation(fields: [userId], references: [id])
+  payFastId         String? // PayFast payment ID
+  payFastToken      String? // PayFast token for recurring payments
+  merchantReference String? // Your own reference number
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
 }
 
 enum PaymentStatus {

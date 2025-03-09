@@ -47,6 +47,6 @@
     "zod": "^3.24.2"
   },
   "prisma": {
-    "seed": "ts-node --esm prisma/seed.ts"
-  }
+  "seed": "node --loader ts-node/esm prisma/seed.ts"
+}
 }
