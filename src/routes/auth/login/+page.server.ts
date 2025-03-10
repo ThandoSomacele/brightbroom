@@ -1,7 +1,9 @@
 // src/routes/auth/login/+page.server.ts
-import { auth } from '$lib/server/auth';
+import { lucia } from '$lib/server/auth';
+import { prisma } from '$lib/server/prisma';
 import { fail, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
+import { Argon2id } from 'oslo/password';
 import type { Actions, PageServerLoad } from './$types';
 
 // Validate user exists before showing login page
@@ -23,8 +25,8 @@ const loginSchema = z.object({
 export const actions: Actions = {
   default: async ({ request, cookies, url }) => {
     const formData = await request.formData();
-    const email = formData.get('email');
-    const password = formData.get('password');
+    const email = formData.get('email')?.toString().toLowerCase();
+    const password = formData.get('password')?.toString();
     const redirectTo = url.searchParams.get('redirectTo') || '/profile';
     
     // Validate form data
@@ -38,21 +40,34 @@ export const actions: Actions = {
     }
     
     try {
-      // Try to find a key for this user
-      const key = await auth.useKey(
-        'email',
-        email!.toString().toLowerCase(),
-        password!.toString()
-      );
-      
-      // Create a new session
-      const session = await auth.createSession({
-        userId: key.userId,
-        attributes: {}
+      // Find the user key
+      const key = await prisma.key.findUnique({
+        where: {
+          id: `email:${email}`
+        },
+        include: {
+          user: true
+        }
       });
       
+      // If no key found or no hashed password (for OAuth users)
+      if (!key || !key.hashedPassword) {
+        return fail(400, { error: 'Invalid email or password' });
+      }
+      
+      // Verify password
+      const hasher = new Argon2id();
+      const validPassword = await hasher.verify(key.hashedPassword, password!);
+      
+      if (!validPassword) {
+        return fail(400, { error: 'Invalid email or password' });
+      }
+      
+      // Create a new session
+      const session = await lucia.createSession(key.userId, {});
+      
       // Set session cookie
-      const sessionCookie = auth.createSessionCookie(session);
+      const sessionCookie = lucia.createSessionCookie(session.id);
       cookies.set(sessionCookie.name, sessionCookie.value, {
         path: '.',
         ...sessionCookie.attributes
@@ -63,7 +78,7 @@ export const actions: Actions = {
     } catch (error) {
       // Handle login failures
       console.error('Login error:', error);
-      return fail(400, { error: 'Invalid email or password' });
+      return fail(500, { error: 'An error occurred during login' });
     }
   }
 };

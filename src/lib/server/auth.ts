@@ -1,15 +1,34 @@
 // src/lib/server/auth.ts
-import { lucia } from "lucia";
-import { sveltekit } from "lucia/middleware";
-import { prisma } from "@lucia-auth/adapter-prisma";
-import { PrismaClient } from "@prisma/client";
+import { Lucia } from "lucia";
+import { dev } from "$app/environment";
+import { prisma } from "./prisma";
+import { createPrismaAdapter } from "./prismaAdapter";
 
-const client = new PrismaClient();
+// Setup custom Prisma adapter that works with Prisma 6
+const adapter = createPrismaAdapter(prisma);
 
-// Expected by Lucia
+// Create the auth object
+export const lucia = new Lucia(adapter, {
+  sessionCookie: {
+    attributes: {
+      // Set secure to true in production
+      secure: !dev
+    }
+  },
+  getUserAttributes: (userData) => {
+    return {
+      email: userData.email,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      role: userData.role
+    };
+  }
+});
+
+// Declare global namespace for Lucia types
 declare global {
   namespace Lucia {
-    type Auth = typeof auth;
+    type Auth = typeof lucia;
     type DatabaseUserAttributes = {
       email: string;
       firstName: string;
@@ -19,20 +38,3 @@ declare global {
     type DatabaseSessionAttributes = {};
   }
 }
-
-export const auth = lucia({
-  env: import.meta.env.DEV ? "DEV" : "PROD",
-  middleware: sveltekit(),
-  adapter: prisma(client),
-  
-  getUserAttributes: (data) => {
-    return {
-      email: data.email,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      role: data.role
-    };
-  }
-});
-
-export type Auth = typeof auth;

@@ -1,10 +1,10 @@
 // src/routes/auth/register/+page.server.ts
-import { auth } from '$lib/server/auth';
+import { lucia } from '$lib/server/auth';
 import { prisma } from '$lib/server/prisma';
 import { fail, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
+import { Argon2id } from 'oslo/password';
 import type { Actions, PageServerLoad } from './$types';
-import { LuciaError } from 'lucia';
 
 // Validate user isn't already logged in
 export const load: PageServerLoad = async ({ locals }) => {
@@ -33,9 +33,9 @@ export const actions: Actions = {
     const formData = await request.formData();
     const firstName = formData.get('firstName');
     const lastName = formData.get('lastName');
-    const email = formData.get('email');
+    const email = formData.get('email')?.toString().toLowerCase();
     const phone = formData.get('phone');
-    const password = formData.get('password');
+    const password = formData.get('password')?.toString();
     const terms = formData.get('terms');
     
     // Validate form data
@@ -50,7 +50,7 @@ export const actions: Actions = {
     
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email: email!.toString().toLowerCase() }
+      where: { email: email! }
     });
     
     if (existingUser) {
@@ -58,37 +58,36 @@ export const actions: Actions = {
     }
     
     try {
-      // Create user with Lucia (which handles password hashing)
-      const user = await auth.createUser({
-        key: {
-          providerId: 'email',
-          providerUserId: email!.toString().toLowerCase(),
-          password: password!.toString()
-        },
-        attributes: {
-          email: email!.toString().toLowerCase(),
+      // Hash the password
+      const hasher = new Argon2id();
+      const hashedPassword = await hasher.hash(password!);
+      
+      // Create user in database
+      const user = await prisma.user.create({
+        data: {
+          email: email!,
           firstName: firstName!.toString(),
           lastName: lastName!.toString(),
-          role: 'CUSTOMER'
+          passwordHash: hashedPassword,
+          role: 'CUSTOMER',
+          phone: phone?.toString() || null
         }
       });
       
-      // Update user with phone if provided
-      if (phone) {
-        await prisma.user.update({
-          where: { id: user.userId },
-          data: { phone: phone.toString() }
-        });
-      }
-      
-      // Create session
-      const session = await auth.createSession({
-        userId: user.userId,
-        attributes: {}
+      // Create key for the user (for email/password authentication)
+      await prisma.key.create({
+        data: {
+          id: `email:${email}`,
+          userId: user.id,
+          hashedPassword: hashedPassword
+        }
       });
       
+      // Create session
+      const session = await lucia.createSession(user.id, {});
+      
       // Set session cookie
-      const sessionCookie = auth.createSessionCookie(session);
+      const sessionCookie = lucia.createSessionCookie(session.id);
       cookies.set(sessionCookie.name, sessionCookie.value, {
         path: '.',
         ...sessionCookie.attributes
@@ -98,11 +97,6 @@ export const actions: Actions = {
       throw redirect(302, '/profile');
     } catch (error) {
       console.error('Registration error:', error);
-      
-      if (error instanceof LuciaError && error.message === 'AUTH_DUPLICATE_KEY_ID') {
-        return fail(400, { error: 'Email already in use' });
-      }
-      
       return fail(500, { error: 'Failed to create account. Please try again.' });
     }
   }

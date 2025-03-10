@@ -43,10 +43,11 @@
     "date-fns": "^4.1.0",
     "lucia": "^3.2.2",
     "lucide-svelte": "^0.479.0",
+    "oslo": "^1.2.1",
     "prisma": "^6.4.1",
     "zod": "^3.24.2"
   },
   "prisma": {
-  "seed": "node --loader ts-node/esm prisma/seed.ts"
-}
+    "seed": "node --loader ts-node/esm prisma/seed.ts"
+  }
 }
