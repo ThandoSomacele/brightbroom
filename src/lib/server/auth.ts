@@ -1,128 +1,103 @@
-import type { RequestEvent } from "@sveltejs/kit";
-import { eq } from "drizzle-orm";
-import { sha256 } from "@oslojs/crypto/sha2";
-import { encodeBase64url, encodeHexLowerCase } from "@oslojs/encoding";
-import { db } from "$lib/server/db";
-import * as table from "$lib/server/db/schema";
 // src/lib/server/auth.ts
-import { Lucia } from "lucia";
+import { Lucia, type Session, type User } from "lucia";
 import { dev } from "$app/environment";
-import { prisma } from "./prisma";
-import { createPrismaAdapter } from "./prismaAdapter";
+import { db } from "./db";
+import { session, user, key } from "./db/schema";
+import { eq } from "drizzle-orm";
+import { generateRandomString, isWithinExpiration } from "lucia/utils";
 
-// Setup custom Prisma adapter that works with Prisma 6
-const adapter = createPrismaAdapter(prisma);
-
-// Create the auth object
-export const lucia = new Lucia(adapter, {
+// Create the auth object with Drizzle adapter
+export const lucia = new Lucia({
+  adapter: {
+    getUser: async (userId) => {
+      const result = await db.select().from(user).where(eq(user.id, userId)).limit(1);
+      return result[0] || null;
+    },
+    getSession: async (sessionId) => {
+      const result = await db.select().from(session).where(eq(session.id, sessionId)).limit(1);
+      return result[0] || null;
+    },
+    getSessionsByUserId: async (userId) => {
+      return await db.select().from(session).where(eq(session.userId, userId));
+    },
+    getKeysByUserId: async (userId) => {
+      return await db.select().from(key).where(eq(key.userId, userId));
+    },
+    getKey: async (keyId) => {
+      const result = await db.select().from(key).where(eq(key.id, keyId)).limit(1);
+      return result[0] || null;
+    },
+    setSession: async (newSession) => {
+      await db.insert(session).values(newSession);
+      return newSession;
+    },
+    updateSession: async (sessionId, partialSession) => {
+      await db.update(session).set(partialSession).where(eq(session.id, sessionId));
+    },
+    deleteSession: async (sessionId) => {
+      await db.delete(session).where(eq(session.id, sessionId));
+    },
+    deleteSessionsByUserId: async (userId) => {
+      await db.delete(session).where(eq(session.userId, userId));
+    },
+    deleteKeysByUserId: async (userId) => {
+      await db.delete(key).where(eq(key.userId, userId));
+    },
+    setKey: async (newKey) => {
+      await db.insert(key).values(newKey);
+      return newKey;
+    },
+    deleteKey: async (keyId) => {
+      await db.delete(key).where(eq(key.id, keyId));
+    },
+    updateKey: async (keyId, partialKey) => {
+      await db.update(key).set(partialKey).where(eq(key.id, keyId));
+    },
+    setUser: async (newUser) => {
+      await db.insert(user).values(newUser);
+      return newUser;
+    },
+    deleteUser: async (userId) => {
+      await db.delete(user).where(eq(user.id, userId));
+    },
+    updateUser: async (userId, partialUser) => {
+      await db.update(user).set(partialUser).where(eq(user.id, userId));
+    }
+  },
+  env: dev ? "DEV" : "PROD",
   sessionCookie: {
     attributes: {
-      // Set secure to true in production
-      secure: !dev,
-    },
+      secure: !dev
+    }
   },
   getUserAttributes: (userData) => {
     return {
       email: userData.email,
       firstName: userData.firstName,
       lastName: userData.lastName,
-      role: userData.role,
+      role: userData.role
     };
-  },
+  }
 });
 
-// Declare global namespace for Lucia types
-declare global {
-  namespace Lucia {
-    type Auth = typeof lucia;
-    type DatabaseUserAttributes = {
+// Helper functions
+export function generateUserId(): string {
+  return generateRandomString(15);
+}
+
+export function generateSessionId(): string {
+  return generateRandomString(40);
+}
+
+// Declare types for Lucia
+declare module "lucia" {
+  interface Register {
+    Lucia: typeof lucia;
+    DatabaseUserAttributes: {
       email: string;
       firstName: string;
       lastName: string;
       role: "CUSTOMER" | "CLEANER" | "ADMIN";
     };
-    type DatabaseSessionAttributes = {};
   }
-}
-
-const DAY_IN_MS = 1000 * 60 * 60 * 24;
-
-export const sessionCookieName = "auth-session";
-
-export function generateSessionToken() {
-  const bytes = crypto.getRandomValues(new Uint8Array(18));
-  const token = encodeBase64url(bytes);
-  return token;
-}
-
-export async function createSession(token: string, userId: string) {
-  const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-  const session: table.Session = {
-    id: sessionId,
-    userId,
-    expiresAt: new Date(Date.now() + DAY_IN_MS * 30),
-  };
-  await db.insert(table.session).values(session);
-  return session;
-}
-
-export async function validateSessionToken(token: string) {
-  const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-  const [result] = await db
-    .select({
-      // Adjust user table here to tweak returned data
-      user: { id: table.user.id, username: table.user.username },
-      session: table.session,
-    })
-    .from(table.session)
-    .innerJoin(table.user, eq(table.session.userId, table.user.id))
-    .where(eq(table.session.id, sessionId));
-
-  if (!result) {
-    return { session: null, user: null };
-  }
-  const { session, user } = result;
-
-  const sessionExpired = Date.now() >= session.expiresAt.getTime();
-  if (sessionExpired) {
-    await db.delete(table.session).where(eq(table.session.id, session.id));
-    return { session: null, user: null };
-  }
-
-  const renewSession =
-    Date.now() >= session.expiresAt.getTime() - DAY_IN_MS * 15;
-  if (renewSession) {
-    session.expiresAt = new Date(Date.now() + DAY_IN_MS * 30);
-    await db
-      .update(table.session)
-      .set({ expiresAt: session.expiresAt })
-      .where(eq(table.session.id, session.id));
-  }
-
-  return { session, user };
-}
-
-export type SessionValidationResult = Awaited<
-  ReturnType<typeof validateSessionToken>
->;
-
-export async function invalidateSession(sessionId: string) {
-  await db.delete(table.session).where(eq(table.session.id, sessionId));
-}
-
-export function setSessionTokenCookie(
-  event: RequestEvent,
-  token: string,
-  expiresAt: Date,
-) {
-  event.cookies.set(sessionCookieName, token, {
-    expires: expiresAt,
-    path: "/",
-  });
-}
-
-export function deleteSessionTokenCookie(event: RequestEvent) {
-  event.cookies.delete(sessionCookieName, {
-    path: "/",
-  });
 }

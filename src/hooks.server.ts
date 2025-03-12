@@ -1,5 +1,3 @@
-import { sequence } from "@sveltejs/kit/hooks";
-import * as auth from "$lib/server/auth.js";
 // src/hooks.server.ts
 import { lucia } from "$lib/server/auth";
 import { redirect, type Handle } from "@sveltejs/kit";
@@ -22,10 +20,10 @@ function isProtectedByRole(pathname: string, role?: string): boolean {
   return false;
 }
 
-const originalHandle: Handle = async ({ event, resolve }) => {
+export const handle: Handle = async ({ event, resolve }) => {
   // Get the session ID from cookies
   const sessionId = event.cookies.get(lucia.sessionCookieName);
-
+  
   if (!sessionId) {
     // No session ID in cookies
     event.locals.user = null;
@@ -71,26 +69,3 @@ const originalHandle: Handle = async ({ event, resolve }) => {
 
   return resolve(event);
 };
-
-const handleAuth: Handle = async ({ event, resolve }) => {
-  const sessionToken = event.cookies.get(auth.sessionCookieName);
-  if (!sessionToken) {
-    event.locals.user = null;
-    event.locals.session = null;
-    return resolve(event);
-  }
-
-  const { session, user } = await auth.validateSessionToken(sessionToken);
-  if (session) {
-    auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
-  } else {
-    auth.deleteSessionTokenCookie(event);
-  }
-
-  event.locals.user = user;
-  event.locals.session = session;
-
-  return resolve(event);
-};
-
-export const handle = sequence(originalHandle, handleAuth);

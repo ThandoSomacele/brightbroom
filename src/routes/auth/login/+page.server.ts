@@ -1,15 +1,16 @@
 // src/routes/auth/login/+page.server.ts
 import { lucia } from '$lib/server/auth';
-import { prisma } from '$lib/server/prisma';
 import { fail, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
 import { Argon2id } from 'oslo/password';
+import { db } from '$lib/server/db';
+import { user, key } from '$lib/server/db/schema';
+import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 
 // Validate user exists before showing login page
 export const load: PageServerLoad = async ({ locals }) => {
-  const session = await locals.auth.validate();
-  if (session) {
+  if (locals.user) {
     throw redirect(302, '/profile');
   }
   
@@ -41,30 +42,36 @@ export const actions: Actions = {
     
     try {
       // Find the user key
-      const key = await prisma.key.findUnique({
-        where: {
-          id: `email:${email}`
-        },
-        include: {
-          user: true
-        }
-      });
+      const [keyData] = await db.select()
+        .from(key)
+        .where(eq(key.id, `email:${email}`))
+        .limit(1);
       
-      // If no key found or no hashed password (for OAuth users)
-      if (!key || !key.hashedPassword) {
+      // If no key found
+      if (!keyData || !keyData.hashedPassword) {
+        return fail(400, { error: 'Invalid email or password' });
+      }
+
+      // Get the user
+      const [userData] = await db.select()
+        .from(user)
+        .where(eq(user.id, keyData.userId))
+        .limit(1);
+      
+      if (!userData) {
         return fail(400, { error: 'Invalid email or password' });
       }
       
       // Verify password
       const hasher = new Argon2id();
-      const validPassword = await hasher.verify(key.hashedPassword, password!);
+      const validPassword = await hasher.verify(keyData.hashedPassword, password!);
       
       if (!validPassword) {
         return fail(400, { error: 'Invalid email or password' });
       }
       
       // Create a new session
-      const session = await lucia.createSession(key.userId, {});
+      const session = await lucia.createSession(userData.id, {});
       
       // Set session cookie
       const sessionCookie = lucia.createSessionCookie(session.id);

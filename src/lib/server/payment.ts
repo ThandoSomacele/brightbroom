@@ -1,8 +1,8 @@
 // src/lib/server/payment.ts
-import { PrismaClient, type Booking, type Payment } from '@prisma/client';
+import { db } from '$lib/server/db';
+import { booking, payment, user, service, type Payment } from '$lib/server/db/schema';
+import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
-
-const prisma = new PrismaClient();
 
 // Environment variables - these should be set in your .env file
 const PAYFAST_MERCHANT_ID = import.meta.env.VITE_PAYFAST_MERCHANT_ID;
@@ -44,44 +44,51 @@ export async function createPaymentForBooking(
   bookingId: string
 ): Promise<{ paymentId: string; redirectUrl: string }> {
   // Get booking with user information
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-    include: {
-      user: true,
-      service: true,
-    },
-  });
+  const [bookingData] = await db.select()
+    .from(booking)
+    .where(eq(booking.id, bookingId))
+    .limit(1);
 
-  if (!booking) {
+  if (!bookingData) {
     throw new Error('Booking not found');
   }
 
+  // Get user and service data
+  const [userData] = await db.select().from(user).where(eq(user.id, bookingData.userId)).limit(1);
+  const [serviceData] = await db.select().from(service).where(eq(service.id, bookingData.serviceId)).limit(1);
+
+  if (!userData || !serviceData) {
+    throw new Error('User or service not found');
+  }
+
   // Create payment record
-  const payment = await prisma.payment.create({
-    data: {
-      userId: booking.userId,
-      bookingId: booking.id,
-      amount: booking.price,
-      status: 'PENDING',
-      merchantReference: `BrightBroom-${booking.id}`,
-    },
-  });
+  const paymentId = crypto.randomUUID();
+  const [newPayment] = await db.insert(payment).values({
+    id: paymentId,
+    userId: bookingData.userId,
+    bookingId: bookingData.id,
+    amount: bookingData.price,
+    status: 'PENDING',
+    merchantReference: `BrightBroom-${bookingData.id}`,
+  }).returning();
 
   // Generate PayFast URL
-  const redirectUrl = await generatePayFastUrl(booking, payment);
+  const redirectUrl = await generatePayFastUrl(bookingData, userData, serviceData, newPayment);
 
   return {
-    paymentId: payment.id,
+    paymentId: paymentId,
     redirectUrl,
   };
 }
 
 async function generatePayFastUrl(
-  booking: Booking & { user: { firstName: string; lastName: string; email: string }; service: { name: string } },
-  payment: Payment
+  bookingData: any,
+  userData: any,
+  serviceData: any,
+  paymentData: Payment
 ): Promise<string> {
   // Format amount to 2 decimal places as required by PayFast
-  const formattedAmount = Number(booking.price).toFixed(2);
+  const formattedAmount = Number(bookingData.price).toFixed(2);
 
   // Create data object for PayFast
   const data: PayFastPaymentData = {
@@ -90,14 +97,14 @@ async function generatePayFastUrl(
     return_url: RETURN_URL,
     cancel_url: CANCEL_URL,
     notify_url: NOTIFY_URL,
-    name_first: booking.user.firstName,
-    name_last: booking.user.lastName,
-    email_address: booking.user.email,
-    m_payment_id: payment.id,
+    name_first: userData.firstName,
+    name_last: userData.lastName,
+    email_address: userData.email,
+    m_payment_id: paymentData.id,
     amount: formattedAmount,
-    item_name: `BrightBroom ${booking.service.name}`,
-    item_description: `Cleaning service scheduled for ${booking.scheduledDate.toISOString().split('T')[0]}`,
-    custom_str1: booking.id, // Store booking ID for reference
+    item_name: `BrightBroom ${serviceData.name}`,
+    item_description: `Cleaning service scheduled for ${bookingData.scheduledDate.toISOString().split('T')[0]}`,
+    custom_str1: bookingData.id, // Store booking ID for reference
   };
 
   // Generate signature
@@ -112,6 +119,7 @@ async function generatePayFastUrl(
   return `${PAYFAST_URL}?${queryParams}`;
 }
 
+// Rest of the functions remain largely the same, just updated to use Drizzle
 function generateSignature(data: Record<string, string>, passphrase: string | null = null): string {
   // Create parameter string
   let pfOutput = '';
@@ -143,7 +151,6 @@ export async function validateIpnRequest(
   pfParamString: string
 ): Promise<boolean> {
   const pfHost = 'sandbox.payfast.co.za';
-  const pfHostPort = 443;
 
   // Verify security signature
   const passPhrase = PAYFAST_PASSPHRASE;
@@ -159,9 +166,6 @@ export async function validateIpnRequest(
     console.error('Signature validation failed');
     return false;
   }
-
-  // Verify source IP
-  // In a production environment, you'd check if the request IP is from PayFast's servers
 
   // Verify data with PayFast server
   const verifyUrl = `https://${pfHost}/eng/query/validate`;
@@ -191,21 +195,19 @@ export async function validateIpnRequest(
 
 export async function processSuccessfulPayment(paymentId: string): Promise<void> {
   // Update payment status to completed
-  await prisma.payment.update({
-    where: { id: paymentId },
-    data: { status: 'COMPLETED' }
-  });
+  await db.update(payment)
+    .set({ status: 'COMPLETED' })
+    .where(eq(payment.id, paymentId));
 
   // Update associated booking status
-  const payment = await prisma.payment.findUnique({
-    where: { id: paymentId },
-    select: { bookingId: true }
-  });
+  const [paymentData] = await db.select()
+    .from(payment)
+    .where(eq(payment.id, paymentId))
+    .limit(1);
 
-  if (payment) {
-    await prisma.booking.update({
-      where: { id: payment.bookingId },
-      data: { status: 'CONFIRMED' }
-    });
+  if (paymentData) {
+    await db.update(booking)
+      .set({ status: 'CONFIRMED' })
+      .where(eq(booking.id, paymentData.bookingId));
   }
 }

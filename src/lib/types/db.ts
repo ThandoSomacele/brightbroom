@@ -1,36 +1,23 @@
+// src/lib/types/db.ts
 import type {
-  User,
   Address,
-  Service,
   Booking,
-  Payment,
-  UserRole,
-  BookingStatus,
-  PaymentStatus,
-  PaymentMethod,
   CleanerProfile,
   CleanerSpecialization,
-  IdType,
-  PetCompatibility,
-  DayOfWeek
-} from '@prisma/client';
+  Payment,
+  Service,
+  User,
+} from "$lib/server/db/schema";
 
-// Re-export types from Prisma
+// Re-export types from Drizzle schema
 export type {
-  User,
   Address,
-  Service,
   Booking,
-  Payment,
-  UserRole,
-  BookingStatus,
-  PaymentStatus,
-  PaymentMethod,
   CleanerProfile,
   CleanerSpecialization,
-  IdType,
-  PetCompatibility,
-  DayOfWeek
+  Payment,
+  Service,
+  User,
 };
 
 // Create combined types for common relations
@@ -73,10 +60,10 @@ export type PaymentWithBooking = Payment & {
 };
 
 // API response types (for type safety in API responses)
-export type UserResponse = Omit<User, 'passwordHash'>;
+export type UserResponse = Omit<User, "passwordHash">;
 
 export type BookingResponse = BookingWithRelations;
 
-export type CleanerResponse = Omit<User, 'passwordHash'> & {
+export type CleanerResponse = Omit<User, "passwordHash"> & {
   cleanerProfile: CleanerProfile;
 };

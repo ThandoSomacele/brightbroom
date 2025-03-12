@@ -1,15 +1,17 @@
 // src/routes/auth/register/+page.server.ts
 import { lucia } from '$lib/server/auth';
-import { prisma } from '$lib/server/prisma';
 import { fail, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
 import { Argon2id } from 'oslo/password';
+import { db } from '$lib/server/db';
+import { user, key } from '$lib/server/db/schema';
+import { eq } from 'drizzle-orm';
+import { generateUserId } from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
 
 // Validate user isn't already logged in
 export const load: PageServerLoad = async ({ locals }) => {
-  const session = await locals.auth.validate();
-  if (session) {
+  if (locals.user) {
     throw redirect(302, '/profile');
   }
   
@@ -49,11 +51,9 @@ export const actions: Actions = {
     }
     
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email: email! }
-    });
+    const existingUser = await db.select().from(user).where(eq(user.email, email!)).limit(1);
     
-    if (existingUser) {
+    if (existingUser.length > 0) {
       return fail(400, { error: 'Email already in use' });
     }
     
@@ -62,29 +62,29 @@ export const actions: Actions = {
       const hasher = new Argon2id();
       const hashedPassword = await hasher.hash(password!);
       
+      // Create user ID
+      const userId = generateUserId();
+      
       // Create user in database
-      const user = await prisma.user.create({
-        data: {
-          email: email!,
-          firstName: firstName!.toString(),
-          lastName: lastName!.toString(),
-          passwordHash: hashedPassword,
-          role: 'CUSTOMER',
-          phone: phone?.toString() || null
-        }
+      await db.insert(user).values({
+        id: userId,
+        email: email!,
+        firstName: firstName!.toString(),
+        lastName: lastName!.toString(),
+        passwordHash: hashedPassword,
+        role: 'CUSTOMER',
+        phone: phone?.toString() || null
       });
       
       // Create key for the user (for email/password authentication)
-      await prisma.key.create({
-        data: {
-          id: `email:${email}`,
-          userId: user.id,
-          hashedPassword: hashedPassword
-        }
+      await db.insert(key).values({
+        id: `email:${email}`,
+        userId: userId,
+        hashedPassword: hashedPassword
       });
       
       // Create session
-      const session = await lucia.createSession(user.id, {});
+      const session = await lucia.createSession(userId, {});
       
       // Set session cookie
       const sessionCookie = lucia.createSessionCookie(session.id);
