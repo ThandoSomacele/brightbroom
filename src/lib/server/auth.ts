@@ -1,37 +1,49 @@
-// src/lib/server/auth.ts
-import { dev } from "$app/environment";
-import { Lucia } from "lucia";
-import { adapter } from "./lucia-adapter";
+import { postgres as postgresAdapter } from "@lucia-auth/adapter-postgresql";
+import { lucia } from "lucia";
+import { sveltekit } from "lucia/middleware";
+import postgres from "postgres";
 
-export const lucia = new Lucia(adapter, {
-  sessionCookie: {
-    attributes: {
-      secure: !dev
-    }
-  },
-  getUserAttributes: (userData) => {
+// Direct connection to PostgreSQL
+const connectionString =
+  process.env.DATABASE_URL ||
+  "postgres://root:mysecretpassword@localhost:5432/local";
+const sql = postgres(connectionString);
+
+export const auth = lucia({
+  adapter: postgresAdapter(sql, {
+    user: "user",
+    session: "user_session",
+  }),
+  env: process.env.NODE_ENV === "development" ? "DEV" : "PROD",
+  middleware: sveltekit(),
+  getUserAttributes: (data) => {
     return {
-      email: userData.email,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      role: userData.role,
+      email: data.email,
+      firstName: data.first_name,
+      lastName: data.last_name,
+      role: data.role,
     };
-  }
+  },
 });
 
-// Helper function
-export function generateUserId(): string {
-  return crypto.randomUUID();
+export type Auth = typeof auth;
+
+// For Typescript
+declare global {
+  namespace App {
+    interface Locals {
+      auth: Auth;
+    }
+  }
 }
 
-// Declare types for Lucia
 declare module "lucia" {
   interface Register {
-    Lucia: typeof lucia;
+    Lucia: typeof auth;
     DatabaseUserAttributes: {
       email: string;
-      firstName: string;
-      lastName: string;
+      first_name: string;
+      last_name: string;
       role: "CUSTOMER" | "CLEANER" | "ADMIN";
     };
   }

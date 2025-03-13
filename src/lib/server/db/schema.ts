@@ -31,8 +31,8 @@ export const user = pgTable("user", {
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull()
 });
 
-export const session = pgTable("session", {
-  id: text("id").primaryKey().notNull(),
+export const session = pgTable("user_session", { // Changed table name for clarity
+  id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
