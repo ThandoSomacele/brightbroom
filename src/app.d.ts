@@ -1,7 +1,5 @@
 // src/app.d.ts
-// See https://svelte.dev/docs/kit/types#app.d.ts
-// for information about these interfaces
-import type { Session, User } from "lucia";
+import type { Session, User } from '$lib/server/db/schema';
 
 declare global {
   namespace App {
@@ -9,12 +7,7 @@ declare global {
       user: User | null;
       session: Session | null;
     }
-    interface PageData {
-      user: User | null;
-    }
-    // interface Error {}
-    // interface Platform {}
   }
 }
 
-export {};
+export { };

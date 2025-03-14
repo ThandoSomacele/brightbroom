@@ -1,28 +1,35 @@
-import { auth } from "$lib/server/auth";
-import { redirect, type Handle } from "@sveltejs/kit";
+// src/hooks.server.ts
+import {
+  deleteSessionTokenCookie,
+  setSessionTokenCookie,
+  validateSessionToken
+} from '$lib/server/auth';
+import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
-  event.locals.auth = auth.handleRequest(event);
-  const session = await event.locals.auth.validate();
+  // Get session token from cookie
+  const token = event.cookies.get('session') || null;
   
-  // Set user in locals
-  event.locals.user = session?.user || null;
-  
-  // Protect routes
-  if (event.url.pathname.startsWith("/profile") || event.url.pathname.startsWith("/book")) {
-    if (!session) {
-      throw redirect(302, `/auth/login?redirectTo=${event.url.pathname}`);
-    }
+  if (token === null) {
+    event.locals.user = null;
+    event.locals.session = null;
+    return resolve(event);
   }
   
-  // Role-based protection
-  if (event.url.pathname.startsWith("/admin") && session?.user.role !== "ADMIN") {
-    throw redirect(302, "/");
+  // Validate the session
+  const { session, user } = await validateSessionToken(token);
+  
+  if (session !== null) {
+    // If session is valid, refresh the cookie
+    setSessionTokenCookie(event, token, session.expiresAt);
+  } else {
+    // If session is invalid, delete the cookie
+    deleteSessionTokenCookie(event);
   }
   
-  if (event.url.pathname.startsWith("/cleaner") && session?.user.role !== "CLEANER") {
-    throw redirect(302, "/");
-  }
+  // Set locals for use in routes
+  event.locals.session = session;
+  event.locals.user = user;
   
   return resolve(event);
 };
