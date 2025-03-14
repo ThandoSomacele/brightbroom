@@ -1,8 +1,7 @@
 <!-- src/routes/profile/+page.svelte -->
 <script lang="ts">
-  import { page } from '$app/stores';
   import Button from '$lib/components/ui/Button.svelte';
-  import { Calendar, MapPin, CreditCard, Clock, User, Settings } from 'lucide-svelte';
+  import { Calendar, Clock, MapPin, Settings, User } from 'lucide-svelte';
   
   // Get data from the server load function
   export let data;
@@ -180,4 +179,3 @@
     </div>
   </div>
 </div>
-</script>
