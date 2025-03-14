@@ -1,12 +1,15 @@
 // src/routes/auth/register/+page.server.ts
-import { lucia } from '$lib/server/auth';
-import { fail, redirect } from '@sveltejs/kit';
-import { z } from 'zod';
-import { Argon2id } from 'oslo/password';
+import {
+  createSession,
+  generateSessionToken,
+  generateUserId,
+  setSessionTokenCookie
+} from '$lib/server/auth';
 import { db } from '$lib/server/db';
-import { user, key } from '$lib/server/db/schema';
+import { user } from '$lib/server/db/schema';
+import { fail, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
-import { generateUserId } from '$lib/server/auth';
+import { z } from 'zod';
 import type { Actions, PageServerLoad } from './$types';
 
 // Validate user isn't already logged in
@@ -51,7 +54,10 @@ export const actions: Actions = {
     }
     
     // Check if user already exists
-    const existingUser = await db.select().from(user).where(eq(user.email, email!)).limit(1);
+    const existingUser = await db.select()
+      .from(user)
+      .where(eq(user.email, email!))
+      .limit(1);
     
     if (existingUser.length > 0) {
       return fail(400, { error: 'Email already in use' });
@@ -59,6 +65,7 @@ export const actions: Actions = {
     
     try {
       // Hash the password
+      const { Argon2id } = await import('oslo/password');
       const hasher = new Argon2id();
       const hashedPassword = await hasher.hash(password!);
       
@@ -66,7 +73,7 @@ export const actions: Actions = {
       const userId = generateUserId();
       
       // Create user in database
-      await db.insert(user).values({
+      const [newUser] = await db.insert(user).values({
         id: userId,
         email: email!,
         firstName: firstName!.toString(),
@@ -74,24 +81,14 @@ export const actions: Actions = {
         passwordHash: hashedPassword,
         role: 'CUSTOMER',
         phone: phone?.toString() || null
-      });
-      
-      // Create key for the user (for email/password authentication)
-      await db.insert(key).values({
-        id: `email:${email}`,
-        userId: userId,
-        hashedPassword: hashedPassword
-      });
+      }).returning();
       
       // Create session
-      const session = await lucia.createSession(userId, {});
+      const token = generateSessionToken();
+      const session = await createSession(token, userId);
       
       // Set session cookie
-      const sessionCookie = lucia.createSessionCookie(session.id);
-      cookies.set(sessionCookie.name, sessionCookie.value, {
-        path: '.',
-        ...sessionCookie.attributes
-      });
+      setSessionTokenCookie({ cookies, url, request }, token, session.expiresAt);
       
       // Redirect to profile to complete account setup
       throw redirect(302, '/profile');
