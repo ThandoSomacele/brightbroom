@@ -1,5 +1,8 @@
 // src/routes/auth/logout/+page.server.ts
-import { lucia } from '$lib/server/auth';
+import {
+  deleteSessionTokenCookie,
+  invalidateSession
+} from '$lib/server/auth';
 import { redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -9,22 +12,23 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-  default: async ({ locals, cookies }) => {
-    if (!locals.session) {
-      throw redirect(302, '/');
+  default: async (event) => {
+    try {
+      // Handle session invalidation
+      if (event.locals.session) {
+        await invalidateSession(event.locals.session.id);
+      }
+      
+      // Clear the cookie
+      deleteSessionTokenCookie(event);
+      
+      console.log('User logged out successfully');
+      
+    } catch (error) {
+      console.error('Error during logout:', error);
     }
     
-    // Invalidate session
-    await lucia.invalidateSession(locals.session.id);
-    
-    // Remove session cookie
-    const sessionCookie = lucia.createBlankSessionCookie();
-    cookies.set(sessionCookie.name, sessionCookie.value, {
-      path: '.',
-      ...sessionCookie.attributes
-    });
-    
-    // Redirect to home
+    // Always redirect home regardless of errors
     throw redirect(302, '/');
   }
 };

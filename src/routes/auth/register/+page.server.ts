@@ -3,12 +3,12 @@ import {
   createSession,
   generateSessionToken,
   generateUserId,
+  getUserByEmail,
   setSessionTokenCookie
 } from '$lib/server/auth';
 import { db } from '$lib/server/db';
 import { user } from '$lib/server/db/schema';
 import { fail, redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -34,14 +34,18 @@ const registerSchema = z.object({
 });
 
 export const actions: Actions = {
-  default: async ({ request, cookies }) => {
+  default: async (event) => {
+    const { request, cookies } = event;
     const formData = await request.formData();
-    const firstName = formData.get('firstName');
-    const lastName = formData.get('lastName');
+    
+    const firstName = formData.get('firstName')?.toString();
+    const lastName = formData.get('lastName')?.toString();
     const email = formData.get('email')?.toString().toLowerCase();
-    const phone = formData.get('phone');
+    const phone = formData.get('phone')?.toString();
     const password = formData.get('password')?.toString();
-    const terms = formData.get('terms');
+    const terms = formData.get('terms')?.toString();
+    
+    console.log('Registration attempt:', { firstName, lastName, email });
     
     // Validate form data
     try {
@@ -49,21 +53,33 @@ export const actions: Actions = {
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errors = error.flatten().fieldErrors;
-        return fail(400, { error: Object.values(errors)[0]?.[0] || 'Invalid input' });
+        const firstError = Object.values(errors)[0]?.[0] || 'Invalid input';
+        console.log('Registration validation error:', firstError);
+        return fail(400, { 
+          error: firstError,
+          firstName,
+          lastName,
+          email,
+          phone
+        });
       }
     }
     
-    // Check if user already exists
-    const existingUser = await db.select()
-      .from(user)
-      .where(eq(user.email, email!))
-      .limit(1);
-    
-    if (existingUser.length > 0) {
-      return fail(400, { error: 'Email already in use' });
-    }
-    
     try {
+      // Check if user already exists
+      const existingUser = await getUserByEmail(email!);
+      
+      if (existingUser) {
+        console.log('User already exists:', email);
+        return fail(400, { 
+          error: 'Email already in use',
+          firstName,
+          lastName,
+          email,
+          phone
+        });
+      }
+      
       // Hash the password
       const { Argon2id } = await import('oslo/password');
       const hasher = new Argon2id();
@@ -76,25 +92,33 @@ export const actions: Actions = {
       const [newUser] = await db.insert(user).values({
         id: userId,
         email: email!,
-        firstName: firstName!.toString(),
-        lastName: lastName!.toString(),
+        firstName: firstName!,
+        lastName: lastName!,
         passwordHash: hashedPassword,
         role: 'CUSTOMER',
-        phone: phone?.toString() || null
+        phone: phone || null
       }).returning();
+      
+      console.log('User created successfully:', email);
       
       // Create session
       const token = generateSessionToken();
       const session = await createSession(token, userId);
       
       // Set session cookie
-      setSessionTokenCookie({ cookies, url, request }, token, session.expiresAt);
+      setSessionTokenCookie(event, token, session.expiresAt);
       
       // Redirect to profile to complete account setup
       throw redirect(302, '/profile');
     } catch (error) {
       console.error('Registration error:', error);
-      return fail(500, { error: 'Failed to create account. Please try again.' });
+      return fail(500, { 
+        error: 'Failed to create account. Please try again.',
+        firstName,
+        lastName,
+        email,
+        phone
+      });
     }
   }
-};
+};  

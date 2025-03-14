@@ -9,6 +9,11 @@
   
   let isLoading = false;
   let showPassword = false;
+  let firstName = form?.firstName || '';
+  let lastName = form?.lastName || '';
+  let email = form?.email || '';
+  let phone = form?.phone || '';
+  let password = '';
   
   function togglePasswordVisibility() {
     showPassword = !showPassword;
@@ -37,11 +42,13 @@
       <form method="POST" use:enhance={() => {
         isLoading = true;
         
-        return async ({ result }) => {
+        return async ({ result, update }) => {
           isLoading = false;
           
           if (result.type === 'redirect') {
             goto(result.location);
+          } else {
+            await update();
           }
         };
       }}>
@@ -55,6 +62,7 @@
               type="text"
               id="firstName"
               name="firstName"
+              bind:value={firstName}
               required
               class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               placeholder="John"
@@ -69,6 +77,7 @@
               type="text"
               id="lastName"
               name="lastName"
+              bind:value={lastName}
               required
               class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               placeholder="Doe"
@@ -85,6 +94,7 @@
             type="email"
             id="email"
             name="email"
+            bind:value={email}
             required
             autocomplete="email"
             class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -101,6 +111,7 @@
             type="tel"
             id="phone"
             name="phone"
+            bind:value={phone}
             class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             placeholder="+27 12 345 6789"
           />
@@ -116,6 +127,7 @@
               type={showPassword ? "text" : "password"}
               id="password"
               name="password"
+              bind:value={password}
               required
               autocomplete="new-password"
               minlength="8"

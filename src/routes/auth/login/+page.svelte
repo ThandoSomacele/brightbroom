@@ -1,11 +1,11 @@
 <!-- src/routes/auth/login/+page.svelte -->
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { page } from '$app/stores';
   import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
   import Button from '$lib/components/ui/Button.svelte';
   
-  // Get possible error from form action
+  // Get error from form action
   export let form;
   
   // Get redirect URL from query params if it exists
@@ -13,6 +13,8 @@
   
   let isLoading = false;
   let showPassword = false;
+  let email = '';
+  let password = '';
   
   function togglePasswordVisibility() {
     showPassword = !showPassword;
@@ -38,17 +40,29 @@
         </div>
       {/if}
       
-      <form method="POST" use:enhance={() => {
-        isLoading = true;
-        
-        return async ({ result }) => {
-          isLoading = false;
+      <form 
+        method="POST" 
+        action="?/default{redirectTo ? `&redirectTo=${redirectTo}` : ''}" 
+        use:enhance={({ formData, formElement, submitter, cancel }) => {
+          // Mark loading state
+          isLoading = true;
+          email = formData.get('email') as string;
           
-          if (result.type === 'redirect') {
-            goto(redirectTo);
-          }
-        };
-      }}>
+          // On submission complete
+          return async ({ result, update }) => {
+            isLoading = false;
+            
+            // Handle result
+            if (result.type === 'redirect') {
+              goto(result.location);
+            } else if (result.type === 'failure') {
+              await update();
+            } else {
+              await update();
+            }
+          };
+        }}
+      >
         <!-- Email input -->
         <div class="mb-4">
           <label for="email" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -58,6 +72,7 @@
             type="email"
             id="email"
             name="email"
+            bind:value={email}
             required
             autocomplete="email"
             class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -75,6 +90,7 @@
               type={showPassword ? "text" : "password"}
               id="password"
               name="password"
+              bind:value={password}
               required
               autocomplete="current-password"
               class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -105,6 +121,9 @@
           </div>
         </div>
         
+        <!-- Hidden redirectTo field -->
+        <input type="hidden" name="redirectTo" value={redirectTo}>
+
         <!-- Submit button -->
         <Button
           type="submit"

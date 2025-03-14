@@ -2,19 +2,17 @@
 import {
   createSession,
   generateSessionToken,
+  getUserByEmail,
   setSessionTokenCookie
 } from '$lib/server/auth';
-import { db } from '$lib/server/db';
-import { user } from '$lib/server/db/schema';
 import { fail, redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Actions, PageServerLoad } from './$types';
 
 // Validate user exists before showing login page
 export const load: PageServerLoad = async ({ locals }) => {
-  // Instead of using locals.auth.validate(), check for locals.session
-  if (locals.session) {
+  // If user is already logged in, redirect to profile
+  if (locals.user) {
     throw redirect(302, '/profile');
   }
   
@@ -28,11 +26,14 @@ const loginSchema = z.object({
 });
 
 export const actions: Actions = {
-  default: async ({ request, cookies, url }) => {
+  default: async (event) => {
+    const { request, cookies, url } = event;
     const formData = await request.formData();
     const email = formData.get('email')?.toString().toLowerCase();
     const password = formData.get('password')?.toString();
     const redirectTo = url.searchParams.get('redirectTo') || '/profile';
+    
+    console.log('Login attempt:', { email, redirectTo });
     
     try {
       // Validate form data
@@ -41,13 +42,14 @@ export const actions: Actions = {
       }
       
       // Find the user by email
-      const [userData] = await db.select()
-        .from(user)
-        .where(eq(user.email, email))
-        .limit(1);
+      const userData = await getUserByEmail(email);
         
       if (!userData) {
-        return fail(400, { error: 'Invalid email or password' });
+        console.log('User not found:', email);
+        return fail(400, { 
+          error: 'Invalid email or password',
+          email
+        });
       }
       
       // Verify password (using Argon2id from oslo)
@@ -56,21 +58,30 @@ export const actions: Actions = {
       const validPassword = await hasher.verify(userData.passwordHash, password);
       
       if (!validPassword) {
-        return fail(400, { error: 'Invalid email or password' });
+        console.log('Invalid password for user:', email);
+        return fail(400, { 
+          error: 'Invalid email or password',
+          email
+        });
       }
+      
+      console.log('Login successful for user:', email);
       
       // Generate a session token and create a session
       const token = generateSessionToken();
       const session = await createSession(token, userData.id);
       
       // Set the session cookie
-      setSessionTokenCookie({ cookies, url, request }, token, session.expiresAt);
+      setSessionTokenCookie(event, token, session.expiresAt);
       
       // Redirect to the requested page or profile
       throw redirect(302, redirectTo);
     } catch (error) {
       console.error('Login error:', error);
-      return fail(400, { error: 'Invalid email or password' });
+      return fail(500, { 
+        error: 'An unexpected error occurred. Please try again.',
+        email
+      });
     }
   }
 };
