@@ -1,6 +1,6 @@
 // src/routes/book/review/+page.server.ts
 import { db } from '$lib/server/db';
-import { service, address } from '$lib/server/db/schema';
+import { service, address, booking } from '$lib/server/db/schema';
 import { error, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
@@ -72,15 +72,38 @@ export const actions: Actions = {
         return { success: false, error: 'Selected address not found or invalid' };
       }
       
-      // Create booking record
-      // This would normally be more complex with availability checks
+      // Get service price and details
+      const serviceData = serviceResult[0];
+      
+      // Parse the scheduled date
+      const scheduledDateObj = new Date(scheduledDate);
+      
+      // Calculate duration in minutes based on the service
+      const durationMinutes = serviceData.durationHours * 60;
+      
+      // Create booking ID
       const bookingId = crypto.randomUUID();
       
-      // At this point, we would insert the booking into the database
-      // For now, just return success with the booking ID
+      // FIXED: Actually insert the booking into the database now
+      const [newBooking] = await db.insert(booking).values({
+        id: bookingId,
+        userId: locals.user.id,
+        serviceId: serviceId,
+        addressId: addressId,
+        status: 'PENDING',
+        scheduledDate: scheduledDateObj,
+        duration: durationMinutes,
+        price: serviceData.basePrice,
+        notes: notes || null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+      
+      console.log(`Created new booking: ${newBooking.id} for user: ${locals.user.id}`);
+      
       return { 
         success: true,
-        bookingId,
+        bookingId: newBooking.id,
         message: 'Booking created successfully' 
       };
     } catch (err) {

@@ -1,4 +1,4 @@
-// src/routes/payment/process/+page.svelte
+<!-- src/routes/payment/process/+page.svelte -->
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
