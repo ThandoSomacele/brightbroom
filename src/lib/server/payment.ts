@@ -4,16 +4,33 @@ import { booking, payment, user, service, type Payment } from '$lib/server/db/sc
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
 
-// Environment variables - these should be set in your .env file
-const PAYFAST_MERCHANT_ID = import.meta.env.VITE_PAYFAST_MERCHANT_ID;
-const PAYFAST_MERCHANT_KEY = import.meta.env.VITE_PAYFAST_MERCHANT_KEY;
-const PAYFAST_PASSPHRASE = import.meta.env.VITE_PAYFAST_PASSPHRASE;
-const PAYFAST_URL = import.meta.env.DEV 
+// Get environment variables with fallbacks to sandbox credentials for safety
+const PAYFAST_MERCHANT_ID = import.meta.env.VITE_PAYFAST_MERCHANT_ID || '10035674';
+const PAYFAST_MERCHANT_KEY = import.meta.env.VITE_PAYFAST_MERCHANT_KEY || '9nqhf208lzpc4';
+const PAYFAST_PASSPHRASE = import.meta.env.VITE_PAYFAST_PASSPHRASE || 'personalprojectssanding';
+
+// Determine if we should use sandbox mode (default to true in development)
+const USE_SANDBOX = import.meta.env.VITE_PAYFAST_SANDBOX_MODE === 'false' ? false : true;
+
+// Set appropriate PayFast URL based on environment
+const PAYFAST_URL = USE_SANDBOX 
   ? 'https://sandbox.payfast.co.za/eng/process'
   : 'https://www.payfast.co.za/eng/process';
-const RETURN_URL = import.meta.env.VITE_APP_URL + '/payment/success';
-const CANCEL_URL = import.meta.env.VITE_APP_URL + '/payment/cancel';
-const NOTIFY_URL = import.meta.env.VITE_APP_URL + '/api/payments/ipn';
+
+// Get base app URL with fallback
+const APP_BASE_URL = import.meta.env.VITE_APP_URL || 'http://localhost:5173';
+
+// Construct full URLs for callbacks
+const RETURN_URL = `${APP_BASE_URL}/payment/success`;
+const CANCEL_URL = `${APP_BASE_URL}/payment/cancel`;
+const NOTIFY_URL = `${APP_BASE_URL}/api/payments/ipn`;
+
+// Log payment configuration on startup (but not sensitive info)
+console.log('PayFast Configuration:');
+console.log(`- Using ${USE_SANDBOX ? 'SANDBOX' : 'PRODUCTION'} mode`);
+console.log(`- Return URL: ${RETURN_URL}`);
+console.log(`- Cancel URL: ${CANCEL_URL}`);
+console.log(`- Notify URL: ${NOTIFY_URL}`);
 
 interface PayFastPaymentData {
   merchant_id: string;
@@ -40,53 +57,98 @@ interface PayFastPaymentData {
   custom_int5?: string;
 }
 
+/**
+ * Create a payment for a booking and generate PayFast redirect URL
+ * @param bookingId The ID of the booking to create a payment for
+ * @returns The payment ID and redirect URL for PayFast
+ */
 export async function createPaymentForBooking(
   bookingId: string
 ): Promise<{ paymentId: string; redirectUrl: string }> {
-  // Get booking with user information
-  const [bookingData] = await db.select()
-    .from(booking)
-    .where(eq(booking.id, bookingId))
-    .limit(1);
+  try {
+    console.log(`Creating payment for booking: ${bookingId}`);
+    
+    // Get booking with user information
+    const bookingResult = await db.select()
+      .from(booking)
+      .where(eq(booking.id, bookingId))
+      .limit(1);
 
-  if (!bookingData) {
-    throw new Error('Booking not found');
+    if (!bookingResult || bookingResult.length === 0) {
+      console.error(`Booking not found: ${bookingId}`);
+      throw new Error('Booking not found');
+    }
+
+    const bookingData = bookingResult[0];
+    console.log(`Found booking: ${bookingData.id} for user: ${bookingData.userId}`);
+
+    // Get user data
+    const userResult = await db.select()
+      .from(user)
+      .where(eq(user.id, bookingData.userId))
+      .limit(1);
+
+    if (!userResult || userResult.length === 0) {
+      console.error(`User not found: ${bookingData.userId}`);
+      throw new Error('User not found');
+    }
+
+    const userData = userResult[0];
+
+    // Get service data
+    const serviceResult = await db.select()
+      .from(service)
+      .where(eq(service.id, bookingData.serviceId))
+      .limit(1);
+
+    if (!serviceResult || serviceResult.length === 0) {
+      console.error(`Service not found: ${bookingData.serviceId}`);
+      throw new Error('Service not found');
+    }
+
+    const serviceData = serviceResult[0];
+
+    // Create payment record
+    const paymentId = crypto.randomUUID();
+    console.log(`Generated payment ID: ${paymentId}`);
+    
+    const [newPayment] = await db.insert(payment).values({
+      id: paymentId,
+      userId: bookingData.userId,
+      bookingId: bookingData.id,
+      amount: bookingData.price,
+      status: 'PENDING',
+      paymentMethod: 'CREDIT_CARD',
+      merchantReference: `BrightBroom-${bookingData.id}`,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }).returning();
+
+    console.log(`Created payment record: ${newPayment.id}`);
+
+    // Generate PayFast URL
+    const redirectUrl = generatePayFastUrl(bookingData, userData, serviceData, newPayment);
+    console.log(`Generated PayFast URL (partial): ${redirectUrl.substring(0, 100)}...`);
+
+    return {
+      paymentId,
+      redirectUrl,
+    };
+  } catch (error) {
+    console.error('Error creating payment for booking:', error);
+    throw error;
   }
-
-  // Get user and service data
-  const [userData] = await db.select().from(user).where(eq(user.id, bookingData.userId)).limit(1);
-  const [serviceData] = await db.select().from(service).where(eq(service.id, bookingData.serviceId)).limit(1);
-
-  if (!userData || !serviceData) {
-    throw new Error('User or service not found');
-  }
-
-  // Create payment record
-  const paymentId = crypto.randomUUID();
-  const [newPayment] = await db.insert(payment).values({
-    id: paymentId,
-    userId: bookingData.userId,
-    bookingId: bookingData.id,
-    amount: bookingData.price,
-    status: 'PENDING',
-    merchantReference: `BrightBroom-${bookingData.id}`,
-  }).returning();
-
-  // Generate PayFast URL
-  const redirectUrl = await generatePayFastUrl(bookingData, userData, serviceData, newPayment);
-
-  return {
-    paymentId: paymentId,
-    redirectUrl,
-  };
 }
 
-async function generatePayFastUrl(
+/**
+ * Generate a PayFast URL for redirecting the user to complete payment
+ */
+function generatePayFastUrl(
   bookingData: any,
   userData: any,
   serviceData: any,
   paymentData: Payment
-): Promise<string> {
+): string {
   // Format amount to 2 decimal places as required by PayFast
   const formattedAmount = Number(bookingData.price).toFixed(2);
 
@@ -119,58 +181,86 @@ async function generatePayFastUrl(
   return `${PAYFAST_URL}?${queryParams}`;
 }
 
-// Rest of the functions remain largely the same, just updated to use Drizzle
+/**
+ * Generate a signature for PayFast payment data
+ * @param data The payment data
+ * @param passphrase Optional passphrase for additional security
+ * @returns MD5 hash signature
+ */
 function generateSignature(data: Record<string, string>, passphrase: string | null = null): string {
-  // Create parameter string
-  let pfOutput = '';
-  
-  // Sort the data object by key
-  const keys = Object.keys(data).sort();
-  
-  // Build output string
-  keys.forEach(key => {
-    if (data[key] !== '' && key !== 'signature') {
-      pfOutput += `${key}=${encodeURIComponent(data[key]).replace(/%20/g, '+')}&`;
+  try {
+    // Create parameter string
+    let pfOutput = '';
+    
+    // Sort the data object by key
+    const keys = Object.keys(data).sort();
+    
+    // Build output string
+    keys.forEach(key => {
+      if (data[key] !== '' && key !== 'signature') {
+        pfOutput += `${key}=${encodeURIComponent(data[key]).replace(/%20/g, '+')}&`;
+      }
+    });
+
+    // Remove last ampersand
+    pfOutput = pfOutput.slice(0, -1);
+
+    // Add passphrase if provided
+    if (passphrase !== null && passphrase !== '') {
+      pfOutput += `&passphrase=${encodeURIComponent(passphrase).replace(/%20/g, '+')}`;
     }
-  });
 
-  // Remove last ampersand
-  pfOutput = pfOutput.slice(0, -1);
-
-  // Add passphrase if provided
-  if (passphrase !== null) {
-    pfOutput += `&passphrase=${encodeURIComponent(passphrase).replace(/%20/g, '+')}`;
+    // Generate MD5 hash
+    return crypto.createHash('md5').update(pfOutput).digest('hex');
+  } catch (error) {
+    console.error('Error generating PayFast signature:', error);
+    throw error;
   }
-
-  // Generate MD5 hash
-  return crypto.createHash('md5').update(pfOutput).digest('hex');
 }
 
+/**
+ * Validate an IPN request from PayFast
+ * @param pfData The data from PayFast
+ * @param pfParamString The original parameter string
+ * @returns True if the request is valid, false otherwise
+ */
 export async function validateIpnRequest(
   pfData: Record<string, string>, 
   pfParamString: string
 ): Promise<boolean> {
-  const pfHost = 'sandbox.payfast.co.za';
-
-  // Verify security signature
-  const passPhrase = PAYFAST_PASSPHRASE;
-  const pfParamsToInclude = { ...pfData };
-  
-  // Remove signature from data to verify
-  delete pfParamsToInclude.signature;
-  
-  // Regenerate signature
-  const signature = generateSignature(pfParamsToInclude, passPhrase);
-  
-  if (pfData.signature !== signature) {
-    console.error('Signature validation failed');
-    return false;
-  }
-
-  // Verify data with PayFast server
-  const verifyUrl = `https://${pfHost}/eng/query/validate`;
+  // Use sandbox host for testing
+  const pfHost = USE_SANDBOX ? 'sandbox.payfast.co.za' : 'www.payfast.co.za';
   
   try {
+    console.log('Validating IPN request from PayFast');
+    
+    // Verify security signature
+    const pfParamsToInclude = { ...pfData };
+    
+    // Remove signature from data to verify
+    delete pfParamsToInclude.signature;
+    
+    // Regenerate signature
+    const signature = generateSignature(pfParamsToInclude, PAYFAST_PASSPHRASE);
+    
+    if (pfData.signature !== signature) {
+      console.error('IPN request signature validation failed');
+      return false;
+    }
+
+    console.log('IPN signature validated successfully');
+
+    // Skip server verification in sandbox mode if testing locally
+    if (USE_SANDBOX && process.env.NODE_ENV === 'development') {
+      console.log('Skipping server verification in sandbox mode for local development');
+      return true;
+    }
+
+    // Verify data with PayFast server
+    const verifyUrl = `https://${pfHost}/eng/query/validate`;
+    
+    console.log(`Verifying IPN with PayFast at: ${verifyUrl}`);
+    
     const response = await fetch(verifyUrl, {
       method: 'POST',
       headers: {
@@ -182,32 +272,61 @@ export async function validateIpnRequest(
     const text = await response.text();
     
     if (text !== 'VALID') {
-      console.error('PayFast validation failed');
+      console.error(`PayFast server validation failed: ${text}`);
       return false;
     }
+
+    console.log('IPN request verified successfully with PayFast server');
+    return true;
   } catch (error) {
-    console.error('Error validating with PayFast server', error);
+    console.error('Error validating IPN request:', error);
     return false;
   }
-
-  return true;
 }
 
+/**
+ * Process a successful payment
+ * @param paymentId The ID of the payment
+ */
 export async function processSuccessfulPayment(paymentId: string): Promise<void> {
-  // Update payment status to completed
-  await db.update(payment)
-    .set({ status: 'COMPLETED' })
-    .where(eq(payment.id, paymentId));
+  try {
+    console.log(`Processing successful payment: ${paymentId}`);
+    
+    // Update payment status to completed
+    await db.update(payment)
+      .set({ 
+        status: 'COMPLETED',
+        updatedAt: new Date()
+      })
+      .where(eq(payment.id, paymentId));
+    
+    console.log(`Updated payment status to COMPLETED: ${paymentId}`);
 
-  // Update associated booking status
-  const [paymentData] = await db.select()
-    .from(payment)
-    .where(eq(payment.id, paymentId))
-    .limit(1);
+    // Get the booking ID for this payment
+    const paymentResult = await db.select()
+      .from(payment)
+      .where(eq(payment.id, paymentId))
+      .limit(1);
 
-  if (paymentData) {
+    if (!paymentResult || paymentResult.length === 0) {
+      console.error(`Payment not found: ${paymentId}`);
+      return;
+    }
+
+    const paymentData = paymentResult[0];
+    const bookingId = paymentData.bookingId;
+
+    // Update booking status to CONFIRMED
     await db.update(booking)
-      .set({ status: 'CONFIRMED' })
-      .where(eq(booking.id, paymentData.bookingId));
+      .set({ 
+        status: 'CONFIRMED',
+        updatedAt: new Date()
+      })
+      .where(eq(booking.id, bookingId));
+    
+    console.log(`Updated booking status to CONFIRMED: ${bookingId}`);
+  } catch (error) {
+    console.error('Error processing successful payment:', error);
+    throw error;
   }
 }
