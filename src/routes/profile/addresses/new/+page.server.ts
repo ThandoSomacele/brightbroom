@@ -107,25 +107,34 @@ export const actions: Actions = {
       // Parse and validate with zod schema
       const validatedData = addressSchema.parse(data);
       
-      // Transaction to ensure data consistency
-      await db.transaction(async (tx) => {
-        // If setting as default, first set all existing addresses to non-default
-        if (validatedData.isDefault) {
-          await tx.update(address)
+      // First check if this will be the first address - completely outside the transaction
+      let isFirstAddress = false;
+      try {
+        // Get all addresses
+        const allAddresses = await db.select()
+          .from(address)
+          .where(eq(address.userId, locals.user.id));
+        
+        // If no addresses exist, this will be the first one
+        isFirstAddress = allAddresses.length === 0;
+      } catch (err) {
+        console.error('Error checking existing addresses:', err);
+        // Default to false if we can't determine
+        isFirstAddress = false;
+      }
+      
+      // Use a simpler approach to create the address
+      // This replaces the transaction to avoid issues
+      try {
+        // If setting as default or it's the first address, update all existing addresses to non-default
+        if (validatedData.isDefault || isFirstAddress) {
+          await db.update(address)
             .set({ isDefault: false })
             .where(eq(address.userId, locals.user.id));
         }
         
-        // Check if this is the first address, if so, set as default regardless
-        const existingAddresses = await tx.select({ count: db.fn.count() })
-          .from(address)
-          .where(eq(address.userId, locals.user.id));
-        
-        const isFirstAddress = Number(existingAddresses[0].count) === 0;
-        const shouldBeDefault = validatedData.isDefault || isFirstAddress;
-        
-        // Create the new address
-        await tx.insert(address).values({
+        // Create the new address - this should always be default if it's the first one
+        await db.insert(address).values({
           id: crypto.randomUUID(),
           userId: locals.user.id,
           street: validatedData.street,
@@ -134,11 +143,24 @@ export const actions: Actions = {
           state: validatedData.state,
           zipCode: validatedData.zipCode,
           instructions: validatedData.instructions,
-          isDefault: shouldBeDefault,
+          isDefault: validatedData.isDefault || isFirstAddress,
           createdAt: new Date(),
           updatedAt: new Date()
         });
-      });
+      } catch (err) {
+        console.error('Error creating address:', err);
+        return fail(500, { 
+          error: 'Failed to add address. Database error.',
+          street,
+          aptUnit,
+          city,
+          state,
+          zipCode,
+          instructions,
+          isDefault,
+          redirectTo
+        });
+      }
       
       // Redirect based on the source of the request
       if (redirectTo && redirectTo.startsWith('/book')) {
