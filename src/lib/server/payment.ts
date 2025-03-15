@@ -195,22 +195,31 @@ function generateSignature(data: Record<string, string>, passphrase: string | nu
     // Sort the data object by key
     const keys = Object.keys(data).sort();
     
-    // Build output string
+    // Build output string - EXACTLY matching PayFast's format
     keys.forEach(key => {
+      // Only include non-empty values and exclude signature field
       if (data[key] !== '' && key !== 'signature') {
-        pfOutput += `${key}=${encodeURIComponent(data[key]).replace(/%20/g, '+')}&`;
+        // URL encode the value and replace %20 with + (PayFast requirement)
+        const encodedValue = encodeURIComponent(data[key]).replace(/%20/g, '+');
+        pfOutput += `${key}=${encodedValue}&`;
       }
     });
 
     // Remove last ampersand
     pfOutput = pfOutput.slice(0, -1);
 
-    // Add passphrase if provided
+    // Add passphrase if provided - this is a common source of errors
     if (passphrase !== null && passphrase !== '') {
-      pfOutput += `&passphrase=${encodeURIComponent(passphrase).replace(/%20/g, '+')}`;
+      // URL encode the passphrase and replace %20 with +
+      const encodedPassphrase = encodeURIComponent(passphrase).replace(/%20/g, '+');
+      pfOutput += `&passphrase=${encodedPassphrase}`;
     }
 
-    // Generate MD5 hash
+    // Log the pre-hash string for debugging (remove in production)
+    console.log('Pre-hash signature string (without passphrase):', 
+      pfOutput.replace(/&passphrase=.*$/, '&passphrase=HIDDEN'));
+    
+    // Generate MD5 hash - must be lowercase per PayFast specs
     return crypto.createHash('md5').update(pfOutput).digest('hex');
   } catch (error) {
     console.error('Error generating PayFast signature:', error);
