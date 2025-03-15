@@ -26,7 +26,7 @@ const loginSchema = z.object({
 });
 
 export const actions: Actions = {
-  default: async (event) => {
+  login: async (event) => {
     const { request, cookies, url } = event;
     const formData = await request.formData();
     const email = formData.get('email')?.toString().toLowerCase();

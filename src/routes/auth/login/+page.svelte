@@ -42,7 +42,7 @@
       
       <form 
         method="POST" 
-        action="?/default{redirectTo ? `&redirectTo=${redirectTo}` : ''}" 
+        action="?/login{redirectTo ? `&redirectTo=${redirectTo}` : ''}" 
         use:enhance={({ formData, formElement, submitter, cancel }) => {
           // Mark loading state
           isLoading = true;
