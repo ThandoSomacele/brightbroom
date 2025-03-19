@@ -9,16 +9,6 @@ import { fail, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
 import type { Actions, PageServerLoad } from './$types';
 
-// Validate user exists before showing login page
-export const load: PageServerLoad = async ({ locals }) => {
-  // If user is already logged in, redirect to profile
-  if (locals.user) {
-    throw redirect(302, '/profile');
-  }
-  
-  return {};
-};
-
 // Form validation schema
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -27,19 +17,17 @@ const loginSchema = z.object({
 
 export const actions: Actions = {
   login: async (event) => {
-    const { request, cookies, url } = event;
+    const { request } = event;
     const formData = await request.formData();
     const email = formData.get('email')?.toString().toLowerCase();
     const password = formData.get('password')?.toString();
-    const redirectTo = url.searchParams.get('redirectTo') || '/profile';
+    const redirectTo = formData.get('redirectTo')?.toString() || '/profile';
     
     console.log('Login attempt:', { email, redirectTo });
     
     try {
-      // Validate form data
-      if (!email || !password) {
-        return fail(400, { error: 'Email and password are required' });
-      }
+      // Validate form data with Zod
+      loginSchema.parse({ email, password });
       
       // Find the user by email
       const userData = await getUserByEmail(email);
@@ -52,7 +40,7 @@ export const actions: Actions = {
         });
       }
       
-      // Verify password (using Argon2id from oslo)
+      // Verify password
       const { Argon2id } = await import('oslo/password');
       const hasher = new Argon2id();
       const validPassword = await hasher.verify(userData.passwordHash, password);
@@ -74,14 +62,27 @@ export const actions: Actions = {
       // Set the session cookie
       setSessionTokenCookie(event, token, session.expiresAt);
       
-      // Redirect to the requested page or profile
-      throw redirect(302, redirectTo);
     } catch (error) {
       console.error('Login error:', error);
+      
+      // Handle Zod validation errors
+      if (error instanceof z.ZodError) {
+        const errors = error.flatten().fieldErrors;
+        const firstError = Object.values(errors)[0]?.[0] || 'Invalid input';
+        
+        return fail(400, { 
+          error: firstError,
+          email
+        });
+      }
+      
       return fail(500, { 
         error: 'An unexpected error occurred. Please try again.',
         email
       });
     }
+    
+    // After successful authentication and session creation, redirect
+    throw redirect(302, redirectTo);
   }
 };
