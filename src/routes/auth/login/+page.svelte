@@ -54,11 +54,11 @@
           return async ({ result }) => {
             isLoading = false;
 
-            // If it's a redirect, the page will navigate automatically
-            // If it's a form error, update the form accordingly
-            if (result.type === "failure") {
-              // The form will update automatically with the error
+            if (result.type === "redirect") {
+              // Explicitly navigate to the redirect location
+              window.location.href = result.location;
             }
+            // For failures, the form will update automatically
           };
         }}
       >
