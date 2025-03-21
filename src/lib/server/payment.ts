@@ -168,7 +168,6 @@ export async function createPaymentForBooking(
 /**
  * Generate a PayFast URL for redirecting the user to complete payment
  */
-
 function generatePayFastUrl(
   bookingData: any,
   userData: any,
@@ -187,7 +186,7 @@ function generatePayFastUrl(
   const data: PayFastPaymentData = {
     merchant_id: PAYFAST_MERCHANT_ID,
     merchant_key: PAYFAST_MERCHANT_KEY,
-    return_url: RETURN_URL,
+    return_url: `${RETURN_URL}?booking_id=${bookingData.id}`, // Add booking_id to return_url
     cancel_url: CANCEL_URL,
     notify_url: NOTIFY_URL,
     name_first: firstName,
