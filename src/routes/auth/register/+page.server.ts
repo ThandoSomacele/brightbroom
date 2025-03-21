@@ -35,7 +35,7 @@ const registerSchema = z.object({
 
 export const actions: Actions = {
   default: async (event) => {
-    const { request, cookies } = event;
+    const { request } = event;
     const formData = await request.formData();
     
     const firstName = formData.get('firstName')?.toString();
@@ -47,25 +47,10 @@ export const actions: Actions = {
     
     console.log('Registration attempt:', { firstName, lastName, email });
     
-    // Validate form data
     try {
+      // Validate form data
       registerSchema.parse({ firstName, lastName, email, phone, password, terms });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const errors = error.flatten().fieldErrors;
-        const firstError = Object.values(errors)[0]?.[0] || 'Invalid input';
-        console.log('Registration validation error:', firstError);
-        return fail(400, { 
-          error: firstError,
-          firstName,
-          lastName,
-          email,
-          phone
-        });
-      }
-    }
-    
-    try {
+      
       // Check if user already exists
       const existingUser = await getUserByEmail(email!);
       
@@ -108,10 +93,22 @@ export const actions: Actions = {
       // Set session cookie
       setSessionTokenCookie(event, token, session.expiresAt);
       
-      // Redirect to profile to complete account setup
-      throw redirect(302, '/profile');
     } catch (error) {
       console.error('Registration error:', error);
+      
+      // Handle Zod validation errors
+      if (error instanceof z.ZodError) {
+        const errors = error.flatten().fieldErrors;
+        const firstError = Object.values(errors)[0]?.[0] || 'Invalid input';
+        return fail(400, { 
+          error: firstError,
+          firstName,
+          lastName,
+          email,
+          phone
+        });
+      }
+      
       return fail(500, { 
         error: 'Failed to create account. Please try again.',
         firstName,
@@ -120,5 +117,8 @@ export const actions: Actions = {
         phone
       });
     }
+    
+    // After successful registration and session creation, redirect
+    throw redirect(302, '/profile');
   }
-};  
+};
