@@ -166,65 +166,6 @@ export async function createPaymentForBooking(
 }
 
 /**
- * Debug helper to compare the generated signature with what PayFast might expect
- */
-function debugPayFastSignature(
-  data: Record<string, string>,
-  signature: string,
-  passphrase: string,
-): void {
-  if (process.env.NODE_ENV !== "production") {
-    console.log("\n--------- PAYFAST DEBUG INFO ---------");
-    console.log("Data being sent to PayFast:");
-    Object.keys(data)
-      .sort()
-      .forEach((key) => {
-        console.log(`${key}: ${data[key]}`);
-      });
-
-    console.log("\nGenerated signature:", signature);
-
-    // Build the signature string manually for visual inspection
-    let manualString = "";
-    Object.keys(data)
-      .sort()
-      .forEach((key) => {
-        if (key !== "signature" && data[key] !== "") {
-          manualString += `${key}=${encodeURIComponent(data[key]).replace(/%20/g, "+")}&`;
-        }
-      });
-    manualString = manualString.slice(0, -1); // Remove trailing &
-
-    if (passphrase) {
-      manualString += `&passphrase=${encodeURIComponent(passphrase).replace(/%20/g, "+")}`;
-    }
-
-    console.log(
-      "\nSignature string (without passphrase):",
-      manualString.replace(/&passphrase=.*$/, "&passphrase=HIDDEN"),
-    );
-
-    // Generate a test signature with a completely manual approach
-    const testSignature = crypto
-      .createHash("md5")
-      .update(manualString)
-      .digest("hex");
-    console.log("\nTest signature (manual string):", testSignature);
-
-    if (signature !== testSignature) {
-      console.log(
-        "\n⚠️ WARNING: Test signature differs from generated signature!",
-      );
-      console.log(
-        "This indicates an internal inconsistency in signature generation.",
-      );
-    }
-
-    console.log("--------- END DEBUG INFO ---------\n");
-  }
-}
-
-/**
  * Generate a PayFast URL for redirecting the user to complete payment
  */
 
@@ -274,8 +215,6 @@ function generatePayFastUrl(
     }
   });
 
-  debugPayFastSignature(data, signature, PAYFAST_PASSPHRASE);
-
   // Add signature
   queryString += `signature=${signature}`;
 
@@ -293,28 +232,87 @@ function generateSignature(
   passphrase: string | null = null,
 ): string {
   try {
+    // Define sections of parameters based on PayFast documentation
+    const sections = [
+      // Merchant details
+      [
+        "merchant_id",
+        "merchant_key",
+        "return_url",
+        "cancel_url",
+        "notify_url",
+        "fica_idnumber",
+      ],
+      // Customer details
+      ["name_first", "name_last", "email_address", "cell_number"],
+      // Transaction details
+      ["m_payment_id", "amount", "item_name", "item_description"],
+      // Custom variables
+      [
+        "custom_str1",
+        "custom_str2",
+        "custom_str3",
+        "custom_str4",
+        "custom_str5",
+        "custom_int1",
+        "custom_int2",
+        "custom_int3",
+        "custom_int4",
+        "custom_int5",
+      ],
+      // Transaction options
+      ["email_confirmation", "confirmation_address", "payment_method"],
+      // Recurring Billing
+      [
+        "subscription_type",
+        "billing_date",
+        "recurring_amount",
+        "frequency",
+        "cycles",
+        "subscription_notify_email",
+        "subscription_notify_webhook",
+        "subscription_notify_buyer",
+      ],
+    ];
+
     // Create parameter string
     let pfOutput = "";
 
-    // Sort the data object by key
-    const keys = Object.keys(data).sort();
+    // Create a set to track processed parameters
+    const processedParams = new Set<string>();
 
-    // Build output string - EXACTLY matching PayFast's format
-    keys.forEach((key) => {
-      // Only include non-empty values and exclude signature field
-      if (data[key] !== "" && key !== "signature") {
-        // URL encode the value and replace %20 with + (PayFast requirement)
+    // Add parameters in the defined sections if they exist in the data
+    for (const section of sections) {
+      for (const key of section) {
+        if (data[key] && data[key] !== "" && key !== "signature") {
+          const encodedValue = encodeURIComponent(data[key]).replace(
+            /%20/g,
+            "+",
+          );
+          pfOutput += `${key}=${encodedValue}&`;
+          processedParams.add(key);
+        }
+      }
+    }
+
+    // Add any remaining parameters not in the defined sections
+    for (const key in data) {
+      if (
+        !processedParams.has(key) &&
+        data[key] !== "" &&
+        key !== "signature" &&
+        data.hasOwnProperty(key)
+      ) {
         const encodedValue = encodeURIComponent(data[key]).replace(/%20/g, "+");
         pfOutput += `${key}=${encodedValue}&`;
       }
-    });
+    }
 
     // Remove last ampersand
     pfOutput = pfOutput.slice(0, -1);
 
-    // Add passphrase if provided - this is a common source of errors
+    // Add passphrase if provided
     if (passphrase !== null && passphrase !== "") {
-      // URL encode the passphrase and replace %20 with +
       const encodedPassphrase = encodeURIComponent(passphrase).replace(
         /%20/g,
         "+",
@@ -322,13 +320,13 @@ function generateSignature(
       pfOutput += `&passphrase=${encodedPassphrase}`;
     }
 
-    // Log the pre-hash string for debugging (remove in production)
+    // Log the pre-hash string for debugging
     console.log(
       "Pre-hash signature string (without passphrase):",
       pfOutput.replace(/&passphrase=.*$/, "&passphrase=HIDDEN"),
     );
 
-    // Generate MD5 hash - must be lowercase per PayFast specs
+    // Generate MD5 hash
     return crypto.createHash("md5").update(pfOutput).digest("hex");
   } catch (error) {
     console.error("Error generating PayFast signature:", error);
