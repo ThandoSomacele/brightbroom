@@ -7,11 +7,11 @@
     Calendar,
     ChevronLeft,
     Clock,
-    DollarSign,
     Home,
     Mail,
     Phone,
     User,
+    Wallet,
   } from "lucide-svelte";
 
   export let data;
@@ -348,7 +348,7 @@
 
         <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
           <div class="flex items-center justify-center mb-2">
-            <DollarSign class="w-6 h-6 text-green-500" />
+            <Wallet class="w-6 h-6 text-green-500" />
           </div>
           <p
             class="text-lg font-bold text-center text-gray-900 dark:text-white"
