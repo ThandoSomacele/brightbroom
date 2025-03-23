@@ -1,31 +1,39 @@
 <!-- src/routes/admin/dashboard/+page.svelte -->
 <script lang="ts">
-  import { BarChart, LineChart, PieChart, Calendar, Users, CreditCard, ArrowUp, ArrowDown } from 'lucide-svelte';
-  
+  import {
+    ArrowDown,
+    ArrowUp,
+    BarChart,
+    Calendar,
+    CreditCard,
+    LineChart,
+    Users,
+  } from "lucide-svelte";
+
   // Import data from server load function
   export let data;
   const { metrics, bookingTrends, revenueTrends, recentActivity } = data;
-  
+
   // Helper function to format currency
   function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-ZA', {
-      style: 'currency',
-      currency: 'ZAR'
+    return new Intl.NumberFormat("en-ZA", {
+      style: "currency",
+      currency: "ZAR",
     }).format(amount);
   }
-  
+
   // Helper function to determine trend color
   function getTrendColor(value: number): string {
-    return value >= 0 ? 'text-green-500' : 'text-red-500';
+    return value >= 0 ? "text-green-500" : "text-red-500";
   }
-  
+
   // Helper function to format date
   function formatDate(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-ZA', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
+    return date.toLocaleDateString("en-ZA", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     });
   }
 </script>
@@ -48,7 +56,9 @@
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
     <div class="flex justify-between">
       <div>
-        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Bookings</p>
+        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+          Total Bookings
+        </p>
         <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
           {metrics.totalBookings}
         </p>
@@ -59,20 +69,26 @@
     </div>
     <div class="mt-4 flex items-center">
       <span class={getTrendColor(metrics.bookingTrend)}>
-        {metrics.bookingTrend >= 0 ? 
-          <ArrowUp class="inline h-4 w-4" /> : 
-          <ArrowDown class="inline h-4 w-4" />}
+        {#if metrics.bookingTrend >= 0}
+          <ArrowUp class="inline h-4 w-4" />
+        {:else}
+          <ArrowDown class="inline h-4 w-4" />
+        {/if}
         {Math.abs(metrics.bookingTrend)}%
       </span>
-      <span class="text-gray-500 dark:text-gray-400 text-sm ml-2">from last month</span>
+      <span class="text-gray-500 dark:text-gray-400 text-sm ml-2"
+        >from last month</span
+      >
     </div>
   </div>
-  
+
   <!-- Total Revenue -->
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
     <div class="flex justify-between">
       <div>
-        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue</p>
+        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+          Total Revenue
+        </p>
         <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
           {formatCurrency(metrics.totalRevenue)}
         </p>
@@ -83,20 +99,26 @@
     </div>
     <div class="mt-4 flex items-center">
       <span class={getTrendColor(metrics.revenueTrend)}>
-        {metrics.revenueTrend >= 0 ? 
-          <ArrowUp class="inline h-4 w-4" /> : 
-          <ArrowDown class="inline h-4 w-4" />}
+        {#if metrics.revenueTrend >= 0}
+          <ArrowUp class="inline h-4 w-4" />
+        {:else}
+          <ArrowDown class="inline h-4 w-4" />
+        {/if}
         {Math.abs(metrics.revenueTrend)}%
       </span>
-      <span class="text-gray-500 dark:text-gray-400 text-sm ml-2">from last month</span>
+      <span class="text-gray-500 dark:text-gray-400 text-sm ml-2"
+        >from last month</span
+      >
     </div>
   </div>
-  
+
   <!-- Active Cleaners -->
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
     <div class="flex justify-between">
       <div>
-        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Active Cleaners</p>
+        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+          Active Cleaners
+        </p>
         <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
           {metrics.activeCleaners}
         </p>
@@ -107,20 +129,26 @@
     </div>
     <div class="mt-4 flex items-center">
       <span class={getTrendColor(metrics.cleanerTrend)}>
-        {metrics.cleanerTrend >= 0 ? 
-          <ArrowUp class="inline h-4 w-4" /> : 
-          <ArrowDown class="inline h-4 w-4" />}
+        {#if metrics.cleanerTrend >= 0}
+          <ArrowUp class="inline h-4 w-4" />
+        {:else}
+          <ArrowDown class="inline h-4 w-4" />
+        {/if}
         {Math.abs(metrics.cleanerTrend)}%
       </span>
-      <span class="text-gray-500 dark:text-gray-400 text-sm ml-2">from last month</span>
+      <span class="text-gray-500 dark:text-gray-400 text-sm ml-2"
+        >from last month</span
+      >
     </div>
   </div>
-  
+
   <!-- Pending Bookings -->
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
     <div class="flex justify-between">
       <div>
-        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Pending Bookings</p>
+        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+          Pending Bookings
+        </p>
         <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
           {metrics.pendingBookings}
         </p>
@@ -130,7 +158,10 @@
       </div>
     </div>
     <div class="mt-2 flex justify-end">
-      <a href="/admin/bookings?status=PENDING" class="text-sm text-primary hover:underline">
+      <a
+        href="/admin/bookings?status=PENDING"
+        class="text-sm text-primary hover:underline"
+      >
         View all
       </a>
     </div>
@@ -141,24 +172,36 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
   <!-- Booking Trends Chart -->
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Booking Trends</h2>
+    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+      Booking Trends
+    </h2>
     <div class="h-64">
       <!-- SVG Chart Placeholder - In a real app, you would use a chart library -->
-      <div class="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+      <div
+        class="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+      >
         <LineChart size={48} class="text-gray-400" />
-        <span class="ml-2 text-gray-500 dark:text-gray-400">Booking trends chart will appear here</span>
+        <span class="ml-2 text-gray-500 dark:text-gray-400"
+          >Booking trends chart will appear here</span
+        >
       </div>
     </div>
   </div>
-  
+
   <!-- Revenue Chart -->
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Revenue</h2>
+    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+      Revenue
+    </h2>
     <div class="h-64">
       <!-- SVG Chart Placeholder - In a real app, you would use a chart library -->
-      <div class="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+      <div
+        class="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+      >
         <BarChart size={48} class="text-gray-400" />
-        <span class="ml-2 text-gray-500 dark:text-gray-400">Revenue chart will appear here</span>
+        <span class="ml-2 text-gray-500 dark:text-gray-400"
+          >Revenue chart will appear here</span
+        >
       </div>
     </div>
   </div>
@@ -167,49 +210,82 @@
 <!-- Recent Activity -->
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
   <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-    <h2 class="text-lg font-medium text-gray-900 dark:text-white">Recent Activity</h2>
+    <h2 class="text-lg font-medium text-gray-900 dark:text-white">
+      Recent Activity
+    </h2>
   </div>
   <div class="overflow-x-auto">
     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
       <thead class="bg-gray-50 dark:bg-gray-700">
         <tr>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+          <th
+            scope="col"
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+          >
             Type
           </th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+          <th
+            scope="col"
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+          >
             Details
           </th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+          <th
+            scope="col"
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+          >
             Date
           </th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+          <th
+            scope="col"
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+          >
             Actions
           </th>
         </tr>
       </thead>
-      <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+      <tbody
+        class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
+      >
         {#if recentActivity && recentActivity.length > 0}
           {#each recentActivity as activity}
-            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <tr
+              class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
               <td class="px-6 py-4 whitespace-nowrap">
-                <span class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                  ${activity.type === 'BOOKING' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300' : 
-                  activity.type === 'PAYMENT' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' : 
-                  activity.type === 'USER' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300' : 
-                  'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300'}`}
+                <span
+                  class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                  ${
+                    activity.type === "BOOKING"
+                      ? "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+                      : activity.type === "PAYMENT"
+                        ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                        : activity.type === "USER"
+                          ? "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300"
+                          : "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300"
+                  }`}
                 >
                   {activity.type}
                 </span>
               </td>
               <td class="px-6 py-4">
-                <div class="text-sm text-gray-900 dark:text-white">{activity.description}</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">{activity.user}</div>
+                <div class="text-sm text-gray-900 dark:text-white">
+                  {activity.description}
+                </div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                  {activity.user}
+                </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+              >
                 {formatDate(activity.date)}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <a href={activity.link} class="text-primary hover:text-primary-600">
+                <a
+                  href={activity.link}
+                  class="text-primary hover:text-primary-600"
+                >
                   View
                 </a>
               </td>
@@ -217,7 +293,10 @@
           {/each}
         {:else}
           <tr>
-            <td colspan="4" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+            <td
+              colspan="4"
+              class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+            >
               No recent activity found
             </td>
           </tr>
@@ -226,7 +305,10 @@
     </table>
   </div>
   <div class="p-4 border-t border-gray-200 dark:border-gray-700 text-center">
-    <a href="#" class="text-primary hover:text-primary-600 text-sm font-medium hover:underline">
+    <a
+      href="#"
+      class="text-primary hover:text-primary-600 text-sm font-medium hover:underline"
+    >
       View all activity
     </a>
   </div>
