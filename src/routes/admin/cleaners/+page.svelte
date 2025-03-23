@@ -1,83 +1,102 @@
 <!-- src/routes/admin/cleaners/+page.svelte -->
 <script lang="ts">
-  import { Search, Filter, Download, Users, Star, Map, ArrowRight, ArrowLeft } from 'lucide-svelte';
-  import Button from '$lib/components/ui/Button.svelte';
-  
+  import Button from "$lib/components/ui/Button.svelte";
+  import {
+    ArrowLeft,
+    ArrowRight,
+    Download,
+    Filter,
+    Map,
+    Search,
+    Star,
+    Users,
+  } from "lucide-svelte";
+
   export let data;
   let { cleaners, pagination, filters } = data;
-  
+
   // Local state for filters
-  let searchTerm = filters.search || '';
-  let availabilityFilter = filters.availability || 'ALL';
-  let specializationFilter = filters.specialization || '';
+  let searchTerm = filters.search || "";
+  let availabilityFilter = filters.availability || "ALL";
+  let specializationFilter = filters.specialization || "";
   let showFilters = false;
-  
+
   // Availability options
   const availabilityOptions = [
-    { value: 'ALL', label: 'All Cleaners' },
-    { value: 'AVAILABLE', label: 'Available' },
-    { value: 'UNAVAILABLE', label: 'Unavailable' }
+    { value: "ALL", label: "All Cleaners" },
+    { value: "AVAILABLE", label: "Available" },
+    { value: "UNAVAILABLE", label: "Unavailable" },
   ];
-  
+
   // Format date function
   function formatDate(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-ZA', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return date.toLocaleDateString("en-ZA", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   }
-  
+
   // Format rating with stars
-  function formatRating(rating: number | null): string {
-    if (!rating) return 'Not rated';
-    return `${rating.toFixed(1)} / 5.0`;
+  function formatRating(rating: number | null | string | undefined): string {
+    if (rating === null || rating === undefined) return "Not rated";
+
+    // Convert to number if it's not already
+    const numericRating =
+      typeof rating === "number" ? rating : parseFloat(String(rating));
+
+    // Check if it's a valid number after conversion
+    if (isNaN(numericRating)) return "Not rated";
+
+    return `${numericRating.toFixed(1)} / 5.0`;
   }
-  
+
   // Apply filters
   function applyFilters() {
     const searchParams = new URLSearchParams();
-    
-    if (searchTerm) searchParams.set('search', searchTerm);
-    if (availabilityFilter && availabilityFilter !== 'ALL') searchParams.set('availability', availabilityFilter);
-    if (specializationFilter) searchParams.set('specialization', specializationFilter);
-    
+
+    if (searchTerm) searchParams.set("search", searchTerm);
+    if (availabilityFilter && availabilityFilter !== "ALL")
+      searchParams.set("availability", availabilityFilter);
+    if (specializationFilter)
+      searchParams.set("specialization", specializationFilter);
+
     // Add current page if it's not the first page
     if (pagination.page > 1) {
-      searchParams.set('page', pagination.page.toString());
+      searchParams.set("page", pagination.page.toString());
     }
-    
+
     // Navigate to the same page with filters applied
-    const url = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    const url = searchParams.toString() ? `?${searchParams.toString()}` : "";
     window.location.href = `/admin/cleaners${url}`;
   }
-  
+
   // Reset filters
   function resetFilters() {
-    searchTerm = '';
-    availabilityFilter = 'ALL';
-    specializationFilter = '';
-    window.location.href = '/admin/cleaners';
+    searchTerm = "";
+    availabilityFilter = "ALL";
+    specializationFilter = "";
+    window.location.href = "/admin/cleaners";
   }
-  
+
   // Navigate to a specific page
   function goToPage(page: number) {
     if (page < 1 || page > pagination.totalPages) return;
-    
+
     const searchParams = new URLSearchParams(window.location.search);
-    searchParams.set('page', page.toString());
+    searchParams.set("page", page.toString());
     window.location.href = `/admin/cleaners?${searchParams.toString()}`;
   }
-  
+
   // View cleaner details
   function viewCleanerDetails(cleanerId: string) {
     window.location.href = `/admin/cleaners/${cleanerId}`;
   }
-  
+
   // Export cleaners as CSV
   function exportCleaners() {
-    alert('Export functionality would be implemented here');
+    alert("Export functionality would be implemented here");
     // In a real application, this would trigger a server request to generate and download a CSV
   }
 </script>
@@ -102,9 +121,13 @@
 
 <!-- Filters and search -->
 <div class="mb-6 rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-  <div class="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-x-3 sm:space-y-0">
+  <div
+    class="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-x-3 sm:space-y-0"
+  >
     <div class="relative flex-1">
-      <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+      <div
+        class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+      >
         <Search size={16} class="text-gray-400" />
       </div>
       <input
@@ -114,25 +137,28 @@
         class="w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
       />
     </div>
-    
+
     <div>
-      <Button variant="outline" on:click={() => showFilters = !showFilters}>
+      <Button variant="outline" on:click={() => (showFilters = !showFilters)}>
         <Filter size={16} class="mr-1" />
         Filters
       </Button>
     </div>
-    
+
     <div>
-      <Button variant="primary" on:click={applyFilters}>
-        Search
-      </Button>
+      <Button variant="primary" on:click={applyFilters}>Search</Button>
     </div>
   </div>
-  
+
   {#if showFilters}
-    <div class="mt-4 grid grid-cols-1 gap-4 border-t border-gray-200 pt-4 dark:border-gray-700 sm:grid-cols-2 lg:grid-cols-4">
+    <div
+      class="mt-4 grid grid-cols-1 gap-4 border-t border-gray-200 pt-4 dark:border-gray-700 sm:grid-cols-2 lg:grid-cols-4"
+    >
       <div>
-        <label for="availability" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label
+          for="availability"
+          class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
           Availability
         </label>
         <select
@@ -145,9 +171,12 @@
           {/each}
         </select>
       </div>
-      
+
       <div>
-        <label for="specialization" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label
+          for="specialization"
+          class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
           Specialization
         </label>
         <select
@@ -163,7 +192,7 @@
           {/if}
         </select>
       </div>
-      
+
       <div class="flex items-end">
         <button
           type="button"
@@ -183,44 +212,74 @@
     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
       <thead class="bg-gray-50 dark:bg-gray-700">
         <tr>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+          <th
+            scope="col"
+            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+          >
             Cleaner
           </th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+          <th
+            scope="col"
+            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+          >
             Contact
           </th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+          <th
+            scope="col"
+            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+          >
             Specializations
           </th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+          <th
+            scope="col"
+            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+          >
             Rating
           </th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+          <th
+            scope="col"
+            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+          >
             Availability
           </th>
-          <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+          <th
+            scope="col"
+            class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+          >
             Actions
           </th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+      <tbody
+        class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"
+      >
         {#if cleaners.length === 0}
           <tr>
-            <td colspan="6" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+            <td
+              colspan="6"
+              class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+            >
               No cleaners found
             </td>
           </tr>
         {:else}
           {#each cleaners as cleaner}
-            <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
+            <tr
+              class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
               <td class="whitespace-nowrap px-6 py-4">
                 <div class="flex items-center">
-                  <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700">
+                  <div
+                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"
+                  >
                     <Users size={20} class="text-gray-500 dark:text-gray-400" />
                   </div>
                   <div class="ml-4">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">
-                      {cleaner.firstName} {cleaner.lastName}
+                    <div
+                      class="text-sm font-medium text-gray-900 dark:text-white"
+                    >
+                      {cleaner.firstName}
+                      {cleaner.lastName}
                     </div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">
                       ID: {cleaner.id.substring(0, 8)}...
@@ -229,21 +288,29 @@
                 </div>
               </td>
               <td class="whitespace-nowrap px-6 py-4">
-                <div class="text-sm text-gray-900 dark:text-white">{cleaner.email}</div>
+                <div class="text-sm text-gray-900 dark:text-white">
+                  {cleaner.email}
+                </div>
                 {#if cleaner.phone}
-                  <div class="text-sm text-gray-500 dark:text-gray-400">{cleaner.phone}</div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
+                    {cleaner.phone}
+                  </div>
                 {/if}
               </td>
               <td class="px-6 py-4">
                 <div class="flex flex-wrap gap-1">
                   {#if cleaner.specializations && cleaner.specializations.length > 0}
                     {#each cleaner.specializations as spec}
-                      <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
+                      <span
+                        class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+                      >
                         {spec.name}
                       </span>
                     {/each}
                   {:else}
-                    <span class="text-sm text-gray-500 dark:text-gray-400">None</span>
+                    <span class="text-sm text-gray-500 dark:text-gray-400"
+                      >None</span
+                    >
                   {/if}
                 </div>
               </td>
@@ -257,22 +324,30 @@
               </td>
               <td class="whitespace-nowrap px-6 py-4">
                 {#if cleaner.cleanerProfile?.isAvailable}
-                  <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300">
+                  <span
+                    class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                  >
                     Available
                   </span>
                 {:else}
-                  <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/20 dark:text-red-300">
+                  <span
+                    class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/20 dark:text-red-300"
+                  >
                     Unavailable
                   </span>
                 {/if}
                 {#if cleaner.cleanerProfile?.workRadius}
-                  <div class="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-400">
+                  <div
+                    class="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-400"
+                  >
                     <Map size={12} class="mr-1" />
                     {cleaner.cleanerProfile.workRadius} km radius
                   </div>
                 {/if}
               </td>
-              <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+              <td
+                class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium"
+              >
                 <Button
                   variant="ghost"
                   size="sm"
@@ -288,14 +363,26 @@
       </tbody>
     </table>
   </div>
-  
+
   {#if pagination.totalPages > 1}
-    <div class="border-t border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+    <div
+      class="border-t border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800"
+    >
       <div class="flex items-center justify-between">
         <div class="text-sm text-gray-700 dark:text-gray-300">
-          Showing <span class="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> to <span class="font-medium">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of <span class="font-medium">{pagination.total}</span> cleaners
+          Showing <span class="font-medium"
+            >{(pagination.page - 1) * pagination.limit + 1}</span
+          >
+          to
+          <span class="font-medium"
+            >{Math.min(
+              pagination.page * pagination.limit,
+              pagination.total,
+            )}</span
+          >
+          of <span class="font-medium">{pagination.total}</span> cleaners
         </div>
-        
+
         <div class="flex space-x-2">
           <Button
             variant="outline"
@@ -305,7 +392,7 @@
           >
             <ArrowLeft size={16} />
           </Button>
-          
+
           {#each Array(pagination.totalPages) as _, i}
             {#if pagination.totalPages <= 7 || i + 1 === 1 || i + 1 === pagination.totalPages || (i + 1 >= pagination.page - 1 && i + 1 <= pagination.page + 1)}
               <Button
@@ -316,10 +403,13 @@
                 {i + 1}
               </Button>
             {:else if i + 1 === 2 || i + 1 === pagination.totalPages - 1}
-              <span class="inline-flex h-8 w-8 items-center justify-center text-gray-500 dark:text-gray-400">...</span>
+              <span
+                class="inline-flex h-8 w-8 items-center justify-center text-gray-500 dark:text-gray-400"
+                >...</span
+              >
             {/if}
           {/each}
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -333,4 +423,3 @@
     </div>
   {/if}
 </div>
-</script>
