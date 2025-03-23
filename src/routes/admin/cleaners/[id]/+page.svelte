@@ -1,6 +1,7 @@
 <!-- src/routes/admin/cleaners/[id]/+page.svelte -->
 <script lang="ts">
   import { enhance } from "$app/forms";
+  import { invalidateAll } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
   import {
     Briefcase,
@@ -301,7 +302,13 @@
                   isPersonalInfoEditMode = false;
                 }
 
+                // First update the form result (success/error message)
                 await update();
+
+                // Then invalidate all data to force a refresh of the page data
+                if (result.type === "success") {
+                  await invalidateAll();
+                }
               };
             }}
           >
@@ -504,6 +511,11 @@
                 }
 
                 await update();
+
+                // Then invalidate all data to force a refresh of the page data
+                if (result.type === "success") {
+                  await invalidateAll();
+                }
               };
             }}
           >
@@ -896,6 +908,11 @@
                 }
 
                 await update();
+
+                // Then invalidate all data to force a refresh of the page data
+                if (result.type === "success") {
+                  await invalidateAll();
+                }
               };
             }}
           >
