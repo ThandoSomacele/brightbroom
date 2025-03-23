@@ -190,19 +190,21 @@
         ...currentValue,
         selected: !currentValue.selected,
       });
+      // Force Svelte reactivity by creating a new Map with the same entries
+      selectedSpecializations = new Map(selectedSpecializations);
     }
   }
 
   // Update service experience
-  function updateServiceExperience(serviceId: string, months: number) {
-    if (selectedSpecializations.has(serviceId)) {
-      const currentValue = selectedSpecializations.get(serviceId);
-      selectedSpecializations.set(serviceId, {
-        ...currentValue,
-        experience: months,
-      });
-    }
-  }
+  // function updateServiceExperience(serviceId: string, months: number) {
+  //   if (selectedSpecializations.has(serviceId)) {
+  //     const currentValue = selectedSpecializations.get(serviceId);
+  //     selectedSpecializations.set(serviceId, {
+  //       ...currentValue,
+  //       experience: months,
+  //     });
+  //   }
+  // }
 
   // Convert available days to array for form submission
   function getAvailableDaysArray() {
@@ -922,7 +924,7 @@
                         {service.description}
                       </p>
 
-                      {#if selectedSpecializations.get(service.id)?.selected}
+                      <!-- {#if selectedSpecializations.get(service.id)?.selected}
                         <div class="mt-2">
                           <label
                             for={`experience-${service.id}`}
@@ -944,7 +946,7 @@
                             class="w-full sm:w-1/3 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                           />
                         </div>
-                      {/if}
+                      {/if} -->
                     </div>
                   </div>
                 </div>
