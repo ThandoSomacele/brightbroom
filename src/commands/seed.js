@@ -13,7 +13,7 @@ import {
   address,
   booking,
   cleanerProfile,
-  cleanerSpecialization,
+  cleanerSpecialisation,
   key,
   payment,
   service,
@@ -31,7 +31,7 @@ const db = drizzle(client, {
     booking,
     payment,
     cleanerProfile,
-    cleanerSpecialization,
+    cleanerSpecialisation,
     key,
   },
 });
@@ -42,7 +42,7 @@ async function main() {
     console.log("Cleaning existing data...");
     await db.delete(payment);
     await db.delete(booking);
-    await db.delete(cleanerSpecialization);
+    await db.delete(cleanerSpecialisation);
     await db.delete(cleanerProfile);
     await db.delete(address);
     await db.delete(service);
@@ -195,23 +195,23 @@ async function main() {
       })
       .returning();
 
-    console.log("Creating specializations...");
-    // Add specializations
-    await db.insert(cleanerSpecialization).values({
+    console.log("Creating specialisations...");
+    // Add specialisations
+    await db.insert(cleanerSpecialisation).values({
       id: crypto.randomUUID(),
       cleanerProfileId: johnProfile.id,
       serviceId: regularCleaning.id,
       experience: 60,
     });
 
-    await db.insert(cleanerSpecialization).values({
+    await db.insert(cleanerSpecialisation).values({
       id: crypto.randomUUID(),
       cleanerProfileId: sarahProfile.id,
       serviceId: deepCleaning.id,
       experience: 48,
     });
 
-    await db.insert(cleanerSpecialization).values({
+    await db.insert(cleanerSpecialisation).values({
       id: crypto.randomUUID(),
       cleanerProfileId: sarahProfile.id,
       serviceId: officeCleaning.id,

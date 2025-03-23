@@ -18,7 +18,7 @@
   // Local state for filters
   let searchTerm = filters.search || "";
   let availabilityFilter = filters.availability || "ALL";
-  let specializationFilter = filters.specialization || "";
+  let specialisationFilter = filters.specialisation || "";
   let showFilters = false;
 
   // Availability options
@@ -59,8 +59,8 @@
     if (searchTerm) searchParams.set("search", searchTerm);
     if (availabilityFilter && availabilityFilter !== "ALL")
       searchParams.set("availability", availabilityFilter);
-    if (specializationFilter)
-      searchParams.set("specialization", specializationFilter);
+    if (specialisationFilter)
+      searchParams.set("specialisation", specialisationFilter);
 
     // Add current page if it's not the first page
     if (pagination.page > 1) {
@@ -76,7 +76,7 @@
   function resetFilters() {
     searchTerm = "";
     availabilityFilter = "ALL";
-    specializationFilter = "";
+    specialisationFilter = "";
     window.location.href = "/admin/cleaners";
   }
 
@@ -174,19 +174,19 @@
 
       <div>
         <label
-          for="specialization"
+          for="specialisation"
           class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
-          Specialization
+          Specialisation
         </label>
         <select
-          id="specialization"
-          bind:value={specializationFilter}
+          id="specialisation"
+          bind:value={specialisationFilter}
           class="w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
         >
-          <option value="">All Specializations</option>
-          {#if data.specializations}
-            {#each data.specializations as spec}
+          <option value="">All Specialisations</option>
+          {#if data.specialisations}
+            {#each data.specialisations as spec}
               <option value={spec.id}>{spec.name}</option>
             {/each}
           {/if}
@@ -228,7 +228,7 @@
             scope="col"
             class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
           >
-            Specializations
+            Specialisations
           </th>
           <th
             scope="col"
@@ -299,8 +299,8 @@
               </td>
               <td class="px-6 py-4">
                 <div class="flex flex-wrap gap-1">
-                  {#if cleaner.specializations && cleaner.specializations.length > 0}
-                    {#each cleaner.specializations as spec}
+                  {#if cleaner.specialisations && cleaner.specialisations.length > 0}
+                    {#each cleaner.specialisations as spec}
                       <span
                         class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
                       >

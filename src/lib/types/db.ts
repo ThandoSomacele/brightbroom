@@ -3,7 +3,7 @@ import type {
   Address,
   Booking,
   CleanerProfile,
-  CleanerSpecialization,
+  CleanerSpecialisation,
   Payment,
   Service,
   User,
@@ -14,7 +14,7 @@ export type {
   Address,
   Booking,
   CleanerProfile,
-  CleanerSpecialization,
+  CleanerSpecialisation,
   Payment,
   Service,
   User,
@@ -33,12 +33,12 @@ export type UserWithCleanerProfile = User & {
   cleanerProfile: CleanerProfile | null;
 };
 
-export type CleanerProfileWithSpecializations = CleanerProfile & {
-  specializations: CleanerSpecialization[];
+export type CleanerProfileWithSpecialisations = CleanerProfile & {
+  specialisations: CleanerSpecialisation[];
 };
 
 export type CleanerWithFullDetails = User & {
-  cleanerProfile: CleanerProfileWithSpecializations;
+  cleanerProfile: CleanerProfileWithSpecialisations;
 };
 
 export type BookingWithRelations = Booking & {
@@ -51,8 +51,8 @@ export type BookingWithRelations = Booking & {
   payment?: Payment;
 };
 
-export type ServiceWithSpecializations = Service & {
-  cleanerSpecializations: CleanerSpecialization[];
+export type ServiceWithSpecialisations = Service & {
+  cleanerSpecialisations: CleanerSpecialisation[];
 };
 
 export type PaymentWithBooking = Payment & {

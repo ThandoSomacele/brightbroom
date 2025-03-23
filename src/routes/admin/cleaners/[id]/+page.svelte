@@ -25,7 +25,7 @@
   // Mode tracking
   let isPersonalInfoEditMode = false;
   let isProfileEditMode = false;
-  let isSpecializationsEditMode = false;
+  let isSpecialisationsEditMode = false;
   let isLoading = false;
 
   // Personal info form values
@@ -62,13 +62,13 @@
     });
   }
 
-  // Track specializations
-  let selectedSpecializations = new Map();
+  // Track specialisations
+  let selectedSpecialisations = new Map();
 
-  // Initialize selected specializations
-  if (cleaner.specializations) {
-    cleaner.specializations.forEach((spec) => {
-      selectedSpecializations.set(spec.serviceId, {
+  // Initialize selected specialisations
+  if (cleaner.specialisations) {
+    cleaner.specialisations.forEach((spec) => {
+      selectedSpecialisations.set(spec.serviceId, {
         selected: true,
         experience: spec.experience || 0,
       });
@@ -153,18 +153,18 @@
     }
   }
 
-  // Toggle specializations edit mode
-  function toggleSpecializationsEdit() {
-    isSpecializationsEditMode = !isSpecializationsEditMode;
+  // Toggle specialisations edit mode
+  function toggleSpecialisationsEdit() {
+    isSpecialisationsEditMode = !isSpecialisationsEditMode;
 
-    if (isSpecializationsEditMode) {
-      // Reset selected specializations
-      selectedSpecializations = new Map();
+    if (isSpecialisationsEditMode) {
+      // Reset selected specialisations
+      selectedSpecialisations = new Map();
 
       // Set from cleaner data
-      if (cleaner.specializations) {
-        cleaner.specializations.forEach((spec) => {
-          selectedSpecializations.set(spec.serviceId, {
+      if (cleaner.specialisations) {
+        cleaner.specialisations.forEach((spec) => {
+          selectedSpecialisations.set(spec.serviceId, {
             selected: true,
             experience: spec.experience || 0,
           });
@@ -173,8 +173,8 @@
 
       // Initialize missing services
       services.forEach((service) => {
-        if (!selectedSpecializations.has(service.id)) {
-          selectedSpecializations.set(service.id, {
+        if (!selectedSpecialisations.has(service.id)) {
+          selectedSpecialisations.set(service.id, {
             selected: false,
             experience: 0,
           });
@@ -185,22 +185,22 @@
 
   // Toggle service selection
   function toggleServiceSelection(serviceId: string) {
-    if (selectedSpecializations.has(serviceId)) {
-      const currentValue = selectedSpecializations.get(serviceId);
-      selectedSpecializations.set(serviceId, {
+    if (selectedSpecialisations.has(serviceId)) {
+      const currentValue = selectedSpecialisations.get(serviceId);
+      selectedSpecialisations.set(serviceId, {
         ...currentValue,
         selected: !currentValue.selected,
       });
       // Force Svelte reactivity by creating a new Map with the same entries
-      selectedSpecializations = new Map(selectedSpecializations);
+      selectedSpecialisations = new Map(selectedSpecialisations);
     }
   }
 
   // Update service experience
   // function updateServiceExperience(serviceId: string, months: number) {
-  //   if (selectedSpecializations.has(serviceId)) {
-  //     const currentValue = selectedSpecializations.get(serviceId);
-  //     selectedSpecializations.set(serviceId, {
+  //   if (selectedSpecialisations.has(serviceId)) {
+  //     const currentValue = selectedSpecialisations.get(serviceId);
+  //     selectedSpecialisations.set(serviceId, {
   //       ...currentValue,
   //       experience: months,
   //     });
@@ -214,10 +214,10 @@
       .map(([day, _]) => day);
   }
 
-  // Get selected specializations for form submission
-  function getSelectedSpecializations() {
+  // Get selected specialisations for form submission
+  function getSelectedSpecialisations() {
     const result = [];
-    selectedSpecializations.forEach((value, serviceId) => {
+    selectedSpecialisations.forEach((value, serviceId) => {
       if (value.selected) {
         result.push({
           serviceId,
@@ -871,19 +871,19 @@
 
   <!-- Right columns -->
   <div class="lg:col-span-2 space-y-6">
-    <!-- Specializations -->
+    <!-- Specialisations -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
       <div class="p-6">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-            Service Specializations
+            Service Specialisations
           </h2>
           <Button
             variant="ghost"
             size="sm"
-            on:click={toggleSpecializationsEdit}
+            on:click={toggleSpecialisationsEdit}
           >
-            {#if isSpecializationsEditMode}
+            {#if isSpecialisationsEditMode}
               <X size={16} class="mr-1" />
               Cancel
             {:else}
@@ -893,10 +893,10 @@
           </Button>
         </div>
 
-        {#if isSpecializationsEditMode}
+        {#if isSpecialisationsEditMode}
           <form
             method="POST"
-            action="?/updateSpecializations"
+            action="?/updateSpecialisations"
             use:enhance={() => {
               isLoading = true;
 
@@ -904,7 +904,7 @@
                 isLoading = false;
 
                 if (result.type === "success") {
-                  isSpecializationsEditMode = false;
+                  isSpecialisationsEditMode = false;
                 }
 
                 await update();
@@ -925,7 +925,7 @@
                     <input
                       type="checkbox"
                       id={`service-${service.id}`}
-                      checked={selectedSpecializations.get(service.id)
+                      checked={selectedSpecialisations.get(service.id)
                         ?.selected || false}
                       on:change={() => toggleServiceSelection(service.id)}
                       class="h-4 w-4 mt-1 rounded border-gray-300 text-primary focus:ring-primary"
@@ -941,7 +941,7 @@
                         {service.description}
                       </p>
 
-                      <!-- {#if selectedSpecializations.get(service.id)?.selected}
+                      <!-- {#if selectedSpecialisations.get(service.id)?.selected}
                         <div class="mt-2">
                           <label
                             for={`experience-${service.id}`}
@@ -952,7 +952,7 @@
                           <input
                             type="number"
                             id={`experience-${service.id}`}
-                            value={selectedSpecializations.get(service.id)
+                            value={selectedSpecialisations.get(service.id)
                               ?.experience || 0}
                             on:input={(e) =>
                               updateServiceExperience(
@@ -971,8 +971,8 @@
 
               <input
                 type="hidden"
-                name="specializations"
-                value={getSelectedSpecializations()}
+                name="specialisations"
+                value={getSelectedSpecialisations()}
               />
 
               <div class="pt-2">
@@ -1006,28 +1006,28 @@
                     Saving...
                   {:else}
                     <Save size={16} class="mr-2" />
-                    Save Specializations
+                    Save Specialisations
                   {/if}
                 </Button>
               </div>
             </div>
           </form>
-        {:else if cleaner.specializations && cleaner.specializations.length > 0}
+        {:else if cleaner.specialisations && cleaner.specialisations.length > 0}
           <div class="space-y-3">
-            {#each cleaner.specializations as specialization}
+            {#each cleaner.specialisations as specialisation}
               <div class="flex items-start">
                 <Briefcase
                   class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3"
                 />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">
-                    {services.find((s) => s.id === specialization.serviceId)
+                    {services.find((s) => s.id === specialisation.serviceId)
                       ?.name || "Unknown Service"}
                   </p>
 
-                  {#if specialization.experience}
+                  {#if specialisation.experience}
                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                      {specialization.experience} months experience
+                      {specialisation.experience} months experience
                     </p>
                   {/if}
                 </div>
@@ -1036,7 +1036,7 @@
           </div>
         {:else}
           <p class="py-4 text-center text-gray-500 dark:text-gray-400">
-            No specializations added yet
+            No specialisations added yet
           </p>
         {/if}
       </div>

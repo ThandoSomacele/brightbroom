@@ -1,29 +1,31 @@
 // src/routes/admin/cleaners/+page.server.ts
 import { db } from "$lib/server/db";
-import { 
-  user, 
-  cleanerProfile, 
-  cleanerSpecialization, 
-  service 
+import {
+  cleanerProfile,
+  cleanerSpecialisation,
+  service,
+  user,
 } from "$lib/server/db/schema";
-import { desc, eq, like, or, and, sql, inArray } from "drizzle-orm";
+import { desc, eq, inArray, like, or, sql } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ url }) => {
   // Get query parameters for filtering and pagination
   const search = url.searchParams.get("search") || "";
   const availability = url.searchParams.get("availability") || "";
-  const specialization = url.searchParams.get("specialization") || "";
+  const specialisation = url.searchParams.get("specialisation") || "";
   const page = parseInt(url.searchParams.get("page") || "1");
   const limit = 10; // Number of items per page
   const offset = (page - 1) * limit;
 
   try {
-    // Get all services for the specialization filter dropdown
-    const services = await db.select({
-      id: service.id,
-      name: service.name,
-    }).from(service);
+    // Get all services for the specialisation filter dropdown
+    const services = await db
+      .select({
+        id: service.id,
+        name: service.name,
+      })
+      .from(service);
 
     // Build the query with filters
     let query = db
@@ -42,7 +44,7 @@ export const load: PageServerLoad = async ({ url }) => {
           bio: cleanerProfile.bio,
           petCompatibility: cleanerProfile.petCompatibility,
         },
-        // We'll fetch specializations separately
+        // We'll fetch specialisations separately
       })
       .from(user)
       .leftJoin(cleanerProfile, eq(user.id, cleanerProfile.userId))
@@ -56,8 +58,8 @@ export const load: PageServerLoad = async ({ url }) => {
           like(user.lastName, `%${search}%`),
           like(user.email, `%${search}%`),
           like(user.phone || "", `%${search}%`),
-          like(cleanerProfile.bio || "", `%${search}%`)
-        )
+          like(cleanerProfile.bio || "", `%${search}%`),
+        ),
       );
     }
 
@@ -68,8 +70,8 @@ export const load: PageServerLoad = async ({ url }) => {
       query = query.where(eq(cleanerProfile.isAvailable, false));
     }
 
-    // Apply specialization filter if provided
-    // Note: For specialization filtering, we'll need to adjust our approach after the initial query
+    // Apply specialisation filter if provided
+    // Note: For specialisation filtering, we'll need to adjust our approach after the initial query
 
     // Clone the query for counting total
     const countQuery = db
@@ -88,8 +90,8 @@ export const load: PageServerLoad = async ({ url }) => {
           like(user.lastName, `%${search}%`),
           like(user.email, `%${search}%`),
           like(user.phone || "", `%${search}%`),
-          like(cleanerProfile.bio || "", `%${search}%`)
-        )
+          like(cleanerProfile.bio || "", `%${search}%`),
+        ),
       );
     }
 
@@ -100,66 +102,77 @@ export const load: PageServerLoad = async ({ url }) => {
     }
 
     // Execute initial queries
-    let cleaners = await query.orderBy(desc(user.createdAt)).limit(limit).offset(offset);
+    let cleaners = await query
+      .orderBy(desc(user.createdAt))
+      .limit(limit)
+      .offset(offset);
     const countResult = await countQuery;
 
-    // Fetch specialization data for each cleaner
+    // Fetch specialisation data for each cleaner
     const cleanerIds = cleaners.map((c) => c.id);
-    
-    // If we have cleaners, fetch their specializations
-    let specializationsMap = new Map();
-    
+
+    // If we have cleaners, fetch their specialisations
+    let specialisationsMap = new Map();
+
     if (cleanerIds.length > 0) {
-      const specializationsData = await db
+      const specialisationsData = await db
         .select({
-          cleanerProfileId: cleanerSpecialization.cleanerProfileId,
-          serviceId: cleanerSpecialization.serviceId,
+          cleanerProfileId: cleanerSpecialisation.cleanerProfileId,
+          serviceId: cleanerSpecialisation.serviceId,
           serviceName: service.name,
         })
-        .from(cleanerSpecialization)
-        .innerJoin(service, eq(cleanerSpecialization.serviceId, service.id))
-        .innerJoin(cleanerProfile, eq(cleanerSpecialization.cleanerProfileId, cleanerProfile.id))
+        .from(cleanerSpecialisation)
+        .innerJoin(service, eq(cleanerSpecialisation.serviceId, service.id))
+        .innerJoin(
+          cleanerProfile,
+          eq(cleanerSpecialisation.cleanerProfileId, cleanerProfile.id),
+        )
         .where(inArray(cleanerProfile.userId, cleanerIds));
-      
-      // Group specializations by cleaner
-      for (const spec of specializationsData) {
+
+      // Group specialisations by cleaner
+      for (const spec of specialisationsData) {
         const profileId = spec.cleanerProfileId;
-        if (!specializationsMap.has(profileId)) {
-          specializationsMap.set(profileId, []);
+        if (!specialisationsMap.has(profileId)) {
+          specialisationsMap.set(profileId, []);
         }
-        specializationsMap.get(profileId).push({
+        specialisationsMap.get(profileId).push({
           id: spec.serviceId,
           name: spec.serviceName,
         });
       }
     }
-    
-    // If specialization filter is applied, we need to filter the results
-    if (specialization) {
-      // Fetch all cleaners with this specialization
-      const cleanersWithSpecialization = await db
+
+    // If specialisation filter is applied, we need to filter the results
+    if (specialisation) {
+      // Fetch all cleaners with this specialisation
+      const cleanersWithSpecialisation = await db
         .select({
           userId: cleanerProfile.userId,
         })
-        .from(cleanerSpecialization)
-        .innerJoin(cleanerProfile, eq(cleanerSpecialization.cleanerProfileId, cleanerProfile.id))
-        .where(eq(cleanerSpecialization.serviceId, specialization));
-      
-      const validCleanerIds = new Set(cleanersWithSpecialization.map(c => c.userId));
-      
+        .from(cleanerSpecialisation)
+        .innerJoin(
+          cleanerProfile,
+          eq(cleanerSpecialisation.cleanerProfileId, cleanerProfile.id),
+        )
+        .where(eq(cleanerSpecialisation.serviceId, specialisation));
+
+      const validCleanerIds = new Set(
+        cleanersWithSpecialisation.map((c) => c.userId),
+      );
+
       // Filter the cleaner list
-      cleaners = cleaners.filter(c => validCleanerIds.has(c.id));
+      cleaners = cleaners.filter((c) => validCleanerIds.has(c.id));
     }
-    
-    // Add specializations to each cleaner
-    const cleanersWithSpecializations = cleaners.map(cleaner => {
+
+    // Add specialisations to each cleaner
+    const cleanersWithSpecialisations = cleaners.map((cleaner) => {
       // Find cleaner's profile ID
       const profileId = cleaner.cleanerProfile?.id;
-      const specs = profileId ? specializationsMap.get(profileId) || [] : [];
-      
+      const specs = profileId ? specialisationsMap.get(profileId) || [] : [];
+
       return {
         ...cleaner,
-        specializations: specs
+        specialisations: specs,
       };
     });
 
@@ -168,8 +181,8 @@ export const load: PageServerLoad = async ({ url }) => {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      cleaners: cleanersWithSpecializations,
-      specializations: services, // For the filter dropdown
+      cleaners: cleanersWithSpecialisations,
+      specialisations: services, // For the filter dropdown
       pagination: {
         page,
         limit,
@@ -179,14 +192,14 @@ export const load: PageServerLoad = async ({ url }) => {
       filters: {
         search,
         availability,
-        specialization,
+        specialisation,
       },
     };
   } catch (error) {
     console.error("Error loading cleaners:", error);
     return {
       cleaners: [],
-      specializations: [],
+      specialisations: [],
       pagination: {
         page: 1,
         limit,
@@ -196,7 +209,7 @@ export const load: PageServerLoad = async ({ url }) => {
       filters: {
         search,
         availability,
-        specialization,
+        specialisation,
       },
     };
   }
