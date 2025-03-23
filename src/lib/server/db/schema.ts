@@ -53,6 +53,15 @@ export const petCompatibilityEnum = pgEnum("PetCompatibility", [
   "CATS",
   "BOTH",
 ]);
+export const communicationTypeEnum = pgEnum("CommunicationType", [
+  "EMAIL",
+  "SMS",
+  "NOTE",
+]);
+export const communicationDirectionEnum = pgEnum("CommunicationDirection", [
+  "INCOMING",
+  "OUTGOING",
+]);
 
 // Define tables
 export const user = pgTable("user", {
@@ -68,7 +77,6 @@ export const user = pgTable("user", {
 });
 
 export const session = pgTable("user_session", {
-  // Changed table name for clarity
   id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
@@ -194,6 +202,32 @@ export const cleanerSpecialisation = pgTable("cleaner_specialisation", {
   experience: integer("experience").notNull(), // In months
 });
 
+// New table for admin notes
+export const adminNote = pgTable("admin_note", {
+  id: text("id").primaryKey().notNull(),
+  bookingId: text("booking_id")
+    .notNull()
+    .references(() => booking.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  addedBy: text("added_by").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// New table for communication logs
+export const communicationLog = pgTable("communication_log", {
+  id: text("id").primaryKey().notNull(),
+  bookingId: text("booking_id")
+    .notNull()
+    .references(() => booking.id, { onDelete: "cascade" }),
+  type: communicationTypeEnum("type").notNull(),
+  content: text("content").notNull(),
+  subject: text("subject"),
+  sentTo: text("sent_to"),
+  sentBy: text("sent_by").notNull(),
+  direction: communicationDirectionEnum("direction").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
 // Define types
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
@@ -222,3 +256,9 @@ export type NewCleanerProfile = typeof cleanerProfile.$inferInsert;
 export type CleanerSpecialisation = typeof cleanerSpecialisation.$inferSelect;
 export type NewCleanerSpecialisation =
   typeof cleanerSpecialisation.$inferInsert;
+
+export type AdminNote = typeof adminNote.$inferSelect;
+export type NewAdminNote = typeof adminNote.$inferInsert;
+
+export type CommunicationLog = typeof communicationLog.$inferSelect;
+export type NewCommunicationLog = typeof communicationLog.$inferInsert;
