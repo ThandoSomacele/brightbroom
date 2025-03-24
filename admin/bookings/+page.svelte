@@ -597,16 +597,7 @@
                     View
                   </Button>
                   
-                  {#if booking.status !== 'CANCELLED' && booking.status !== 'COMPLETED'}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 border-red-200 dark:border-red-800/30"
-                      on:click={() => quickStatusChange(booking.id, 'CANCELLED')}
-                    >
-                      Cancel
-                    </Button>
-                  {/if}
+                
                 </div>
               </td>
             </tr>
