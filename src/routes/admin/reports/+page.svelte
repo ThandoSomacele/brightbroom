@@ -8,11 +8,11 @@
     Briefcase,
     Calendar,
     ChevronDown,
-    DollarSign,
     Filter,
     TrendingDown,
     TrendingUp,
     Users,
+    Wallet,
   } from "lucide-svelte";
   import { onMount } from "svelte";
 
@@ -340,7 +340,7 @@
         </p>
       </div>
       <div class="p-2 rounded-full bg-green-100 dark:bg-green-900/20">
-        <DollarSign size={20} class="text-green-600 dark:text-green-400" />
+        <Wallet size={20} class="text-green-600 dark:text-green-400" />
       </div>
     </div>
     <div class="mt-4 flex items-center">

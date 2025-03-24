@@ -2,7 +2,7 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
-  import { ArrowLeft, Clock, DollarSign, Save } from "lucide-svelte";
+  import { ArrowLeft, Clock, Save, Wallet } from "lucide-svelte";
 
   // Get the service data from the server
   export let data;
@@ -119,7 +119,7 @@
               <div
                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
               >
-                <DollarSign size={16} class="text-gray-400" />
+                <Wallet size={16} class="text-gray-400" />
               </div>
               <input
                 type="number"
