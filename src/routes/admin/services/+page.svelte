@@ -2,7 +2,13 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
-  import { Clock, Edit, PlusCircle, Search, Trash2 } from "lucide-svelte";
+  import {
+    Clock,
+    Edit,
+    PlusCircle,
+    Search,
+    Trash2,
+  } from "lucide-svelte";
 
   // Get the services from the server load function
   export let data;
@@ -146,6 +152,7 @@
 
           <div class="flex flex-wrap gap-4 mt-4">
             <div class="flex items-center text-gray-700 dark:text-gray-300">
+              
               <span>{formatPrice(service.basePrice)}</span>
             </div>
             <div class="flex items-center text-gray-700 dark:text-gray-300">
