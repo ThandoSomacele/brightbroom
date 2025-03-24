@@ -265,9 +265,9 @@
   <div class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow p-4 border-l-4 border-primary">
     <div class="flex flex-col sm:flex-row sm:items-center gap-4">
       <div class="flex-1">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <div class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Action
-        </label>
+        </div>
         <select
           bind:value={bulkAction}
           class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -280,9 +280,9 @@
 
       {#if bulkAction === 'status'}
         <div class="flex-1">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <div class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Status
-          </label>
+          </div>
           <select
             bind:value={bulkStatusValue}
             class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
