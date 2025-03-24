@@ -1,20 +1,17 @@
 <!-- src/routes/admin/bookings/+page.svelte -->
 <script lang="ts">
-  import { enhance } from "$app/forms";
-  import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
   import {
-    Search,
-    Filter,
-    Download,
-    Calendar,
-    Users,
-    CheckCircle,
-    XCircle,
-    Clock,
-    AlertCircle,
-    ArrowRight,
-    ArrowLeft,
+      AlertCircle,
+      ArrowLeft,
+      ArrowRight,
+      CheckCircle,
+      Clock,
+      Download,
+      Filter,
+      Search,
+      Users,
+      XCircle
   } from "lucide-svelte";
 
   // Get data from server
@@ -597,16 +594,7 @@
                     View
                   </Button>
                   
-                  {#if booking.status !== 'CANCELLED' && booking.status !== 'COMPLETED'}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 border-red-200 dark:border-red-800/30"
-                      on:click={() => quickStatusChange(booking.id, 'CANCELLED')}
-                    >
-                      Cancel
-                    </Button>
-                  {/if}
+                 
                 </div>
               </td>
             </tr>
