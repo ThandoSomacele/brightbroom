@@ -6,8 +6,6 @@
 
   // Get data from the server load function
   export let data;
-
-  // Handle form submission feedback
   export let form;
 
   // Get redirect URL if coming from booking flow
@@ -248,6 +246,7 @@
             Cancel
           </Button>
 
+          <!-- Form submission button with loading state -->
           <Button type="submit" variant="primary" disabled={isLoading}>
             {#if isLoading}
               <svg
