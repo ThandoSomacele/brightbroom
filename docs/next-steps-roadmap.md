@@ -55,8 +55,8 @@ This document outlines the current progress and tactical next steps to complete 
 #### 2.2 Service Catalog
 
 - [x] Create service listing page
-- [ ] Implement service details view
-- [ ] Build service comparison component
+- [x] Implement service details view
+- [x] Build service comparison component
 - [x] Configure service pricing logic
 
 #### 2.3 Booking Flow
@@ -196,7 +196,6 @@ We've made significant progress in establishing the core functionality of Bright
    - Design system with Tailwind CSS
    - Responsive components
    - Light/dark mode support
-
 
 ## Technical Debt to Address
 

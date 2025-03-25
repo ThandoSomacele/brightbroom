@@ -2,10 +2,13 @@
 <script lang="ts">
   import Button from '$lib/components/ui/Button.svelte';
   import { Calendar, MapPin, Clock, CreditCard, Briefcase, User, MessageSquare } from 'lucide-svelte';
+  import { notFound, forbidden } from '$lib/utils/errors';
+
   
   // Get data from the server load function
   export let data;
   const { booking } = data;
+  
   
   // Format date function
   function formatDate(dateString: string): string {
