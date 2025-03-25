@@ -1,8 +1,7 @@
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
-  import heroImage from '$lib/image-assets/hero.webp';
-
+  import heroImage from "$lib/image-assets/hero.webp";
 
   // Get user data from loader
   export let data;
@@ -51,10 +50,10 @@
       </div>
 
       <div class="flex items-center justify-center">
-        <img 
-          src={heroImage} 
-          alt="Professional cleaning service" 
-          class="rounded-lg shadow-md object-cover w-full h-auto md:h-full lg:h-96" 
+        <img
+          src={heroImage}
+          alt="Professional cleaning service"
+          class="rounded-lg shadow-md object-cover w-full h-auto md:h-full lg:h-96"
         />
       </div>
     </div>

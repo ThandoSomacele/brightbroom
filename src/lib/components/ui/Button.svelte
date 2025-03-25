@@ -13,7 +13,7 @@
     primary:
       "bg-primary text-white hover:bg-primary-600 hover:text-white focus:ring-primary-500",
     secondary:
-      "bg-secondary text-white hover:bg-secondary-600 focus:ring-secondary-500",
+      "bg-secondary text-white hover:bg-secondary-600 hover:text-white focus:ring-secondary-500",
     outline:
       "border border-gray-300 dark:border-gray-600 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-900 dark:text-gray-100",
     ghost:
