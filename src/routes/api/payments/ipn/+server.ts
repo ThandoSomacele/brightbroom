@@ -1,5 +1,5 @@
 // src/routes/api/payments/ipn/+server.ts
-import { sendBookingConfirmationEmail } from "$lib/server/email-service";
+import { sendBookingConfirmationEmail, sendPaymentReceiptEmail } from "$lib/server/email-service";
 import {
   processSuccessfulPayment,
   validateIpnRequest,
@@ -52,9 +52,25 @@ export const POST: RequestHandler = async ({ request }) => {
       // Update payment and booking status
       const result = await processSuccessfulPayment(pfData.m_payment_id);
 
-      // Send confirmation email if payment was processed successfully
+      // Send confirmation email and payment receipt if payment was processed successfully
       if (result && result.booking && result.user) {
+        // Send booking confirmation email
         await sendBookingConfirmationEmail(result.user.email, result.booking);
+        
+        // Prepare and send receipt email
+        const paymentDetails = {
+          id: pfData.m_payment_id, 
+          createdAt: new Date(),
+          amount: parseFloat(pfData.amount_gross || result.booking.price),
+          booking: result.booking,
+          user: result.user,
+          paymentMethod: pfData.payment_method || "Credit Card",
+          vatRate: 15 // Default South African VAT rate
+        };
+        
+        await sendPaymentReceiptEmail(result.user.email, paymentDetails);
+        
+        console.log("Payment receipt sent successfully");
       }
 
       console.log("Payment processed successfully");

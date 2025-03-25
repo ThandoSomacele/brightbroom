@@ -6,6 +6,7 @@ import {
   getCleanerAssignmentTemplate,
   getPasswordResetConfirmationTemplate,
   getPasswordResetTemplate,
+  getPaymentReceiptTemplate,
   getWelcomeEmailTemplate,
 } from "./email-templates";
 import { PUBLIC_URL, RESEND_API_KEY } from "./env";
@@ -232,6 +233,43 @@ export async function sendCleanerAssignmentEmail(
     return true;
   } catch (error) {
     console.error("Error sending cleaner assignment email:", error);
+    return false;
+  }
+}
+
+/**
+ * Send a payment receipt/invoice email
+ */
+export async function sendPaymentReceiptEmail(
+  email: string,
+  paymentDetails: any,
+): Promise<boolean> {
+  try {
+    // Generate the receipt/invoice template
+    const template = getPaymentReceiptTemplate(
+      email,
+      paymentDetails,
+      EMAIL_CONFIG,
+    );
+
+    // Send email with Resend
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+
+    if (error) {
+      console.error("Resend API error when sending receipt:", error);
+      return false;
+    }
+
+    console.log("Payment receipt email sent successfully:", data.id);
+    return true;
+  } catch (error) {
+    console.error("Error sending payment receipt email:", error);
     return false;
   }
 }

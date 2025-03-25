@@ -1078,3 +1078,320 @@ This email was sent to ${recipientEmail}.
     text
   };
 }
+
+/**
+ * Generate a payment receipt/invoice email template
+ */
+export function getPaymentReceiptTemplate(
+  recipientEmail: string,
+  paymentDetails: {
+    id: string;
+    createdAt: string | Date;
+    amount: number | string;
+    booking: {
+      id: string;
+      service: { name: string; description?: string };
+      scheduledDate: string | Date;
+      address: { street: string; city: string; state: string; zipCode: string };
+      duration?: number;
+    };
+    user: {
+      firstName: string;
+      lastName: string;
+    };
+    paymentMethod?: string;
+    vatRate?: number;
+  },
+  data: EmailTemplateData,
+): { subject: string; html: string; text: string } {
+  const escapedEmail = escapeHtml(recipientEmail);
+  const bookingUrl = `${data.appUrl}/profile/bookings/${paymentDetails.booking.id}`;
+  
+  // Format dates
+  const paymentDate = new Date(paymentDetails.createdAt);
+  const formattedPaymentDate = paymentDate.toLocaleDateString("en-ZA", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  
+  const scheduledDate = new Date(paymentDetails.booking.scheduledDate);
+  const formattedScheduledDate = scheduledDate.toLocaleDateString("en-ZA", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  
+  const formattedScheduledTime = scheduledDate.toLocaleTimeString("en-ZA", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  
+  // Format amounts
+  const totalAmount = typeof paymentDetails.amount === "number" 
+    ? paymentDetails.amount 
+    : parseFloat(String(paymentDetails.amount));
+  
+  // Calculate VAT (if applicable)
+  const vatRate = paymentDetails.vatRate || 15; // Default to 15% VAT for South Africa
+  const vatAmount = totalAmount * (vatRate / 100);
+  const subtotal = totalAmount - vatAmount;
+  
+  // Format currency values
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-ZA", {
+      style: "currency",
+      currency: "ZAR",
+      minimumFractionDigits: 2,
+    }).format(value);
+  };
+  
+  // Generate invoice number (payment ID + timestamp)
+  const invoiceNumber = `INV-${paymentDetails.id.substring(0, 8)}-${Math.floor(paymentDate.getTime() / 1000)}`;
+  
+  // HTML Email template
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Receipt</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background-color: ${data.primaryColor};
+    }
+    .header img {
+      max-height: 50px;
+    }
+    .content {
+      padding: 30px 20px;
+      background-color: #ffffff;
+    }
+    .invoice-box {
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .invoice-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eeeeee;
+    }
+    .company-details {
+      text-align: left;
+    }
+    .invoice-details {
+      text-align: right;
+    }
+    .invoice-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #eeeeee;
+    }
+    .invoice-row:last-child {
+      border-bottom: none;
+    }
+    .invoice-row.total {
+      font-weight: bold;
+      border-top: 2px solid #dddddd;
+      border-bottom: none;
+    }
+    .customer-details {
+      margin: 20px 0;
+    }
+    .footer {
+      font-size: 12px;
+      text-align: center;
+      color: #888888;
+      padding: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: ${data.primaryColor};
+      color: #ffffff !important;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+    @media only screen and (max-width: 480px) {
+      .invoice-header {
+        flex-direction: column;
+      }
+      .company-details, .invoice-details {
+        text-align: left;
+      }
+      .email-container {
+        padding: 10px;
+      }
+      .content {
+        padding: 20px 15px;
+      }
+      .btn {
+        display: block;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1 style="color: #ffffff; margin: 0;">${data.brandName}</h1>
+    </div>
+    <div class="content">
+      <h2>Payment Receipt</h2>
+      <p>Hello ${paymentDetails.user.firstName},</p>
+      <p>Thank you for your payment. This email confirms that your payment for the cleaning service has been successfully processed.</p>
+      
+      <div class="invoice-box">
+        <div class="invoice-header">
+          <div class="company-details">
+            <h3 style="margin: 0; color: #333333;">${data.brandName}</h3>
+            <p style="margin: 5px 0;">
+              123 Main Street<br>
+              Cape Town<br>
+              South Africa<br>
+              VAT: ZA1234567890
+            </p>
+          </div>
+          <div class="invoice-details">
+            <h3 style="margin: 0; color: #333333;">Invoice</h3>
+            <p style="margin: 5px 0;">
+              Invoice #: ${invoiceNumber}<br>
+              Date: ${formattedPaymentDate}<br>
+              Payment ID: ${paymentDetails.id}
+            </p>
+          </div>
+        </div>
+        
+        <div class="customer-details">
+          <h4 style="margin: 0 0 10px 0; color: #333333;">Bill To:</h4>
+          <p style="margin: 0;">
+            ${paymentDetails.user.firstName} ${paymentDetails.user.lastName}<br>
+            ${paymentDetails.booking.address.street}<br>
+            ${paymentDetails.booking.address.city}, ${paymentDetails.booking.address.state}<br>
+            ${paymentDetails.booking.address.zipCode}<br>
+            ${escapedEmail}
+          </p>
+        </div>
+        
+        <div>
+          <h4 style="margin: 0 0 10px 0; color: #333333;">Service Details:</h4>
+          <div class="invoice-row">
+            <div style="flex: 3;">
+              <strong>${paymentDetails.booking.service.name}</strong><br>
+              <span style="font-size: 0.9em; color: #666;">
+                Scheduled for ${formattedScheduledDate} at ${formattedScheduledTime}
+              </span>
+            </div>
+            <div style="flex: 1; text-align: right;">
+              ${formatCurrency(subtotal)}
+            </div>
+          </div>
+          
+          <div class="invoice-row">
+            <div>VAT (${vatRate}%)</div>
+            <div>${formatCurrency(vatAmount)}</div>
+          </div>
+          
+          <div class="invoice-row total">
+            <div>Total</div>
+            <div>${formatCurrency(totalAmount)}</div>
+          </div>
+          
+          <div style="margin-top: 15px; font-size: 0.9em; color: #666;">
+            <p>Payment Method: ${paymentDetails.paymentMethod || 'Credit Card'}</p>
+            <p>Payment Status: Completed</p>
+          </div>
+        </div>
+      </div>
+      
+      <p>You can view your booking details and manage your appointment by clicking the button below:</p>
+      
+      <div style="text-align: center;">
+        <a href="${bookingUrl}" class="btn">View Booking</a>
+      </div>
+      
+      <p>Thank you for choosing ${data.brandName}!</p>
+      
+      <p>Best regards,<br>The ${data.brandName} Team</p>
+    </div>
+    <div class="footer">
+      <p>This receipt was sent to ${escapedEmail}.</p>
+      <p>&copy; ${new Date().getFullYear()} ${data.brandName}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  // Plain text version
+  const text = `
+Payment Receipt - ${data.brandName}
+
+Hello ${paymentDetails.user.firstName},
+
+Thank you for your payment. This email confirms that your payment for the cleaning service has been successfully processed.
+
+INVOICE DETAILS:
+Invoice #: ${invoiceNumber}
+Date: ${formattedPaymentDate}
+Payment ID: ${paymentDetails.id}
+
+BILL TO:
+${paymentDetails.user.firstName} ${paymentDetails.user.lastName}
+${paymentDetails.booking.address.street}
+${paymentDetails.booking.address.city}, ${paymentDetails.booking.address.state}
+${paymentDetails.booking.address.zipCode}
+${recipientEmail}
+
+SERVICE DETAILS:
+${paymentDetails.booking.service.name}
+Scheduled for ${formattedScheduledDate} at ${formattedScheduledTime}
+
+Subtotal: ${formatCurrency(subtotal)}
+VAT (${vatRate}%): ${formatCurrency(vatAmount)}
+Total: ${formatCurrency(totalAmount)}
+
+Payment Method: ${paymentDetails.paymentMethod || 'Credit Card'}
+Payment Status: Completed
+
+You can view your booking details here:
+${bookingUrl}
+
+Thank you for choosing ${data.brandName}!
+
+Best regards,
+The ${data.brandName} Team
+
+This receipt was sent to ${recipientEmail}.
+© ${new Date().getFullYear()} ${data.brandName}. All rights reserved.
+`;
+
+  return {
+    subject: `Payment Receipt from ${data.brandName} - ${invoiceNumber}`,
+    html,
+    text,
+  };
+}
