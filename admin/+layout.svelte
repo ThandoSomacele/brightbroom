@@ -1,15 +1,15 @@
 <!-- src/routes/admin/+layout.svelte -->
 <script lang="ts">
   import { page } from '$app/stores';
-  import { 
-    Home, 
-    Calendar, 
-    Users, 
-    User,
-    Settings,
-    BarChart, 
-    Menu, 
-    X
+  import {
+      BarChart,
+      Calendar,
+      Home,
+      Menu,
+      Settings,
+      User,
+      Users,
+      X
   } from 'lucide-svelte';
   
   let showMobileMenu = false;
@@ -63,7 +63,7 @@
             class={`
               flex items-center px-4 py-2 rounded-md text-sm font-medium
               ${isActive(item.href) 
-                ? 'bg-primary text-white' 
+                ? 'bg-primary text-white hover:text-white' 
                 : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}
             `}
           >

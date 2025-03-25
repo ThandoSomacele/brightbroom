@@ -10,6 +10,7 @@
     Search,
     Star,
     Users,
+    PlusCircle,
   } from "lucide-svelte";
 
   export let data;
@@ -109,9 +110,12 @@
 <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
   <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Cleaners</h1>
   <div class="mt-4 flex space-x-2 sm:mt-0">
-    <Button variant="primary" href="/admin/cleaners/new">
-      Add New Cleaner
-    </Button>
+    <div class="mt-4 sm:mt-0 flex gap-2">
+      <Button variant="primary" href="/admin/cleaners/new">
+        <PlusCircle size={16} class="mr-1" />
+        Add New Cleaner
+      </Button>
+    </div>
     <Button variant="outline" on:click={exportCleaners}>
       <Download size={16} class="mr-1" />
       Export
