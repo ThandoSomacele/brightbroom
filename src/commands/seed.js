@@ -66,7 +66,7 @@ async function main() {
       .insert(service)
       .values({
         id: crypto.randomUUID(),
-        name: "Deep Cleaning",
+        name: "Extended Cleaning",
         description: "Thorough cleaning including hard-to-reach areas",
         basePrice: 550.0,
         durationHours: 4,
@@ -190,7 +190,7 @@ async function main() {
         workRadius: 10.0,
         petCompatibility: "BOTH",
         availableDays: ["TUESDAY", "THURSDAY", "SATURDAY", "SUNDAY"],
-        bio: "Detail-oriented and efficient. Specialized in deep cleaning.",
+        bio: "Detail-oriented and efficient. Specialized in extended cleaning.",
         rating: 4.9,
       })
       .returning();

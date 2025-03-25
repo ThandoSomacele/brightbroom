@@ -109,7 +109,7 @@
         </Button>
       </div>
 
-      <!-- Deep Cleaning -->
+      <!-- Extended Cleaning -->
       <div
         class="rounded-lg bg-white p-6 shadow-md transition-transform hover:-translate-y-1 dark:bg-gray-800"
       >
@@ -130,7 +130,7 @@
           </svg>
         </div>
         <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
-          Deep Cleaning
+          Extended Cleaning
         </h3>
         <p class="mb-4 text-gray-600 dark:text-gray-300">
           A thorough cleaning service that reaches every corner and detail.

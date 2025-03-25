@@ -22,7 +22,7 @@ Each step is implemented as a separate route with its own form handling and vali
 Users select the type of cleaning service they need:
 
 - Regular cleaning
-- Deep cleaning
+- extended cleaning
 - Office cleaning
 - Add-on services (optional)
 - Cleaning frequency (one-time, weekly, bi-weekly, monthly)
@@ -37,17 +37,17 @@ Users select the type of cleaning service they need:
 
   export let data;
   const services: Service[] = data.services;
-  
+
   let selectedService: string = '';
   let frequency: 'one-time' | 'weekly' | 'bi-weekly' | 'monthly' = 'one-time';
-  
+
   function handleSubmit() {
     if (!selectedService) return;
-    
+
     // Save to session or store
     localStorage.setItem('booking_service', selectedService);
     localStorage.setItem('booking_frequency', frequency);
-    
+
     // Navigate to next step
     goto('/book/address');
   }
@@ -55,7 +55,7 @@ Users select the type of cleaning service they need:
 
 <form on:submit|preventDefault={handleSubmit}>
   <!-- Service selection UI -->
-  
+
   <button type="submit" disabled={!selectedService}>
     Continue
   </button>
@@ -64,15 +64,15 @@ Users select the type of cleaning service they need:
 
 ```typescript
 // src/routes/book/services/+page.server.ts
-import type { PageServerLoad } from './$types';
-import { prisma } from '$lib/server/prisma';
+import type { PageServerLoad } from "./$types";
+import { prisma } from "$lib/server/prisma";
 
 export const load: PageServerLoad = async () => {
   // Fetch available services from database
   const services = await prisma.service.findMany();
-  
+
   return {
-    services
+    services,
   };
 };
 ```
@@ -95,17 +95,17 @@ Users select from their saved addresses or add a new one:
 
   export let data;
   const addresses: Address[] = data.addresses;
-  
+
   let selectedAddress: string = '';
   let accessInstructions: string = '';
-  
+
   function handleSubmit() {
     if (!selectedAddress) return;
-    
+
     // Save to session or store
     localStorage.setItem('booking_address', selectedAddress);
     localStorage.setItem('booking_instructions', accessInstructions);
-    
+
     // Navigate to next step
     goto('/book/schedule');
   }
@@ -113,7 +113,7 @@ Users select from their saved addresses or add a new one:
 
 <form on:submit|preventDefault={handleSubmit}>
   <!-- Address selection UI -->
-  
+
   <button type="submit" disabled={!selectedAddress}>
     Continue
   </button>
@@ -122,24 +122,24 @@ Users select from their saved addresses or add a new one:
 
 ```typescript
 // src/routes/book/address/+page.server.ts
-import type { PageServerLoad } from './$types';
-import { prisma } from '$lib/server/prisma';
-import { error, redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from "./$types";
+import { prisma } from "$lib/server/prisma";
+import { error, redirect } from "@sveltejs/kit";
 
 export const load: PageServerLoad = async ({ locals }) => {
   const session = await locals.auth.validate();
-  
+
   if (!session) {
-    throw redirect(302, '/auth/login?redirectTo=/book/address');
+    throw redirect(302, "/auth/login?redirectTo=/book/address");
   }
-  
+
   // Fetch user's addresses
   const addresses = await prisma.address.findMany({
-    where: { userId: session.user.userId }
+    where: { userId: session.user.userId },
   });
-  
+
   return {
-    addresses
+    addresses,
   };
 };
 ```
@@ -163,17 +163,17 @@ Users select the date and time for their cleaning service:
   // For real app, these would come from the server
   let availableDates = [...]; // dates where service is available
   let availableTimeSlots = [...]; // time slots for the selected date
-  
+
   let selectedDate: string = '';
   let selectedTime: string = '';
-  
+
   function handleSubmit() {
     if (!selectedDate || !selectedTime) return;
-    
+
     // Save to session or store
     localStorage.setItem('booking_date', selectedDate);
     localStorage.setItem('booking_time', selectedTime);
-    
+
     // Navigate to next step
     goto('/book/review');
   }
@@ -181,7 +181,7 @@ Users select the date and time for their cleaning service:
 
 <form on:submit|preventDefault={handleSubmit}>
   <!-- Date and time selection UI -->
-  
+
   <button type="submit" disabled={!selectedDate || !selectedTime}>
     Continue
   </button>
@@ -196,16 +196,16 @@ import { error, redirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const session = await locals.auth.validate();
-  
+
   if (!session) {
     throw redirect(302, '/auth/login?redirectTo=/book/schedule');
   }
-  
+
   // Get available dates and time slots
   // This would typically involve checking cleaner availability
   const availableDates = [...]; // Generate available dates
   const timeSlots = [...]; // Available time slots
-  
+
   return {
     availableDates,
     timeSlots
@@ -232,7 +232,7 @@ Users review their booking details before proceeding to payment:
 
   export let data;
   const { service, address, date, time, price } = data;
-  
+
   function handleSubmit() {
     // Create booking in database
     fetch('/api/bookings', {
@@ -257,7 +257,7 @@ Users review their booking details before proceeding to payment:
 
 <div>
   <!-- Booking summary UI -->
-  
+
   <button on:click={handleSubmit}>
     Confirm & Pay
   </button>
@@ -266,46 +266,46 @@ Users review their booking details before proceeding to payment:
 
 ```typescript
 // src/routes/book/review/+page.server.ts
-import type { PageServerLoad } from './$types';
-import { prisma } from '$lib/server/prisma';
-import { error, redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from "./$types";
+import { prisma } from "$lib/server/prisma";
+import { error, redirect } from "@sveltejs/kit";
 
 export const load: PageServerLoad = async ({ locals, cookies }) => {
   const session = await locals.auth.validate();
-  
+
   if (!session) {
-    throw redirect(302, '/auth/login?redirectTo=/book/review');
+    throw redirect(302, "/auth/login?redirectTo=/book/review");
   }
-  
+
   // Get booking details from previous steps (in a real app you'd use a more robust approach)
-  const serviceId = cookies.get('booking_service');
-  const addressId = cookies.get('booking_address');
-  const date = cookies.get('booking_date');
-  const time = cookies.get('booking_time');
-  
+  const serviceId = cookies.get("booking_service");
+  const addressId = cookies.get("booking_address");
+  const date = cookies.get("booking_date");
+  const time = cookies.get("booking_time");
+
   if (!serviceId || !addressId || !date || !time) {
-    throw redirect(302, '/book');
+    throw redirect(302, "/book");
   }
-  
+
   // Fetch details from database
   const service = await prisma.service.findUnique({
-    where: { id: serviceId }
+    where: { id: serviceId },
   });
-  
+
   const address = await prisma.address.findUnique({
-    where: { id: addressId }
+    where: { id: addressId },
   });
-  
+
   if (!service || !address) {
-    throw error(404, 'Service or address not found');
+    throw error(404, "Service or address not found");
   }
-  
+
   return {
     service,
     address,
     date,
     time,
-    price: service.basePrice
+    price: service.basePrice,
   };
 };
 ```
@@ -328,13 +328,13 @@ Users complete payment for their booking using PayFast:
 
   export let data;
   const { booking } = data;
-  
+
   let isLoading = false;
   let paymentUrl = '';
-  
+
   onMount(async () => {
     isLoading = true;
-    
+
     try {
       // Get payment URL from server
       const response = await fetch('/api/payments/process', {
@@ -346,10 +346,10 @@ Users complete payment for their booking using PayFast:
           bookingId: booking.id
         })
       });
-      
+
       const data = await response.json();
       paymentUrl = data.redirectUrl;
-      
+
       // Redirect to PayFast
       window.location.href = paymentUrl;
     } catch (error) {
@@ -369,43 +369,43 @@ Users complete payment for their booking using PayFast:
 
 ```typescript
 // src/routes/payment/process/+page.server.ts
-import type { PageServerLoad } from './$types';
-import { prisma } from '$lib/server/prisma';
-import { error, redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from "./$types";
+import { prisma } from "$lib/server/prisma";
+import { error, redirect } from "@sveltejs/kit";
 
 export const load: PageServerLoad = async ({ locals, url }) => {
   const session = await locals.auth.validate();
-  
+
   if (!session) {
-    throw redirect(302, '/auth/login?redirectTo=/payment/process');
+    throw redirect(302, "/auth/login?redirectTo=/payment/process");
   }
-  
-  const bookingId = url.searchParams.get('bookingId');
-  
+
+  const bookingId = url.searchParams.get("bookingId");
+
   if (!bookingId) {
-    throw redirect(302, '/book');
+    throw redirect(302, "/book");
   }
-  
+
   // Fetch booking details
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: {
       service: true,
-      address: true
-    }
+      address: true,
+    },
   });
-  
+
   if (!booking) {
-    throw error(404, 'Booking not found');
+    throw error(404, "Booking not found");
   }
-  
+
   // Check that the booking belongs to the logged-in user
   if (booking.userId !== session.user.userId) {
-    throw error(403, 'Unauthorized');
+    throw error(403, "Unauthorized");
   }
-  
+
   return {
-    booking
+    booking,
   };
 };
 ```
@@ -425,14 +425,14 @@ After successful payment, users receive a confirmation:
 <!-- src/routes/payment/success/+page.svelte -->
 <script lang="ts">
   import { page } from '$app/stores';
-  
+
   export let data;
   const { booking } = data;
 </script>
 
 <div>
   <h1>Booking Confirmed!</h1>
-  
+
   <!-- Booking confirmation details -->
   <div>
     <h2>Booking Details</h2>
@@ -442,47 +442,47 @@ After successful payment, users receive a confirmation:
     <p>Address: {booking.address.street}, {booking.address.city}</p>
     <p>Amount Paid: R{booking.price}</p>
   </div>
-  
+
   <!-- Success message and next steps -->
 </div>
 ```
 
 ```typescript
 // src/routes/payment/success/+page.server.ts
-import type { PageServerLoad } from './$types';
-import { prisma } from '$lib/server/prisma';
-import { error, redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from "./$types";
+import { prisma } from "$lib/server/prisma";
+import { error, redirect } from "@sveltejs/kit";
 
 export const load: PageServerLoad = async ({ locals, url }) => {
   const session = await locals.auth.validate();
-  
+
   if (!session) {
-    throw redirect(302, '/auth/login');
+    throw redirect(302, "/auth/login");
   }
-  
+
   // Get booking ID from PayFast return params
-  const bookingId = url.searchParams.get('booking_id');
-  
+  const bookingId = url.searchParams.get("booking_id");
+
   if (!bookingId) {
-    throw redirect(302, '/profile/bookings');
+    throw redirect(302, "/profile/bookings");
   }
-  
+
   // Fetch booking with related data
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: {
       service: true,
       address: true,
-      payment: true
-    }
+      payment: true,
+    },
   });
-  
+
   if (!booking) {
-    throw error(404, 'Booking not found');
+    throw error(404, "Booking not found");
   }
-  
+
   return {
-    booking
+    booking,
   };
 };
 ```

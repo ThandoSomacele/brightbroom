@@ -2,13 +2,7 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
-  import {
-    Clock,
-    Edit,
-    PlusCircle,
-    Search,
-    Trash2,
-  } from "lucide-svelte";
+  import { Clock, Edit, PlusCircle, Search, Trash2 } from "lucide-svelte";
 
   // Get the services from the server load function
   export let data;
@@ -152,7 +146,6 @@
 
           <div class="flex flex-wrap gap-4 mt-4">
             <div class="flex items-center text-gray-700 dark:text-gray-300">
-              
               <span>{formatPrice(service.basePrice)}</span>
             </div>
             <div class="flex items-center text-gray-700 dark:text-gray-300">
@@ -256,7 +249,7 @@
                   required
                   value={form?.data?.name || ""}
                   class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder="e.g. Deep Cleaning"
+                  placeholder="e.g. Extended Cleaning"
                 />
               </div>
 

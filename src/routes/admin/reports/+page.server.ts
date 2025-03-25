@@ -1,6 +1,6 @@
 // src/routes/admin/reports/+page.server.ts
 import { db } from "$lib/server/db";
-import { booking, payment, service, user } from "$lib/server/db/schema";
+import { booking, payment } from "$lib/server/db/schema";
 import { redirect } from "@sveltejs/kit";
 import { and, eq, gte, lt, sql } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
@@ -126,81 +126,90 @@ function getCurrentDate(): string {
 }
 
 // Get revenue metrics
-async function getRevenueMetrics(startDate: Date, endDate: Date, period: string) {
+async function getRevenueMetrics(
+  startDate: Date,
+  endDate: Date,
+  period: string,
+) {
   // Total revenue for the period
   const totalRevenueResult = await db
     .select({
-      total: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number)
+      total: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number),
     })
     .from(payment)
     .where(
       and(
-        eq(payment.status, 'COMPLETED'),
+        eq(payment.status, "COMPLETED"),
         gte(payment.createdAt, startDate),
-        lt(payment.createdAt, endDate)
-      )
+        lt(payment.createdAt, endDate),
+      ),
     );
-  
+
   const totalRevenue = totalRevenueResult[0]?.total || 0;
-  
+
   // Calculate previous period for comparison
   const previousPeriodStart = new Date(startDate);
   const previousPeriodEnd = new Date(endDate);
   const durationMs = endDate.getTime() - startDate.getTime();
-  
+
   previousPeriodStart.setTime(previousPeriodStart.getTime() - durationMs);
   previousPeriodEnd.setTime(previousPeriodEnd.getTime() - durationMs);
-  
+
   // Get previous period revenue
   const previousRevenueResult = await db
     .select({
-      total: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number)
+      total: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number),
     })
     .from(payment)
     .where(
       and(
-        eq(payment.status, 'COMPLETED'),
+        eq(payment.status, "COMPLETED"),
         gte(payment.createdAt, previousPeriodStart),
-        lt(payment.createdAt, previousPeriodEnd)
-      )
+        lt(payment.createdAt, previousPeriodEnd),
+      ),
     );
-  
+
   const previousPeriodTotal = previousRevenueResult[0]?.total || 0;
-  
+
   // Calculate percentage change
-  const percentageChange = previousPeriodTotal === 0 
-    ? 100 // If previous was 0, show 100% increase
-    : ((totalRevenue - previousPeriodTotal) / previousPeriodTotal) * 100;
-  
+  const percentageChange =
+    previousPeriodTotal === 0
+      ? 100 // If previous was 0, show 100% increase
+      : ((totalRevenue - previousPeriodTotal) / previousPeriodTotal) * 100;
+
   // Get revenue trend data
   const interval = getIntervalByPeriod(period);
   const trendData = await getRevenueTrend(startDate, endDate, interval);
-  
+
   return {
     total: totalRevenue,
     trend: trendData,
     previousPeriodTotal,
-    percentageChange
+    percentageChange,
   };
 }
 
 // Get revenue trend data
-async function getRevenueTrend(startDate: Date, endDate: Date, interval: string) {
+async function getRevenueTrend(
+  startDate: Date,
+  endDate: Date,
+  interval: string,
+) {
   // For simplicity during development, return mock data
   // In a production environment, you would use a more sophisticated query
-  
+
   // Sample data with 7 data points
   const dataPoints = 7;
   const step = (endDate.getTime() - startDate.getTime()) / (dataPoints - 1);
-  
+
   const mockData = [];
   for (let i = 0; i < dataPoints; i++) {
-    const date = new Date(startDate.getTime() + (step * i));
+    const date = new Date(startDate.getTime() + step * i);
     // Random value between 1000 and 5000
     const value = Math.floor(Math.random() * 4000) + 1000;
     mockData.push({ date: date.toISOString(), value });
   }
-  
+
   return mockData;
 }
 
@@ -209,80 +218,75 @@ async function getBookingMetrics(startDate: Date, endDate: Date) {
   // Total bookings
   const totalBookingsResult = await db
     .select({
-      count: sql<number>`count(*)`.mapWith(Number)
+      count: sql<number>`count(*)`.mapWith(Number),
     })
     .from(booking)
     .where(
-      and(
-        gte(booking.createdAt, startDate),
-        lt(booking.createdAt, endDate)
-      )
+      and(gte(booking.createdAt, startDate), lt(booking.createdAt, endDate)),
     );
-  
+
   const totalBookings = totalBookingsResult[0]?.count || 0;
-  
+
   // Completed bookings
   const completedBookingsResult = await db
     .select({
-      count: sql<number>`count(*)`.mapWith(Number)
+      count: sql<number>`count(*)`.mapWith(Number),
     })
     .from(booking)
     .where(
       and(
-        eq(booking.status, 'COMPLETED'),
+        eq(booking.status, "COMPLETED"),
         gte(booking.createdAt, startDate),
-        lt(booking.createdAt, endDate)
-      )
+        lt(booking.createdAt, endDate),
+      ),
     );
-  
+
   const completedBookings = completedBookingsResult[0]?.count || 0;
-  
+
   // Cancelled bookings
   const cancelledBookingsResult = await db
     .select({
-      count: sql<number>`count(*)`.mapWith(Number)
+      count: sql<number>`count(*)`.mapWith(Number),
     })
     .from(booking)
     .where(
       and(
-        eq(booking.status, 'CANCELLED'),
+        eq(booking.status, "CANCELLED"),
         gte(booking.createdAt, startDate),
-        lt(booking.createdAt, endDate)
-      )
+        lt(booking.createdAt, endDate),
+      ),
     );
-  
+
   const cancelledBookings = cancelledBookingsResult[0]?.count || 0;
-  
+
   // Pending confirmation bookings
   const pendingBookingsResult = await db
     .select({
-      count: sql<number>`count(*)`.mapWith(Number)
+      count: sql<number>`count(*)`.mapWith(Number),
     })
     .from(booking)
     .where(
       and(
-        eq(booking.status, 'PENDING'),
+        eq(booking.status, "PENDING"),
         gte(booking.createdAt, startDate),
-        lt(booking.createdAt, endDate)
-      )
+        lt(booking.createdAt, endDate),
+      ),
     );
-  
+
   const pendingBookings = pendingBookingsResult[0]?.count || 0;
-  
+
   // Calculate conversion rate (completed / total)
-  const conversionRate = totalBookings > 0 
-    ? (completedBookings / totalBookings) * 100 
-    : 0;
-  
+  const conversionRate =
+    totalBookings > 0 ? (completedBookings / totalBookings) * 100 : 0;
+
   return {
     total: totalBookings,
     completed: completedBookings,
     cancelled: cancelledBookings,
     pendingConfirmation: pendingBookings,
-    conversionRate
+    conversionRate,
   };
 }
-
 
 // Get top services
 async function getTopServices(startDate: Date, endDate: Date) {
@@ -293,32 +297,32 @@ async function getTopServices(startDate: Date, endDate: Date) {
       serviceId: "1",
       serviceName: "Regular Cleaning",
       bookingCount: 42,
-      totalRevenue: 14700
+      totalRevenue: 14700,
     },
     {
       serviceId: "2",
-      serviceName: "Deep Cleaning",
+      serviceName: "Extended Cleaning",
       bookingCount: 28,
-      totalRevenue: 15400
+      totalRevenue: 15400,
     },
     {
       serviceId: "3",
       serviceName: "Office Cleaning",
       bookingCount: 21,
-      totalRevenue: 9450
+      totalRevenue: 9450,
     },
     {
       serviceId: "4",
       serviceName: "Move-in/Move-out",
       bookingCount: 15,
-      totalRevenue: 8250
+      totalRevenue: 8250,
     },
     {
       serviceId: "5",
       serviceName: "Post Construction",
       bookingCount: 8,
-      totalRevenue: 5600
-    }
+      totalRevenue: 5600,
+    },
   ];
 }
 
@@ -326,30 +330,30 @@ async function getTopServices(startDate: Date, endDate: Date) {
 async function getUserGrowth(startDate: Date, endDate: Date, period: string) {
   // Mock data for development
   const dataPoints = 6;
-  
+
   // Create customer growth data
   const customerData = [];
   for (let i = 0; i < dataPoints; i++) {
     const date = new Date(startDate);
-    date.setDate(date.getDate() + (i * 5));
+    date.setDate(date.getDate() + i * 5);
     // Random value between 5 and 20
     const value = Math.floor(Math.random() * 15) + 5;
     customerData.push({ date: date.toISOString(), value });
   }
-  
+
   // Create cleaner growth data
   const cleanerData = [];
   for (let i = 0; i < dataPoints; i++) {
     const date = new Date(startDate);
-    date.setDate(date.getDate() + (i * 5));
+    date.setDate(date.getDate() + i * 5);
     // Random value between 1 and 10
     const value = Math.floor(Math.random() * 9) + 1;
     cleanerData.push({ date: date.toISOString(), value });
   }
-  
+
   return {
     customers: customerData,
-    cleaners: cleanerData
+    cleaners: cleanerData,
   };
 }
 
@@ -361,32 +365,32 @@ async function getCleanerPerformance(startDate: Date, endDate: Date) {
       cleanerId: "c1",
       cleanerName: "John Davis",
       completedBookings: 24,
-      averageBookingValue: 350
+      averageBookingValue: 350,
     },
     {
       cleanerId: "c2",
       cleanerName: "Maria Lopez",
       completedBookings: 19,
-      averageBookingValue: 380
+      averageBookingValue: 380,
     },
     {
       cleanerId: "c3",
       cleanerName: "Sam Johnson",
       completedBookings: 17,
-      averageBookingValue: 410
+      averageBookingValue: 410,
     },
     {
       cleanerId: "c4",
       cleanerName: "Priya Patel",
       completedBookings: 15,
-      averageBookingValue: 325
+      averageBookingValue: 325,
     },
     {
       cleanerId: "c5",
       cleanerName: "David Chen",
       completedBookings: 12,
-      averageBookingValue: 365
-    }
+      averageBookingValue: 365,
+    },
   ];
 }
 

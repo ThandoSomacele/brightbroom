@@ -5,9 +5,10 @@
 BrightBroom is an on-demand cleaning service application that enables users to book professional cleaners for their homes and offices. The application focuses on providing a seamless booking experience with flexible scheduling, transparent pricing, and reliable service.
 
 ### Key Features
+
 - User authentication and profile management
 - Address management for cleaning locations
-- Service type selection (regular cleaning, deep cleaning, office cleaning)
+- Service type selection (regular cleaning, extended cleaning, office cleaning)
 - Scheduling and booking management
 - Real-time availability of cleaners
 - Payment processing with PayFast (South African payment gateway)
@@ -18,6 +19,7 @@ BrightBroom is an on-demand cleaning service application that enables users to b
 ## Tech Stack
 
 ### Frontend
+
 - **SvelteKit**: Latest stable version with TypeScript
 - **Tailwind CSS**: For styling with custom design system
   - Custom theme with BrightBroom brand colors
@@ -30,6 +32,7 @@ BrightBroom is an on-demand cleaning service application that enables users to b
 - **Svelte stores**: For state management
 
 ### Backend (SvelteKit Server/API Routes)
+
 - **Prisma**: For database ORM
 - **Lucia Auth**: Authentication library for SvelteKit
 - **PayFast**: South African payment processing
@@ -37,6 +40,7 @@ BrightBroom is an on-demand cleaning service application that enables users to b
 - **PostgreSQL**: Database
 
 ### Infrastructure
+
 - **Vercel** or **Netlify**: Hosting and deployment
 - **Neon**: PostgreSQL database hosting
 - **Upstash**: Redis for caching (optional)
