@@ -14,7 +14,7 @@ This document outlines the current progress and tactical next steps to complete 
 - [x] Configure authentication for SvelteKit
 - [x] Set up basic folder structure and organization
 - [x] Implement theme support (light/dark mode)
-- [ ] Password Reset: Create a forgot password flow
+- [x] Password Reset: Create a forgot password flow
 - [ ] Email Verification: Add email verification for new accounts
 - [ ] OAuth Integration: Add social login (Google, Facebook, etc.)
 
