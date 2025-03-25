@@ -11,7 +11,7 @@
 
   const variantStyles = {
     primary:
-      "bg-primary text-white hover:bg-primary-600 focus:ring-primary-500",
+      "bg-primary text-white hover:bg-primary-600 hover:text-white focus:ring-primary-500",
     secondary:
       "bg-secondary text-white hover:bg-secondary-600 focus:ring-secondary-500",
     outline:
