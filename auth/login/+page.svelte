@@ -1,8 +1,8 @@
 <!-- src/routes/auth/login/+page.svelte -->
 <script lang="ts">
   import { enhance } from "$app/forms";
+  import { goto } from "$app/navigation";
   import { page } from "$app/stores";
-  import Button from "$lib/components/ui/Button.svelte";
 
   // Get error from form action
   export let form;
@@ -12,8 +12,11 @@
 
   let isLoading = false;
   let showPassword = false;
-  let email = "";
+  let email = form?.email || "";
   let password = "";
+
+  // State to track full authentication process
+  let isAuthenticating = false;
 
   function togglePasswordVisibility() {
     showPassword = !showPassword;
@@ -23,6 +26,22 @@
 <svelte:head>
   <title>Login | BrightBroom</title>
 </svelte:head>
+
+{#if isAuthenticating}
+  <!-- Full-page loading overlay -->
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-80 dark:bg-gray-900 dark:bg-opacity-80"
+  >
+    <div class="flex flex-col items-center space-y-4">
+      <div
+        class="h-16 w-16 animate-spin rounded-full border-b-2 border-t-2 border-primary"
+      ></div>
+      <p class="text-lg font-medium text-gray-800 dark:text-white">
+        Logging in to your account...
+      </p>
+    </div>
+  </div>
+{/if}
 
 <div
   class="flex min-h-screen items-center justify-center bg-gray-50 p-4 dark:bg-gray-900"
@@ -52,13 +71,17 @@
           isLoading = true;
 
           return async ({ result, update }) => {
-            isLoading = false;
-
             if (result.type === "redirect") {
-              // Explicitly navigate to the redirect location
-              window.location.href = result.location;
+              // Don't turn off loading state, but activate full-page overlay
+              isAuthenticating = true;
+
+              // Short delay to ensure UI updates before redirect
+              setTimeout(() => {
+                goto(result.location, { replaceState: true });
+              }, 100);
             } else {
-              // For failures, explicitly update the form with the server response
+              // For failures, update the form and stop loading
+              isLoading = false;
               await update();
             }
           };
@@ -110,14 +133,11 @@
             >
               {#if showPassword}
                 <svg
-                  xmlns="http://www.w3.org/2000/svg"
                   class="h-5 w-5"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
                 >
                   <path
                     d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
@@ -126,14 +146,11 @@
                 </svg>
               {:else}
                 <svg
-                  xmlns="http://www.w3.org/2000/svg"
                   class="h-5 w-5"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
                 >
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
@@ -155,11 +172,10 @@
         <input type="hidden" name="redirectTo" value={redirectTo} />
 
         <!-- Submit button -->
-        <Button
+        <button
           type="submit"
-          variant="primary"
           disabled={isLoading}
-          class="w-full"
+          class="w-full inline-flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-primary hover:bg-primary-600 text-white focus-visible:ring-primary-500"
         >
           {#if isLoading}
             <svg
@@ -186,7 +202,7 @@
           {:else}
             Sign in
           {/if}
-        </Button>
+        </button>
       </form>
 
       <div class="mt-6 text-center">

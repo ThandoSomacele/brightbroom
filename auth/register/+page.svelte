@@ -1,7 +1,6 @@
 <!-- src/routes/auth/register/+page.svelte -->
 <script lang="ts">
   import { enhance } from "$app/forms";
-  import Button from "$lib/components/ui/Button.svelte";
 
   // Get possible error from form action
   export let form;
@@ -221,11 +220,10 @@
         </div>
 
         <!-- Submit button -->
-        <Button
+        <button
           type="submit"
-          variant="primary"
           disabled={isLoading}
-          class="w-full"
+          class="w-full inline-flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-primary hover:bg-primary-600 text-white focus-visible:ring-primary-500"
         >
           {#if isLoading}
             <svg
@@ -252,7 +250,7 @@
           {:else}
             Create account
           {/if}
-        </Button>
+        </button>
       </form>
 
       <div class="mt-6 text-center">
