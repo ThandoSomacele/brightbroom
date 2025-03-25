@@ -1,6 +1,5 @@
 // src/lib/server/email-service.ts
 import { Resend } from "resend";
-import { RESEND_API_KEY, PUBLIC_URL } from './env';
 import {
   getBookingConfirmationTemplate,
   getBookingReminderTemplate,
@@ -9,19 +8,20 @@ import {
   getPasswordResetTemplate,
   getWelcomeEmailTemplate,
 } from "./email-templates";
+import { PUBLIC_URL, RESEND_API_KEY } from "./env";
 
 // Initialize Resend with API key from environment variable
 const resend = new Resend(RESEND_API_KEY);
 
 // The sender email address
-const FROM_EMAIL = "notifications@brightbroom.com";
+const FROM_EMAIL = "BrightBroom <notifications@brightbroom.com>";
 
 // Email config for templates
 const EMAIL_CONFIG = {
   appUrl: PUBLIC_URL,
-  brandName: 'BrightBroom',
-  primaryColor: '#20C3AF',
-  secondaryColor: '#C2511F'
+  brandName: "BrightBroom",
+  primaryColor: "#20C3AF",
+  secondaryColor: "#C2511F",
 };
 
 /**
