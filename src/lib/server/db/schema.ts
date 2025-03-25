@@ -92,6 +92,17 @@ export const key = pgTable("key", {
   hashedPassword: text("hashed_password"),
 });
 
+export const passwordResetToken = pgTable("password_reset_token", {
+  id: text("id").primaryKey().notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
+  used: boolean("used").default(false).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
 export const address = pgTable("address", {
   id: text("id").primaryKey().notNull(),
   userId: text("user_id")
@@ -237,6 +248,9 @@ export type NewSession = typeof session.$inferInsert;
 
 export type Key = typeof key.$inferSelect;
 export type NewKey = typeof key.$inferInsert;
+
+export type PasswordResetToken = typeof passwordResetToken.$inferSelect;
+export type NewPasswordResetToken = typeof passwordResetToken.$inferInsert;
 
 export type Address = typeof address.$inferSelect;
 export type NewAddress = typeof address.$inferInsert;
