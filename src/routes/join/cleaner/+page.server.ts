@@ -4,6 +4,8 @@ import { user, cleanerProfile, service } from "$lib/server/db/schema";
 import { error, fail, redirect } from "@sveltejs/kit";
 import { hash } from "@node-rs/argon2";
 import type { Actions, PageServerLoad } from "./$types";
+import { eq, and, desc, lt, sql } from 'drizzle-orm'; // Added sql import
+
 
 /**
  * Load available services for the cleaner application form
