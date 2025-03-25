@@ -404,10 +404,11 @@ export async function validateIpnRequest(
 /**
  * Process a successful payment
  * @param paymentId The ID of the payment
+ * @returns The updated booking and user information, or null if the payment cannot be processed
  */
 export async function processSuccessfulPayment(
   paymentId: string,
-): Promise<void> {
+): Promise<{ booking: any; user: any } | null> {
   try {
     console.log(`Processing successful payment: ${paymentId}`);
 
@@ -422,7 +423,7 @@ export async function processSuccessfulPayment(
 
     console.log(`Updated payment status to COMPLETED: ${paymentId}`);
 
-    // Get the booking ID for this payment
+    // Get the booking ID and user info for this payment
     const paymentResult = await db
       .select()
       .from(payment)
@@ -431,7 +432,7 @@ export async function processSuccessfulPayment(
 
     if (!paymentResult || paymentResult.length === 0) {
       console.error(`Payment not found: ${paymentId}`);
-      return;
+      return null;
     }
 
     const paymentData = paymentResult[0];
@@ -447,8 +448,54 @@ export async function processSuccessfulPayment(
       .where(eq(booking.id, bookingId));
 
     console.log(`Updated booking status to CONFIRMED: ${bookingId}`);
+
+    // Get booking with all needed details for email
+    const bookingResult = await db
+      .select({
+        id: booking.id,
+        scheduledDate: booking.scheduledDate,
+        price: booking.price,
+        userId: booking.userId,
+        service: {
+          id: service.id,
+          name: service.name,
+        },
+        address: {
+          street: address.street,
+          city: address.city,
+          state: address.state,
+          zipCode: address.zipCode,
+        },
+      })
+      .from(booking)
+      .innerJoin(service, eq(booking.serviceId, service.id))
+      .innerJoin(address, eq(booking.addressId, address.id))
+      .where(eq(booking.id, bookingId))
+      .limit(1);
+
+    if (!bookingResult || bookingResult.length === 0) {
+      console.error(`Booking details not found: ${bookingId}`);
+      return null;
+    }
+
+    // Get user details
+    const userData = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, paymentData.userId))
+      .limit(1);
+
+    if (!userData || userData.length === 0) {
+      console.error(`User not found: ${paymentData.userId}`);
+      return null;
+    }
+
+    return {
+      booking: bookingResult[0],
+      user: userData[0],
+    };
   } catch (error) {
     console.error("Error processing successful payment:", error);
-    throw error;
+    return null;
   }
 }

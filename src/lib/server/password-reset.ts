@@ -4,6 +4,10 @@ import { user, passwordResetToken } from './db/schema';
 import { eq } from 'drizzle-orm';
 import { randomBytes } from 'crypto';
 import { getPasswordResetTemplate, getPasswordResetConfirmationTemplate } from './email-templates';
+import { 
+  sendPasswordResetEmail as sendEmail,
+  sendPasswordResetConfirmationEmail as sendConfirmationEmail
+} from './email-service';
 
 /**
  * Email template configuration
@@ -147,62 +151,10 @@ export async function resetPassword(token: string, newPassword: string): Promise
 
 /// Function to send reset email
 export async function sendPasswordResetEmail(email: string, resetToken: string): Promise<boolean> {
-  try {
-    // Generate the email template
-    const template = getPasswordResetTemplate(email, resetToken, EMAIL_CONFIG);
-    
-    // In a production app, you would integrate with an email service like Resend
-    // For now, we'll just log the email that would be sent
-    console.log(`
-      Password reset email would be sent to: ${email}
-      Subject: ${template.subject}
-      Text version: ${template.text.substring(0, 100)}...
-      HTML version: ${template.html.substring(0, 100)}...
-    `);
-    
-    // In production, replace with actual email sending
-    // Example with Resend:
-    // await resend.emails.send({
-    //   from: 'noreply@brightbroom.com',
-    //   to: email,
-    //   subject: template.subject,
-    //   html: template.html,
-    //   text: template.text,
-    // });
-    
-    return true;
-  } catch (error) {
-    console.error('Error sending password reset email:', error);
-    return false;
-  }
+  return sendEmail(email, resetToken);
 }
 
 // Function to send confirmation email after successful password reset
 export async function sendPasswordResetConfirmationEmail(email: string): Promise<boolean> {
-  try {
-    // Generate the confirmation template
-    const template = getPasswordResetConfirmationTemplate(email, EMAIL_CONFIG);
-    
-    // Log the confirmation email
-    console.log(`
-      Password reset confirmation email would be sent to: ${email}
-      Subject: ${template.subject}
-      Text version: ${template.text.substring(0, 100)}...
-      HTML version: ${template.html.substring(0, 100)}...
-    `);
-    
-    // In production:
-    // await resend.emails.send({
-    //   from: 'noreply@brightbroom.com',
-    //   to: email,
-    //   subject: template.subject,
-    //   html: template.html,
-    //   text: template.text,
-    // });
-    
-    return true;
-  } catch (error) {
-    console.error('Error sending password reset confirmation email:', error);
-    return false;
-  }
+  return sendConfirmationEmail(email);
 }
