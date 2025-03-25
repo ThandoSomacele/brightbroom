@@ -3,6 +3,7 @@ import { db } from "$lib/server/db";
 import { user, cleanerProfile, service } from "$lib/server/db/schema";
 import { error, fail, redirect } from "@sveltejs/kit";
 import { hash } from "@node-rs/argon2";
+import { eq, and, desc, lt, sql } from 'drizzle-orm'; // Added sql import
 import type { Actions, PageServerLoad } from "./$types";
 
 /**
