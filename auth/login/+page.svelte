@@ -51,14 +51,16 @@
         use:enhance={() => {
           isLoading = true;
 
-          return async ({ result }) => {
+          return async ({ result, update }) => {
             isLoading = false;
 
             if (result.type === "redirect") {
               // Explicitly navigate to the redirect location
               window.location.href = result.location;
+            } else {
+              // For failures, explicitly update the form with the server response
+              await update();
             }
-            // For failures, the form will update automatically
           };
         }}
       >
