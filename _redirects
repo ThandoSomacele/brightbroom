@@ -1,0 +1,8 @@
+# SPA fallback
+/auth/*    /index.html    200
+/profile/* /index.html    200
+/book/*    /index.html    200
+/payment/* /index.html    200
+
+# All other routes go to the Netlify Function
+/*         /.netlify/functions/render    200

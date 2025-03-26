@@ -1,11 +1,42 @@
 [build]
-  command = "npm run netlify:build"
+  command = "npm run build"
   publish = ".svelte-kit/netlify"
   functions = "netlify/functions"
 
 [build.environment]
-  NODE_VERSION = "22"
+  NODE_VERSION = "20"
 
 [functions]
   node_bundler = "esbuild"
+  external_node_modules = ["@node-rs/argon2", "oslo", "@oslojs/crypto", "@oslojs/encoding"]
 
+[dev]
+  command = "npm run dev"
+  port = 5173
+  targetPort = 5173
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/render"
+  status = 200
+
+# Explicitly handle SPA routes for client-side navigation
+[[redirects]]
+  from = "/auth/*"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/profile/*"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/book/*"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/payment/*"
+  to = "/index.html"
+  status = 200
