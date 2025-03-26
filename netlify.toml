@@ -14,29 +14,3 @@
   command = "npm run dev"
   port = 5173
   targetPort = 5173
-
-[[redirects]]
-  from = "/*"
-  to = "/.netlify/functions/render"
-  status = 200
-
-# Explicitly handle SPA routes for client-side navigation
-[[redirects]]
-  from = "/auth/*"
-  to = "/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/profile/*"
-  to = "/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/book/*"
-  to = "/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/payment/*"
-  to = "/index.html"
-  status = 200
