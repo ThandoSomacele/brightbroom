@@ -2,7 +2,7 @@
 export const handler = async (event, context) => {
   try {
     // Dynamically import the SvelteKit auth function
-    const { auth } = await import('/.netlify/functions-internal/sveltekit-auth-login.mjs');
+    const { auth } = await import('../../.svelte-kit/netlify/server/index.js');
     
     // Call the auth function with the event and context
     return await auth(event, context);

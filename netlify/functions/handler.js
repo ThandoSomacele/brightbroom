@@ -1,7 +1,8 @@
 // This is a compatibility wrapper for SvelteKit's Netlify adapter
 export const handler = async (event, context) => {
   // Dynamically import the SvelteKit render function
-  const { render } = await import('/.netlify/functions-internal/sveltekit-render.mjs');
+  const { render } = await import('../../.svelte-kit/netlify/server/index.js');
+
   
   try {
     // Call the render function with the event and context
