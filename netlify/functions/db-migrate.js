@@ -1,7 +1,8 @@
 // netlify/functions/db-migrate.js
-const { exec } = require('child_process');
+import { exec } from 'child_process';
 
-exports.handler = async function(event, context) {
+// Use ES Module export syntax instead of CommonJS
+export const handler = async function(event, context) {
   try {
     console.log('Starting database migration...');
     

@@ -7,9 +7,9 @@ const config = {
 
   kit: {
     adapter: adapter({
-      edge: false,
-      split: false
-    }),
+      // Critical for proper function imports
+      edge: false
+    })
   },
 };
 

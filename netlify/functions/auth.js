@@ -1,10 +1,8 @@
-// This is a compatibility wrapper specifically for auth functions
+// netlify/functions/auth.js
 export const handler = async (event, context) => {
   try {
-    // Dynamically import the SvelteKit auth function
-    const { auth } = await import('../../.svelte-kit/netlify/server/index.js');
-    
-    // Call the auth function with the event and context
+    // Correct path for Netlify's functions-internal directory
+    const { auth } = await import('/.netlify/functions-internal/sveltekit-auth.mjs');
     return await auth(event, context);
   } catch (error) {
     console.error('Auth handler error:', error);

@@ -1,11 +1,8 @@
-// This is a compatibility wrapper for SvelteKit's Netlify adapter
+// netlify/functions/handler.js
 export const handler = async (event, context) => {
-  // Dynamically import the SvelteKit render function
-  const { render } = await import('../../.svelte-kit/netlify/server/index.js');
-
-  
   try {
-    // Call the render function with the event and context
+    // Use the correct import path that Netlify's adapter creates
+    const { render } = await import('/.netlify/functions-internal/sveltekit-render.mjs');
     return await render(event, context);
   } catch (error) {
     console.error('Handler error:', error);
