@@ -1,0 +1,5 @@
+# Handle SvelteKit's routing
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/render"
+  status = 200
