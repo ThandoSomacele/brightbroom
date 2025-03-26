@@ -1,5 +1,5 @@
 [build]
-  command = "npm run netlify:build"
+  command = "npm run build"
   publish = ".svelte-kit/netlify"
   functions = "netlify/functions"
 
@@ -10,7 +10,7 @@
   node_bundler = "esbuild"
   external_node_modules = ["@node-rs/argon2", "oslo", "@oslojs/crypto", "@oslojs/encoding"]
 
-[dev]
-  command = "npm run dev"
-  port = 5173
-  targetPort = 5173
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/render"
+  status = 200
