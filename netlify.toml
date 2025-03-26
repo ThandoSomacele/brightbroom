@@ -1,11 +1,18 @@
 [build]
   command = "npm run build"
-  publish = ".svelte-kit/netlify"
+  publish = "build"
+  functions = "functions"
 
 [build.environment]
   NODE_VERSION = "22"
 
-[functions]
-  node_bundler = "esbuild"
+# This is the key part for SvelteKit - let the SvelteKit adapter handle routing
+[dev]
+  command = "npm run dev"
+  targetPort = 5173
+  port = 8888
+  framework = "#custom"
 
-
+# Important: DO NOT include the [[redirects]] section with the "*" rule
+# that was in my previous configuration. The SvelteKit adapter 
+# handles this automatically.
