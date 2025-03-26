@@ -1,18 +1,29 @@
 [build]
   command = "npm run build"
-  publish = "build"
-  functions = "functions"
+  publish = ".svelte-kit/netlify"
+  functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "22"
 
-# This is the key part for SvelteKit - let the SvelteKit adapter handle routing
-[dev]
-  command = "npm run dev"
-  targetPort = 5173
-  port = 8888
-  framework = "#custom"
+[functions]
+  node_bundler = "esbuild"
 
-# Important: DO NOT include the [[redirects]] section with the "*" rule
-# that was in my previous configuration. The SvelteKit adapter 
-# handles this automatically.
+# Handle SvelteKit's routing - this is crucial for SvelteKit to work correctly
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/render"
+  status = 200
+
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
+
+[[plugins]]
+  package = "@netlify/plugin-functions-core"
+
+[[plugins]]
+  package = "netlify-plugin-run-build-command"
+  
+  [plugins.inputs]
+    command = "npx drizzle-kit push"
+    skip_on_local = true
