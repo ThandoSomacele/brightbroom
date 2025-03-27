@@ -1,13 +1,16 @@
-import adapter from "@sveltejs/adapter-netlify";
-import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
+import adapter from '@sveltejs/adapter-netlify';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
   preprocess: vitePreprocess(),
   kit: {
     adapter: adapter({
+      // Use standard Node-based functions (not edge functions)
       edge: false,
-      split: false
+      // Split your app into multiple functions
+      // This can help avoid the 50MB function size limit
+      split: true
     }),
   },
 };
