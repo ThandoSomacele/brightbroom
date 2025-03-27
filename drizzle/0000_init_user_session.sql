@@ -1,5 +1,0 @@
-CREATE TABLE IF NOT EXISTS "user_session" (
-  "id" TEXT PRIMARY KEY,
-  "user_id" TEXT NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
-  "expires_at" TIMESTAMP NOT NULL
-);

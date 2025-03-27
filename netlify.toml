@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build && npx drizzle-kit generate --schema=./src/lib/server/db/schema.ts && npx drizzle-kit migrate"
+  command = "npm run build && ./netlify/scripts/deploy-db.sh"
   publish = ".svelte-kit/netlify"
   functions = "netlify/functions"
 
