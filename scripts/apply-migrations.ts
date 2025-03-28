@@ -7,9 +7,28 @@ import { config } from 'dotenv';
 // Load environment variables from .env file
 config();
 
-const dbUrl = process.env.DATABASE_URL;
+// Determine environment
+const environment = process.env.NODE_ENV || 'development';
+console.log(`Running migrations in ${environment} environment`);
+
+// Select the appropriate DB URL based on environment
+const getDbUrl = () => {
+  // Check for environment-specific database URLs first
+  if (environment === 'production' && process.env.DATABASE_URL_PRODUCTION) {
+    return process.env.DATABASE_URL_PRODUCTION;
+  }
+  
+  if (environment === 'development' && process.env.DATABASE_URL_DEVELOPMENT) {
+    return process.env.DATABASE_URL_DEVELOPMENT;
+  }
+  
+  // Fall back to the default DATABASE_URL
+  return process.env.DATABASE_URL;
+};
+
+const dbUrl = getDbUrl();
 if (!dbUrl) {
-  console.error('DATABASE_URL environment variable is not set');
+  console.error('Database URL environment variable is not set');
   process.exit(1);
 }
 
