@@ -1,4 +1,32 @@
 <!-- src/routes/admin/+layout.svelte -->
+<script lang="ts" context="module">
+  // Create stores for admin notifications that can be imported from anywhere
+  import { writable } from 'svelte/store';
+  
+  export const adminNotification = writable({
+    visible: false,
+    success: true,
+    message: ""
+  });
+  
+  // Helper functions to show notifications
+  export function showSuccess(message: string) {
+    adminNotification.set({
+      visible: true,
+      success: true,
+      message
+    });
+  }
+  
+  export function showError(message: string) {
+    adminNotification.set({
+      visible: true,
+      success: false,
+      message
+    });
+  }
+</script>
+
 <script lang="ts">
   import { page } from '$app/stores';
   import {
@@ -11,6 +39,7 @@
       Users,
       X
   } from 'lucide-svelte';
+  import UpdateStatusIndicator from "$lib/components/admin/UpdateStatusIndicator.svelte";
   
   let showMobileMenu = false;
   
@@ -27,6 +56,12 @@
     return $page.url.pathname === href || $page.url.pathname.startsWith(href + '/');
   }
 </script>
+
+<UpdateStatusIndicator 
+  bind:visible={$adminNotification.visible}
+  success={$adminNotification.success}
+  message={$adminNotification.message}
+/>
 
 <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
   <!-- Mobile header -->

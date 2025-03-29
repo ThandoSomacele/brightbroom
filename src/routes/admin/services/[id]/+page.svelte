@@ -2,6 +2,7 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
+  import { showSuccess, showError } from "../../+layout.svelte";
   import { ArrowLeft, Clock, Save, Wallet } from "lucide-svelte";
 
   // Get the service data from the server
@@ -62,6 +63,21 @@
 
       return async ({ result, update }) => {
         isLoading = false;
+        
+        // If the update was successful, update local data optimistically
+        if (result.type === "success") {
+          // Update local service data immediately
+          service.name = name;
+          service.description = description;
+          service.basePrice = parseFloat(basePrice);
+          service.durationHours = parseInt(durationHours);
+          
+          // Show success notification
+          showSuccess("Service updated successfully");
+        } else if (result.type === "failure") {
+          showError(result.data?.error || "Failed to update service");
+        }
+        
         await update();
       };
     }}

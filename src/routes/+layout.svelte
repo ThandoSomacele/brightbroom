@@ -61,32 +61,27 @@
       </nav>
 
       <!-- Auth buttons or user menu -->
-      <div class="hidden md:flex md:items-center">
+      <div class="hidden md:flex md:items-center space-x-3">
         {#if user}
-          <div class="relative ml-3">
-            <Button variant="outline" href="/profile">
-              <span>{user.firstName} {user.lastName}</span>
-            </Button>
-          </div>
+          <Button variant="outline" href="/profile">
+            <span>{user.firstName} {user.lastName}</span>
+          </Button>
+          
           {#if user.role === "ADMIN"}
             <Button 
               variant="ghost" 
-              href="/admin/dashboard" 
-              class="text-primary font-medium hover:bg-gray-50 hover:text-primary-600 dark:text-primary-400 dark:hover:bg-gray-700"
+              href="/admin/dashboard"
             >
               Admin Dashboard
             </Button>
           {/if}
-          <div class="ml-2">
-            <form action="/auth/logout" method="POST">
-              <Button variant="ghost" type="submit">Sign out</Button>
-            </form>
-          </div>
+          
+          <form action="/auth/logout" method="POST">
+            <Button variant="ghost" type="submit">Sign out</Button>
+          </form>
         {:else}
           <Button variant="outline" href="/auth/login">Sign in</Button>
-          <Button variant="primary" href="/auth/register" class="ml-2"
-            >Sign up</Button
-          >
+          <Button variant="primary" href="/auth/register">Sign up</Button>
         {/if}
       </div>
 
@@ -187,7 +182,7 @@
             {#if user.role === "ADMIN"}
               <a
                 href="/admin/dashboard"
-                class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
+                class="block px-3 py-2 font-medium text-primary hover:bg-gray-50 hover:text-primary-600 dark:text-primary-400 dark:hover:bg-gray-700"
                 >Admin Dashboard</a
               >
             {/if}

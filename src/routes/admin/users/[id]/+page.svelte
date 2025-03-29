@@ -2,6 +2,7 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
+  import { showSuccess, showError } from "../../+layout.svelte";
   import {
     BookOpen,
     Calendar,
@@ -164,6 +165,17 @@
 
               if (result.type === "success") {
                 isEditMode = false;
+                
+                // Optimistically update the user data in the UI
+                user.firstName = editFirstName;
+                user.lastName = editLastName;
+                user.phone = editPhone || null;
+                user.role = editRole;
+                
+                // Show success notification
+                showSuccess("User updated successfully");
+              } else if (result.type === "failure") {
+                showError(result.data?.error || "Failed to update user");
               }
 
               await update();
