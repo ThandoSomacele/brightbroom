@@ -1,11 +1,13 @@
 <!-- src/routes/auth/register/+page.svelte -->
 <script lang="ts">
   import { enhance } from "$app/forms";
+  import { goto } from "$app/navigation";
 
   // Get possible error from form action
   export let form;
 
   let isLoading = false;
+  let isAuthenticating = false;
   let showPassword = false;
   let firstName = form?.firstName || "";
   let lastName = form?.lastName || "";
@@ -21,6 +23,22 @@
 <svelte:head>
   <title>Create an Account | BrightBroom</title>
 </svelte:head>
+
+{#if isAuthenticating}
+  <!-- Full-page loading overlay -->
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-80 dark:bg-gray-900 dark:bg-opacity-80"
+  >
+    <div class="flex flex-col items-center space-y-4">
+      <div
+        class="h-16 w-16 animate-spin rounded-full border-b-2 border-t-2 border-primary"
+      ></div>
+      <p class="text-lg font-medium text-gray-800 dark:text-white">
+        Creating your account...
+      </p>
+    </div>
+  </div>
+{/if}
 
 <div
   class="flex min-h-screen items-center justify-center bg-gray-50 p-4 dark:bg-gray-900"
@@ -46,14 +64,20 @@
         use:enhance={() => {
           isLoading = true;
 
-          return async ({ result }) => {
-            isLoading = false;
-
+          return async ({ result, update }) => {
             if (result.type === "redirect") {
-              // Explicitly navigate to the redirect location
-              window.location.href = result.location;
+              // Don't turn off loading state, but activate full-page overlay
+              isAuthenticating = true;
+
+              // Short delay to ensure UI updates before redirect
+              setTimeout(() => {
+                goto(result.location, { replaceState: true });
+              }, 100);
+            } else {
+              // For failures, update the form and stop loading
+              isLoading = false;
+              await update();
             }
-            // For failures, the form will update automatically
           };
         }}
       >

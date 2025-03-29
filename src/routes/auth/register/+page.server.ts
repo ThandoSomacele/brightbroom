@@ -111,8 +111,8 @@ export const actions: Actions = {
         lastName: lastName!,
       });
 
-      // Redirect the user
-      throw redirect(302, "/profile");
+      console.log('Registration and welcome email successful, redirecting to profile');
+      
     } catch (error) {
       console.error("Registration error:", error);
 
@@ -137,8 +137,9 @@ export const actions: Actions = {
         phone,
       });
     }
-
+    
     // After successful registration and session creation, redirect
+    // This matches the pattern in login.server.ts
     throw redirect(302, "/profile");
   },
 };
