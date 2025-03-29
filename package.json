@@ -31,7 +31,7 @@
     "build:debug": "DEBUG=* vite build",
     "preview:debug": "DEBUG=* vite preview"
   },
-  "devDependencies": {
+  "dependencies": {
     "@sveltejs/adapter-auto": "^4.0.0",
     "@sveltejs/kit": "^2.20.2",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
@@ -56,9 +56,7 @@
     "vite": "^6.2.3",
     "vite-imagetools": "^7.0.5",
     "vite-node": "^3.0.8",
-    "vitest": "^3.0.8"
-  },
-  "dependencies": {
+    "vitest": "^3.0.8",
     "@lucia-auth/adapter-drizzle": "^1.1.0",
     "@node-rs/argon2": "^2.0.2",
     "@oslojs/crypto": "^1.0.1",
@@ -72,7 +70,6 @@
     "papaparse": "^5.5.2",
     "postgres": "^3.4.5",
     "resend": "^4.1.2",
-    "svelte": "^5.0.0",
     "zod": "^3.24.2"
   },
   "svelte-check": {

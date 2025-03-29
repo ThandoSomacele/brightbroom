@@ -1,9 +1,9 @@
 
-<!-- src/routes/join/+page.svelte -->
+<!-- src/routes/join/cleaner/+page.svelte -->
 <script lang="ts">
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
-  import { Calendar, DollarSign, MapPin, Clock, ShieldCheck, Users } from "lucide-svelte";
+  import { Calendar, DollarSign, MapPin, Clock, ShieldCheck, Users, Wallet, Zap } from "lucide-svelte";
 
   // Form state
   let isSubmitting = false;

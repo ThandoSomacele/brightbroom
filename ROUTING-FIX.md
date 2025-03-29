@@ -1,19 +1,26 @@
 # Routing Fix for BrightBroom
 
-## Issue Fixed
+## Issues Fixed
 
-The "Apply Now" button in the contact page was linking to `/join/cleaner`, but this route wasn't working properly. When users clicked this button, the page wasn't rendering as expected.
+1. The "Apply Now" button in the contact page was linking to `/join/cleaner`, but this route wasn't working properly. When users clicked this button, the page wasn't rendering as expected.
+
+2. Missing icon imports in the cleaner application form were causing reference errors:
+   - `ReferenceError: Wallet is not defined`
+   - `ReferenceError: Zap is not defined`
 
 ## Root Cause Analysis
 
-The issue was related to SvelteKit's routing architecture. The route structure was incomplete:
+1. **Routing Issue:**
+   - The route structure was incomplete
+   - SvelteKit requires parent routes to have either layout files or page files to properly handle nested routes
 
-1. The `/join/cleaner` route had a component but the parent `/join` route didn't have proper layout and page components.
-2. SvelteKit requires parent routes to have either layout files or page files to properly handle nested routes.
+2. **Missing Imports:**
+   - The cleaner page component was using Lucide icons (Wallet, Zap) but they weren't imported
+   - This caused runtime errors when the component tried to render
 
 ## Changes Made
 
-1. Added a minimal layout component for the `/join` route:
+1. Added proper SvelteKit route files:
    ```svelte
    <!-- src/routes/join/+layout.svelte -->
    <script>
@@ -23,7 +30,6 @@ The issue was related to SvelteKit's routing architecture. The route structure w
    <slot />
    ```
 
-2. Added a redirect page for the `/join` route that forwards users to `/join/cleaner`:
    ```svelte
    <!-- src/routes/join/+page.svelte -->
    <script>
@@ -41,12 +47,21 @@ The issue was related to SvelteKit's routing architecture. The route structure w
    </div>
    ```
 
+2. Fixed icon imports in the cleaner page:
+   ```javascript
+   // Before
+   import { Calendar, DollarSign, MapPin, Clock, ShieldCheck, Users } from "lucide-svelte";
+
+   // After
+   import { Calendar, DollarSign, MapPin, Clock, ShieldCheck, Users, Wallet, Zap } from "lucide-svelte";
+   ```
+
 ## Benefits
 
 1. The "Apply Now" button now correctly routes users to the cleaner application form
 2. The routing structure follows SvelteKit's conventions
 3. Users visiting `/join` will be automatically redirected to `/join/cleaner` 
-4. Improved user experience with no broken navigation paths
+4. The page renders properly with all required icons and components
 
 ## Recommended Future Improvements
 
