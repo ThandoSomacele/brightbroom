@@ -7,24 +7,23 @@ echo "Node version: $(node --version)"
 echo "NPM version: $(npm --version)"
 echo "Environment: $NODE_ENV"
 echo "Path: $PATH"
-echo "Available node modules:"
-ls -la node_modules/.bin/
 
-# Check if vite is accessible
-echo "Checking for vite command:"
-command -v vite || echo "vite command not found"
-command -v ./node_modules/.bin/vite || echo "vite not found in node_modules/.bin"
+# Make node_modules binaries directly available
+NODE_BIN=$(pwd)/node_modules/.bin
+echo "Adding $NODE_BIN to PATH"
+export PATH="$NODE_BIN:$PATH"
 
-# Check svelte-kit
-echo "Checking for svelte-kit command:"
-command -v svelte-kit || echo "svelte-kit command not found" 
-command -v ./node_modules/.bin/svelte-kit || echo "svelte-kit not found in node_modules/.bin"
+# Double check presence of critical binaries
+echo "Critical binaries:"
+ls -la node_modules/.bin/vite node_modules/.bin/svelte-kit || echo "Binaries not found"
 
-echo "Setting up symlinks for binaries"
-mkdir -p ~/.npm-global/bin
-ln -s $(pwd)/node_modules/.bin/vite ~/.npm-global/bin/vite
-ln -s $(pwd)/node_modules/.bin/svelte-kit ~/.npm-global/bin/svelte-kit
-export PATH=~/.npm-global/bin:$PATH
+# Re-install critical tools globally if needed
+echo "Installing critical tools"
+npm i -g @sveltejs/kit vite
 
-echo "Updated PATH: $PATH"
+echo "PATH after updates: $PATH"
+echo "Checking binary access after updates:"
+which vite
+which svelte-kit
+
 echo "Pre-build diagnostics complete"

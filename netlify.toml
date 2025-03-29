@@ -1,11 +1,11 @@
 [build]
-  command = "npm ci && chmod +x ./netlify/scripts/pre-build.sh && ./netlify/scripts/pre-build.sh && npm run build && ./netlify/scripts/deploy-db.sh"
+  command = "npm ci && ./netlify/scripts/pre-build.sh && npx svelte-kit sync && npx svelte-kit build && ./netlify/scripts/deploy-db.sh"
   publish = ".svelte-kit/netlify"
   functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "20"
-  NPM_FLAGS = "--no-audit --no-fund"
+  NPM_FLAGS = "--include=dev"
 
 [functions]
   node_bundler = "esbuild"
@@ -15,9 +15,9 @@
   environment = { NODE_ENV = "production" }
   
 [context.development]
-  command = "npm ci && chmod +x ./netlify/scripts/pre-build.sh && ./netlify/scripts/pre-build.sh && npm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
+  command = "npm ci && ./netlify/scripts/pre-build.sh && npx svelte-kit sync && npx svelte-kit build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
   environment = { NODE_ENV = "development" }
 
 [context.branch-deploy]
-  command = "npm ci && chmod +x ./netlify/scripts/pre-build.sh && ./netlify/scripts/pre-build.sh && npm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
+  command = "npm ci && ./netlify/scripts/pre-build.sh && npx svelte-kit sync && npx svelte-kit build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
   environment = { NODE_ENV = "development" }
