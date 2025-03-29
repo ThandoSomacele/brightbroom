@@ -4,12 +4,13 @@
   import { fade } from 'svelte/transition';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
-  import { Calendar, Clock, Home, MapPin, CreditCard } from 'lucide-svelte';
+  import { Calendar, Clock, Home, MapPin, CreditCard, Info } from 'lucide-svelte';
   import { format } from 'date-fns';
   import type { Service } from '@prisma/client';
+  import { services, servicesLoading, servicesError, fetchServices } from '$lib/stores/services';
+  import ServiceDetailsModal from '$lib/components/booking/ServiceDetailsModal.svelte';
   
   // Props
-  export let services: Service[] = [];
   export let addresses: { id: string, street: string, city: string, state: string, zipCode: string }[] = [];
   
   // Form state
@@ -20,9 +21,11 @@
   let additionalNotes: string = '';
   let currentStep = 1;
   let isLoading = false;
+  let showServiceDetails = false;
+  let selectedServiceForDetails: Service | null = null;
   
   // Derived values
-  $: selectedServiceDetails = services.find(s => s.id === selectedService);
+  $: selectedServiceDetails = $services.find(s => s.id === selectedService);
   $: estimatedPrice = selectedServiceDetails?.basePrice ?? 0;
   $: formattedPrice = new Intl.NumberFormat('en-ZA', { 
     style: 'currency', 
@@ -36,10 +39,33 @@
   ];
   
   // Initialize form with today's date
-  onMount(() => {
+  onMount(async () => {
     const today = new Date();
     selectedDate = format(today, 'yyyy-MM-dd');
+    
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const serviceId = urlParams.get('service');
+    
+    // Load services if needed
+    await loadServices();
+    
+    // Pre-select service if provided in URL
+    if (serviceId && $services.some(s => s.id === serviceId)) {
+      selectedService = serviceId;
+    }
   });
+  
+  // Load services
+  async function loadServices() {
+    if ($services.length === 0) {
+      try {
+        await fetchServices();
+      } catch (error) {
+        console.error('Error loading services:', error);
+      }
+    }
+  }
   
   // Form submission
   async function handleSubmit() {
@@ -94,6 +120,12 @@
   function goToPreviousStep() {
     if (currentStep > 1) currentStep--;
   }
+  
+  // Show service details modal
+  function showDetails(service: Service) {
+    selectedServiceForDetails = service;
+    showServiceDetails = true;
+  }
 </script>
 
 <div class="w-full max-w-4xl mx-auto p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
@@ -129,29 +161,63 @@
           Select Cleaning Service
         </h2>
         
-        {#each services as service}
-          <label class="block p-4 border rounded-lg cursor-pointer hover:border-primary-200 transition-colors
-            {selectedService === service.id 
-              ? 'border-primary bg-primary-50 dark:bg-primary-900/20' 
-              : 'border-gray-200 dark:border-gray-700'}">
-            <div class="flex items-start">
-              <input
-                type="radio"
-                name="service"
-                value={service.id}
-                bind:group={selectedService}
-                class="mt-1 text-primary focus:ring-primary"
-              />
-              <div class="ml-3">
-                <h3 class="font-medium text-gray-900 dark:text-white">{service.name}</h3>
-                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{service.description}</p>
-                <p class="text-primary font-medium mt-2">
-                  R{service.basePrice} · {service.durationHours} {service.durationHours === 1 ? 'hour' : 'hours'}
-                </p>
+        {#if $servicesLoading}
+          <div class="py-8 flex justify-center">
+            <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          </div>
+        {:else if $servicesError}
+          <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-md">
+            <p class="text-red-700 dark:text-red-300">
+              {$servicesError}
+            </p>
+            <button 
+              type="button"
+              class="mt-2 text-primary hover:underline"
+              on:click={loadServices}
+            >
+              Try Again
+            </button>
+          </div>
+        {:else if $services.length === 0}
+          <div class="p-8 text-center">
+            <p class="text-gray-500 dark:text-gray-400">No services available. Please try again later.</p>
+          </div>
+        {:else}
+          {#each $services as service}
+            <label class="block p-4 border rounded-lg cursor-pointer hover:border-primary-200 transition-colors
+              {selectedService === service.id 
+                ? 'border-primary bg-primary-50 dark:bg-primary-900/20' 
+                : 'border-gray-200 dark:border-gray-700'}">
+              <div class="flex items-start justify-between">
+                <div class="flex items-start">
+                  <input
+                    type="radio"
+                    name="service"
+                    value={service.id}
+                    bind:group={selectedService}
+                    class="mt-1 text-primary focus:ring-primary"
+                  />
+                  <div class="ml-3">
+                    <h3 class="font-medium text-gray-900 dark:text-white">{service.name}</h3>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{service.description}</p>
+                    <p class="text-primary font-medium mt-2">
+                      R{service.basePrice} · {service.durationHours} {service.durationHours === 1 ? 'hour' : 'hours'}
+                    </p>
+                  </div>
+                </div>
+                
+                <button 
+                  type="button"
+                  class="text-primary hover:text-primary-600 flex items-center text-sm"
+                  on:click|preventDefault|stopPropagation={() => showDetails(service)}
+                >
+                  <Info size={16} class="mr-1" />
+                  Details
+                </button>
               </div>
-            </div>
-          </label>
-        {/each}
+            </label>
+          {/each}
+        {/if}
       </div>
     {/if}
     
@@ -163,37 +229,50 @@
           Select Cleaning Location
         </h2>
         
-        {#each addresses as address}
-          <label class="block p-4 border rounded-lg cursor-pointer hover:border-primary-200 transition-colors
-            {selectedAddress === address.id 
-              ? 'border-primary bg-primary-50 dark:bg-primary-900/20' 
-              : 'border-gray-200 dark:border-gray-700'}">
-            <div class="flex items-start">
-              <input
-                type="radio"
-                name="address"
-                value={address.id}
-                bind:group={selectedAddress}
-                class="mt-1 text-primary focus:ring-primary"
-              />
-              <div class="ml-3">
-                <h3 class="font-medium text-gray-900 dark:text-white">{address.street}</h3>
-                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                  {address.city}, {address.state} {address.zipCode}
-                </p>
+        {#if addresses.length === 0}
+          <div class="p-8 text-center border border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
+            <p class="text-gray-500 dark:text-gray-400 mb-4">You don't have any saved addresses yet.</p>
+            <button 
+              type="button"
+              class="inline-flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 bg-primary hover:bg-primary-600 text-white focus-visible:ring-primary-500"
+              on:click={() => goto('/profile/addresses/new?redirect=booking')}
+            >
+              Add New Address
+            </button>
+          </div>
+        {:else}
+          {#each addresses as address}
+            <label class="block p-4 border rounded-lg cursor-pointer hover:border-primary-200 transition-colors
+              {selectedAddress === address.id 
+                ? 'border-primary bg-primary-50 dark:bg-primary-900/20' 
+                : 'border-gray-200 dark:border-gray-700'}">
+              <div class="flex items-start">
+                <input
+                  type="radio"
+                  name="address"
+                  value={address.id}
+                  bind:group={selectedAddress}
+                  class="mt-1 text-primary focus:ring-primary"
+                />
+                <div class="ml-3">
+                  <h3 class="font-medium text-gray-900 dark:text-white">{address.street}</h3>
+                  <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
+                    {address.city}, {address.state} {address.zipCode}
+                  </p>
+                </div>
               </div>
-            </div>
-          </label>
-        {/each}
-        
-        <button 
-          type="button"
-          class="w-full py-2 px-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg
-            text-gray-600 dark:text-gray-300 hover:border-primary hover:text-primary transition-colors"
-          on:click={() => goto('/profile/addresses/new?redirect=booking')}
-        >
-          + Add New Address
-        </button>
+            </label>
+          {/each}
+          
+          <button 
+            type="button"
+            class="w-full py-2 px-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg
+              text-gray-600 dark:text-gray-300 hover:border-primary hover:text-primary transition-colors"
+            on:click={() => goto('/profile/addresses/new?redirect=booking')}
+          >
+            + Add New Address
+          </button>
+        {/if}
       </div>
     {/if}
     
@@ -338,3 +417,11 @@
     </div>
   </form>
 </div>
+
+<!-- Service Details Modal -->
+{#if showServiceDetails && selectedServiceForDetails}
+  <ServiceDetailsModal 
+    service={selectedServiceForDetails} 
+    on:close={() => showServiceDetails = false} 
+  />
+{/if}

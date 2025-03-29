@@ -1,16 +1,11 @@
+<!-- src/lib/components/booking/ServiceDetailsModal.svelte -->
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { ArrowLeft, CheckCircle, X } from "lucide-svelte";
+  import type { Service } from "$lib/server/db/schema";
   
   // Service props
-  export let service: {
-    id: string;
-    name: string;
-    description: string;
-    basePrice: number;
-    durationHours: number;
-    details?: string;  // JSON string with details
-  };
+  export let service: Service;
   
   const dispatch = createEventDispatcher();
   
@@ -29,24 +24,43 @@
   function close() {
     dispatch('close');
   }
+
+  // Handle clicking outside
+  function handleOutsideClick(event: MouseEvent) {
+    if (event.target === event.currentTarget) {
+      close();
+    }
+  }
+
+  // Handle escape key
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      close();
+    }
+  }
 </script>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <!-- Modal overlay -->
 <div 
   class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto"
-  on:click|self={close}
+  on:click={handleOutsideClick}
 >
   <!-- Modal content -->
   <div 
     class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-    on:click|stopPropagation
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="service-details-title"
   >
     <!-- Modal header -->
     <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{service.name} Details</h2>
+      <h2 id="service-details-title" class="text-2xl font-bold text-gray-900 dark:text-white">{service.name} Details</h2>
       <button 
         class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
         on:click={close}
+        aria-label="Close"
       >
         <X size={24} />
       </button>
