@@ -1,23 +1,23 @@
 [build]
-  command = "npm ci && npm run build"
+  command = "npm ci && chmod +x ./netlify/scripts/pre-build.sh && ./netlify/scripts/pre-build.sh && npm run build && ./netlify/scripts/deploy-db.sh"
   publish = ".svelte-kit/netlify"
   functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "20"
+  NPM_FLAGS = "--no-audit --no-fund"
 
 [functions]
   node_bundler = "esbuild"
   external_node_modules = ["@node-rs/argon2", "oslo", "@oslojs/crypto", "@oslojs/encoding"]
 
 [context.production]
-  command = "npm ci && npm run build && ./netlify/scripts/deploy-db.sh"
   environment = { NODE_ENV = "production" }
   
 [context.development]
-  command = "npm ci && npm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
+  command = "npm ci && chmod +x ./netlify/scripts/pre-build.sh && ./netlify/scripts/pre-build.sh && npm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
   environment = { NODE_ENV = "development" }
 
 [context.branch-deploy]
-  command = "npm ci && npm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
+  command = "npm ci && chmod +x ./netlify/scripts/pre-build.sh && ./netlify/scripts/pre-build.sh && npm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
   environment = { NODE_ENV = "development" }
