@@ -1,10 +1,18 @@
 <script lang="ts">
+  import { navigating } from '$app/stores';
+  import { goto } from '$app/navigation';
+  
   export let variant: "primary" | "secondary" | "outline" | "ghost" = "primary";
   export let size: "sm" | "md" | "lg" = "md";
   export let type: "button" | "submit" | "reset" = "button";
   export let disabled = false;
   export let href: string | undefined = undefined;
   export let loading = false;
+  export let useNavigation = true; // Whether to use client-side navigation
+
+  // Track if this specific href is being navigated to
+  $: isNavigatingToHref = $navigating && href && $navigating.to?.url.pathname === href;
+  $: isLoading = loading || isNavigatingToHref;
 
   const baseStyles =
     "inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
@@ -27,6 +35,17 @@
   };
 
   $: classNames = `${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]}`;
+  
+  // Handle client-side navigation
+  function handleClick(event: MouseEvent) {
+    if (!href || !useNavigation) return;
+    
+    // Allow opening in new tab with modifier keys
+    if (event.metaKey || event.ctrlKey || event.shiftKey) return;
+    
+    event.preventDefault();
+    goto(href);
+  }
 </script>
 
 {#if href}
@@ -36,14 +55,17 @@
     class:opacity-50={disabled}
     role="button"
     tabindex={disabled ? -1 : 0}
+    on:click={handleClick}
+    data-sveltekit-preload-data="hover"
     {...$$restProps}
   >
-    {#if loading}
+    {#if isLoading}
       <svg
         class="mr-2 h-4 w-4 animate-spin"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
+        data-testid="loading-spinner"
       >
         <circle
           class="opacity-25"
@@ -64,12 +86,13 @@
   </a>
 {:else}
   <button {type} class={classNames} {disabled} on:click {...$$restProps}>
-    {#if loading}
+    {#if isLoading}
       <svg
         class="mr-2 h-4 w-4 animate-spin"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
+        data-testid="loading-spinner"
       >
         <circle
           class="opacity-25"

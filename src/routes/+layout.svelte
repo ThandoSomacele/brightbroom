@@ -2,6 +2,7 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
+  import LoadingIndicator from "$lib/components/ui/LoadingIndicator.svelte";
   import "../app.css";
 
   // Access user data from the page store
@@ -13,6 +14,9 @@
     isMenuOpen = !isMenuOpen;
   }
 </script>
+
+<!-- Global loading indicator for page navigation -->
+<LoadingIndicator />
 
 <!-- Header with navigation -->
 <header class="bg-white shadow dark:bg-gray-800">
@@ -65,12 +69,13 @@
             </Button>
           </div>
           {#if user.role === "ADMIN"}
-            <a
-              href="/admin/dashboard"
-              class="block px-3 py-2 text-primary font-medium hover:bg-gray-50 hover:text-primary-600 dark:text-primary-400 dark:hover:bg-gray-700"
+            <Button 
+              variant="ghost" 
+              href="/admin/dashboard" 
+              class="text-primary font-medium hover:bg-gray-50 hover:text-primary-600 dark:text-primary-400 dark:hover:bg-gray-700"
             >
               Admin Dashboard
-            </a>
+            </Button>
           {/if}
           <div class="ml-2">
             <form action="/auth/logout" method="POST">
@@ -181,7 +186,7 @@
             >
             {#if user.role === "ADMIN"}
               <a
-                href="/admin"
+                href="/admin/dashboard"
                 class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
                 >Admin Dashboard</a
               >
