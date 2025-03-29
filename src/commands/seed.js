@@ -141,7 +141,7 @@ async function main() {
         name: "Regular Cleaning",
         description: "Standard cleaning service for homes and apartments",
         basePrice: 350.0,
-        durationHours: 2,
+        durationHours: 6,
         details: regularCleaningDetails ? JSON.stringify(regularCleaningDetails) : null,
         isActive: true
       })
@@ -154,7 +154,7 @@ async function main() {
         name: "Extended Cleaning",
         description: "Thorough cleaning including hard-to-reach areas",
         basePrice: 550.0,
-        durationHours: 4,
+        durationHours: 8,
         details: extendedCleaningDetails ? JSON.stringify(extendedCleaningDetails) : null,
         isActive: true
       })
@@ -167,7 +167,7 @@ async function main() {
         name: "Office Cleaning",
         description: "Professional cleaning for office spaces",
         basePrice: 450.0,
-        durationHours: 3,
+        durationHours: 6,
         details: regularCleaningDetails ? JSON.stringify(regularCleaningDetails) : null, // Reuse regular cleaning details for now
         isActive: true
       })

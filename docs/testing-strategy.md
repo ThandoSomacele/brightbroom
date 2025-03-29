@@ -340,7 +340,7 @@ describe("Bookings API", () => {
       id: "service123",
       name: "Regular Cleaning",
       price: 350,
-      durationHours: 2,
+      durationHours: 6,
     });
 
     // Mock booking creation

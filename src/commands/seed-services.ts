@@ -20,7 +20,7 @@ async function seedServices() {
       name: "Regular Cleaning",
       description: "Perfect for maintaining a clean and tidy home on a regular basis.",
       basePrice: 350,
-      durationHours: 2,
+      durationHours: 6,
       isActive: true,
     },
     {
@@ -28,7 +28,7 @@ async function seedServices() {
       name: "Extended Cleaning",
       description: "A thorough cleaning service that reaches every corner and detail.",
       basePrice: 550,
-      durationHours: 4,
+      durationHours: 8,
       isActive: true,
     },
     {
@@ -36,7 +36,7 @@ async function seedServices() {
       name: "Office Cleaning",
       description: "Professional cleaning for your office space or commercial property.",
       basePrice: 450,
-      durationHours: 3,
+      durationHours: 6,
       isActive: true,
     },
   ];
