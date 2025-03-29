@@ -1,5 +1,5 @@
 [build]
-  command = "npm ci && ./netlify/scripts/pre-build.sh && npx svelte-kit sync && npx svelte-kit build && ./netlify/scripts/deploy-db.sh"
+  command = "npm ci && ./netlify/scripts/pre-build.sh && npx svelte-kit sync && npm run build && ./netlify/scripts/deploy-db.sh"
   publish = ".svelte-kit/netlify"
   functions = "netlify/functions"
 
@@ -15,9 +15,9 @@
   environment = { NODE_ENV = "production" }
   
 [context.development]
-  command = "npm ci && ./netlify/scripts/pre-build.sh && npx svelte-kit sync && npx svelte-kit build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
+  command = "npm ci && ./netlify/scripts/pre-build.sh && npx svelte-kit sync && npm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
   environment = { NODE_ENV = "development" }
 
 [context.branch-deploy]
-  command = "npm ci && ./netlify/scripts/pre-build.sh && npx svelte-kit sync && npx svelte-kit build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
+  command = "npm ci && ./netlify/scripts/pre-build.sh && npx svelte-kit sync && npm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
   environment = { NODE_ENV = "development" }

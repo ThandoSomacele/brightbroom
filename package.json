@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "svelte-kit sync && svelte-kit build",
+    "build": "svelte-kit sync && vite build",
     "db:generate": "drizzle-kit generate --schema=./src/lib/server/db/schema.ts --out=./drizzle/migrations --dialect=postgresql",
     "db:migrate:dev": "NODE_ENV=development tsx ./scripts/apply-migrations.ts",
     "db:migrate:prod": "NODE_ENV=production tsx ./scripts/apply-migrations.ts",
@@ -27,14 +27,13 @@
     "lint": "eslint --ext .js,.ts,.svelte src",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "dev:debug": "DEBUG=* svelte-kit dev",
-    "build:debug": "DEBUG=* svelte-kit build",
-    "preview:debug": "DEBUG=* svelte-kit preview"
+    "dev:debug": "DEBUG=* vite dev",
+    "build:debug": "DEBUG=* vite build",
+    "preview:debug": "DEBUG=* vite preview"
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^4.0.0",
-    "@sveltejs/adapter-netlify": "^5.0.0",
-    "@sveltejs/kit": "^2.16.0",
+    "@sveltejs/kit": "^2.20.2",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "@testing-library/svelte": "^5.2.7",
     "autoprefixer": "^10.4.20",
@@ -54,7 +53,7 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3",
     "typescript": "^5.0.0",
-    "vite": "^6.0.0",
+    "vite": "^6.2.3",
     "vite-imagetools": "^7.0.5",
     "vite-node": "^3.0.8",
     "vitest": "^3.0.8"
@@ -65,7 +64,6 @@
     "@oslojs/crypto": "^1.0.1",
     "@oslojs/encoding": "^1.1.0",
     "@sveltejs/adapter-netlify": "^5.0.0",
-    "@sveltejs/kit": "^2.16.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.40.0",
@@ -76,7 +74,6 @@
     "postgres": "^3.4.5",
     "resend": "^4.1.2",
     "svelte": "^5.0.0",
-    "vite": "^6.0.0",
     "zod": "^3.24.2"
   },
   "svelte-check": {

@@ -17,13 +17,16 @@ export PATH="$NODE_BIN:$PATH"
 echo "Critical binaries:"
 ls -la node_modules/.bin/vite node_modules/.bin/svelte-kit || echo "Binaries not found"
 
-# Re-install critical tools globally if needed
-echo "Installing critical tools"
+# Re-install critical dependencies
+echo "Installing critical dependencies"
+npm i @sveltejs/adapter-netlify @sveltejs/kit vite
 npm i -g @sveltejs/kit vite
 
 echo "PATH after updates: $PATH"
 echo "Checking binary access after updates:"
 which vite
 which svelte-kit
+echo "Checking for adapter-netlify:"
+ls -la node_modules/@sveltejs/adapter-netlify || echo "adapter-netlify not found"
 
 echo "Pre-build diagnostics complete"
