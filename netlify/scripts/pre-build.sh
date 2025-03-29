@@ -19,7 +19,7 @@ ls -la node_modules/.bin/vite node_modules/.bin/svelte-kit || echo "Binaries not
 
 # Re-install critical dependencies
 echo "Installing critical dependencies"
-npm i @sveltejs/adapter-netlify @sveltejs/kit vite
+npm i @sveltejs/adapter-netlify @sveltejs/kit @sveltejs/vite-plugin-svelte vite
 npm i -g @sveltejs/kit vite
 
 echo "PATH after updates: $PATH"
