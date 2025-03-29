@@ -116,6 +116,8 @@
   <div
     class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop bg-black bg-opacity-50 dark:bg-opacity-60"
     on:click={handleClickOutside}
+    on:keydown={(e) => e.key === 'Escape' && close()}
+    role="presentation"
     transition:fade={{ duration: 200 }}
   >
     <div

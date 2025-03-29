@@ -542,10 +542,10 @@
 
                   <!-- Availability -->
                   <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <p id="availability-label" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Availability <span class="text-red-500">*</span>
-                    </label>
-                    <div class="space-y-2">
+                    </p>
+                    <div class="space-y-2" aria-labelledby="availability-label">
                       {#each ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as day}
                         <label class="flex items-center">
                           <input
@@ -564,10 +564,10 @@
                   <!-- Own Transport & Supplies -->
                   <div class="grid gap-4 md:grid-cols-2">
                     <div>
-                      <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <p id="transport-label" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Do you have your own transport?
-                      </label>
-                      <div class="space-x-4">
+                      </p>
+                      <div class="space-x-4" role="radiogroup" aria-labelledby="transport-label">
                         <label class="inline-flex items-center">
                           <input
                             type="radio"
@@ -591,10 +591,10 @@
                       </div>
                     </div>
                     <div>
-                      <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <p id="whatsapp-label" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Do you have your own WhatsApp?
-                      </label>
-                      <div class="space-x-4">
+                      </p>
+                      <div class="space-x-4" role="radiogroup" aria-labelledby="whatsapp-label">
                         <label class="inline-flex items-center">
                           <input
                             type="radio"
