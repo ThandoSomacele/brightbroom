@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build"
+  command = "npm ci && npm run build"
   publish = ".svelte-kit/netlify"
   functions = "netlify/functions"
 
@@ -11,13 +11,13 @@
   external_node_modules = ["@node-rs/argon2", "oslo", "@oslojs/crypto", "@oslojs/encoding"]
 
 [context.production]
-  command = "npm run build && ./netlify/scripts/deploy-db.sh"
+  command = "npm ci && npm run build && ./netlify/scripts/deploy-db.sh"
   environment = { NODE_ENV = "production" }
   
 [context.development]
-  command = "npm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
+  command = "npm ci && npm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
   environment = { NODE_ENV = "development" }
 
 [context.branch-deploy]
-  command = "npm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
+  command = "npm ci && npm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
   environment = { NODE_ENV = "development" }
