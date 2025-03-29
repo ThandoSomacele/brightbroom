@@ -9,7 +9,15 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["@node-rs/argon2", "oslo", "@oslojs/crypto", "@oslojs/encoding"]
+  external_node_modules = [
+    "@node-rs/argon2", 
+    "oslo", 
+    "@oslojs/crypto", 
+    "@oslojs/encoding",
+    "react",
+    "react-dom",
+    "react/jsx-runtime"
+  ]
 
 [context.production]
   environment = { NODE_ENV = "production" }
