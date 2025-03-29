@@ -37,25 +37,28 @@
   
   // Continue to next step
   async function continueToNext() {
-    if (selectedAddress) {
-      // Show loading state
-      isLoading = true;
+  if (selectedAddress) {
+    // Show loading state
+    isLoading = true;
+    
+    try {
+      // Store selections in localStorage to persist through navigation
+      localStorage.setItem('booking_address', selectedAddress);
+      localStorage.setItem('booking_instructions', accessInstructions);
       
-      try {
-        // Store selections in localStorage to persist through navigation
-        localStorage.setItem('booking_address', selectedAddress);
-        localStorage.setItem('booking_instructions', accessInstructions);
-        
-        // Navigate to scheduling
-        await goto('/book/schedule');
-      } catch (error) {
-        console.error('Navigation error:', error);
-      } finally {
-        // Reset loading state (though this won't be seen due to navigation)
-        isLoading = false;
-      }
+      // Get the service ID from localStorage
+      const serviceId = localStorage.getItem('booking_service') || '';
+      
+      // Navigate to scheduling with serviceId as a query parameter
+      await goto(`/book/schedule?serviceId=${serviceId}`);
+    } catch (error) {
+      console.error('Navigation error:', error);
+    } finally {
+      // Reset loading state (though this won't be seen due to navigation)
+      isLoading = false;
     }
   }
+}
   
   // Go back to previous step
   function goToPrevious() {

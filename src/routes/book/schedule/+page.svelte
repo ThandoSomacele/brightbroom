@@ -1,36 +1,36 @@
 <!-- src/routes/book/schedule/+page.svelte -->
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import Button from '$lib/components/ui/Button.svelte';
-  import { Calendar, Clock, ArrowRight, ArrowLeft } from 'lucide-svelte';
+  import { goto } from "$app/navigation";
+  import Button from "$lib/components/ui/Button.svelte";
+  import { Calendar, Clock, ArrowRight, ArrowLeft, Info } from "lucide-svelte";
   
   // Get data from the server load function
   export let data;
-  const { availableDates, timeSlots } = data;
+  const { availableDates, timeSlots, selectedService } = data;
   
   // Track selected date and time
-  let selectedDate = '';
-  let selectedTime = '';
+  let selectedDate = "";
+  let selectedTime = "";
   
   // Add loading state
   let isLoading = false;
   
   // Get previous selections from localStorage
-  let selectedService = '';
-  let selectedAddress = '';
-  let accessInstructions = '';
+  let selectedServiceId = "";
+  let selectedAddress = "";
+  let accessInstructions = "";
   
   // Initialize data from localStorage on mount
   import { onMount } from 'svelte';
   
   onMount(() => {
     // Get previous selections
-    selectedService = localStorage.getItem('booking_service') || '';
+    selectedServiceId = localStorage.getItem('booking_service') || '';
     selectedAddress = localStorage.getItem('booking_address') || '';
     accessInstructions = localStorage.getItem('booking_instructions') || '';
     
     // If required information is missing, redirect back
-    if (!selectedService || !selectedAddress) {
+    if (!selectedServiceId || !selectedAddress) {
       goto('/book');
     }
     
@@ -243,6 +243,16 @@
         </div>
       </div>
     </div>
+
+    {#if selectedService}
+  <div class="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center">
+    <Info size={18} class="text-primary mr-2 flex-shrink-0" />
+    <p class="text-sm text-gray-700 dark:text-gray-300">
+      Service duration: {selectedService.durationHours} {selectedService.durationHours === 1 ? 'hour' : 'hours'}. 
+      Only showing time slots that allow cleaners to finish by 6:00 PM.
+    </p>
+  </div>
+{/if}
 
     <!-- Selected date and time summary -->
     {#if selectedDate && selectedTime}

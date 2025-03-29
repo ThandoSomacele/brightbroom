@@ -32,24 +32,24 @@
 
   // Continue to next step
   async function continueToNext() {
-    if (selectedService) {
-      // Show loading state
-      isLoading = true;
+  if (selectedService) {
+    // Show loading state
+    isLoading = true;
 
-      try {
-        // Store selection in localStorage to persist through navigation
-        localStorage.setItem("booking_service", selectedService);
+    try {
+      // Store selection in localStorage to persist through navigation
+      localStorage.setItem("booking_service", selectedService);
 
-        // Navigate to address selection
-        await goto("/book/address");
-      } catch (error) {
-        console.error("Navigation error:", error);
-      } finally {
-        // Reset loading state (though this won't be seen due to navigation)
-        isLoading = false;
-      }
+      // Navigate to address selection with serviceId as a query parameter
+      await goto(`/book/address?serviceId=${selectedService}`);
+    } catch (error) {
+      console.error("Navigation error:", error);
+    } finally {
+      // Reset loading state
+      isLoading = false;
     }
   }
+}
 </script>
 
 <svelte:head>
