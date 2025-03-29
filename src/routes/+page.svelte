@@ -332,9 +332,9 @@
         </p>
         <div class="flex items-center">
           <div class="font-medium text-gray-900 dark:text-white">Sarah M.</div>
-          <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
+          <!-- <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
             Cape Town
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -399,9 +399,9 @@
         </p>
         <div class="flex items-center">
           <div class="font-medium text-gray-900 dark:text-white">John D.</div>
-          <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
+          <!-- <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
             Johannesburg
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -466,9 +466,9 @@
         </p>
         <div class="flex items-center">
           <div class="font-medium text-gray-900 dark:text-white">Emma L.</div>
-          <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
+          <!-- <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
             Durban
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
