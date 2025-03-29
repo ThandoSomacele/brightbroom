@@ -22,8 +22,24 @@ import {
   user,
 } from "../lib/server/db/schema.js";
 
+// SAFETY CHECK: Prevent seeding into production databases
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL is not set");
+}
+
+// Check if this is a production database
+const isProductionDatabase = 
+  process.env.DATABASE_URL.includes('production') || 
+  process.env.DATABASE_URL === process.env.DATABASE_URL_PRODUCTION;
+
+if (isProductionDatabase) {
+  console.error("\x1b[31m%s\x1b[0m", "ERROR: Attempting to seed into a production database!");
+  console.error("\x1b[31m%s\x1b[0m", "This operation is blocked for safety reasons.");
+  console.error("\x1b[33m%s\x1b[0m", "If you REALLY need to seed production data, create a dedicated script with proper safeguards.");
+  process.exit(1);
+}
+
 // Create db connection manually instead of using the SvelteKit-specific import
-if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is not set");
 const client = postgres(process.env.DATABASE_URL);
 const db = drizzle(client, {
   schema: {

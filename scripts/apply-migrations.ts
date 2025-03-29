@@ -3,6 +3,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
 import { config } from 'dotenv';
+import readline from 'readline';
 
 // Load environment variables from .env file
 config();
@@ -28,8 +29,45 @@ const getDbUrl = () => {
 
 const dbUrl = getDbUrl();
 if (!dbUrl) {
-  console.error('Database URL environment variable is not set');
+  console.error('\x1b[31mDatabase URL environment variable is not set\x1b[0m');
   process.exit(1);
+}
+
+// SAFETY CHECK: For production databases, add explicit confirmation
+const isProductionDb = 
+  environment === 'production' || 
+  dbUrl.includes('production') || 
+  dbUrl === process.env.DATABASE_URL_PRODUCTION;
+
+if (isProductionDb) {
+  // Additional safeguard for production migrations
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  
+  // Only trigger the confirmation prompt when run directly, not in CI/CD
+  if (!process.env.CI && process.env.NODE_ENV !== 'ci') {
+    console.log('\x1b[33m%s\x1b[0m', '⚠️  WARNING: You are about to run migrations on a PRODUCTION database! ⚠️');
+    console.log('\x1b[33m%s\x1b[0m', 'This operation can potentially cause data loss if not properly tested.');
+    
+    // We wrap this in a promise to make it async/await compatible
+    await new Promise<void>((resolve) => {
+      rl.question('\x1b[33mAre you sure you want to continue? (type "yes" to confirm): \x1b[0m', (answer) => {
+        if (answer.toLowerCase() !== 'yes') {
+          console.log('\x1b[32mMigration cancelled.\x1b[0m');
+          rl.close();
+          process.exit(0);
+        }
+        rl.close();
+        resolve();
+      });
+    });
+    
+    console.log('\x1b[32mProceeding with production migration...\x1b[0m');
+  } else {
+    console.log('\x1b[33m%s\x1b[0m', 'Running in CI/CD environment, skipping confirmation prompt');
+  }
 }
 
 // Log a masked version of the URL for debugging (hiding password)
@@ -45,14 +83,22 @@ async function main() {
     await migrate(drizzle(migrationClient), { 
       migrationsFolder: './drizzle/migrations' 
     });
-    console.log('Migrations completed successfully');
+    console.log('\x1b[32mMigrations completed successfully\x1b[0m');
     process.exit(0);
   } catch (error) {
-    console.error('Migration failed:', error);
+    console.error('\x1b[31mMigration failed:\x1b[0m', error);
     process.exit(1);
   } finally {
     await migrationClient.end();
   }
 }
 
-main();
+// Execute the async main function
+(async () => {
+  try {
+    await main();
+  } catch (error) {
+    console.error('\x1b[31mUnhandled error:\x1b[0m', error);
+    process.exit(1);
+  }
+})();

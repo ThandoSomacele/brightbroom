@@ -19,3 +19,17 @@ export NODE_ENV=$DEPLOY_CONTEXT
 # Run migrations with the appropriate environment
 echo "Applying migrations to database..."
 npx tsx ./scripts/apply-migrations.ts
+
+# SAFETY CHECK: Never attempt to run seeds in production environment
+if [ "$DEPLOY_CONTEXT" == "production" ] && [ "$SEED_DATABASE" == "true" ]; then
+  echo -e "\e[31mERROR: Attempting to seed into a production database!\e[0m"
+  echo -e "\e[31mThis operation is blocked for safety reasons.\e[0m"
+  echo -e "\e[33mIf you need to seed production data, create a dedicated script with proper safeguards.\e[0m"
+  exit 1
+fi
+
+# Only run seeds when explicitly requested and not in production
+if [ "$SEED_DATABASE" == "true" ]; then
+  echo "Seeding database..."
+  node ./src/commands/seed.js
+fi
