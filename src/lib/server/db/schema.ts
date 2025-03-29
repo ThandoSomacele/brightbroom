@@ -125,8 +125,10 @@ export const service = pgTable("service", {
   description: text("description").notNull(),
   basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(),
   durationHours: integer("duration_hours").notNull(),
+  details: text("details"), // JSON-stringified details from CSV files
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
 });
 
 export const booking = pgTable("booking", {

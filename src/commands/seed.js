@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { Argon2id } from "oslo/password";
 import postgres from "postgres";
+import fs from "fs";
+import path from "path";
 
 // Load environment variables directly
 dotenv.config();
@@ -36,6 +38,66 @@ const db = drizzle(client, {
   },
 });
 
+// Function to parse CSV data
+function parseServiceDetailsFromCSV(csvContent) {
+  const items = [];
+  
+  // Split by lines
+  const lines = csvContent.split('\n').filter(line => line.trim() !== '');
+  
+  // Skip header
+  let i = 1;
+  
+  while (i < lines.length) {
+    // The area name is a line in all caps
+    const area = lines[i].trim();
+    i++;
+    
+    const details = [];
+    
+    // Collect all details until we hit the next area (all caps) or end of file
+    while (i < lines.length && !lines[i].trim().match(/^[A-Z\s]+$/)) {
+      details.push(lines[i].trim().replace(/"/g, ''));
+      i++;
+    }
+    
+    // Add this area with its details
+    if (details.length > 0) {
+      items.push({ area, details });
+    }
+  }
+  
+  return items;
+}
+
+// Function to load service details from CSV
+function loadServiceDetails(serviceName) {
+  try {
+    let filename;
+    
+    if (serviceName.toLowerCase().includes('regular')) {
+      filename = 'BrightBroom Service Description - Regular Cleaning.csv';
+    } else if (serviceName.toLowerCase().includes('extended') || serviceName.toLowerCase().includes('deep')) {
+      filename = 'BrightBroom Service Description - Extended Cleaning.csv';
+    } else {
+      // Default to regular cleaning for office cleaning
+      filename = 'BrightBroom Service Description - Regular Cleaning.csv';
+    }
+    
+    const filePath = path.join(process.cwd(), 'static', 'data', filename);
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const items = parseServiceDetailsFromCSV(fileContent);
+    
+    return {
+      name: serviceName,
+      items
+    };
+  } catch (error) {
+    console.error(`Error loading service details for ${serviceName}:`, error);
+    return null;
+  }
+}
+
 async function main() {
   try {
     // Clean up existing data
@@ -50,6 +112,11 @@ async function main() {
     await db.delete(user);
 
     console.log("Creating services...");
+    
+    // Load service details from files
+    const regularCleaningDetails = loadServiceDetails("Regular Cleaning");
+    const extendedCleaningDetails = loadServiceDetails("Extended Cleaning");
+    
     // Create services
     const [regularCleaning] = await db
       .insert(service)
@@ -59,6 +126,8 @@ async function main() {
         description: "Standard cleaning service for homes and apartments",
         basePrice: 350.0,
         durationHours: 2,
+        details: regularCleaningDetails ? JSON.stringify(regularCleaningDetails) : null,
+        isActive: true
       })
       .returning();
 
@@ -70,6 +139,8 @@ async function main() {
         description: "Thorough cleaning including hard-to-reach areas",
         basePrice: 550.0,
         durationHours: 4,
+        details: extendedCleaningDetails ? JSON.stringify(extendedCleaningDetails) : null,
+        isActive: true
       })
       .returning();
 
@@ -81,6 +152,8 @@ async function main() {
         description: "Professional cleaning for office spaces",
         basePrice: 450.0,
         durationHours: 3,
+        details: regularCleaningDetails ? JSON.stringify(regularCleaningDetails) : null, // Reuse regular cleaning details for now
+        isActive: true
       })
       .returning();
 

@@ -100,11 +100,7 @@
           Perfect for maintaining a clean and tidy home on a regular basis.
         </p>
         <p class="mb-6 text-2xl font-bold text-primary">R350</p>
-        <Button
-          variant="outline"
-          href="/services/regular-cleaning"
-          class="w-full"
-        >
+        <Button variant="outline" href="/services" class="w-full">
           Learn More
         </Button>
       </div>
@@ -136,7 +132,7 @@
           A thorough cleaning service that reaches every corner and detail.
         </p>
         <p class="mb-6 text-2xl font-bold text-primary">R550</p>
-        <Button variant="outline" href="/services/deep-cleaning" class="w-full">
+        <Button variant="outline" href="/services" class="w-full">
           Learn More
         </Button>
       </div>
@@ -168,11 +164,7 @@
           Professional cleaning for your office space or commercial property.
         </p>
         <p class="mb-6 text-2xl font-bold text-primary">R450</p>
-        <Button
-          variant="outline"
-          href="/services/office-cleaning"
-          class="w-full"
-        >
+        <Button variant="outline" href="/services" class="w-full">
           Learn More
         </Button>
       </div>

@@ -21,6 +21,7 @@
     "db:seed": "vite-node src/commands/seed.js",
     "db:reset,": "drizzle-kit reset",
     "db:stop": "docker compose down",
+    "db:update-services": "node scripts/update-service-schema.js",
     "test": "vitest",
     "lint": "eslint --ext .js,.ts,.svelte src",
     "format": "prettier --write .",
@@ -67,6 +68,7 @@
     "lucia": "^3.2.2",
     "lucide-svelte": "^0.479.0",
     "oslo": "^1.2.1",
+    "papaparse": "^5.5.2",
     "postgres": "^3.4.5",
     "resend": "^4.1.2",
     "zod": "^3.24.2"

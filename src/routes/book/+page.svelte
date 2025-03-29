@@ -2,7 +2,8 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
-  import { ArrowRight, Home } from "lucide-svelte";
+  import ServiceDetailsModal from "$lib/components/booking/ServiceDetailsModal.svelte";
+  import { ArrowRight, Home, Info } from "lucide-svelte";
 
   // Get data from the server load function
   export let data;
@@ -13,10 +14,20 @@
 
   // Add loading state
   let isLoading = false;
+  
+  // Modal state
+  let showDetailsModal = false;
+  let selectedServiceForDetails = null;
 
   // Handle service selection
   function selectService(id: string) {
     selectedService = id;
+  }
+  
+  // Show service details modal
+  function showServiceDetails(service) {
+    selectedServiceForDetails = service;
+    showDetailsModal = true;
   }
 
   // Continue to next step
@@ -140,10 +151,20 @@
             role="button"
             tabindex="0"
           >
-            <div
-              class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/30"
-            >
-              <Home size={24} />
+            <div class="flex justify-between items-start">
+              <div
+                class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/30"
+              >
+                <Home size={24} />
+              </div>
+              
+              <button 
+                class="text-primary hover:text-primary-600 dark:text-primary-400"
+                on:click|stopPropagation={() => showServiceDetails(service)}
+                aria-label="View service details"
+              >
+                <Info size={20} />
+              </button>
             </div>
 
             <h3
@@ -225,3 +246,11 @@
     </div>
   </div>
 </div>
+
+<!-- Service details modal -->
+{#if showDetailsModal && selectedServiceForDetails}
+  <ServiceDetailsModal 
+    service={selectedServiceForDetails} 
+    on:close={() => showDetailsModal = false} 
+  />
+{/if}
