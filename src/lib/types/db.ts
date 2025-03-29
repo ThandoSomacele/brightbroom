@@ -1,4 +1,5 @@
 // src/lib/types/db.ts
+// Important: Using 'type' here prevents importing any runtime code from the server schema
 import type {
   Address,
   Booking,

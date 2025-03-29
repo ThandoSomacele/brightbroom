@@ -1,6 +1,6 @@
 // src/lib/stores/services.ts
 import { writable } from 'svelte/store';
-import type { Service } from '$lib/server/db/schema';
+import type { Service } from '$lib/types/db';
 
 // Initialize store
 export const services = writable<Service[]>([]);

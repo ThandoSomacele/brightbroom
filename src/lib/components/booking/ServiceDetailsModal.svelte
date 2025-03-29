@@ -2,7 +2,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { ArrowLeft, CheckCircle, X } from "lucide-svelte";
-  import type { Service } from "$lib/server/db/schema";
+  import type { Service } from "$lib/types/db";
   
   // Service props
   export let service: Service;
