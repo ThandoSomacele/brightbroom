@@ -1,534 +1,775 @@
-<!-- src/routes/join/cleaner/+page.svelte -->
+
+<!-- src/routes/join/+page.svelte -->
 <script lang="ts">
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
-  
-  // Get data from server load function (services list)
-  export let data;
-  export let form;
-  
+  import { Calendar, DollarSign, MapPin, Clock, ShieldCheck, Users } from "lucide-svelte";
+
   // Form state
-  let isLoading = false;
-  let submitted = false;
-  let selectedServices = new Map();
-  
-  // Initialize service selection
-  $: {
-    if (data.services) {
-      data.services.forEach(service => {
-        if (!selectedServices.has(service.id)) {
-          selectedServices.set(service.id, {
-            selected: false,
-            experience: 0
-          });
-        }
-      });
+  let isSubmitting = false;
+  let formSuccess = false;
+  let formError: string | null = null;
+  let step = 1;
+  const totalSteps = 3;
+
+  // Form data state (for multi-step form)
+  let firstName = "";
+  let lastName = "";
+  let email = "";
+  let phone = "";
+  let city = "";
+  let experience = "";
+  let availability: string[] = [];
+  let ownTransport = false;
+  let whatsApp = false;
+  let idType = "";
+  let idNumber = "";
+  let hearAboutUs = "";
+  let documents: File[] = [];
+
+  // Reset form after submission
+  function resetForm() {
+    const form = document.getElementById('join-form') as HTMLFormElement;
+    if (form) form.reset();
+    step = 1;
+    firstName = "";
+    lastName = "";
+    email = "";
+    phone = "";
+    city = "";
+    experience = "";
+    availability = [];
+    ownTransport = false;
+    whatsApp = false;
+    idType = "";
+    idNumber = "";
+    hearAboutUs = "";
+    documents = [];
+  }
+
+  // Navigation functions for multi-step form
+  function nextStep() {
+    if (step < totalSteps) {
+      step++;
+      // Remove scrolling to preserve user's position
     }
   }
-  
-  // Toggle service selection
-  function toggleService(serviceId: string) {
-    if (selectedServices.has(serviceId)) {
-      const current = selectedServices.get(serviceId);
-      selectedServices.set(serviceId, {
-        ...current,
-        selected: !current.selected
-      });
-      // Force reactivity by creating a new map
-      selectedServices = new Map(selectedServices);
+
+  function previousStep() {
+    if (step > 1) {
+      step--;
+      // Remove scrolling to preserve user's position
     }
   }
-  
-  // Update service experience
-  function updateExperience(serviceId: string, months: number) {
-    if (selectedServices.has(serviceId)) {
-      const current = selectedServices.get(serviceId);
-      selectedServices.set(serviceId, {
-        ...current,
-        experience: months
-      });
+
+  // Helper function to validate current step
+  function validateCurrentStep(): boolean {
+    // This is a simplified validation - you would want more robust validation in production
+    if (step === 1) {
+      return !!firstName && !!lastName && !!email && !!phone && !!city;
+    } else if (step === 2) {
+      return !!experience && availability.length > 0;
+    } else {
+      return true; // The last step doesn't have required fields in this example
     }
   }
 </script>
 
 <svelte:head>
-  <title>Join Our Cleaner Team | BrightBroom</title>
-  <meta name="description" content="Apply to join our team of professional cleaners at BrightBroom." />
+  <title>Join Our Team | BrightBroom</title>
+  <meta
+    name="description"
+    content="Join the BrightBroom team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
+  />
 </svelte:head>
 
-<!-- Header section -->
-<section class="py-12 bg-gray-50 dark:bg-gray-800">
-  <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
-    <div class="text-center">
-      <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-        Join Our Cleaner Team
-      </h1>
-      <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-        Become a BrightBroom professional cleaner and take control of your schedule while providing exceptional service to our customers.
-      </p>
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <!-- Hero Section -->
+  <div class="bg-primary py-16 text-white">
+    <div class="container mx-auto px-4">
+      <div class="mx-auto max-w-3xl text-center">
+        <h1 class="mb-4 text-4xl font-bold md:text-5xl">
+          Join Our Team of Professional Cleaners
+        </h1>
+        <p class="mb-8 text-lg text-white/90">
+          Flexible hours, competitive pay, and a supportive work environment.
+          Join BrightBroom and start making a living with us.
+        </p>
+        <Button variant="secondary" size="lg" href="#apply">Apply Now</Button>
+      </div>
     </div>
   </div>
-</section>
 
-<!-- If form submission is successful -->
-{#if form?.success || submitted}
-  <section class="py-16 bg-white dark:bg-gray-900">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
-      <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-8 text-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-green-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-          Application Submitted Successfully!
-        </h2>
-        
-        <p class="text-gray-600 dark:text-gray-300 mb-6">
-          Thank you for applying to join the BrightBroom cleaning team. Our team will review your application and contact you within 2-3 business days.
-        </p>
-        
-        <div class="flex flex-col sm:flex-row justify-center gap-4">
-          <Button variant="primary" href="/">
-            Return to Home Page
-          </Button>
-          
-          <Button variant="outline" href="/contact">
-            Contact Us
-          </Button>
-        </div>
-      </div>
-    </div>
-  </section>
-{:else}
-  <!-- Application Form -->
-  <section class="py-12 bg-white dark:bg-gray-900">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
-      <!-- Error message -->
-      {#if form?.error}
-        <div class="mb-6 bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-300 p-4 rounded-md">
-          {form.error}
-        </div>
-      {/if}
-      
-      <!-- Form card -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-8">
-        <form 
-          method="POST" 
-          action="?/apply"
-          use:enhance={() => {
-            isLoading = true;
-            
-            return async ({ result, update }) => {
-              isLoading = false;
-              await update();
-              
-              if (result.type === "success") {
-                submitted = true;
-                window.scrollTo(0, 0);
-              }
-            };
-          }}
-        >
-          <div class="p-6">
-            <div class="mb-8">
-              <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Personal Information
-              </h2>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Tell us about yourself. Fields marked with * are required.
-              </p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- First Name -->
-              <div>
-                <label for="firstName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  First Name *
-                </label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  required
-                  value={form?.data?.firstName || ''}
-                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-              
-              <!-- Last Name -->
-              <div>
-                <label for="lastName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Last Name *
-                </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  required
-                  value={form?.data?.lastName || ''}
-                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-              
-              <!-- Email -->
-              <div>
-                <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  required
-                  value={form?.data?.email || ''}
-                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-              
-              <!-- Phone -->
-              <div>
-                <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Phone Number *
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  required
-                  value={form?.data?.phone || ''}
-                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-              
-              <!-- Password -->
-              <div>
-                <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Create Password *
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  required
-                  minlength="8"
-                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-              
-              <!-- Confirm Password -->
-              <div>
-                <label for="confirmPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Confirm Password *
-                </label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  required
-                  minlength="8"
-                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-            </div>
-            
-            <div class="mt-10 mb-8">
-              <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                ID Verification
-              </h2>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                For security and verification purposes, we need your ID information.
-              </p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- ID Type -->
-              <div>
-                <label for="idType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  ID Type *
-                </label>
-                <select
-                  id="idType"
-                  name="idType"
-                  required
-                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                >
-                  <option value="SOUTH_AFRICAN_ID">South African ID</option>
-                  <option value="PASSPORT">Passport</option>
-                </select>
-              </div>
-              
-              <!-- ID Number -->
-              <div>
-                <label for="idNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  ID Number *
-                </label>
-                <input
-                  type="text"
-                  id="idNumber"
-                  name="idNumber"
-                  required
-                  value={form?.data?.idNumber || ''}
-                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-            </div>
-            
-            <div class="mt-10 mb-8">
-              <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Work Information
-              </h2>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Tell us about your location and preferences.
-              </p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Work Address -->
-              <div class="md:col-span-2">
-                <label for="workAddress" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Home/Work Address *
-                </label>
-                <input
-                  type="text"
-                  id="workAddress"
-                  name="workAddress"
-                  required
-                  value={form?.data?.workAddress || ''}
-                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder="Your full address"
-                />
-                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Used to calculate job distances. We'll never share your exact address.
-                </p>
-              </div>
-              
-              <!-- Work Radius -->
-              <div>
-                <label for="workRadius" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  How far are you willing to travel? (km) *
-                </label>
-                <input
-                  type="number"
-                  id="workRadius"
-                  name="workRadius"
-                  min="1"
-                  max="100"
-                  required
-                  value={form?.data?.workRadius || '10'}
-                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-              
-              <!-- Pet Compatibility -->
-              <div>
-                <label for="petCompatibility" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Are you comfortable working with pets? *
-                </label>
-                <select
-                  id="petCompatibility"
-                  name="petCompatibility"
-                  required
-                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                >
-                  <option value="NONE">No pets please</option>
-                  <option value="DOGS">Dogs only</option>
-                  <option value="CATS">Cats only</option>
-                  <option value="BOTH">Both dogs and cats are fine</option>
-                </select>
-              </div>
-            </div>
-            
-            <!-- Bio -->
-            <div class="mt-6">
-              <label for="bio" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Tell us about yourself
-              </label>
-              <textarea
-                id="bio"
-                name="bio"
-                rows="4"
-                class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="Share your relevant experience, why you want to join our team, or anything else you'd like us to know"
-              ></textarea>
-            </div>
-            
-            <!-- Available Days -->
-            <div class="mt-6">
-              <span class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Which days are you available to work? *
-              </span>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {#each ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"] as day}
-                  <label class="flex items-center space-x-2">
-                    <input 
-                      type="checkbox" 
-                      name={`day-${day}`} 
-                      id={`day-${day}`}
-                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      checked={form?.data?.availableDays?.includes(day) || false}
-                    />
-                    <span class="text-sm text-gray-700 dark:text-gray-300">
-                      {day.charAt(0) + day.slice(1).toLowerCase()}
-                    </span>
-                  </label>
-                {/each}
-              </div>
-            </div>
-            
-            <div class="mt-10 mb-8">
-              <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Services & Experience
-              </h2>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Select the services you can provide and your experience level.
-              </p>
-            </div>
-            
-            <div class="space-y-4">
-              {#each data.services as service}
-                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                  <div class="flex items-start">
-                    <input
-                      type="checkbox"
-                      id={`service-${service.id}`}
-                      name="serviceId"
-                      value={service.id}
-                      checked={selectedServices.get(service.id)?.selected}
-                      on:change={() => toggleService(service.id)}
-                      class="h-4 w-4 mt-1 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
-                    <div class="ml-3 flex-1">
-                      <label
-                        for={`service-${service.id}`}
-                        class="text-gray-900 dark:text-white font-medium"
-                      >
-                        {service.name}
-                      </label>
-                      <p class="text-sm text-gray-500 dark:text-gray-400">
-                        {service.description}
-                      </p>
-
-                      {#if selectedServices.get(service.id)?.selected}
-                        <div class="mt-2">
-                          <label
-                            for={`experience-${service.id}`}
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                          >
-                            How many months of experience do you have with this service?
-                          </label>
-                          <input
-                            type="number"
-                            id={`experience-${service.id}`}
-                            name={`experience-${service.id}`}
-                            value={selectedServices.get(service.id)?.experience || 0}
-                            on:input={(e) => updateExperience(service.id, parseInt(e.target.value))}
-                            min="0"
-                            class="w-full sm:w-1/3 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                          />
-                        </div>
-                      {/if}
-                    </div>
-                  </div>
-                </div>
-              {/each}
-            </div>
-            
-            <!-- Terms and Conditions -->
-            <div class="mt-8">
-              <label class="flex items-start space-x-2">
-                <input 
-                  type="checkbox" 
-                  name="termsAccepted" 
-                  id="termsAccepted"
-                  required
-                  class="h-4 w-4 mt-1 rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                <span class="text-sm text-gray-700 dark:text-gray-300">
-                  I agree to the <a href="/terms" class="text-primary hover:underline">Terms of Service</a> and <a href="/privacy" class="text-primary hover:underline">Privacy Policy</a>. I understand that my application will be reviewed by BrightBroom staff, and I may be contacted for additional information or an interview.
-                </span>
-              </label>
-            </div>
-          </div>
-          
-          <!-- Form Actions -->
-          <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 flex justify-end space-x-3">
-            <Button type="submit" variant="primary" disabled={isLoading} class="w-full sm:w-auto">
-              {#if isLoading}
-                <div class="animate-spin mr-2 h-4 w-4 border-2 border-white border-opacity-20 border-t-white rounded-full"></div>
-                Submitting...
-              {:else}
-                Submit Application
-              {/if}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </section>
-  
   <!-- Benefits Section -->
   <section class="py-12 bg-gray-50 dark:bg-gray-800">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-white text-center mb-12">
+      <h2
+        class="text-2xl font-bold text-gray-900 dark:text-white text-center mb-12"
+      >
         Why Join BrightBroom?
       </h2>
-      
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <!-- Benefit 1 -->
-        <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center">
-          <div class="w-16 h-16 mx-auto bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+        <div
+          class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center"
+        >
+          <div
+            class="w-16 h-16 mx-auto bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mb-4"
+          >
+            <Clock size={24} />
           </div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Flexible Schedule
           </h3>
           <p class="text-gray-600 dark:text-gray-300">
-            Work when it suits you. Set your own availability and work hours that fit your lifestyle.
+            Work when it suits you. Set your own availability and work hours
+            that fit your lifestyle.
           </p>
         </div>
-        
+
         <!-- Benefit 2 -->
-        <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center">
-          <div class="w-16 h-16 mx-auto bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+        <div
+          class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center"
+        >
+          <div
+            class="w-16 h-16 mx-auto bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mb-4"
+          >
+            <Wallet size={24} />
           </div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Competitive Pay
           </h3>
           <p class="text-gray-600 dark:text-gray-300">
-            Earn competitive rates plus tips. Get paid weekly with transparent payment processing.
+            Earn competitive rates plus tips. Get paid weekly with transparent
+            payment processing.
           </p>
         </div>
-        
+
         <!-- Benefit 3 -->
-        <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center">
-          <div class="w-16 h-16 mx-auto bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
+        <div
+          class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center"
+        >
+          <div
+            class="w-16 h-16 mx-auto bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mb-4"
+          >
+            <Zap size={24} />
           </div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Career Growth
           </h3>
           <p class="text-gray-600 dark:text-gray-300">
-            Access training opportunities, build your reputation, and grow your client base with our platform.
+            Access training opportunities, build your reputation, and grow your
+            client base with our platform.
           </p>
         </div>
       </div>
     </div>
   </section>
-  
+
+  <!-- Requirements Section -->
+  <div class="bg-gray-100 py-16 dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+      <div class="mx-auto max-w-3xl">
+        <h2
+          class="mb-8 text-center text-3xl font-bold text-gray-900 dark:text-white"
+        >
+          Requirements to Join
+        </h2>
+
+        <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-700">
+          <ul class="space-y-4">
+            <li class="flex">
+              <div
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+              >
+                <span class="text-sm font-semibold">1</span>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300">
+                South African ID or Passport document
+              </p>
+            </li>
+            <li class="flex">
+              <div
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+              >
+                <span class="text-sm font-semibold">2</span>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300">
+                At least 6 months of professional cleaning experience
+              </p>
+            </li>
+            <li class="flex">
+              <div
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+              >
+                <span class="text-sm font-semibold">3</span>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300">
+                Reliable transportation to get to job locations
+              </p>
+            </li>
+            <li class="flex">
+              <div
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+              >
+                <span class="text-sm font-semibold">4</span>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300">
+                Smartphone with internet connection to use our app
+              </p>
+            </li>
+            <li class="flex">
+              <div
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+              >
+                <span class="text-sm font-semibold">5</span>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300">
+                Good with people and have a positive attitude
+              </p>
+            </li>
+            <li class="flex">
+              <div
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+              >
+                <span class="text-sm font-semibold">6</span>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300">
+                Background check clearance (we'll handle this process)
+              </p>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Testimonials Section -->
+  <div class="py-16">
+    <div class="container mx-auto px-4">
+      <h2
+        class="mb-12 text-center text-3xl font-bold text-gray-900 dark:text-white"
+      >
+        What Our Cleaners Say
+      </h2>
+
+      <div class="grid gap-8 md:grid-cols-3">
+        <!-- Testimonial 1 -->
+        <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+          <div class="mb-4 flex">
+            <div
+              class="mr-4 h-12 w-12 overflow-hidden rounded-full bg-gray-200"
+            >
+              <div
+                class="flex h-full w-full items-center justify-center bg-primary-100 text-primary"
+              >
+                <span class="text-xl font-bold">N</span>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-medium text-gray-900 dark:text-white">
+                Nomsa M.
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Cleaner since 2022
+              </p>
+            </div>
+          </div>
+          <p class="text-gray-600 dark:text-gray-300">
+            "Working with BrightBroom has completely changed my life. I can now
+            manage my own schedule and earn a good income while still having
+            time for my family."
+          </p>
+        </div>
+
+        <!-- Testimonial 2 -->
+        <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+          <div class="mb-4 flex">
+            <div
+              class="mr-4 h-12 w-12 overflow-hidden rounded-full bg-gray-200"
+            >
+              <div
+                class="flex h-full w-full items-center justify-center bg-primary-100 text-primary"
+              >
+                <span class="text-xl font-bold">S</span>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-medium text-gray-900 dark:text-white">
+                Simon P.
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Cleaner since 2021
+              </p>
+            </div>
+          </div>
+          <p class="text-gray-600 dark:text-gray-300">
+            "The app is so easy to use, and I get paid quickly after each job.
+            The support team is always there when I need help with anything."
+          </p>
+        </div>
+
+        <!-- Testimonial 3 -->
+        <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+          <div class="mb-4 flex">
+            <div
+              class="mr-4 h-12 w-12 overflow-hidden rounded-full bg-gray-200"
+            >
+              <div
+                class="flex h-full w-full items-center justify-center bg-primary-100 text-primary"
+              >
+                <span class="text-xl font-bold">T</span>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-medium text-gray-900 dark:text-white">
+                Thandi K.
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Cleaner since 2023
+              </p>
+            </div>
+          </div>
+          <p class="text-gray-600 dark:text-gray-300">
+            "I was worried about finding consistent work, but with BrightBroom I
+            now have regular work. It's been a great experience."
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Form Section -->
+  <div id="apply" class="bg-gray-100 py-16 dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+      <div class="mx-auto max-w-3xl">
+        <h2 class="mb-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
+          Apply to Join
+        </h2>
+        <p class="mb-12 text-center text-lg text-gray-600 dark:text-gray-300">
+          Fill out the application form below to start your journey with BrightBroom.
+          Our team will review your application and get back to you within 2-3 business days.
+        </p>
+
+        {#if formSuccess}
+          <div class="rounded-lg bg-white p-8 text-center shadow-md dark:bg-gray-700">
+            <div class="mb-6 flex justify-center">
+              <div class="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+            <h3 class="mb-4 text-2xl font-semibold text-gray-900 dark:text-white">Application Submitted!</h3>
+            <p class="mb-6 text-gray-600 dark:text-gray-300">
+              Thank you for applying to join the BrightBroom team. We've received your application and will review it shortly.
+              You'll hear back from us within 2-3 business days.
+            </p>
+            <Button
+              variant="primary"
+              on:click={() => {
+                formSuccess = false;
+                resetForm();
+              }}
+            >
+              Submit Another Application
+            </Button>
+          </div>
+        {:else}
+          <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-700">
+            <!-- Progress indicator for multi-step form -->
+            <div class="mb-8">
+              <div class="flex justify-between">
+                {#each Array(totalSteps) as _, i}
+                  <div class="relative flex flex-col items-center">
+                    <div class={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
+                      i + 1 < step 
+                        ? 'border-primary bg-primary text-white' 
+                        : i + 1 === step 
+                          ? 'border-primary bg-white text-primary dark:bg-gray-700' 
+                          : 'border-gray-300 bg-white text-gray-400 dark:border-gray-600 dark:bg-gray-700'
+                    }`}>
+                      {i + 1}
+                    </div>
+                    <div class="mt-2 text-xs text-gray-600 dark:text-gray-300">
+                      {i === 0 ? 'Personal Info' : i === 1 ? 'Work Experience' : 'Additional Details'}
+                    </div>
+                    {#if i < totalSteps - 1}
+                      <div class="absolute left-full top-5 -translate-y-1/2 w-full">
+                        <div class={`h-1 w-full ${i + 1 < step ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
+                      </div>
+                    {/if}
+                  </div>
+                {/each}
+              </div>
+            </div>
+
+            {#if formError}
+              <div class="mb-6 rounded-md bg-red-50 p-4 text-red-600 dark:bg-red-900/20 dark:text-red-200">
+                <p>{formError}</p>
+              </div>
+            {/if}
+
+            <form 
+              id="join-form"
+              method="POST" 
+              enctype="multipart/form-data"
+              use:enhance={() => {
+                isSubmitting = true;
+                formError = null;
+                
+                // For demonstration purposes, we'll simulate a successful submission
+                // In a real implementation, you'd handle the actual form submission result
+                return async () => {
+                  isSubmitting = false;
+                  
+                  // Simulate successful submission
+                  setTimeout(() => {
+                    formSuccess = true;
+                  }, 1500);
+                };
+              }}
+            >
+              <!-- Step 1: Personal Information -->
+              {#if step === 1}
+                <div class="space-y-6">
+                  <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Personal Information</h3>
+
+                  <!-- Name Fields (2 columns) -->
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label for="firstName" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        First Name <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="firstName"
+                        name="firstName"
+                        bind:value={firstName}
+                        required
+                        class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label for="lastName" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Last Name <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="lastName"
+                        name="lastName"
+                        bind:value={lastName}
+                        required
+                        class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Email & Phone (2 columns) -->
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label for="email" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Email <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        bind:value={email}
+                        required
+                        class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label for="phone" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Phone Number <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        bind:value={phone}
+                        required
+                        class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                        placeholder="+27 12 345 6789"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- City -->
+                  <div>
+                    <label for="city" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      City/Area <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="city"
+                      name="city"
+                      bind:value={city}
+                      required
+                      class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    />
+                  </div>
+                </div>
+              {/if}
+
+              <!-- Step 2: Work Experience -->
+              {#if step === 2}
+                <div class="space-y-6">
+                  <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Work Experience</h3>
+
+                  <!-- Cleaning Experience -->
+                  <div>
+                    <label for="experience" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Years of Cleaning Experience <span class="text-red-500">*</span>
+                    </label>
+                    <select
+                      id="experience"
+                      name="experience"
+                      bind:value={experience}
+                      required
+                      class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    >
+                      <option value="">Select experience...</option>
+                      <option value="0-6">Less than 6 months</option>
+                      <option value="6-12">6-12 months</option>
+                      <option value="1-2">1-2 years</option>
+                      <option value="3-5">3-5 years</option>
+                      <option value="5+">More than 5 years</option>
+                    </select>
+                  </div>
+
+                  <!-- Availability -->
+                  <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Availability <span class="text-red-500">*</span>
+                    </label>
+                    <div class="space-y-2">
+                      {#each ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as day}
+                        <label class="flex items-center">
+                          <input
+                            type="checkbox"
+                            name="availability"
+                            value={day}
+                            bind:group={availability}
+                            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">{day}</span>
+                        </label>
+                      {/each}
+                    </div>
+                  </div>
+
+                  <!-- Own Transport & Supplies -->
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Do you have your own transport?
+                      </label>
+                      <div class="space-x-4">
+                        <label class="inline-flex items-center">
+                          <input
+                            type="radio"
+                            name="ownTransport"
+                            value="yes"
+                            bind:group={ownTransport}
+                            class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">Yes</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input
+                            type="radio"
+                            name="ownTransport"
+                            value="no"
+                            bind:group={ownTransport}
+                            class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">No</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div>
+                      <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Do you have your own WhatsApp?
+                      </label>
+                      <div class="space-x-4">
+                        <label class="inline-flex items-center">
+                          <input
+                            type="radio"
+                            name="whatsApp"
+                            value="yes"
+                            bind:group={whatsApp}
+                            class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">Yes</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                          <input
+                            type="radio"
+                            name="whatsApp"
+                            value="no"
+                            bind:group={whatsApp}
+                            class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <span class="ml-2 text-gray-700 dark:text-gray-300">No</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {/if}
+
+              <!-- Step 3: Additional Details -->
+              {#if step === 3}
+                <div class="space-y-6">
+                  <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Additional Details</h3>
+
+                  <!-- ID Type & Number -->
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label for="idType" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        ID Type
+                      </label>
+                      <select
+                        id="idType"
+                        name="idType"
+                        bind:value={idType}
+                        class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      >
+                        <option value="">Select ID type...</option>
+                        <option value="sa_id">South African ID</option>
+                        <option value="passport">Passport</option>
+                        <option value="work_permit">Work Permit</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label for="idNumber" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        ID Number
+                      </label>
+                      <input
+                        type="text"
+                        id="idNumber"
+                        name="idNumber"
+                        bind:value={idNumber}
+                        class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- How did you hear about us -->
+                  <div>
+                    <label for="hearAboutUs" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      How did you hear about BrightBroom?
+                    </label>
+                    <select
+                      id="hearAboutUs"
+                      name="hearAboutUs"
+                      bind:value={hearAboutUs}
+                      class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    >
+                      <option value="">Please select...</option>
+                      <option value="search">Search Engine</option>
+                      <option value="social">Social Media</option>
+                      <option value="friend">Friend/Family</option>
+                      <option value="advertisement">Advertisement</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <!-- Document Upload -->
+                  <div>
+                    <label for="documents" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Upload Documents (Optional)
+                    </label>
+                    <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                      You can upload your ID, proof of address, or any relevant certifications.
+                    </p>
+                    <input
+                      type="file"
+                      id="documents"
+                      name="documents"
+                      multiple
+                      class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                    />
+                  </div>
+
+                  <!-- Terms and Conditions -->
+                  <div>
+                    <label class="flex items-center">
+                      <input
+                        type="checkbox"
+                        name="terms"
+                        required
+                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                        I agree to the <a href="/terms" class="text-primary hover:underline">Terms of Service</a> and 
+                        <a href="/privacy" class="text-primary hover:underline">Privacy Policy</a>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              {/if}
+
+              <!-- Form Navigation -->
+              <div class="mt-8 flex justify-between">
+                {#if step > 1}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    on:click={previousStep}
+                  >
+                    Previous
+                  </Button>
+                {:else}
+                  <div></div> <!-- Empty div for spacing when no Previous button -->
+                {/if}
+
+                {#if step < totalSteps}
+                  <Button
+                    type="button"
+                    variant="primary"
+                    disabled={!validateCurrentStep()}
+                    on:click={nextStep}
+                  >
+                    Next
+                  </Button>
+                {:else}
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={isSubmitting}
+                  >
+                    {#if isSubmitting}
+                      <svg class="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Submitting...
+                    {:else}
+                      Submit Application
+                    {/if}
+                  </Button>
+                {/if}
+              </div>
+            </form>
+          </div>
+        {/if}
+      </div>
+    </div>
+  </div>
+
   <!-- FAQ Section -->
   <section class="py-12 bg-white dark:bg-gray-900">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-white text-center mb-8">
+      <h2
+        class="text-2xl font-bold text-gray-900 dark:text-white text-center mb-8"
+      >
         Frequently Asked Questions
       </h2>
-      
+
       <div class="space-y-6">
         <!-- FAQ Item 1 -->
         <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
@@ -536,40 +777,59 @@
             What happens after I submit my application?
           </h3>
           <p class="text-gray-600 dark:text-gray-300">
-            Our team will review your application within 2-3 business days. If your profile meets our requirements, we'll reach out to schedule a video interview and discuss the next steps.
+            Our team will review your application within 2-3 business days. If
+            your profile meets our requirements, we'll reach out to schedule a
+            video interview and discuss the next steps.
           </p>
         </div>
-        
+
         <!-- FAQ Item 2 -->
         <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             What equipment or supplies do I need?
           </h3>
           <p class="text-gray-600 dark:text-gray-300">
-            BrightBroom customers provide all necessary cleaning supplies and equipment. You just need reliable transportation to get to your jobs and a smartphone to use our app.
+            BrightBroom customers provide all necessary cleaning supplies and
+            equipment. You just need reliable transportation to get to your jobs
+            and a smartphone to use our app.
           </p>
         </div>
-        
+
         <!-- FAQ Item 3 -->
-        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+        <!-- <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             How does scheduling work?
           </h3>
           <p class="text-gray-600 dark:text-gray-300">
             You set your availability in the app, and you'll be notified of booking requests that match your schedule and location. You can accept or decline jobs based on your preferences.
           </p>
-        </div>
-        
+        </div> -->
+
         <!-- FAQ Item 4 -->
         <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             How and when do I get paid?
           </h3>
           <p class="text-gray-600 dark:text-gray-300">
-            Payments are processed weekly for all completed jobs. Funds are transferred directly to your bank account, and you can track your earnings in real-time through the app.
+            Payments are processed weekly for all completed jobs. Funds are
+            transferred directly to your bank account.
           </p>
         </div>
       </div>
     </div>
   </section>
-{/if}
+
+  <!-- CTA Section -->
+  <div class="bg-primary py-16 text-white">
+    <div class="container mx-auto px-4">
+      <div class="mx-auto max-w-3xl text-center">
+        <h2 class="mb-4 text-3xl font-bold">Ready to Join Our Team?</h2>
+        <p class="mb-8 text-lg text-white/90">
+          Apply today and take the first step towards a flexible cleaning career
+          with BrightBroom.
+        </p>
+        <Button variant="secondary" size="lg" href="#apply">Apply Now</Button>
+      </div>
+    </div>
+  </div>
+</div>
