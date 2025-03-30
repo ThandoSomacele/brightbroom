@@ -10,7 +10,7 @@
       name: 'Regular Cleaning',
       description: 'Perfect for maintaining a clean and tidy home on a regular basis. Includes dusting, vacuuming, mopping, and bathroom/kitchen cleaning.',
       price: 350,
-      duration: 2,
+      duration: 6,
       iconType: 'home',
       type: 'regular'
     },
@@ -19,7 +19,7 @@
       name: 'Extended Cleaning',
       description: 'A thorough cleaning service that reaches every corner and detail. Includes all regular cleaning plus deep cleaning of appliances, cabinets, and more.',
       price: 550,
-      duration: 4,
+      duration: 10,
       iconType: 'deep',
       type: 'extended'
     },
@@ -28,7 +28,7 @@
       name: 'Office Cleaning',
       description: 'Professional cleaning for your office space or commercial property, including reception areas, workstations, meeting rooms, and break areas.',
       price: 450,
-      duration: 3,
+      duration: 6,
       iconType: 'office',
       type: 'regular'
     }

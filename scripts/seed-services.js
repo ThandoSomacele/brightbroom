@@ -165,7 +165,7 @@ async function main() {
           name: "Extended Cleaning",
           description: "A thorough cleaning service that reaches every corner and detail.",
           basePrice: 550,
-          durationHours: 8,
+          durationHours: 10,
           isActive: true,
         },
         {

@@ -154,7 +154,7 @@ async function main() {
         name: "Extended Cleaning",
         description: "Thorough cleaning including hard-to-reach areas",
         basePrice: 550.0,
-        durationHours: 8,
+        durationHours: 10,
         details: extendedCleaningDetails ? JSON.stringify(extendedCleaningDetails) : null,
         isActive: true
       })
