@@ -4,6 +4,8 @@ import fs from "fs";
 import path from "path";
 import postgres from "postgres";
 import { fileURLToPath } from "url";
+import crypto from "crypto";
+import readline from "readline";
 
 // Load environment variables
 dotenv.config();
@@ -12,21 +14,29 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Use DATABASE_URL_DEVELOPMENT specifically
-const dbUrl = process.env.DATABASE_URL_DEVELOPMENT || process.env.DATABASE_URL;
+// Determine which database to use
+const TARGET_ENV = process.env.TARGET_ENV || 'development';
+let dbUrl;
+
+if (TARGET_ENV === 'production') {
+  dbUrl = process.env.DATABASE_URL_PRODUCTION || process.env.DATABASE_URL;
+} else {
+  dbUrl = process.env.DATABASE_URL_DEVELOPMENT || process.env.DATABASE_URL;
+}
+
 if (!dbUrl) {
-  console.error(
-    "ERROR: No database URL found. Please set DATABASE_URL_DEVELOPMENT or DATABASE_URL",
-  );
+  console.error("ERROR: No database URL found for " + TARGET_ENV);
   process.exit(1);
 }
 
-console.log(
-  `Using database: ${dbUrl.replace(/\/\/([^:]+):([^@]+)@/, "//$1:****@")}`,
-); // Masked for security
+// Safety check for production
+const isProductionDb = TARGET_ENV === 'production' || 
+                       dbUrl === process.env.DATABASE_URL_PRODUCTION ||
+                       dbUrl.includes('production');
 
-// Database connection
-const sql = postgres(dbUrl);
+// Mask the database URL for logging (hide credentials)
+const maskedUrl = dbUrl.replace(/\/\/([^:]+):([^@]+)@/, '//$1:****@');
+console.log(`Using ${TARGET_ENV} database: ${maskedUrl}`);
 
 // Function to parse CSV data
 function parseServiceDetailsFromCSV(csvContent) {
@@ -80,7 +90,7 @@ function loadServiceDetails(serviceName) {
     const filePath = path.join(process.cwd(), "static", "data", filename);
 
     if (!fs.existsSync(filePath)) {
-      console.warn(`WARNING: Service details file not found: ${filename}`);
+      console.warn(`⚠️ Service details file not found: ${filename}`);
       return null;
     }
 
@@ -92,81 +102,102 @@ function loadServiceDetails(serviceName) {
       items,
     };
   } catch (error) {
-    console.error(`Error loading service details for ${serviceName}:`, error);
+    console.error(`❌ Error loading service details for ${serviceName}:`, error);
     return null;
   }
 }
 
+// Function to confirm production operations
+async function confirmProductionOperation() {
+  if (!isProductionDb) return true;
+  
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  return new Promise((resolve) => {
+    rl.question('⚠️ WARNING: You are about to modify the PRODUCTION database. Are you sure? (yes/no): ', (answer) => {
+      rl.close();
+      resolve(answer.toLowerCase() === 'yes');
+    });
+  });
+}
+
 async function main() {
+  // Database connection - only create after confirmation for production
+  let sql;
+  
   try {
-    console.log(
-      "🔵 Starting service update process on development database...",
-    );
+    // For production, ask for confirmation
+    if (isProductionDb) {
+      console.log("🔴 PRODUCTION DATABASE OPERATION");
+      const confirmed = await confirmProductionOperation();
+      if (!confirmed) {
+        console.log("Operation cancelled.");
+        process.exit(0);
+      }
+      console.log("Proceeding with production database update...");
+    }
+    
+    // Create DB connection after confirmation
+    sql = postgres(dbUrl);
+    
+    console.log(`🔵 Starting service update process on ${TARGET_ENV} database...`);
     console.log("Fetching existing services...");
     const services = await sql`SELECT * FROM service`;
 
     if (services.length === 0) {
-      console.log(
-        "⚠️ No services found in the database. Please run the main seed script first.",
-      );
-      // Inside the main function, after checking if services.length === 0:
+      console.log("⚠️ No services found in the database. Creating new services...");
 
-      if (services.length === 0) {
-        console.log("No services found in database. Creating new services...");
+      // Define services to create
+      const newServices = [
+        {
+          id: crypto.randomUUID(),
+          name: "Regular Cleaning",
+          description: "Perfect for maintaining a clean and tidy home on a regular basis.",
+          basePrice: 350,
+          durationHours: 6,
+          isActive: true,
+        },
+        {
+          id: crypto.randomUUID(),
+          name: "Extended Cleaning",
+          description: "A thorough cleaning service that reaches every corner and detail.",
+          basePrice: 550,
+          durationHours: 8,
+          isActive: true,
+        },
+        {
+          id: crypto.randomUUID(),
+          name: "Office Cleaning",
+          description: "Professional cleaning for your office space or commercial property.",
+          basePrice: 450,
+          durationHours: 6,
+          isActive: true,
+        },
+      ];
 
-        // Define services to create
-        const newServices = [
-          {
-            id: crypto.randomUUID(),
-            name: "Regular Cleaning",
-            description:
-              "Perfect for maintaining a clean and tidy home on a regular basis.",
-            basePrice: 350,
-            durationHours: 6,
-            isActive: true,
-          },
-          {
-            id: crypto.randomUUID(),
-            name: "Extended Cleaning",
-            description:
-              "A thorough cleaning service that reaches every corner and detail.",
-            basePrice: 550,
-            durationHours: 8,
-            isActive: true,
-          },
-          {
-            id: crypto.randomUUID(),
-            name: "Office Cleaning",
-            description:
-              "Professional cleaning for your office space or commercial property.",
-            basePrice: 450,
-            durationHours: 6,
-            isActive: true,
-          },
-        ];
-
-        // Load service details and add to each service
-        for (const service of newServices) {
-          const details = loadServiceDetails(service.name);
-          if (details) {
-            service.details = JSON.stringify(details);
-          }
+      // Load service details and add to each service
+      for (const service of newServices) {
+        const details = loadServiceDetails(service.name);
+        if (details) {
+          service.details = JSON.stringify(details);
         }
-
-        // Insert services into database
-        for (const service of newServices) {
-          await sql`
-      INSERT INTO service (id, name, description, base_price, duration_hours, details, is_active, created_at, updated_at)
-      VALUES (${service.id}, ${service.name}, ${service.description}, ${service.basePrice}, ${service.durationHours}, 
-              ${service.details}, ${service.isActive}, NOW(), NOW())
-    `;
-          console.log(`Created service: ${service.name}`);
-        }
-
-        console.log("New services created successfully!");
-        return; // Exit the function
       }
-      process.exit(1);
+
+      // Insert services into database
+      for (const service of newServices) {
+        await sql`
+          INSERT INTO service (id, name, description, base_price, duration_hours, details, is_active, created_at, updated_at)
+          VALUES (${service.id}, ${service.name}, ${service.description}, ${service.basePrice}, ${service.durationHours}, 
+                  ${service.details}, ${service.isActive}, NOW(), NOW())
+        `;
+        console.log(`✅ Created service: ${service.name}`);
+      }
+
+      console.log("🎉 New services created successfully!");
+      return;
     }
 
     console.log(`Found ${services.length} services to update.`);
@@ -195,12 +226,12 @@ async function main() {
       }
     }
 
-    console.log("✅ All services updated successfully!");
+    console.log(`🎉 All services updated successfully on ${TARGET_ENV} database!`);
   } catch (error) {
     console.error("❌ Error updating services:", error);
     process.exit(1);
   } finally {
-    await sql.end();
+    if (sql) await sql.end();
   }
 }
 

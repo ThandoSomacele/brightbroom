@@ -2,43 +2,114 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
-  import { Calendar, Clock, ArrowRight, ArrowLeft, Info } from "lucide-svelte";
+  import { Calendar, Clock, ArrowRight, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-svelte";
+  import { format, parse, isEqual, isSameDay, isToday, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, endOfWeek, startOfWeek, isSameMonth } from "date-fns";
   
   // Get data from the server load function
   export let data;
-  const { availableDates, timeSlots, selectedService } = data;
+  const { availableDates, timeSlots } = data;
   
   // Track selected date and time
   let selectedDate = "";
   let selectedTime = "";
   
+  // Calendar state
+  let currentMonth = new Date();
+  let calendarDays: Array<{ date: Date; isAvailable: boolean; isSelected: boolean; isCurrentMonth: boolean }> = [];
+  
+  // Available dates as Date objects for easier comparison
+  let availableDateObjects: Date[] = [];
+  
   // Add loading state
   let isLoading = false;
   
   // Get previous selections from localStorage
-  let selectedServiceId = "";
+  let selectedService = "";
   let selectedAddress = "";
   let accessInstructions = "";
   
   // Initialize data from localStorage on mount
-  import { onMount } from 'svelte';
+  import { onMount } from "svelte";
   
   onMount(() => {
     // Get previous selections
-    selectedServiceId = localStorage.getItem('booking_service') || '';
-    selectedAddress = localStorage.getItem('booking_address') || '';
-    accessInstructions = localStorage.getItem('booking_instructions') || '';
+    selectedService = localStorage.getItem("booking_service") || "";
+    selectedAddress = localStorage.getItem("booking_address") || "";
+    accessInstructions = localStorage.getItem("booking_instructions") || "";
     
     // If required information is missing, redirect back
-    if (!selectedServiceId || !selectedAddress) {
-      goto('/book');
+    if (!selectedService || !selectedAddress) {
+      goto("/book");
     }
     
-    // Default to first available date
+    // Parse available dates into Date objects
+    availableDateObjects = availableDates.map(d => parse(d.date, 'yyyy-MM-dd', new Date()));
+    
+    // Default to first available date if we have any
     if (availableDates.length > 0 && !selectedDate) {
       selectedDate = availableDates[0].date;
     }
+    
+    // Generate calendar days for the current month
+    generateCalendarDays();
   });
+  
+  // Generate calendar days for the current month view
+  function generateCalendarDays() {
+    // Start of the month
+    const monthStart = startOfMonth(currentMonth);
+    // End of the month
+    const monthEnd = endOfMonth(monthStart);
+    // Start of the first week of the month
+    const startDate = startOfWeek(monthStart);
+    // End of the last week of the month
+    const endDate = endOfWeek(monthEnd);
+    
+    // Get all days in this calendar view (including days from prev/next months)
+    const days = eachDayOfInterval({ start: startDate, end: endDate });
+    
+    // Map each date to calendar day objects with additional info
+    calendarDays = days.map(date => {
+      // Check if this date is available
+      const isAvailable = availableDateObjects.some(d => isSameDay(d, date));
+      
+      // Is this date selected?
+      const isSelected = selectedDate ? isSameDay(date, parse(selectedDate, 'yyyy-MM-dd', new Date())) : false;
+      
+      // Is this date in the current month?
+      const isCurrentMonth = isSameMonth(date, currentMonth);
+      
+      return {
+        date,
+        isAvailable,
+        isSelected,
+        isCurrentMonth
+      };
+    });
+  }
+  
+  // Previous month handler
+  function previousMonth() {
+    currentMonth = subMonths(currentMonth, 1);
+    generateCalendarDays();
+  }
+  
+  // Next month handler
+  function nextMonth() {
+    currentMonth = addMonths(currentMonth, 1);
+    generateCalendarDays();
+  }
+  
+  // Date selection handler
+  function selectCalendarDate(day: { date: Date; isAvailable: boolean; isSelected: boolean }) {
+    if (!day.isAvailable) return;
+    
+    // Format the date to match expected format
+    selectedDate = format(day.date, 'yyyy-MM-dd');
+    
+    // Update calendar days to reflect selection
+    generateCalendarDays();
+  }
   
   // Continue to next step
   async function continueToNext() {
@@ -48,13 +119,13 @@
       
       try {
         // Store selections in localStorage to persist through navigation
-        localStorage.setItem('booking_date', selectedDate);
-        localStorage.setItem('booking_time', selectedTime);
+        localStorage.setItem("booking_date", selectedDate);
+        localStorage.setItem("booking_time", selectedTime);
         
         // Navigate to review
-        await goto('/book/review');
+        await goto("/book/review");
       } catch (error) {
-        console.error('Navigation error:', error);
+        console.error("Navigation error:", error);
       } finally {
         // Reset loading state (though this won't be seen due to navigation)
         isLoading = false;
@@ -66,11 +137,16 @@
   async function goToPrevious() {
     isLoading = true;
     try {
-      await goto('/book/address');
+      await goto("/book/address");
     } catch (error) {
-      console.error('Navigation error:', error);
+      console.error("Navigation error:", error);
       isLoading = false;
     }
+  }
+  
+  // Track changes to selectedDate and update the calendar
+  $: if (selectedDate) {
+    generateCalendarDays();
   }
 </script>
 
@@ -155,7 +231,7 @@
 
     <!-- Date and time selection -->
     <div class="grid gap-8 md:grid-cols-2">
-      <!-- Date selection -->
+      <!-- Calendar Date Picker -->
       <div>
         <h2
           class="mb-4 flex items-center text-xl font-semibold text-gray-900 dark:text-white"
@@ -164,41 +240,75 @@
           Select a Date
         </h2>
 
-        <div
-          class="max-h-96 overflow-y-auto rounded-lg bg-white p-4 shadow-md dark:bg-gray-800"
-        >
-          {#if availableDates.length > 0}
-            <div class="space-y-2">
-              {#each availableDates as dateOption}
-                <div
-                  class={`cursor-pointer rounded-md border p-3 transition-colors
-                      ${
-                        selectedDate === dateOption.date
-                          ? "border-primary bg-primary-50 dark:border-primary-600 dark:bg-primary-900/20"
-                          : "border-gray-200 hover:border-primary-200 dark:border-gray-700 dark:hover:border-primary-700"
-                      }`}
-                  on:click={() => (selectedDate = dateOption.date)}
-                  on:keydown={(e) =>
-                    e.key === "Enter" && (selectedDate = dateOption.date)}
-                  role="button"
-                  tabindex="0"
-                >
-                  <div class="flex justify-between">
-                    <span class="font-medium text-gray-900 dark:text-white"
-                      >{dateOption.displayDate}</span
-                    >
-                    {#if selectedDate === dateOption.date}
-                      <span class="text-primary">✓</span>
-                    {/if}
-                  </div>
-                </div>
-              {/each}
+        <div class="rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
+          <!-- Calendar Header - Month Navigation -->
+          <div class="mb-4 flex items-center justify-between">
+            <button
+              type="button"
+              class="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              on:click={previousMonth}
+            >
+              <ChevronLeft size={18} />
+            </button>
+            
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              {format(currentMonth, 'MMMM yyyy')}
+            </h3>
+            
+            <button
+              type="button"
+              class="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              on:click={nextMonth}
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+          
+          <!-- Calendar Days of Week Headers -->
+          <div class="mb-2 grid grid-cols-7 text-center">
+            {#each ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as day}
+              <div class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                {day}
+              </div>
+            {/each}
+          </div>
+          
+          <!-- Calendar Days Grid -->
+          <div class="grid grid-cols-7 gap-1">
+            {#each calendarDays as day}
+              <button
+                type="button"
+                class={`
+                  flex h-10 w-full items-center justify-center rounded-lg p-1
+                  text-sm
+                  ${day.isCurrentMonth ? 'font-medium' : 'text-gray-400 dark:text-gray-600'}
+                  ${day.isSelected ? 'bg-primary text-white hover:bg-primary-600' : ''}
+                  ${day.isAvailable && !day.isSelected 
+                      ? 'bg-primary-50 text-primary hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/30' 
+                      : !day.isAvailable 
+                          ? 'cursor-not-allowed opacity-50' 
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-700'}
+                  ${isToday(day.date) && !day.isSelected ? 'border border-primary' : ''}
+                `}
+                disabled={!day.isAvailable}
+                on:click={() => selectCalendarDate(day)}
+              >
+                {format(day.date, 'd')}
+              </button>
+            {/each}
+          </div>
+          
+          <!-- Legend -->
+          <div class="mt-4 flex justify-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+            <div class="flex items-center">
+              <div class="mr-1.5 h-3 w-3 rounded bg-primary-50 dark:bg-primary-900/20"></div>
+              <span>Available</span>
             </div>
-          {:else}
-            <p class="text-center text-gray-500 dark:text-gray-400">
-              No available dates
-            </p>
-          {/if}
+            <div class="flex items-center">
+              <div class="mr-1.5 h-3 w-3 rounded bg-primary"></div>
+              <span>Selected</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -213,26 +323,25 @@
 
         <div class="rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
           {#if timeSlots.length > 0}
-            <div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3">
               {#each timeSlots as slot}
-                <div
-                  class={`cursor-pointer rounded-md border p-3 text-center transition-colors
-                      ${
-                        selectedTime === slot.time
-                          ? "border-primary bg-primary-50 dark:border-primary-600 dark:bg-primary-900/20"
-                          : "border-gray-200 hover:border-primary-200 dark:border-gray-700 dark:hover:border-primary-700"
-                      }`}
+                <button
+                  type="button"
+                  class={`
+                    py-3 px-3 text-center rounded-md border transition-colors cursor-pointer
+                    ${
+                      selectedTime === slot.time
+                        ? "border-primary bg-primary-50 dark:border-primary-600 dark:bg-primary-900/20"
+                        : "border-gray-200 hover:border-primary-200 dark:border-gray-700 dark:hover:border-primary-700"
+                    }
+                  `}
                   on:click={() => (selectedTime = slot.time)}
-                  on:keydown={(e) =>
-                    e.key === "Enter" && (selectedTime = slot.time)}
-                  role="button"
-                  tabindex="0"
                 >
                   <span
                     class="text-sm font-medium text-gray-900 dark:text-white"
                     >{slot.displayTime}</span
                   >
-                </div>
+                </button>
               {/each}
             </div>
           {:else}
@@ -244,26 +353,18 @@
       </div>
     </div>
 
-    {#if selectedService}
-  <div class="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center">
-    <Info size={18} class="text-primary mr-2 flex-shrink-0" />
-    <p class="text-sm text-gray-700 dark:text-gray-300">
-      Service duration: {selectedService.durationHours} {selectedService.durationHours === 1 ? 'hour' : 'hours'}. 
-      Only showing time slots that allow cleaners to finish by 6:00 PM.
-    </p>
-  </div>
-{/if}
-
     <!-- Selected date and time summary -->
     {#if selectedDate && selectedTime}
       <div class="mt-8 rounded-lg bg-primary-50 p-4 dark:bg-primary-900/20">
         <h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">
           Your Selected Time
         </h3>
+        
         <p class="flex items-center text-gray-700 dark:text-gray-300">
           <Calendar size={18} class="mr-2 text-primary" />
           {availableDates.find((d) => d.date === selectedDate)?.fullDisplayDate}
         </p>
+        
         <p class="mt-2 flex items-center text-gray-700 dark:text-gray-300">
           <Clock size={18} class="mr-2 text-primary" />
           {timeSlots.find((t) => t.time === selectedTime)?.displayTime}
