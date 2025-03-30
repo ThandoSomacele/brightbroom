@@ -6,7 +6,7 @@ import { db } from '$lib/server/db';
 import { booking } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
-export const POST: RequestHandler = async ({ request, locals }) => {
+export const POST: RequestHandler = async ({ request, locals, url }) => {
   // Check if user is authenticated
   if (!locals.user) {
     console.error('Unauthorized payment process attempt');
@@ -48,8 +48,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       return json({ error: 'Unauthorized access to booking' }, { status: 403 });
     }
 
-    // Create payment and get redirect URL
-    const result = await createPaymentForBooking(bookingId);
+    // Get the origin from the current request
+    const origin = url.origin;
+    console.log(`Using origin for payment callbacks: ${origin}`);
+    
+    // Create payment and get redirect URL, passing the origin
+    const result = await createPaymentForBooking(bookingId, { origin });
     
     console.log(`Payment created successfully for booking: ${bookingId}`);
     console.log(`Redirecting to PayFast URL`);

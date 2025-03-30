@@ -5,6 +5,7 @@ import {
   payment,
   service,
   user,
+  address, // Add address import which was missing
   type Payment,
 } from "$lib/server/db/schema";
 import crypto from "crypto";
@@ -27,20 +28,12 @@ const PAYFAST_URL = USE_SANDBOX
   ? "https://sandbox.payfast.co.za/eng/process"
   : "https://www.payfast.co.za/eng/process";
 
-// Get base app URL with fallback
-const APP_BASE_URL = import.meta.env.VITE_APP_URL || "http://localhost:5173";
+// Default fallback base URL - only used if no origin is provided
+const DEFAULT_BASE_URL = import.meta.env.VITE_APP_URL || "http://localhost:5173";
 
-// Construct full URLs for callbacks
-const RETURN_URL = `${APP_BASE_URL}/payment/success`;
-const CANCEL_URL = `${APP_BASE_URL}/payment/cancel`;
-const NOTIFY_URL = `${APP_BASE_URL}/api/payments/ipn`;
-
-// Log payment configuration on startup (but not sensitive info)
+// Log payment configuration on startup
 console.log("PayFast Configuration:");
 console.log(`- Using ${USE_SANDBOX ? "SANDBOX" : "PRODUCTION"} mode`);
-console.log(`- Return URL: ${RETURN_URL}`);
-console.log(`- Cancel URL: ${CANCEL_URL}`);
-console.log(`- Notify URL: ${NOTIFY_URL}`);
 
 interface PayFastPaymentData {
   merchant_id: string;
@@ -70,13 +63,29 @@ interface PayFastPaymentData {
 /**
  * Create a payment for a booking and generate PayFast redirect URL
  * @param bookingId The ID of the booking to create a payment for
+ * @param options Additional options including origin URL
  * @returns The payment ID and redirect URL for PayFast
  */
 export async function createPaymentForBooking(
   bookingId: string,
+  options: { origin?: string } = {}
 ): Promise<{ paymentId: string; redirectUrl: string }> {
   try {
     console.log(`Creating payment for booking: ${bookingId}`);
+
+    // Get the origin from options or use default
+    const origin = options.origin || DEFAULT_BASE_URL;
+    
+    // Construct callback URLs using the current domain
+    const returnUrl = `${origin}/payment/success`;
+    const cancelUrl = `${origin}/payment/cancel`;
+    const notifyUrl = `${origin}/api/payments/ipn`;
+    
+    // Log the dynamic URLs
+    console.log("Using PayFast callback URLs:");
+    console.log(`- Return URL: ${returnUrl}`);
+    console.log(`- Cancel URL: ${cancelUrl}`);
+    console.log(`- Notify URL: ${notifyUrl}`);
 
     // Get booking with user information
     const bookingResult = await db
@@ -144,13 +153,15 @@ export async function createPaymentForBooking(
 
     console.log(`Created payment record: ${newPayment.id}`);
 
-    // Generate PayFast URL
+    // Generate PayFast URL with dynamic callback URLs
     const redirectUrl = generatePayFastUrl(
       bookingData,
       userData,
       serviceData,
       newPayment,
+      { returnUrl, cancelUrl, notifyUrl } // Pass the dynamic URLs
     );
+    
     console.log(
       `Generated PayFast URL (partial): ${redirectUrl.substring(0, 100)}...`,
     );
@@ -173,6 +184,7 @@ function generatePayFastUrl(
   userData: any,
   serviceData: any,
   paymentData: Payment,
+  urls: { returnUrl: string; cancelUrl: string; notifyUrl: string }
 ): string {
   // Format amount to 2 decimal places as required by PayFast
   const formattedAmount = Number(bookingData.price).toFixed(2);
@@ -186,9 +198,9 @@ function generatePayFastUrl(
   const data: PayFastPaymentData = {
     merchant_id: PAYFAST_MERCHANT_ID,
     merchant_key: PAYFAST_MERCHANT_KEY,
-    return_url: `${RETURN_URL}?booking_id=${bookingData.id}`, // Add booking_id to return_url
-    cancel_url: CANCEL_URL,
-    notify_url: NOTIFY_URL,
+    return_url: `${urls.returnUrl}?booking_id=${bookingData.id}`, // Add booking_id to return_url
+    cancel_url: urls.cancelUrl,
+    notify_url: urls.notifyUrl,
     name_first: firstName,
     name_last: lastName,
     email_address: email,
