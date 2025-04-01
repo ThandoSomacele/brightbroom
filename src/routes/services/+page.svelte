@@ -18,8 +18,8 @@
       id: 'regular-cleaning-laundry',
       name: 'Regular Cleaning with Laundry & Ironing',
       description: 'For maintaining a clean home on and your laundry and ironing assisstance. Includes  all in the Regual Cleaning and laundary and ironing.',
-      price: 350,
-      duration: 6,
+      price: 450,
+      duration: 8,
       iconType: 'home',
       type: 'regular'
     },
@@ -27,7 +27,7 @@
       id: 'extended-cleaning',
       name: 'Extended Cleaning',
       description: 'A thorough cleaning service that reaches every corner and detail. Includes all regular cleaning plus cleaning of appliances, cabinets, and more.',
-      price: 550,
+      price: 600,
       duration: 10,
       iconType: 'deep',
       type: 'extended'
