@@ -162,6 +162,14 @@ async function main() {
         },
         {
           id: crypto.randomUUID(),
+          name: "Regular Cleaning with Laundry & Ironing",
+          description: "For maintaining a clean home on and your laundry and ironing assisstance.",
+          basePrice: 450,
+          durationHours: 8,
+          isActive: true,
+        },
+        {
+          id: crypto.randomUUID(),
           name: "Extended Cleaning",
           description: "A thorough cleaning service that reaches every corner and detail.",
           basePrice: 550,

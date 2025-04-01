@@ -2,10 +2,10 @@
 import crypto from "crypto";
 import dotenv from "dotenv";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { Argon2id } from "oslo/password";
-import postgres from "postgres";
 import fs from "fs";
+import { Argon2id } from "oslo/password";
 import path from "path";
+import postgres from "postgres";
 
 // Load environment variables directly
 dotenv.config();
@@ -28,14 +28,23 @@ if (!process.env.DATABASE_URL) {
 }
 
 // Check if this is a production database
-const isProductionDatabase = 
-  process.env.DATABASE_URL.includes('production') || 
+const isProductionDatabase =
+  process.env.DATABASE_URL.includes("production") ||
   process.env.DATABASE_URL === process.env.DATABASE_URL_PRODUCTION;
 
 if (isProductionDatabase) {
-  console.error("\x1b[31m%s\x1b[0m", "ERROR: Attempting to seed into a production database!");
-  console.error("\x1b[31m%s\x1b[0m", "This operation is blocked for safety reasons.");
-  console.error("\x1b[33m%s\x1b[0m", "If you REALLY need to seed production data, create a dedicated script with proper safeguards.");
+  console.error(
+    "\x1b[31m%s\x1b[0m",
+    "ERROR: Attempting to seed into a production database!",
+  );
+  console.error(
+    "\x1b[31m%s\x1b[0m",
+    "This operation is blocked for safety reasons.",
+  );
+  console.error(
+    "\x1b[33m%s\x1b[0m",
+    "If you REALLY need to seed production data, create a dedicated script with proper safeguards.",
+  );
   process.exit(1);
 }
 
@@ -57,32 +66,32 @@ const db = drizzle(client, {
 // Function to parse CSV data
 function parseServiceDetailsFromCSV(csvContent) {
   const items = [];
-  
+
   // Split by lines
-  const lines = csvContent.split('\n').filter(line => line.trim() !== '');
-  
+  const lines = csvContent.split("\n").filter((line) => line.trim() !== "");
+
   // Skip header
   let i = 1;
-  
+
   while (i < lines.length) {
     // The area name is a line in all caps
     const area = lines[i].trim();
     i++;
-    
+
     const details = [];
-    
+
     // Collect all details until we hit the next area (all caps) or end of file
     while (i < lines.length && !lines[i].trim().match(/^[A-Z\s]+$/)) {
-      details.push(lines[i].trim().replace(/"/g, ''));
+      details.push(lines[i].trim().replace(/"/g, ""));
       i++;
     }
-    
+
     // Add this area with its details
     if (details.length > 0) {
       items.push({ area, details });
     }
   }
-  
+
   return items;
 }
 
@@ -90,23 +99,29 @@ function parseServiceDetailsFromCSV(csvContent) {
 function loadServiceDetails(serviceName) {
   try {
     let filename;
-    
-    if (serviceName.toLowerCase().includes('regular')) {
-      filename = 'BrightBroom Service Description - Regular Cleaning.csv';
-    } else if (serviceName.toLowerCase().includes('extended') || serviceName.toLowerCase().includes('deep')) {
-      filename = 'BrightBroom Service Description - Extended Cleaning.csv';
+
+    if (serviceName.toLowerCase().includes("regular")) {
+      filename = "BrightBroom Service Description - Regular Cleaning.csv";
+    } else if (
+      serviceName.toLowerCase().includes("laundry")
+    ) {
+      filename = "BrightBroom Service Description - Regular Cleaning with Laundry & Ironing.csv";
+    } else if (
+      serviceName.toLowerCase().includes("extended")
+    ) {
+      filename = "BrightBroom Service Description - Extended Cleaning.csv";
     } else {
       // Default to regular cleaning for office cleaning
-      filename = 'BrightBroom Service Description - Regular Cleaning.csv';
+      filename = "BrightBroom Service Description - Regular Cleaning.csv";
     }
-    
-    const filePath = path.join(process.cwd(), 'static', 'data', filename);
-    const fileContent = fs.readFileSync(filePath, 'utf8');
+
+    const filePath = path.join(process.cwd(), "static", "data", filename);
+    const fileContent = fs.readFileSync(filePath, "utf8");
     const items = parseServiceDetailsFromCSV(fileContent);
-    
+
     return {
       name: serviceName,
-      items
+      items,
     };
   } catch (error) {
     console.error(`Error loading service details for ${serviceName}:`, error);
@@ -128,11 +143,14 @@ async function main() {
     await db.delete(user);
 
     console.log("Creating services...");
-    
+
     // Load service details from files
     const regularCleaningDetails = loadServiceDetails("Regular Cleaning");
+    const regularCleaningWithLaunryIroningDetails = loadServiceDetails(
+      "Regular Cleaning with Laundry & Ironing",
+    );
     const extendedCleaningDetails = loadServiceDetails("Extended Cleaning");
-    
+
     // Create services
     const [regularCleaning] = await db
       .insert(service)
@@ -142,12 +160,30 @@ async function main() {
         description: "Standard cleaning service for homes and apartments",
         basePrice: 350.0,
         durationHours: 6,
-        details: regularCleaningDetails ? JSON.stringify(regularCleaningDetails) : null,
-        isActive: true
+        details: regularCleaningDetails
+          ? JSON.stringify(regularCleaningDetails)
+          : null,
+        isActive: true,
       })
       .returning();
 
-    const [deepCleaning] = await db
+    const [regularCleaningWithLaunryIroning] = await db
+      .insert(service)
+      .values({
+        id: crypto.randomUUID(),
+        name: "Regular Cleaning with Laundry & Ironing",
+        description:
+          "Standard cleaning service with laundry and ironing assistance",
+        basePrice: 450.0,
+        durationHours: 8,
+        details: regularCleaningWithLaunryIroningDetails
+          ? JSON.stringify(regularCleaningWithLaunryIroningDetails)
+          : null,
+        isActive: true,
+      })
+      .returning();
+
+    const [extendedCleaning] = await db
       .insert(service)
       .values({
         id: crypto.randomUUID(),
@@ -155,8 +191,10 @@ async function main() {
         description: "Thorough cleaning including hard-to-reach areas",
         basePrice: 550.0,
         durationHours: 10,
-        details: extendedCleaningDetails ? JSON.stringify(extendedCleaningDetails) : null,
-        isActive: true
+        details: extendedCleaningDetails
+          ? JSON.stringify(extendedCleaningDetails)
+          : null,
+        isActive: true,
       })
       .returning();
 
@@ -168,8 +206,10 @@ async function main() {
         description: "Professional cleaning for office spaces",
         basePrice: 450.0,
         durationHours: 6,
-        details: regularCleaningDetails ? JSON.stringify(regularCleaningDetails) : null, // Reuse regular cleaning details for now
-        isActive: true
+        details: regularCleaningDetails
+          ? JSON.stringify(regularCleaningDetails)
+          : null, // Reuse regular cleaning details for now
+        isActive: true,
       })
       .returning();
 
@@ -296,7 +336,7 @@ async function main() {
     await db.insert(cleanerSpecialisation).values({
       id: crypto.randomUUID(),
       cleanerProfileId: sarahProfile.id,
-      serviceId: deepCleaning.id,
+      serviceId: extendedCleaning.id,
       experience: 48,
     });
 
@@ -387,7 +427,7 @@ async function main() {
       id: crypto.randomUUID(),
       bookingId: booking1.id,
       userId: customer.id,
-      amount: regularCleaning.basePrice,
+      amount: regularCleaningWithLaunryIroning.basePrice,
       status: "COMPLETED",
       paymentMethod: "CREDIT_CARD",
       payFastId: "pf_" + Math.random().toString(36).substring(2, 15),
@@ -398,11 +438,11 @@ async function main() {
       id: crypto.randomUUID(),
       userId: customer.id,
       addressId: address2.id,
-      serviceId: deepCleaning.id,
+      serviceId: extendedCleaning.id,
       status: "PENDING",
       scheduledDate: twoWeeksFromNow,
-      duration: deepCleaning.durationHours * 60,
-      price: deepCleaning.basePrice,
+      duration: extendedCleaning.durationHours * 60,
+      price: extendedCleaning.basePrice,
       notes: "Front door code: 1234",
     });
 
