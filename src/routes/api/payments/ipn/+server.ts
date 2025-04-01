@@ -1,5 +1,8 @@
 // src/routes/api/payments/ipn/+server.ts
-import { sendBookingConfirmationEmail, sendPaymentReceiptEmail } from "$lib/server/email-service";
+import {
+  sendBookingConfirmationEmail,
+  sendPaymentReceiptEmail,
+} from "$lib/server/email-service";
 import {
   processSuccessfulPayment,
   validateIpnRequest,
@@ -56,20 +59,20 @@ export const POST: RequestHandler = async ({ request }) => {
       if (result && result.booking && result.user) {
         // Send booking confirmation email
         await sendBookingConfirmationEmail(result.user.email, result.booking);
-        
+
         // Prepare and send receipt email
         const paymentDetails = {
-          id: pfData.m_payment_id, 
+          id: pfData.m_payment_id,
           createdAt: new Date(),
           amount: parseFloat(pfData.amount_gross || result.booking.price),
           booking: result.booking,
           user: result.user,
           paymentMethod: pfData.payment_method || "Credit Card",
-          vatRate: 15 // Default South African VAT rate
+          vatRate: 15, // Default South African VAT rate
         };
-        
+
         await sendPaymentReceiptEmail(result.user.email, paymentDetails);
-        
+
         console.log("Payment receipt sent successfully");
       }
 
@@ -78,13 +81,38 @@ export const POST: RequestHandler = async ({ request }) => {
       console.log(`Payment not complete. Status: ${pfData.payment_status}`);
     }
 
-    // Return 200 OK to acknowledge receipt
-    return new Response("OK");
+    // Return 200 OK with CORS headers
+    return new Response("OK", {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    });
   } catch (error) {
     console.error("Error processing IPN:", error);
 
-    // Always return 200 to PayFast even if processing fails
-    // This prevents PayFast from retrying, and we can handle issues separately
-    return new Response("OK");
+    // Always return 200 to PayFast with CORS headers
+    return new Response("OK", {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    });
   }
+};
+
+
+export const OPTIONS: RequestHandler = async () => {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
+    }
+  });
 };

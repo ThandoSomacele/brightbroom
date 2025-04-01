@@ -68,16 +68,17 @@ const handleRouting: Handle = async ({ event, resolve }) => {
   // Get the requested path
   const path = event.url.pathname;
 
-  // Allow PayFast IPN webhook to bypass auth checks
-  if (path === '/api/payments/ipn') {
-    return resolve(event);
-  }
-  
-  // Handle any custom routing error cases
-  if (path.includes('//')) {
-    // Double slashes in URL path - redirect to corrected URL
-    throw error(404, "Invalid URL format");
-  }
+ // IMPORTANT: Allow PayFast IPN webhook without authentication
+ if (path === '/api/payments/ipn') {
+  console.log('PayFast IPN webhook accessed - bypassing auth checks');
+  return resolve(event);
+}
+
+// Handle any custom routing error cases
+if (path.includes('//')) {
+  // Double slashes in URL path - redirect to corrected URL
+  throw error(404, "Invalid URL format");
+}
   
   // Admin route protection
   if (path.startsWith('/admin')) {
