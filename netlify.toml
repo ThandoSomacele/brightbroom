@@ -19,12 +19,6 @@
     "react/jsx-runtime"
   ]
 
-# This specifically allows external services to access your IPN endpoint
-[[redirects]]
-  from = "/api/payments/ipn"
-  to = "/.netlify/functions/server"
-  status = 200
-  force = true
 
 # Define specific headers for the IPN endpoint
 [[headers]]
