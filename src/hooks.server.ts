@@ -69,8 +69,13 @@ const handleRouting: Handle = async ({ event, resolve }) => {
   const path = event.url.pathname;
 
  // IMPORTANT: Allow PayFast IPN webhook without authentication
- if (path === '/api/payments/ipn') {
-  console.log('PayFast IPN webhook accessed - bypassing auth checks');
+// Add this to your handleRouting function 
+if (path === '/api/payments/ipn') {
+  console.log('PayFast IPN webhook accessed - request details:', {
+    method: event.request.method,
+    headers: Object.fromEntries([...event.request.headers.entries()]),
+    path: event.url.pathname
+  });
   return resolve(event);
 }
 

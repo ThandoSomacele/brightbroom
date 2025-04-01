@@ -1,9 +1,5 @@
 // src/routes/api/payments/ipn/+server.ts
 import {
-  sendBookingConfirmationEmail,
-  sendPaymentReceiptEmail,
-} from "$lib/server/email-service";
-import {
   processSuccessfulPayment,
   validateIpnRequest,
 } from "$lib/server/payment";
@@ -20,19 +16,20 @@ export const POST: RequestHandler = async ({ request }) => {
     // Read form data from PayFast IPN
     const formData = await request.formData();
 
-    // Convert FormData to plain object for logging and processing
+    // Convert FormData to plain object with better logging
     const pfData: Record<string, string> = {};
     for (const [key, value] of formData.entries()) {
       pfData[key] = value.toString();
     }
 
-    // Log payment data (excluding sensitive info)
+    // Enhanced logging - important for debugging
     console.log("PayFast IPN data received:", {
       payment_status: pfData.payment_status,
       m_payment_id: pfData.m_payment_id,
       pf_payment_id: pfData.pf_payment_id,
       item_name: pfData.item_name,
       amount_gross: pfData.amount_gross,
+      custom_str1: pfData.custom_str1, // Often contains booking ID
     });
 
     // Get original query string for validation
@@ -43,68 +40,44 @@ export const POST: RequestHandler = async ({ request }) => {
 
     if (!isValid) {
       console.error("Invalid IPN request - validation failed");
-      return new Response("Invalid request", { status: 400 });
+      return new Response("OK"); // Still return 200 OK
     }
 
     console.log(`Valid IPN request - Payment status: ${pfData.payment_status}`);
 
     // Check payment status
     if (pfData.payment_status === "COMPLETE") {
-      console.log(`Processing successful payment for: ${pfData.m_payment_id}`);
+      console.log(
+        `Processing successful payment for ID: ${pfData.m_payment_id}`,
+      );
 
-      // Update payment and booking status
-      const result = await processSuccessfulPayment(pfData.m_payment_id);
+      try {
+        // Update payment and booking status
+        const result = await processSuccessfulPayment(pfData.m_payment_id);
+        console.log(
+          "Payment processing result:",
+          result ? "Success" : "Failed",
+        );
 
-      // Send confirmation email and payment receipt if payment was processed successfully
-      if (result && result.booking && result.user) {
-        // Send booking confirmation email
-        await sendBookingConfirmationEmail(result.user.email, result.booking);
-
-        // Prepare and send receipt email
-        const paymentDetails = {
-          id: pfData.m_payment_id,
-          createdAt: new Date(),
-          amount: parseFloat(pfData.amount_gross || result.booking.price),
-          booking: result.booking,
-          user: result.user,
-          paymentMethod: pfData.payment_method || "Credit Card",
-          vatRate: 15, // Default South African VAT rate
-        };
-
-        await sendPaymentReceiptEmail(result.user.email, paymentDetails);
-
-        console.log("Payment receipt sent successfully");
+        if (!result) {
+          console.error(
+            "processSuccessfulPayment returned null - check if payment ID exists in database",
+          );
+        }
+      } catch (processError) {
+        console.error("Error processing payment:", processError);
       }
-
-      console.log("Payment processed successfully");
     } else {
       console.log(`Payment not complete. Status: ${pfData.payment_status}`);
     }
 
-    // Return 200 OK with CORS headers
-    return new Response("OK", {
-      status: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-      },
-    });
+    // Return 200 OK to acknowledge receipt
+    return new Response("OK", { status: 200 });
   } catch (error) {
     console.error("Error processing IPN:", error);
-
-    // Always return 200 to PayFast with CORS headers
-    return new Response("OK", {
-      status: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-      },
-    });
+    return new Response("OK", { status: 200 }); // Always return 200 to PayFast
   }
 };
-
 
 export const OPTIONS: RequestHandler = async () => {
   return new Response(null, {
@@ -112,7 +85,7 @@ export const OPTIONS: RequestHandler = async () => {
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type"
-    }
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
   });
 };
