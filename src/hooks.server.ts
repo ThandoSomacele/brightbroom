@@ -67,6 +67,11 @@ const handleErrors: Handle = async ({ event, resolve }) => {
 const handleRouting: Handle = async ({ event, resolve }) => {
   // Get the requested path
   const path = event.url.pathname;
+
+  // Allow PayFast IPN webhook to bypass auth checks
+  if (path === '/api/payments/ipn') {
+    return resolve(event);
+  }
   
   // Handle any custom routing error cases
   if (path.includes('//')) {
