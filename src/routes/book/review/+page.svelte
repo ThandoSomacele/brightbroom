@@ -338,7 +338,7 @@
       </div>
 
       <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-        Prices include VAT and cleaning supplies. Payment will be processed
+        Prices include VAT. Payment will be processed
         securely via PayFast.
       </p>
     </div>

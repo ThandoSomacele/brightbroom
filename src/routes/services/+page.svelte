@@ -103,8 +103,7 @@
             Do I need to provide cleaning supplies?
           </h3>
           <p class="mt-2 text-gray-600 dark:text-gray-300">
-            No, our professional cleaners bring all necessary cleaning supplies and equipment. 
-            However, if you have specific products you'd prefer we use, please let us know in advance.
+            Yes, our professional cleaners do not bring any cleaning supplies and equipment.
           </p>
         </div>
         

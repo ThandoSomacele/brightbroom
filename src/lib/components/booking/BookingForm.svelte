@@ -365,7 +365,7 @@
               <span class="font-bold text-primary">{formattedPrice}</span>
             </div>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Prices include VAT and cleaning supplies.
+              Prices include VAT.
             </p>
           </div>
         </div>

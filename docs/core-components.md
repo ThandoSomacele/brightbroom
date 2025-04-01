@@ -956,7 +956,7 @@ A component for displaying booking details.
       <p class="font-bold text-lg text-primary">R{booking.service.price}</p>
     </div>
     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-      Prices include VAT and cleaning supplies.
+      Prices include VAT.
     </p>
   </div>
 </Card>
