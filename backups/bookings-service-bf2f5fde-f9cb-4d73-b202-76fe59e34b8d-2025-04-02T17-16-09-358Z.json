@@ -1,0 +1,16 @@
+[
+  {
+    "id": "28b6b13d-94a6-42c5-8a30-829622f4da41",
+    "userId": "5e71f4c1-b2e0-4a13-a2e9-cc186e3f77b2",
+    "addressId": "9df253ee-8d77-418c-9907-b44877bfed68",
+    "serviceId": "bf2f5fde-f9cb-4d73-b202-76fe59e34b8d",
+    "cleanerId": null,
+    "status": "PENDING",
+    "scheduledDate": "2025-04-01T09:00:00.000Z",
+    "duration": 360,
+    "price": "450.00",
+    "notes": null,
+    "createdAt": "2025-03-29T20:44:20.443Z",
+    "updatedAt": "2025-03-29T20:44:20.443Z"
+  }
+]

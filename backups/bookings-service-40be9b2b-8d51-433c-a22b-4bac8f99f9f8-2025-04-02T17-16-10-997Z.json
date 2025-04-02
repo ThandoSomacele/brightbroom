@@ -1,0 +1,30 @@
+[
+  {
+    "id": "b04b2d81-8ac0-424a-9dde-0cd339feac99",
+    "userId": "5e71f4c1-b2e0-4a13-a2e9-cc186e3f77b2",
+    "addressId": "9df253ee-8d77-418c-9907-b44877bfed68",
+    "serviceId": "40be9b2b-8d51-433c-a22b-4bac8f99f9f8",
+    "cleanerId": null,
+    "status": "PENDING",
+    "scheduledDate": "2025-04-03T09:00:00.000Z",
+    "duration": 360,
+    "price": "350.00",
+    "notes": null,
+    "createdAt": "2025-03-31T18:28:56.887Z",
+    "updatedAt": "2025-03-31T18:28:56.887Z"
+  },
+  {
+    "id": "41320c71-e8ff-41d2-8766-a2aacb0bba62",
+    "userId": "be6faa51-19ea-4da3-8967-31caba24eda1",
+    "addressId": "eb296221-e952-42a5-81a1-390799421bb6",
+    "serviceId": "40be9b2b-8d51-433c-a22b-4bac8f99f9f8",
+    "cleanerId": null,
+    "status": "CANCELLED",
+    "scheduledDate": "2025-04-02T08:00:00.000Z",
+    "duration": 360,
+    "price": "350.00",
+    "notes": "Please use main door",
+    "createdAt": "2025-03-31T20:25:01.945Z",
+    "updatedAt": "2025-03-31T20:34:10.917Z"
+  }
+]
