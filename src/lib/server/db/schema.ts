@@ -129,6 +129,7 @@ export const service = pgTable("service", {
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
   isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(999),
 });
 
 export const booking = pgTable("booking", {

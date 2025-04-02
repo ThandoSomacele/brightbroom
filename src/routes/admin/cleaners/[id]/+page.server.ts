@@ -56,7 +56,11 @@ export const load: PageServerLoad = async ({ params }) => {
     }
 
     // Fetch all services for dropdown options
-    const services = await db.select().from(service);
+    const services = await db
+      .select()
+      .from(service)
+      .orderBy(service.sortOrder)
+      .orderBy(service.name);
 
     // Fetch recent bookings
     const recentBookings = await db

@@ -11,7 +11,8 @@ export const load: PageServerLoad = async () => {
     const servicesData = await db.select()
       .from(service)
       .where(eq(service.isActive, true))
-      .orderBy(service.name);
+      .orderBy(service.sortOrder)  // Primary sort
+      .orderBy(service.name);      // Secondary sort
     
     // Process services to add parsed details and type information
     const services = servicesData.map(s => {

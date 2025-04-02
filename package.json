@@ -29,6 +29,7 @@
     "db:update-services": "tsx scripts/update-service-db.ts",
     "db:update-services:prod": "tsx scripts/update-service-db.ts --production",
     "setup": "node scripts/setup-dirs.js",
+    "services:update-order": "tsx scripts/update-service-order.ts",
     "services:convert": "node scripts/convert-service-formats.js",
     "services:json-to-csv": "node scripts/convert-service-formats.js json-to-csv",
     "services:csv-to-json": "node scripts/convert-service-formats.js csv-to-json",
