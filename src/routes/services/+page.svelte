@@ -2,46 +2,6 @@
 <script lang="ts">
   import ServicesGrid from '$lib/components/services/ServicesGrid.svelte';
   import Button from '$lib/components/ui/Button.svelte';
-  
-  // Page data
-  const services = [
-    {
-      id: 'regular-cleaning',
-      name: 'Regular Cleaning',
-      description: 'Perfect for maintaining a clean and tidy home on a regular basis. Includes dusting, vacuuming, mopping, and bathroom/kitchen cleaning.',
-      price: 350,
-      duration: 6,
-      iconType: 'home',
-      type: 'regular'
-    },
-    {
-      id: 'regular-cleaning-laundry',
-      name: 'Regular Cleaning with Laundry & Ironing',
-      description: 'For maintaining a clean home on and your laundry and ironing assisstance. Includes  all in the Regual Cleaning and laundary and ironing.',
-      price: 450,
-      duration: 8,
-      iconType: 'home',
-      type: 'regular'
-    },
-    {
-      id: 'extended-cleaning',
-      name: 'Extended Cleaning',
-      description: 'A thorough cleaning service that reaches every corner and detail. Includes all regular cleaning plus cleaning of appliances, cabinets, and more.',
-      price: 600,
-      duration: 10,
-      iconType: 'deep',
-      type: 'extended'
-    },
-    {
-      id: 'office-cleaning',
-      name: 'Office Cleaning',
-      description: 'Professional cleaning for your office space or commercial property, including reception areas, workstations, meeting rooms, and break areas.',
-      price: 450,
-      duration: 6,
-      iconType: 'office',
-      type: 'regular'
-    }
-  ];
 </script>
 
 <svelte:head>
@@ -58,12 +18,24 @@
       </h1>
       <p class="mx-auto mt-4 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
         Choose from our range of professional cleaning services designed to meet your needs.
-        Click on "View Details" to see the complete breakdown of each service.
       </p>
     </div>
     
-    <!-- Services grid -->
-    <ServicesGrid {services} />
+    <!-- Residential services section -->
+    <div class="mb-16">
+      <h2 class="mb-6 text-2xl font-bold text-gray-900 dark:text-white">
+        Residential Cleaning
+      </h2>
+      <ServicesGrid category="residential" />
+    </div>
+    
+    <!-- Commercial services section -->
+    <div class="mb-16">
+      <h2 class="mb-6 text-2xl font-bold text-gray-900 dark:text-white">
+        Commercial Cleaning
+      </h2>
+      <ServicesGrid category="commercial" />
+    </div>
     
     <!-- Custom request section -->
     <div class="mt-16 rounded-lg bg-primary-50 p-8 text-center dark:bg-primary-900/20">

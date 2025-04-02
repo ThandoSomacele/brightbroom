@@ -1,54 +1,57 @@
 <!-- src/lib/components/services/ServiceCard.svelte -->
 <script lang="ts">
-  import { Home, Clock, CreditCard, Info } from 'lucide-svelte';
+  import { Home, Briefcase, Building, Thermometer } from 'lucide-svelte';
   import Button from '$lib/components/ui/Button.svelte';
-  import ServiceDetailsModal from '$lib/components/booking/ServiceDetailsModal.svelte';
+  import ServiceDetailsModal from './ServiceDetailsModal.svelte';
+  import { formatCurrency } from '$lib/services';
+  import type { ServiceIconType } from '$lib/services';
   
   // Props
   export let id: string;
   export let name: string;
   export let description: string;
-  export let price: number;
-  export let duration: number;
-  export let iconType: 'home' | 'deep' | 'office' = 'home';
-  export let type: 'regular' | 'extended' = 'regular';
-  export let details: string | null = null;
+  export let basePrice: number;
+  export let durationHours: number;
+  export let iconType: ServiceIconType = 'home';
+  export let details: any = null; // Service details
+  export let showDetailsButton = true;
+  export let showBookButton = true;
   
-  // Format price as ZAR currency
-  function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-ZA', {
-      style: 'currency',
-      currency: 'ZAR',
-    }).format(amount);
+  // State
+  let showDetailsModal = false;
+  
+  // Get the appropriate icon based on iconType
+  $: IconComponent = getIconComponent(iconType);
+  
+  // Function to get the icon component
+  function getIconComponent(type: ServiceIconType) {
+    switch (type) {
+      case 'office':
+        return Building;
+      case 'deep':
+        return Thermometer;
+      case 'laundry':
+        return Briefcase;
+      case 'home':
+      default:
+        return Home;
+    }
   }
   
-  // Modal state management
-  let showDetailsModal = false;
-  let serviceObject: any = null;
-  
-  // Getting the icon component based on the type
-  $: IconComponent = iconType === 'home' ? Home : 
-                      iconType === 'deep' ? Clock : CreditCard;
-                      
-  // Create a full service object for the modal
-  function showServiceDetails() {
-    // Create a service object that matches what the booking modal expects
-    serviceObject = {
-      id,
-      name,
-      description,
-      basePrice: price,
-      durationHours: duration,
-      details: details // Pass the details string directly
-    };
-    
+  // Open details modal
+  function openDetailsModal() {
     showDetailsModal = true;
+  }
+  
+  // Close details modal
+  function closeDetailsModal() {
+    showDetailsModal = false;
   }
 </script>
 
 <div class="h-full rounded-lg bg-white p-6 shadow-md transition-transform hover:-translate-y-1 dark:bg-gray-800">
-  <div class="mb-4 text-center text-primary">
-    <svelte:component this={IconComponent} class="mx-auto h-12 w-12" />
+  <div class="mb-4 text-primary">
+    <svelte:component this={IconComponent} class="h-12 w-12" />
   </div>
   
   <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
@@ -59,34 +62,40 @@
     {description}
   </p>
   
-  <div class="mb-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-    <div class="flex items-center">
-      <Clock class="mr-1 h-4 w-4" />
-      <span>{duration} {duration === 1 ? 'hour' : 'hours'}</span>
-    </div>
+  <div class="mb-4 flex justify-between text-sm text-gray-600 dark:text-gray-400">
+    <span>Duration: {durationHours} {durationHours === 1 ? 'hour' : 'hours'}</span>
     
-    <button
-      type="button"
-      on:click={showServiceDetails}
-      class="inline-flex items-center text-sm font-medium text-primary hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300"
-      aria-label="View service details"
-    >
-      <Info size={18} class="mr-1" />
-      <span>View Details</span>
-    </button>
+    {#if showDetailsButton}
+      <button
+        type="button"
+        on:click={openDetailsModal}
+        class="text-primary hover:text-primary-600 hover:underline dark:text-primary-400"
+      >
+        View Details
+      </button>
+    {/if}
   </div>
   
-  <p class="mb-6 text-2xl font-bold text-primary">{formatCurrency(price)}</p>
+  <p class="mb-6 text-2xl font-bold text-primary">{formatCurrency(basePrice)}</p>
   
-  <Button variant="outline" href={`/book?service=${id}`} class="w-full">
-    Select
-  </Button>
+  {#if showBookButton}
+    <Button variant="primary" href={`/book?service=${id}`} class="w-full">
+      Book Now
+    </Button>
+  {/if}
 </div>
 
-<!-- Service details modal -->
-{#if showDetailsModal && serviceObject}
+<!-- Details Modal -->
+{#if showDetailsModal}
   <ServiceDetailsModal 
-    service={serviceObject} 
-    on:close={() => showDetailsModal = false} 
+    service={{ 
+      id, 
+      name, 
+      description, 
+      basePrice, 
+      durationHours, 
+      details 
+    }}
+    on:close={closeDetailsModal} 
   />
 {/if}
