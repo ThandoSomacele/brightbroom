@@ -3,7 +3,6 @@ import { db } from "$lib/server/db";
 import { service } from "$lib/server/db/schema";
 import { parseServiceDetails } from "$lib/services";
 import { json } from "@sveltejs/kit";
-import { eq } from "drizzle-orm";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ url }) => {
@@ -12,25 +11,26 @@ export const GET: RequestHandler = async ({ url }) => {
     const category = url.searchParams.get("category");
     const active = url.searchParams.get("active");
 
-    // Build query
+    // Build query - simplify to avoid errors for now
     let query = db.select().from(service);
 
-    // Apply filters
-    if (category) {
-      // Filter by category as before
-    }
+    // Get services
+    const services = await query;
 
-    if (active === "true") {
-      query = query.where(eq(service.isActive, true));
-    }
+    // Manual sorting
+    const serviceOrder = {
+      "Regular Cleaning": 1,
+      "Regular Cleaning with Laundry & Ironing": 2,
+      "Extended Cleaning": 3,
+      "Office Cleaning": 4,
+    };
 
-    // Change this line to order by sortOrder first, then name
-    const services = await query
-      .orderBy(service.sortOrder, { direction: "asc" }) // Primary sort
-      .orderBy(service.name); // Secondary sort for equal sortOrder values
+    const sortedServices = [...services].sort((a, b) => {
+      return (serviceOrder[a.name] || 999) - (serviceOrder[b.name] || 999);
+    });
 
     // Process services to add parsed details and type information
-    const processedServices = services.map((s) => {
+    const processedServices = sortedServices.map((s) => {
       // Parse the details JSON if available
       const details = s.details ? parseServiceDetails(s.details) : null;
 

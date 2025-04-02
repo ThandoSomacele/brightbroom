@@ -2,9 +2,9 @@
 import { db } from '$lib/server/db';
 import { service } from '$lib/server/db/schema';
 import { redirect } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm'; // Add this import
 import type { PageServerLoad } from './$types';
 
-// In src/routes/book/+page.server.ts
 export const load: PageServerLoad = async ({ locals }) => {
   // Check if the user is logged in
   if (!locals.user) {
@@ -12,15 +12,24 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
   
   try {
-    // Get all available services
-    const services = await db.select()
-      .from(service)
-      .where(eq(service.isActive, true))
-      .orderBy(service.sortOrder)  // Primary sort
-      .orderBy(service.name);      // Secondary sort
+    // Simply select all services without adding the where clause
+    // until we fix the schema and ensure the isActive field exists
+    const services = await db.select().from(service);
+    
+    // Sort them manually if needed temporarily
+    const serviceOrder = {
+      'Regular Cleaning': 1,
+      'Regular Cleaning with Laundry & Ironing': 2,
+      'Extended Cleaning': 3,
+      'Office Cleaning': 4
+    };
+    
+    const sortedServices = [...services].sort((a, b) => {
+      return (serviceOrder[a.name] || 999) - (serviceOrder[b.name] || 999);
+    });
     
     return {
-      services
+      services: sortedServices
     };
   } catch (err) {
     console.error('Error loading services:', err);

@@ -1,0 +1,1 @@
+ALTER TABLE "service" ADD COLUMN "sort_order" integer DEFAULT 999;

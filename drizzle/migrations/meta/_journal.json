@@ -15,6 +15,13 @@
       "when": 1743250215002,
       "tag": "0001_service_updates",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1743623568000,
+      "tag": "0002_medical_true_believers",
+      "breakpoints": true
     }
   ]
 }

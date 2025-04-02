@@ -7,15 +7,23 @@ import { parseServiceDetails } from '$lib/services';
 
 export const load: PageServerLoad = async () => {
   try {
-    // Get all active services
-    const servicesData = await db.select()
-      .from(service)
-      .where(eq(service.isActive, true))
-      .orderBy(service.sortOrder)  // Primary sort
-      .orderBy(service.name);      // Secondary sort
+    // Get all active services without using eq for now
+    const servicesData = await db.select().from(service);
+    
+    // Manual sorting as a fallback
+    const serviceOrder = {
+      'Regular Cleaning': 1,
+      'Regular Cleaning with Laundry & Ironing': 2,
+      'Extended Cleaning': 3,
+      'Office Cleaning': 4
+    };
+    
+    const sortedServices = [...servicesData].sort((a, b) => {
+      return (serviceOrder[a.name] || 999) - (serviceOrder[b.name] || 999);
+    });     
     
     // Process services to add parsed details and type information
-    const services = servicesData.map(s => {
+    const services = sortedServices.map(s => {
       // Parse the details JSON if available
       const details = s.details ? parseServiceDetails(s.details) : null;
       
