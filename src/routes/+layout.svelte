@@ -13,6 +13,10 @@
   function toggleMenu() {
     isMenuOpen = !isMenuOpen;
   }
+  
+  function closeMenu() {
+    isMenuOpen = false;
+  }
 </script>
 
 <!-- Global loading indicator for page navigation -->
@@ -52,7 +56,7 @@
           >Contact</a
         >
         {#if user && user.role === "ADMIN"}
-          <a
+        <a
             href="/admin/dashboard"
             class="px-3 py-2 font-medium text-primary hover:text-primary-600 dark:text-primary-400"
             >Admin</a
@@ -82,7 +86,7 @@
         {/if}
       </div>
 
-      <!-- Mobile menu button -->
+      <!-- Mobile menu button - this is the hamburger icon -->
       <div class="flex md:hidden">
         <button
           type="button"
@@ -110,7 +114,7 @@
               />
             </svg>
           {:else}
-            <!-- Menu icon -->
+            <!-- Menu icon (hamburger) -->
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-6 w-6"
@@ -137,21 +141,25 @@
       <div class="space-y-1 px-2 pb-3 pt-2">
         <a
           href="/"
+          on:click={closeMenu}
           class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
           >Home</a
         >
         <a
           href="/services"
+          on:click={closeMenu}
           class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
           >Services</a
         >
         <a
           href="/about"
+          on:click={closeMenu}
           class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
           >About</a
         >
         <a
           href="/contact"
+          on:click={closeMenu}
           class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
           >Contact</a
         >
@@ -173,12 +181,14 @@
           <div class="mt-3 space-y-1 px-2">
             <a
               href="/profile"
+              on:click={closeMenu}
               class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
               >Your Profile</a
             >
             {#if user.role === "ADMIN"}
-              <a
+            <a
                 href="/admin/dashboard"
+                on:click={closeMenu}
                 class="block px-3 py-2 font-medium text-primary hover:bg-gray-50 hover:text-primary-600 dark:text-primary-400 dark:hover:bg-gray-700"
                 >Admin Dashboard</a
               >
@@ -186,6 +196,7 @@
             <form action="/auth/logout" method="POST">
               <button
                 type="submit"
+                on:click={closeMenu}
                 class="block w-full px-3 py-2 text-left text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
               >
                 Sign out
@@ -196,11 +207,13 @@
           <div class="mt-3 space-y-1 px-2">
             <a
               href="/auth/login"
+              on:click={closeMenu}
               class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
               >Sign in</a
             >
             <a
               href="/auth/register"
+              on:click={closeMenu}
               class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
               >Sign up</a
             >
