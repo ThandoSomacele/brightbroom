@@ -11,8 +11,12 @@
         "Emptying trash bins and replacing liners",
         "Dusting and cleaning reception desks",
         "Arranging magazines and reading materials",
-        "Cleaning and sanitizing water coolers",
-        "WORKSTATIONS & DESKS",
+        "Cleaning and sanitizing water coolers"
+      ]
+    },
+    {
+      "area": "WORKSTATIONS & DESKS",
+      "details": [
         "Dusting computer monitors and equipment",
         "Wiping down all desk surfaces and partitions",
         "Sanitizing keyboards and phones (exterior only)",
@@ -20,8 +24,12 @@
         "Emptying individual waste bins and recycling",
         "Spot cleaning walls around workstations",
         "Vacuuming office chairs as needed",
-        "Dusting shelves and filing cabinets",
-        "MEETING & CONFERENCE ROOMS",
+        "Dusting shelves and filing cabinets"
+      ]
+    },
+    {
+      "area": "MEETING & CONFERENCE ROOMS",
+      "details": [
         "Cleaning and sanitizing conference tables",
         "Dusting presentation equipment and TVs",
         "Arranging chairs and straightening room",
@@ -29,8 +37,12 @@
         "Sanitizing remote controls and shared equipment",
         "Vacuuming carpets or mopping hard floors",
         "Wiping window sills and blinds",
-        "Emptying trash bins and replacing liners",
-        "BREAK ROOMS & KITCHENETTES",
+        "Emptying trash bins and replacing liners"
+      ]
+    },
+    {
+      "area": "BREAK ROOMS & KITCHENETTES",
+      "details": [
         "Cleaning and sanitizing all countertops",
         "Wiping down tables and chairs",
         "Cleaning microwave interior and exterior",

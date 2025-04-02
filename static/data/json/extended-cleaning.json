@@ -47,8 +47,12 @@
         "Wiping of walls and mirrors.",
         "Emptying bins and cleaning bin area.",
         "Folding or hanging of clean towels.",
-        "Mopping floors.",
-        "LAUNDRY & IRONING",
+        "Mopping floors."
+      ]
+    },
+    {
+      "area": "LAUNDRY & IRONING",
+      "details": [
         "General washing & ironing of clothes includes:",
         "Use of household laundry machine.",
         "Use of household's preffered laundry cleaning products.",
