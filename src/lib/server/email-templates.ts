@@ -808,7 +808,7 @@ export function getBookingReminderTemplate(
         <li>Secure pets in a safe area if needed</li>
       </ul>
       
-      <p>If you need to make any changes to your booking, please do so as soon as possible:</p>
+      <p>You can view your booking details here:</p>
       
       <div style="text-align: center;">
         <a href="${bookingUrl}" class="btn">View Booking Details</a>
@@ -847,7 +847,7 @@ Preparation Tips:
 - Clear valuable or fragile items from surfaces to be cleaned
 - Secure pets in a safe area if needed
 
-If you need to make any changes to your booking, please do so as soon as possible:
+You can view your booking details here:
 ${bookingUrl}
 
 We look forward to providing you with excellent service!
@@ -866,7 +866,6 @@ This email was sent to ${recipientEmail}.
   };
 }
 
-
 /**
  * Generate an email template for cleaner assignment notifications
  */
@@ -879,25 +878,25 @@ export function getCleanerAssignmentTemplate(
     address: { street: string; city: string; state: string; zipCode: string };
     cleaner: { firstName: string; lastName: string; phone?: string };
   },
-  data: EmailTemplateData
+  data: EmailTemplateData,
 ): { subject: string; html: string; text: string } {
   const bookingUrl = `${data.appUrl}/profile/bookings/${booking.id}`;
   const escapedEmail = escapeHtml(recipientEmail);
-  
+
   // Format date and time
   const scheduledDate = new Date(booking.scheduledDate);
-  const dateString = scheduledDate.toLocaleDateString('en-ZA', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+  const dateString = scheduledDate.toLocaleDateString("en-ZA", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
-  
-  const timeString = scheduledDate.toLocaleTimeString('en-ZA', {
-    hour: '2-digit',
-    minute: '2-digit'
+
+  const timeString = scheduledDate.toLocaleTimeString("en-ZA", {
+    hour: "2-digit",
+    minute: "2-digit",
   });
-  
+
   // HTML Email template
   const html = `
 <!DOCTYPE html>
@@ -999,7 +998,7 @@ export function getCleanerAssignmentTemplate(
       
       <div class="cleaner-box">
         <p><strong>Your cleaner:</strong> ${booking.cleaner.firstName} ${booking.cleaner.lastName}</p>
-        ${booking.cleaner.phone ? `<p><strong>Contact number:</strong> ${booking.cleaner.phone}</p>` : ''}
+        ${booking.cleaner.phone ? `<p><strong>Contact number:</strong> ${booking.cleaner.phone}</p>` : ""}
       </div>
       
       <div class="booking-details">
@@ -1050,7 +1049,7 @@ Hello,
 Great news! A professional cleaner has been assigned to your upcoming booking.
 
 YOUR CLEANER: ${booking.cleaner.firstName} ${booking.cleaner.lastName}
-${booking.cleaner.phone ? `CONTACT NUMBER: ${booking.cleaner.phone}` : ''}
+${booking.cleaner.phone ? `CONTACT NUMBER: ${booking.cleaner.phone}` : ""}
 
 Booking Details:
 Service: ${booking.service.name}
@@ -1075,7 +1074,7 @@ This email was sent to ${recipientEmail}.
   return {
     subject: `Cleaner Assigned: Your ${data.brandName} Booking`,
     html,
-    text
+    text,
   };
 }
 
@@ -1106,7 +1105,7 @@ export function getPaymentReceiptTemplate(
 ): { subject: string; html: string; text: string } {
   const escapedEmail = escapeHtml(recipientEmail);
   const bookingUrl = `${data.appUrl}/profile/bookings/${paymentDetails.booking.id}`;
-  
+
   // Format dates
   const paymentDate = new Date(paymentDetails.createdAt);
   const formattedPaymentDate = paymentDate.toLocaleDateString("en-ZA", {
@@ -1114,7 +1113,7 @@ export function getPaymentReceiptTemplate(
     month: "long",
     day: "numeric",
   });
-  
+
   const scheduledDate = new Date(paymentDetails.booking.scheduledDate);
   const formattedScheduledDate = scheduledDate.toLocaleDateString("en-ZA", {
     weekday: "long",
@@ -1122,22 +1121,23 @@ export function getPaymentReceiptTemplate(
     month: "long",
     day: "numeric",
   });
-  
+
   const formattedScheduledTime = scheduledDate.toLocaleTimeString("en-ZA", {
     hour: "2-digit",
     minute: "2-digit",
   });
-  
+
   // Format amounts
-  const totalAmount = typeof paymentDetails.amount === "number" 
-    ? paymentDetails.amount 
-    : parseFloat(String(paymentDetails.amount));
-  
+  const totalAmount =
+    typeof paymentDetails.amount === "number"
+      ? paymentDetails.amount
+      : parseFloat(String(paymentDetails.amount));
+
   // Calculate VAT (if applicable)
   const vatRate = paymentDetails.vatRate || 15; // Default to 15% VAT for South Africa
   const vatAmount = totalAmount * (vatRate / 100);
   const subtotal = totalAmount - vatAmount;
-  
+
   // Format currency values
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-ZA", {
@@ -1146,10 +1146,10 @@ export function getPaymentReceiptTemplate(
       minimumFractionDigits: 2,
     }).format(value);
   };
-  
+
   // Generate invoice number (payment ID + timestamp)
   const invoiceNumber = `INV-${paymentDetails.id.substring(0, 8)}-${Math.floor(paymentDate.getTime() / 1000)}`;
-  
+
   // HTML Email template
   const html = `
 <!DOCTYPE html>
@@ -1322,7 +1322,7 @@ export function getPaymentReceiptTemplate(
           </div>
           
           <div style="margin-top: 15px; font-size: 0.9em; color: #666;">
-            <p>Payment Method: ${paymentDetails.paymentMethod || 'Credit Card'}</p>
+            <p>Payment Method: ${paymentDetails.paymentMethod || "Credit Card"}</p>
             <p>Payment Status: Completed</p>
           </div>
         </div>
@@ -1374,7 +1374,7 @@ Subtotal: ${formatCurrency(subtotal)}
 VAT (${vatRate}%): ${formatCurrency(vatAmount)}
 Total: ${formatCurrency(totalAmount)}
 
-Payment Method: ${paymentDetails.paymentMethod || 'Credit Card'}
+Payment Method: ${paymentDetails.paymentMethod || "Credit Card"}
 Payment Status: Completed
 
 You can view your booking details here:
