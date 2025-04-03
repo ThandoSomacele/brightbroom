@@ -1,5 +1,6 @@
 // src/routes/profile/addresses/new/+page.server.ts
 import { db } from "$lib/server/db";
+import { addressService } from '$lib/server/services/address.service';
 import { address } from "$lib/server/db/schema";
 import { fail, redirect } from "@sveltejs/kit";
 import { z } from "zod";
@@ -26,11 +27,10 @@ const addressSchema = z.object({
   redirectTo: z.string().optional(),
 });
 
-export const actions: Actions = {
-  createAddress: async ({ request, locals }) => {
-    // Check if user is authenticated
+export const actions = {
+  default: async ({ request, locals }) => {
     if (!locals.user) {
-      return fail(401, { error: "You must be logged in to add an address" });
+      throw redirect(302, '/auth/login');
     }
 
     const formData = await request.formData();
@@ -41,10 +41,10 @@ export const actions: Actions = {
     const redirectTo = rawData.redirectTo?.toString() || "/profile/addresses";
 
     try {
-      // Validate input
-      const validatedData = addressSchema.parse({
-        ...rawData,
-        isDefault,
+      await addressService.createAddress(locals.user.id, {
+        street, aptUnit, city, state, zipCode, 
+        instructions, 
+        isDefault: isDefault === 'on' // Convert checkbox value to boolean
       });
 
       // If making this the default address, unset existing defaults
