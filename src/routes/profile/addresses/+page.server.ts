@@ -1,12 +1,13 @@
 // src/routes/profile/addresses/+page.server.ts
 import { db } from '$lib/server/db';
 import { address } from '$lib/server/db/schema';
+import { addressService } from '$lib/server/services/address.service';
 import { error, fail, redirect } from '@sveltejs/kit';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  // Check if the user is logged in
+  // Check if user is logged in
   if (!locals.user) {
     throw redirect(302, '/auth/login?redirectTo=/profile/addresses');
   }
@@ -16,7 +17,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     const addresses = await db.select()
       .from(address)
       .where(eq(address.userId, locals.user.id))
-      .orderBy(address.isDefault, { direction: 'desc' });
+      .orderBy(address.isDefault, { direction: 'desc' }); // Default addresses first
     
     return {
       addresses
@@ -28,99 +29,53 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-  // Set an address as default
   setDefault: async ({ request, locals }) => {
+    // Check if user is logged in
     if (!locals.user) {
-      return fail(401, { error: 'You must be logged in to update addresses' });
+      return fail(401, { error: 'You must be logged in to perform this action' });
     }
     
     const formData = await request.formData();
-    const addressId = formData.get('id')?.toString();
+    const addressId = formData.get('addressId')?.toString();
     
     if (!addressId) {
       return fail(400, { error: 'Address ID is required' });
     }
     
     try {
-      // Check if the address belongs to the user
-      const addresses = await db.select()
-        .from(address)
-        .where(
-          and(
-            eq(address.id, addressId),
-            eq(address.userId, locals.user.id)
-          )
-        )
-        .limit(1);
+      const updatedAddress = await addressService.setDefaultAddress(locals.user.id, addressId);
       
-      if (addresses.length === 0) {
+      if (!updatedAddress) {
         return fail(404, { error: 'Address not found' });
       }
-      
-      // First, set all addresses to non-default
-      await db.update(address)
-        .set({ isDefault: false })
-        .where(eq(address.userId, locals.user.id));
-      
-      // Then set the selected address as default
-      await db.update(address)
-        .set({ isDefault: true })
-        .where(eq(address.id, addressId));
       
       return {
         success: 'Default address updated successfully'
       };
     } catch (err) {
       console.error('Error setting default address:', err);
-      return fail(500, { error: 'Failed to set default address' });
+      return fail(500, { error: 'Failed to update default address' });
     }
   },
   
-  // Delete an address
   deleteAddress: async ({ request, locals }) => {
+    // Check if user is logged in
     if (!locals.user) {
-      return fail(401, { error: 'You must be logged in to delete addresses' });
+      return fail(401, { error: 'You must be logged in to perform this action' });
     }
     
     const formData = await request.formData();
-    const addressId = formData.get('id')?.toString();
+    const addressId = formData.get('addressId')?.toString();
     
     if (!addressId) {
       return fail(400, { error: 'Address ID is required' });
     }
     
     try {
-      // Check if the address belongs to the user
-      const addresses = await db.select()
-        .from(address)
-        .where(
-          and(
-            eq(address.id, addressId),
-            eq(address.userId, locals.user.id)
-          )
-        )
-        .limit(1);
+      const success = await addressService.deleteAddress(locals.user.id, addressId);
       
-      if (addresses.length === 0) {
-        return fail(404, { error: 'Address not found' });
-      }
-      
-      // Delete the address
-      await db.delete(address)
-        .where(eq(address.id, addressId));
-      
-      // If the deleted address was the default, set a new default if possible
-      if (addresses[0].isDefault) {
-        const remainingAddresses = await db.select()
-          .from(address)
-          .where(eq(address.userId, locals.user.id))
-          .limit(1);
-        
-        if (remainingAddresses.length > 0) {
-          await db.update(address)
-            .set({ isDefault: true })
-            .where(eq(address.id, remainingAddresses[0].id));
-        }
+      if (!success) {
+        return fail(404, { error: 'Address not found or could not be deleted' });
       }
       
       return {

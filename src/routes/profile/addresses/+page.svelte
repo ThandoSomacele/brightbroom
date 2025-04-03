@@ -1,29 +1,72 @@
 <!-- src/routes/profile/addresses/+page.svelte -->
 <script lang="ts">
-  import Button from '$lib/components/ui/Button.svelte';
-  import { MapPin, Plus, Check, Pencil, Trash } from 'lucide-svelte';
-  
-  // Get data from the server load function
+  import Button from "$lib/components/ui/Button.svelte";
+  import { Edit, MapPin, Plus, Star, Trash2 } from "lucide-svelte";
+  import { enhance } from "$app/forms";
+
   export let data;
+  export let form; // This was missing in your original code
   const { addresses } = data;
-  
-  // Handle form submission state
-  export let form;
-  
-  // Track which address is being edited/deleted
-  let addressToDelete: string | null = null;
-  let showDeleteConfirmation = false;
-  
-  // Function to open delete confirmation
-  function confirmDelete(id: string) {
+
+  // State for delete confirmation
+  let showDeleteModal = false;
+  let addressToDelete = null;
+  let isDeleting = false;
+
+  // Function to show delete confirmation
+  function confirmDelete(id) {
     addressToDelete = id;
-    showDeleteConfirmation = true;
+    showDeleteModal = true;
   }
-  
-  // Function to cancel delete
-  function cancelDelete() {
-    addressToDelete = null;
-    showDeleteConfirmation = false;
+
+  // Function to handle address deletion
+  async function deleteAddress() {
+    if (!addressToDelete) return;
+
+    isDeleting = true;
+
+    const form = new FormData();
+    form.append("addressId", addressToDelete);
+
+    try {
+      const response = await fetch(`?/deleteAddress`, {
+        method: "POST",
+        body: form,
+      });
+
+      if (response.ok) {
+        // Close modal and refresh page
+        showDeleteModal = false;
+        window.location.reload();
+      } else {
+        console.error("Failed to delete address");
+      }
+    } catch (error) {
+      console.error("Error deleting address:", error);
+    } finally {
+      isDeleting = false;
+    }
+  }
+
+  // Function to set an address as default
+  async function setAsDefault(id) {
+    const form = new FormData();
+    form.append("addressId", id);
+
+    try {
+      const response = await fetch(`?/setDefault`, {
+        method: "POST",
+        body: form,
+      });
+
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        console.error("Failed to set default address");
+      }
+    } catch (error) {
+      console.error("Error setting default address:", error);
+    }
   }
 </script>
 
@@ -36,49 +79,107 @@
     <!-- Page header with back button -->
     <div class="mb-6 flex items-center">
       <Button variant="ghost" href="/profile" class="mr-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
       </Button>
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">My Addresses</h1>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+        My Addresses
+      </h1>
     </div>
-    
+
     <!-- Form feedback messages -->
     {#if form?.success}
-      <div class="mb-6 rounded-md bg-green-50 p-4 text-green-800 dark:bg-green-900/20 dark:text-green-200">
+      <div
+        class="mb-6 rounded-md bg-green-50 p-4 text-green-800 dark:bg-green-900/20 dark:text-green-200"
+      >
         <p>{form.success}</p>
       </div>
     {/if}
-    
-    {#if form?.error && !showDeleteConfirmation}
-      <div class="mb-6 rounded-md bg-red-50 p-4 text-red-600 dark:bg-red-900/20 dark:text-red-200">
+
+    {#if form?.error}
+      <div
+        class="mb-6 rounded-md bg-red-50 p-4 text-red-600 dark:bg-red-900/20 dark:text-red-200"
+      >
         <p>{form.error}</p>
       </div>
     {/if}
-    
+
     <!-- Delete confirmation modal -->
-    {#if showDeleteConfirmation}
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
-          <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Confirm Deletion</h2>
-          <p class="mb-6 text-gray-600 dark:text-gray-300">
-            Are you sure you want to delete this address? This action cannot be undone.
+    {#if showDeleteModal}
+      <div
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+        on:click|self={() => (showDeleteModal = false)}
+        on:keydown={(e) => e.key === "Escape" && (showDeleteModal = false)}
+        role="presentation"
+      >
+        <div
+          class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6"
+          role="dialog"
+          aria-modal="true"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            Confirm Deletion
+          </h3>
+          <p class="text-gray-600 dark:text-gray-300 mb-6">
+            Are you sure you want to delete this address? This action cannot be
+            undone.
           </p>
+
           <div class="flex justify-end space-x-3">
-            <Button variant="outline" on:click={cancelDelete}>
+            <Button
+              variant="outline"
+              on:click={() => (showDeleteModal = false)}
+            >
               Cancel
             </Button>
-            <form method="POST" action="?/deleteAddress">
-              <input type="hidden" name="id" value={addressToDelete}>
-              <Button variant="primary" class="bg-red-600 hover:bg-red-700" type="submit">
-                Delete
-              </Button>
-            </form>
+
+            <Button
+              variant="primary"
+              class="!bg-red-600 hover:!bg-red-700 dark:!bg-red-700 dark:hover:!bg-red-800"
+              disabled={isDeleting}
+              on:click={deleteAddress}
+            >
+              {#if isDeleting}
+                <svg
+                  class="animate-spin h-4 w-4 mr-2"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Deleting...
+              {:else}
+                Delete Address
+              {/if}
+            </Button>
           </div>
         </div>
       </div>
     {/if}
-    
+
     <!-- Add new address button -->
     <div class="mb-6">
       <Button variant="primary" href="/profile/addresses/new">
@@ -86,97 +187,109 @@
         Add New Address
       </Button>
     </div>
-    
+
     <!-- Addresses list -->
     <div class="space-y-4">
       {#if addresses.length > 0}
-        {#each addresses as address}
-          <div class="rounded-lg bg-white p-5 shadow-md transition-all hover:shadow-lg dark:bg-gray-800">
-            <div class="flex items-start justify-between">
-              <div class="flex">
+        {#each addresses as address (address.id)}
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 mb-4">
+            <div class="flex justify-between">
+              <div class="flex items-start">
                 <div class="flex-shrink-0">
-                  <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/20">
+                  <div
+                    class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/20"
+                  >
                     <MapPin size={20} />
                   </div>
                 </div>
-                
-                <div class="ml-4">
+
+                <div class="ml-3">
                   <div class="flex items-center">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">{address.street}</h3>
+                    <h3
+                      class="text-lg font-medium text-gray-900 dark:text-white"
+                    >
+                      {address.street}
+                    </h3>
                     {#if address.isDefault}
-                      <span class="ml-2 inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary dark:bg-primary-900/20">
+                      <span
+                        class="ml-2 inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary dark:bg-primary-900/20"
+                      >
+                        <Star size={12} class="mr-1" />
                         Default
                       </span>
+                    {:else}
+                      <!-- Add set as default button -->
+                      <button
+                        type="button"
+                        class="ml-2 text-xs text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary-400"
+                        on:click={() => setAsDefault(address.id)}
+                      >
+                        Set as default
+                      </button>
                     {/if}
                   </div>
-                  
+
                   {#if address.aptUnit}
                     <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
                       Unit {address.aptUnit}
                     </p>
                   {/if}
-                  
+
                   <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                    {address.city}, {address.state} {address.zipCode}
+                    {address.city}, {address.state}
+                    {address.zipCode}
                   </p>
-                  
+
                   {#if address.instructions}
                     <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                      <span class="font-medium">Instructions:</span> {address.instructions}
+                      <span class="font-medium">Instructions:</span>
+                      {address.instructions}
                     </p>
                   {/if}
                 </div>
               </div>
-              
+
               <div class="flex space-x-2">
-                {#if !address.isDefault}
-                  <form method="POST" action="?/setDefault">
-                    <input type="hidden" name="id" value={address.id}>
-                    <Button 
-                      variant="ghost" 
-                      type="submit"
-                      title="Set as default"
-                      size="sm"
-                    >
-                      <Check size={18} />
-                    </Button>
-                  </form>
-                {/if}
-                
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   href={`/profile/addresses/${address.id}/edit`}
-                  title="Edit address"
-                  size="sm"
+                  class="text-primary"
                 >
-                  <Pencil size={18} />
+                  <Edit size={16} class="mr-1" />
+                  Edit
                 </Button>
-                
-                <Button 
-                  variant="ghost" 
-                  title="Delete address"
+
+                <Button
+                  variant="outline"
                   size="sm"
+                  class="text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
                   on:click={() => confirmDelete(address.id)}
                 >
-                  <Trash size={18} />
+                  <Trash2 size={16} class="mr-1" />
+                  Delete
                 </Button>
               </div>
             </div>
           </div>
         {/each}
       {:else}
-        <div class="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
-          <div class="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700">
+        <div
+          class="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800"
+        >
+          <div
+            class="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700"
+          >
             <MapPin size={24} class="text-gray-500 dark:text-gray-400" />
           </div>
-          <h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">No addresses found</h3>
+          <h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">
+            No addresses found
+          </h3>
           <p class="mb-4 text-gray-600 dark:text-gray-400">
-            You haven't added any addresses yet. Add an address to use for your cleaning bookings.
+            You haven't added any addresses yet. Add an address to use for your
+            cleaning bookings.
           </p>
-          <Button 
-            variant="primary" 
-            href="/profile/addresses/new"
-          >
+          <Button variant="primary" href="/profile/addresses/new">
             <Plus size={18} class="mr-2" />
             Add New Address
           </Button>

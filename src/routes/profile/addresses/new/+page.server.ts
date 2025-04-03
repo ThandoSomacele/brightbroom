@@ -1,102 +1,75 @@
 // src/routes/profile/addresses/new/+page.server.ts
-import { db } from "$lib/server/db";
 import { addressService } from '$lib/server/services/address.service';
-import { address } from "$lib/server/db/schema";
-import { fail, redirect } from "@sveltejs/kit";
-import { z } from "zod";
-import type { Actions, PageServerLoad } from "./$types";
+import { fail, redirect } from '@sveltejs/kit';
+import type { Actions, PageServerLoad } from './$types';
 
-// Validate user is authenticated
 export const load: PageServerLoad = async ({ locals }) => {
+  // Check if user is logged in
   if (!locals.user) {
-    throw redirect(302, "/auth/login?redirectTo=/profile/addresses/new");
+    throw redirect(302, '/auth/login?redirectTo=/profile/addresses/new');
   }
-
-  return {};
+  
+  // Get redirect URL if it exists
+  const redirectTo = locals.redirectTo || '/profile/addresses';
+  
+  return {
+    redirectTo
+  };
 };
 
-// Define schema for validation
-const addressSchema = z.object({
-  street: z.string().min(3, "Street address is too short"),
-  aptUnit: z.string().optional(),
-  city: z.string().min(2, "City name is too short"),
-  state: z.string().min(2, "Province is required"),
-  zipCode: z.string().regex(/^\d{4,5}$/, "Postal code must be 4-5 digits"),
-  instructions: z.string().optional(),
-  isDefault: z.union([z.literal("on"), z.boolean()]).optional(),
-  redirectTo: z.string().optional(),
-});
-
-export const actions = {
-  default: async ({ request, locals }) => {
+export const actions: Actions = {
+  default: async ({ request, locals, url }) => {
+    // Check if user is logged in
     if (!locals.user) {
       throw redirect(302, '/auth/login');
     }
-
+    
+    // Process form data
     const formData = await request.formData();
-    const rawData = Object.fromEntries(formData.entries());
-
-    // Transform 'on' from checkbox to boolean
-    const isDefault = rawData.isDefault === "on" || rawData.isDefault === true;
-    const redirectTo = rawData.redirectTo?.toString() || "/profile/addresses";
-
-    try {
-      await addressService.createAddress(locals.user.id, {
-        street, aptUnit, city, state, zipCode, 
-        instructions, 
-        isDefault: isDefault === 'on' // Convert checkbox value to boolean
-      });
-
-      // If making this the default address, unset existing defaults
-      if (isDefault) {
-        await db
-          .update(address)
-          .set({ isDefault: false })
-          .where((eb) => eb.eq(address.userId, locals.user.id));
-      }
-
-      // Create new address
-      await db.insert(address).values({
-        id: crypto.randomUUID(),
-        userId: locals.user.id,
-        street: validatedData.street,
-        aptUnit: validatedData.aptUnit || null,
-        city: validatedData.city,
-        state: validatedData.state,
-        zipCode: validatedData.zipCode,
-        instructions: validatedData.instructions || null,
-        isDefault: isDefault,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      console.log(`Address created successfully for user: ${locals.user.id}`);
-
-      // Return a success result with redirect info instead of throwing
-      return {
-        success: true,
-        redirect: redirectTo,
-      };
-    } catch (error) {
-      console.error("Error creating address:", error);
-
-      // Handle Zod validation errors
-      if (error instanceof z.ZodError) {
-        const fieldErrors = error.flatten().fieldErrors;
-        const firstError =
-          Object.values(fieldErrors)[0]?.[0] || "Validation error";
-
-        return fail(400, {
-          error: firstError,
-          ...rawData,
-        });
-      }
-
-      // Handle other errors
-      return fail(500, {
-        error: "Failed to create address. Please try again.",
-        ...rawData,
+    const street = formData.get('street')?.toString();
+    const aptUnit = formData.get('aptUnit')?.toString() || null;
+    const city = formData.get('city')?.toString();
+    const state = formData.get('state')?.toString();
+    const zipCode = formData.get('zipCode')?.toString();
+    const instructions = formData.get('instructions')?.toString() || null;
+    const isDefault = formData.get('isDefault') === 'on';
+    
+    // Get redirect URL if provided
+    const redirectTo = formData.get('redirectTo')?.toString() || 
+                      url.searchParams.get('redirectTo') || 
+                      '/profile/addresses';
+    
+    // Validate required fields
+    if (!street || !city || !state || !zipCode) {
+      return fail(400, { 
+        error: 'Please fill in all required fields',
+        values: { street, aptUnit, city, state, zipCode, instructions, isDefault, redirectTo }
       });
     }
-  },
+    
+    try {
+      // Create the address using our service
+      await addressService.createAddress(
+        locals.user.id,
+        {
+          street,
+          aptUnit,
+          city,
+          state,
+          zipCode,
+          instructions,
+          isDefault
+        }
+      );
+      
+      // Redirect to the appropriate page
+      throw redirect(303, redirectTo);
+    } catch (err) {
+      console.error('Error creating address:', err);
+      return fail(500, { 
+        error: 'Failed to create address',
+        values: { street, aptUnit, city, state, zipCode, instructions, isDefault, redirectTo }
+      });
+    }
+  }
 };

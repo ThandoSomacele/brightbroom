@@ -36,9 +36,6 @@ export const addressService = {
 
   /**
    * Create a new address for a user
-   * @param userId User ID
-   * @param addressData Address data
-   * @returns The newly created address
    */
   async createAddress(userId: string, addressData: {
     street: string;
@@ -76,18 +73,14 @@ export const addressService = {
 
   /**
    * Update an existing address
-   * @param userId User ID (for authorization)
-   * @param addressId Address ID to update
-   * @param addressData Updated address data
-   * @returns The updated address
    */
   async updateAddress(userId: string, addressId: string, addressData: {
     street?: string;
-    aptUnit?: string;
+    aptUnit?: string | null;
     city?: string;
     state?: string;
     zipCode?: string;
-    instructions?: string;
+    instructions?: string | null;
     isDefault?: boolean;
   }): Promise<typeof address.$inferSelect | null> {
     try {
@@ -127,9 +120,6 @@ export const addressService = {
   
   /**
    * Set an address as the default
-   * @param userId User ID
-   * @param addressId Address ID to set as default
-   * @returns The updated address or null if not found
    */
   async setDefaultAddress(userId: string, addressId: string): Promise<typeof address.$inferSelect | null> {
     try {
@@ -159,6 +149,35 @@ export const addressService = {
     } catch (error) {
       console.error('Error setting default address:', error);
       throw error;
+    }
+  },
+
+  /**
+   * Delete an address
+   */
+  async deleteAddress(userId: string, addressId: string): Promise<boolean> {
+    try {
+      // Verify the address belongs to this user
+      const [existingAddress] = await db.select()
+        .from(address)
+        .where(and(
+          eq(address.id, addressId),
+          eq(address.userId, userId)
+        ))
+        .limit(1);
+      
+      if (!existingAddress) {
+        return false;
+      }
+
+      // Delete the address
+      await db.delete(address)
+        .where(eq(address.id, addressId));
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting address:', error);
+      return false;
     }
   }
 };
