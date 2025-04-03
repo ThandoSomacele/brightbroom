@@ -1,9 +1,10 @@
 // src/routes/book/review/+page.server.ts
 import { db } from '$lib/server/db';
-import { service, address, booking } from '$lib/server/db/schema';
+import { service, address, booking, user } from '$lib/server/db/schema';
 import { error, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
+import { sendBookingConfirmationEmail } from '$lib/server/email-service';
 
 export const load: PageServerLoad = async ({ locals, cookies }) => {
   // Check if the user is logged in
@@ -74,6 +75,7 @@ export const actions: Actions = {
       
       // Get service price and details
       const serviceData = serviceResult[0];
+      const addressData = addressResult[0];
       
       // Parse the scheduled date
       const scheduledDateObj = new Date(scheduledDate);
@@ -84,7 +86,7 @@ export const actions: Actions = {
       // Create booking ID
       const bookingId = crypto.randomUUID();
       
-      // FIXED: Actually insert the booking into the database now
+      // Insert the booking into the database
       const [newBooking] = await db.insert(booking).values({
         id: bookingId,
         userId: locals.user.id,
@@ -100,6 +102,37 @@ export const actions: Actions = {
       }).returning();
       
       console.log(`Created new booking: ${newBooking.id} for user: ${locals.user.id}`);
+      
+      // Get user's email for sending confirmation
+      const userData = locals.user;
+      
+      // Prepare booking data for email
+      const bookingDataForEmail = {
+        id: newBooking.id,
+        service: {
+          name: serviceData.name,
+          description: serviceData.description
+        },
+        scheduledDate: scheduledDateObj.toISOString(),
+        price: newBooking.price,
+        address: {
+          street: addressData.street,
+          city: addressData.city,
+          state: addressData.state,
+          zipCode: addressData.zipCode
+        }
+      };
+      
+      // Send booking confirmation email
+      // Note: We're not waiting for this to complete since we don't want 
+      // to block the user's flow if email sending has issues
+      sendBookingConfirmationEmail(userData.email, bookingDataForEmail)
+        .then(success => {
+          console.log(`Booking confirmation email ${success ? 'sent' : 'failed to send'} to ${userData.email}`);
+        })
+        .catch(err => {
+          console.error('Error sending booking confirmation email:', err);
+        });
       
       return { 
         success: true,
