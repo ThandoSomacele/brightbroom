@@ -1,167 +1,193 @@
 // src/routes/admin/bookings/[id]/+page.server.ts
-import type { PageServerLoad, Actions } from './$types';
-import { db } from '$lib/server/db';
-import { booking, service, user, address, payment, cleanerProfile, adminNote, communicationLog } from '$lib/server/db/schema';
-import { eq, and, desc, lt, sql } from 'drizzle-orm'; // Added sql import
-import { error, fail, redirect } from '@sveltejs/kit';
+import { db } from "$lib/server/db";
+import {
+  address,
+  adminNote,
+  booking,
+  cleanerProfile,
+  communicationLog,
+  payment,
+  service,
+  user,
+} from "$lib/server/db/schema";
+import { sendCleanerAssignmentNotification } from "$lib/server/services/notification.service";
+import { error, fail, redirect } from "@sveltejs/kit";
+import { and, desc, eq, sql } from "drizzle-orm"; // Added sql import
+import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const bookingId = params.id;
-  
+
   // Make sure the current user is an admin
-  if (!locals.user || locals.user.role !== 'ADMIN') {
-    throw redirect(302, '/auth/login?redirectTo=/admin');
+  if (!locals.user || locals.user.role !== "ADMIN") {
+    throw redirect(302, "/auth/login?redirectTo=/admin");
   }
-  
+
   if (!bookingId) {
-    throw error(404, 'Booking not found');
+    throw error(404, "Booking not found");
   }
-  
+
   try {
     // Step 1: Fetch the basic booking information
-    const bookingResult = await db.select({
-      id: booking.id,
-      status: booking.status,
-      scheduledDate: booking.scheduledDate,
-      duration: booking.duration,
-      price: booking.price,
-      notes: booking.notes,
-      createdAt: booking.createdAt,
-      updatedAt: booking.updatedAt,
-      userId: booking.userId,
-      cleanerId: booking.cleanerId,
-      serviceId: booking.serviceId,
-      addressId: booking.addressId
-    })
-    .from(booking)
-    .where(eq(booking.id, bookingId))
-    .limit(1);
-    
+    const bookingResult = await db
+      .select({
+        id: booking.id,
+        status: booking.status,
+        scheduledDate: booking.scheduledDate,
+        duration: booking.duration,
+        price: booking.price,
+        notes: booking.notes,
+        createdAt: booking.createdAt,
+        updatedAt: booking.updatedAt,
+        userId: booking.userId,
+        cleanerId: booking.cleanerId,
+        serviceId: booking.serviceId,
+        addressId: booking.addressId,
+      })
+      .from(booking)
+      .where(eq(booking.id, bookingId))
+      .limit(1);
+
     if (bookingResult.length === 0) {
-      throw error(404, 'Booking not found');
+      throw error(404, "Booking not found");
     }
-    
+
     const bookingData = bookingResult[0];
-    
+
     // Step 2: Fetch related entities separately
     const [serviceData, addressData, paymentData] = await Promise.all([
       // Get service info
-      db.select()
+      db
+        .select()
         .from(service)
         .where(eq(service.id, bookingData.serviceId))
         .limit(1)
-        .then(results => results[0] || null),
-        
+        .then((results) => results[0] || null),
+
       // Get address info
-      db.select()
+      db
+        .select()
         .from(address)
         .where(eq(address.id, bookingData.addressId))
         .limit(1)
-        .then(results => results[0] || null),
-        
+        .then((results) => results[0] || null),
+
       // Get payment info
-      db.select()
+      db
+        .select()
         .from(payment)
         .where(eq(payment.bookingId, bookingId))
         .limit(1)
-        .then(results => results[0] || null)
+        .then((results) => results[0] || null),
     ]);
-    
+
     // Step 3: Fetch customer info
-    const customerData = await db.select()
+    const customerData = await db
+      .select()
       .from(user)
       .where(eq(user.id, bookingData.userId))
       .limit(1)
-      .then(results => results[0] || null);
-    
+      .then((results) => results[0] || null);
+
     // Step 4: Fetch cleaner info if assigned
     let cleanerData = null;
     let cleanerProfileData = null;
-    
+
     if (bookingData.cleanerId) {
       [cleanerData, cleanerProfileData] = await Promise.all([
-        db.select()
+        db
+          .select()
           .from(user)
           .where(eq(user.id, bookingData.cleanerId))
           .limit(1)
-          .then(results => results[0] || null),
-          
-        db.select()
+          .then((results) => results[0] || null),
+
+        db
+          .select()
           .from(cleanerProfile)
           .where(eq(cleanerProfile.userId, bookingData.cleanerId))
           .limit(1)
-          .then(results => results[0] || null)
+          .then((results) => results[0] || null),
       ]);
     }
-    
+
     // Step 5: Fetch admin notes and communications
     const [adminNotes, communications] = await Promise.all([
-      db.select()
+      db
+        .select()
         .from(adminNote)
         .where(eq(adminNote.bookingId, bookingId))
         .orderBy(desc(adminNote.createdAt)),
-        
-      db.select()
+
+      db
+        .select()
         .from(communicationLog)
         .where(eq(communicationLog.bookingId, bookingId))
-        .orderBy(desc(communicationLog.createdAt))
+        .orderBy(desc(communicationLog.createdAt)),
     ]);
-    
+
     // Step 6: Get related bookings from the same customer
-    const relatedBookings = await db.select({
-      id: booking.id,
-      status: booking.status,
-      scheduledDate: booking.scheduledDate,
-      service: {
-        id: service.id,
-        name: service.name,
-      }
-    })
-    .from(booking)
-    .innerJoin(service, eq(booking.serviceId, service.id))
-    .where(
-      and(
-        eq(booking.userId, bookingData.userId),
-        booking.id !== bookingId // Exclude current booking
+    const relatedBookings = await db
+      .select({
+        id: booking.id,
+        status: booking.status,
+        scheduledDate: booking.scheduledDate,
+        service: {
+          id: service.id,
+          name: service.name,
+        },
+      })
+      .from(booking)
+      .innerJoin(service, eq(booking.serviceId, service.id))
+      .where(
+        and(
+          eq(booking.userId, bookingData.userId),
+          booking.id !== bookingId, // Exclude current booking
+        ),
       )
-    )
-    .orderBy(desc(booking.scheduledDate))
-    .limit(5);
-    
+      .orderBy(desc(booking.scheduledDate))
+      .limit(5);
+
     // Step 7: Get customer booking count - FIXED VERSION
-    const bookingCountResult = await db.select({
-      count: sql<number>`count(*)`.mapWith(Number)
-    })
-    .from(booking)
-    .where(eq(booking.userId, bookingData.userId));
-    
+    const bookingCountResult = await db
+      .select({
+        count: sql<number>`count(*)`.mapWith(Number),
+      })
+      .from(booking)
+      .where(eq(booking.userId, bookingData.userId));
+
     let bookingsCount = 0;
-    if (bookingCountResult && bookingCountResult.length > 0 && bookingCountResult[0].count !== undefined) {
+    if (
+      bookingCountResult &&
+      bookingCountResult.length > 0 &&
+      bookingCountResult[0].count !== undefined
+    ) {
       bookingsCount = bookingCountResult[0].count;
     }
-    
+
     // Step 8: Get all active cleaners for the assignment dropdown
-    const availableCleaners = await db.select({
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      cleanerProfile: {
-        rating: cleanerProfile.rating,
-      },
-      // Add a fake availability field for the demo
-      availability: sql<string>`
+    const availableCleaners = await db
+      .select({
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        cleanerProfile: {
+          rating: cleanerProfile.rating,
+        },
+        // Add a fake availability field for the demo
+        availability: sql<string>`
         CASE 
           WHEN ${cleanerProfile.isAvailable} = true THEN 'AVAILABLE'
           ELSE 'UNAVAILABLE'
         END
-      `.as('availability')
-    })
-    .from(user)
-    .leftJoin(cleanerProfile, eq(user.id, cleanerProfile.userId))
-    .where(eq(user.role, 'CLEANER'))
-    .orderBy(desc(cleanerProfile.rating));
-    
+      `.as("availability"),
+      })
+      .from(user)
+      .leftJoin(cleanerProfile, eq(user.id, cleanerProfile.userId))
+      .where(eq(user.role, "CLEANER"))
+      .orderBy(desc(cleanerProfile.rating));
+
     // Assemble the final booking detail object
     const bookingDetail = {
       ...bookingData,
@@ -170,27 +196,28 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       payment: paymentData,
       customer: {
         ...customerData,
-        bookingsCount: bookingsCount
+        bookingsCount: bookingsCount,
       },
-      cleaner: cleanerData ? {
-        ...cleanerData,
-        cleanerProfile: cleanerProfileData
-      } : null
+      cleaner: cleanerData
+        ? {
+            ...cleanerData,
+            cleanerProfile: cleanerProfileData,
+          }
+        : null,
     };
-    
+
     return {
       booking: bookingDetail,
       availableCleaners,
       adminNotes,
       communicationLog: communications,
-      relatedBookings
+      relatedBookings,
     };
   } catch (err) {
-    console.error('Error loading booking details:', err);
-    throw error(500, 'Error loading booking details');
+    console.error("Error loading booking details:", err);
+    throw error(500, "Error loading booking details");
   }
 };
-
 
 export const actions: Actions = {
   // Action to change booking status
@@ -346,20 +373,49 @@ export const actions: Actions = {
         });
       }
 
+      // Send notification email when a cleaner is assigned or changed
+      if (
+        cleanerId &&
+        (!previousCleanerId || previousCleanerId !== cleanerId)
+      ) {
+        // Send notification email to the user
+        try {
+          const notificationSent =
+            await sendCleanerAssignmentNotification(bookingId);
+          console.log(
+            `Cleaner assignment notification ${notificationSent ? "sent" : "failed"} for booking ${bookingId}`,
+          );
+
+          // Add a note about the notification (optional)
+          if (notificationSent) {
+            await db.insert(adminNote).values({
+              id: crypto.randomUUID(),
+              bookingId: bookingId,
+              content: "Customer notification email sent",
+              addedBy: `${locals.user.firstName} ${locals.user.lastName}`,
+              createdAt: new Date(),
+            });
+          }
+        } catch (err) {
+          console.error("Error sending cleaner assignment notification:", err);
+          // Don't fail the whole operation if just the notification fails
+        }
+      }
+
       return {
         success: true,
         message: cleanerId
           ? "Cleaner assigned successfully"
           : "Cleaner assignment removed",
       };
-    } catch (err) {
-      console.error("Error assigning cleaner:", err);
+    } catch (error) {
+      console.error("Error assigning cleaner:", error);
       return fail(500, {
         error: "Failed to assign cleaner",
       });
     }
   },
-
+  
   // Action to add admin note
   addNote: async ({ params, request, locals }) => {
     // Verify admin role
