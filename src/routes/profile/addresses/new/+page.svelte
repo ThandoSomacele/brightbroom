@@ -1,71 +1,117 @@
 <!-- src/routes/profile/addresses/new/+page.svelte -->
 <script lang="ts">
   import { enhance } from "$app/forms";
+  import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
+  import { ArrowLeft, MapPin } from "lucide-svelte";
 
-  // Get data from the server load function
-  export let data;
+  // Get form data if there's an error
   export let form;
 
-  // Get redirect URL if coming from booking flow
+  // Get redirectTo url param if it exists, default to profile/addresses
   $: redirectTo =
-    data.redirectTo || $page.url.searchParams.get("redirectTo") || "";
+    $page.url.searchParams.get("redirectTo") || "/profile/addresses";
 
-  // Form state
+  // Track form state
   let isLoading = false;
+  let isSubmitting = false;
+
+  // Form data with defaults
+  let street = form?.street || "";
+  let aptUnit = form?.aptUnit || "";
+  let city = form?.city || "";
+  let state = form?.state || "Western Cape"; // Default value
+  let zipCode = form?.zipCode || "";
+  let isDefault = form?.isDefault || false;
+  let instructions = form?.instructions || "";
 </script>
 
 <svelte:head>
   <title>Add New Address | BrightBroom</title>
 </svelte:head>
 
+{#if isLoading}
+  <!-- Full-page loading overlay -->
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-80 dark:bg-gray-900 dark:bg-opacity-80"
+  >
+    <div class="flex flex-col items-center space-y-4">
+      <div
+        class="h-16 w-16 animate-spin rounded-full border-b-2 border-t-2 border-primary"
+      ></div>
+      <p class="text-lg font-medium text-gray-800 dark:text-white">
+        Saving address...
+      </p>
+    </div>
+  </div>
+{/if}
+
 <div class="min-h-screen bg-gray-50 px-4 py-8 dark:bg-gray-900">
-  <div class="mx-auto max-w-3xl">
-    <!-- Page header with back button -->
-    <div class="mb-6 flex items-center">
-      <Button variant="ghost" href="/profile/addresses" class="mr-2">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+  <div class="mx-auto max-w-2xl">
+    <!-- Page header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+          Add New Address
+        </h1>
+        <Button
+          variant="outline"
+          on:click={() => {
+            isLoading = true;
+            goto(redirectTo);
+          }}
+          disabled={isSubmitting}
         >
-          <path d="M19 12H5M12 19l-7-7 7-7" />
-        </svg>
-      </Button>
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-        Add New Address
-      </h1>
+          <ArrowLeft size={18} class="mr-2" />
+          Cancel
+        </Button>
+      </div>
+      <p class="mt-2 text-gray-600 dark:text-gray-300">
+        Enter a new address for your cleaning services
+      </p>
     </div>
 
-    <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-      <!-- Form feedback messages -->
-      {#if form?.error}
-        <div
-          class="mb-6 rounded-md bg-red-50 p-4 text-red-600 dark:bg-red-900/20 dark:text-red-200"
-        >
-          <p>{form.error}</p>
-        </div>
-      {/if}
+    <!-- Error message if form submission failed -->
+    {#if form?.error}
+      <div
+        class="mb-6 rounded-md bg-red-50 p-4 text-red-600 dark:bg-red-900/20 dark:text-red-200"
+      >
+        <p>{form.error}</p>
+      </div>
+    {/if}
 
+    <!-- Address form -->
+    <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
       <form
         method="POST"
-        use:enhance={() => {
-          isLoading = true;
+        action="?/createAddress"
+        use:enhance={({ formData }) => {
+          isSubmitting = true;
 
           return async ({ result }) => {
-            isLoading = false;
+            if (result.type === "success" && result.data?.redirect) {
+              // Keep the loading state active
+              isLoading = true;
 
-            if (result.type === "redirect") {
-              // Explicitly navigate to the redirect location
-              window.location.href = result.location;
+              const redirectTo = result.data.redirect;
+
+              // If redirecting back to booking flow, add loading parameter
+              if (redirectTo.includes("/book/")) {
+                // Redirect with loading parameter
+                goto(`${redirectTo}?loading=true`, { replaceState: true });
+              } else {
+                // Normal redirect
+                goto(redirectTo, { replaceState: true });
+              }
+            } else if (result.type === "redirect") {
+              // Standard SvelteKit redirect
+              isLoading = true;
+              goto(result.location, { replaceState: true });
+            } else {
+              // For errors or other cases, stop loading
+              isSubmitting = false;
             }
-            // Form will automatically update for errors
           };
         }}
       >
@@ -81,33 +127,33 @@
             type="text"
             id="street"
             name="street"
-            value={form?.street || ""}
+            bind:value={street}
             required
             class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             placeholder="123 Main Street"
           />
         </div>
 
-        <!-- Apt/Unit -->
+        <!-- Apartment/Unit -->
         <div class="mb-4">
           <label
             for="aptUnit"
             class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
-            Apartment/Unit (optional)
+            Apartment/Unit
           </label>
           <input
             type="text"
             id="aptUnit"
             name="aptUnit"
-            value={form?.aptUnit || ""}
+            bind:value={aptUnit}
             class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            placeholder="Apt #, Suite #, etc."
+            placeholder="Apt 4B (optional)"
           />
         </div>
 
-        <!-- City, State, Zip in a grid -->
-        <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <!-- City & State (2-column grid) -->
+        <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label
               for="city"
@@ -119,7 +165,7 @@
               type="text"
               id="city"
               name="city"
-              value={form?.city || ""}
+              bind:value={city}
               required
               class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               placeholder="Cape Town"
@@ -136,94 +182,71 @@
             <select
               id="state"
               name="state"
+              bind:value={state}
               required
               class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             >
-              <option value="" disabled selected={!form?.state}
-                >Select province</option
-              >
-              <option
-                value="Eastern Cape"
-                selected={form?.state === "Eastern Cape"}>Eastern Cape</option
-              >
-              <option value="Free State" selected={form?.state === "Free State"}
-                >Free State</option
-              >
-              <option value="Gauteng" selected={form?.state === "Gauteng"}
-                >Gauteng</option
-              >
-              <option
-                value="KwaZulu-Natal"
-                selected={form?.state === "KwaZulu-Natal"}>KwaZulu-Natal</option
-              >
-              <option value="Limpopo" selected={form?.state === "Limpopo"}
-                >Limpopo</option
-              >
-              <option value="Mpumalanga" selected={form?.state === "Mpumalanga"}
-                >Mpumalanga</option
-              >
-              <option
-                value="Northern Cape"
-                selected={form?.state === "Northern Cape"}>Northern Cape</option
-              >
-              <option value="North West" selected={form?.state === "North West"}
-                >North West</option
-              >
-              <option
-                value="Western Cape"
-                selected={form?.state === "Western Cape"}>Western Cape</option
-              >
+              <option value="Eastern Cape">Eastern Cape</option>
+              <option value="Free State">Free State</option>
+              <option value="Gauteng">Gauteng</option>
+              <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+              <option value="Limpopo">Limpopo</option>
+              <option value="Mpumalanga">Mpumalanga</option>
+              <option value="Northern Cape">Northern Cape</option>
+              <option value="North West">North West</option>
+              <option value="Western Cape">Western Cape</option>
             </select>
-          </div>
-
-          <div>
-            <label
-              for="zipCode"
-              class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Postal Code <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="zipCode"
-              name="zipCode"
-              value={form?.zipCode || ""}
-              required
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-              placeholder="8001"
-            />
           </div>
         </div>
 
-        <!-- Access instructions -->
-        <div class="mb-6">
+        <!-- Zip/Postal Code -->
+        <div class="mb-4">
+          <label
+            for="zipCode"
+            class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            Postal Code <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="zipCode"
+            name="zipCode"
+            bind:value={zipCode}
+            required
+            class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            placeholder="8001"
+          />
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            South African postal codes are typically 4 digits
+          </p>
+        </div>
+
+        <!-- Access Instructions -->
+        <div class="mb-4">
           <label
             for="instructions"
             class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
-            Access Instructions (optional)
+            Access Instructions
           </label>
           <textarea
             id="instructions"
             name="instructions"
-            value={form?.instructions || ""}
-            rows={3}
+            bind:value={instructions}
+            rows="3"
             class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            placeholder="Gate code, key location, or special instructions for the cleaner..."
+            placeholder="E.g., Gate code, building entrance instructions, etc. (optional)"
           ></textarea>
-          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Provide any details that will help the cleaner access your property.
-          </p>
         </div>
 
-        <!-- Default address checkbox -->
+        <!-- Default Address Checkbox -->
         <div class="mb-6">
           <label class="flex items-center">
             <input
               type="checkbox"
               name="isDefault"
+              bind:checked={isDefault}
               class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-              checked={form?.isDefault || false}
             />
             <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
               Set as default address
@@ -231,24 +254,13 @@
           </label>
         </div>
 
-        <!-- Hidden redirect field if provided -->
-        {#if redirectTo}
-          <input type="hidden" name="redirectTo" value={redirectTo} />
-        {/if}
+        <!-- Hidden redirectTo field -->
+        <input type="hidden" name="redirectTo" value={redirectTo} />
 
-        <!-- Action buttons -->
-        <div class="flex flex-col-reverse justify-end gap-3 sm:flex-row">
-          <Button
-            type="button"
-            variant="outline"
-            href={redirectTo || "/profile/addresses"}
-          >
-            Cancel
-          </Button>
-
-          <!-- Form submission button with loading state -->
-          <Button type="submit" variant="primary" disabled={isLoading}>
-            {#if isLoading}
+        <!-- Submit Button -->
+        <div class="flex justify-end">
+          <Button type="submit" variant="primary" disabled={isSubmitting}>
+            {#if isSubmitting}
               <svg
                 class="mr-2 h-4 w-4 animate-spin"
                 xmlns="http://www.w3.org/2000/svg"
@@ -269,8 +281,9 @@
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
-              Saving...
+              Saving Address...
             {:else}
+              <MapPin size={18} class="mr-2" />
               Save Address
             {/if}
           </Button>

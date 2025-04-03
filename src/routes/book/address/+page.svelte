@@ -22,13 +22,26 @@
   import { onMount } from 'svelte';
   
   onMount(() => {
-    selectedService = localStorage.getItem('booking_service') || '';
-    
-    // If no service selected, go back to service selection
-    if (!selectedService) {
-      goto('/book');
-    }
-  });
+  selectedService = localStorage.getItem('booking_service') || '';
+  
+  // If no service selected, go back to service selection
+  if (!selectedService) {
+    goto('/book');
+  }
+  
+  // Add this: Check URL for a 'loading' parameter that might be set during redirect
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('loading') === 'true') {
+    isLoading = true;
+    // Remove the parameter after a short delay
+    setTimeout(() => {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('loading');
+      window.history.replaceState({}, '', url);
+      isLoading = false;
+    }, 500); // Short delay to ensure UI updates
+  }
+});
   
   // Handle address selection
   function selectAddress(id: string) {
@@ -70,6 +83,22 @@
 <svelte:head>
   <title>Select Address | BrightBroom</title>
 </svelte:head>
+
+{#if isLoading}
+  <!-- Full-page loading overlay -->
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-80 dark:bg-gray-900 dark:bg-opacity-80"
+  >
+    <div class="flex flex-col items-center space-y-4">
+      <div
+        class="h-16 w-16 animate-spin rounded-full border-b-2 border-t-2 border-primary"
+      ></div>
+      <p class="text-lg font-medium text-gray-800 dark:text-white">
+        Processing address...
+      </p>
+    </div>
+  </div>
+{/if}
 
 <div class="min-h-screen bg-gray-50 px-4 py-8 dark:bg-gray-900">
   <div class="mx-auto max-w-5xl">
@@ -234,27 +263,32 @@
 
           <!-- Add new address card -->
           <div
-            class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-5 text-center hover:border-primary-300 dark:border-gray-700 dark:hover:border-primary-700"
-            on:click={() =>
-              goto("/profile/addresses/new?redirectTo=/book/address")}
-            on:keydown={(e) =>
-              e.key === "Enter" &&
-              goto("/profile/addresses/new?redirectTo=/book/address")}
-            role="button"
-            tabindex="0"
+          class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-5 text-center hover:border-primary-300 dark:border-gray-700 dark:hover:border-primary-700"
+          on:click={() => {
+            isLoading = true; // Set loading state to true before navigation
+            goto("/profile/addresses/new?redirectTo=/book/address");
+          }}
+          on:keydown={(e) => {
+            if (e.key === "Enter") {
+              isLoading = true;
+              goto("/profile/addresses/new?redirectTo=/book/address");
+            }
+          }}
+          role="button"
+          tabindex="0"
+        >
+          <div
+            class="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800"
           >
-            <div
-              class="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800"
-            >
-              <MapPin size={24} class="text-gray-600 dark:text-gray-400" />
-            </div>
-            <h3 class="mb-1 text-lg font-medium text-gray-900 dark:text-white">
-              Add New Address
-            </h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Add a new location for your cleaning service
-            </p>
+            <MapPin size={24} class="text-gray-600 dark:text-gray-400" />
           </div>
+          <h3 class="mb-1 text-lg font-medium text-gray-900 dark:text-white">
+            Add New Address
+          </h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Add a new location for your cleaning service
+          </p>
+        </div>
         </div>
       {/if}
     </div>
