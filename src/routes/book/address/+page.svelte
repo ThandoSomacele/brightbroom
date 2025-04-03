@@ -2,13 +2,14 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import Button from '$lib/components/ui/Button.svelte';
-  import { MapPin, Home, ArrowRight, ArrowLeft } from 'lucide-svelte';
+  import AddressSelect from '$lib/components/booking/AddressSelect.svelte';
+  import { ArrowRight, ArrowLeft } from 'lucide-svelte';
   
   // Get data from the server load function
   export let data;
   const { addresses } = data;
   
-  // Track selected address
+  // Track selected address and instructions
   let selectedAddress = '';
   let accessInstructions = '';
   
@@ -22,56 +23,55 @@
   import { onMount } from 'svelte';
   
   onMount(() => {
-  selectedService = localStorage.getItem('booking_service') || '';
-  
-  // If no service selected, go back to service selection
-  if (!selectedService) {
-    goto('/book');
-  }
-  
-  // Add this: Check URL for a 'loading' parameter that might be set during redirect
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('loading') === 'true') {
-    isLoading = true;
-    // Remove the parameter after a short delay
-    setTimeout(() => {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('loading');
-      window.history.replaceState({}, '', url);
-      isLoading = false;
-    }, 500); // Short delay to ensure UI updates
-  }
-});
-  
-  // Handle address selection
-  function selectAddress(id: string) {
-    selectedAddress = id;
-  }
+    selectedService = localStorage.getItem('booking_service') || '';
+    
+    // If no service selected, go back to service selection
+    if (!selectedService) {
+      goto('/book');
+    }
+    
+    // Add this: Check URL for a 'loading' parameter that might be set during redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('loading') === 'true') {
+      isLoading = true;
+      // Remove the parameter after a short delay
+      setTimeout(() => {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('loading');
+        window.history.replaceState({}, '', url);
+        isLoading = false;
+      }, 500); // Short delay to ensure UI updates
+    }
+  });
   
   // Continue to next step
   async function continueToNext() {
-  if (selectedAddress) {
-    // Show loading state
-    isLoading = true;
-    
-    try {
-      // Store selections in localStorage to persist through navigation
-      localStorage.setItem('booking_address', selectedAddress);
-      localStorage.setItem('booking_instructions', accessInstructions);
+    if (selectedAddress) {
+      // Show loading state
+      isLoading = true;
       
-      // Get the service ID from localStorage
-      const serviceId = localStorage.getItem('booking_service') || '';
-      
-      // Navigate to scheduling with serviceId as a query parameter
-      await goto(`/book/schedule?serviceId=${serviceId}`);
-    } catch (error) {
-      console.error('Navigation error:', error);
-    } finally {
-      // Reset loading state (though this won't be seen due to navigation)
-      isLoading = false;
+      try {
+        // Get the instructions from the selected address
+        const address = addresses.find(a => a.id === selectedAddress);
+        const instructions = address?.instructions || accessInstructions;
+        
+        // Store selections in localStorage to persist through navigation
+        localStorage.setItem('booking_address', selectedAddress);
+        localStorage.setItem('booking_instructions', instructions);
+        
+        // Get the service ID from localStorage
+        const serviceId = localStorage.getItem('booking_service') || '';
+        
+        // Navigate to scheduling with serviceId as a query parameter
+        await goto(`/book/schedule?serviceId=${serviceId}`);
+      } catch (error) {
+        console.error('Navigation error:', error);
+      } finally {
+        // Reset loading state (though this won't be seen due to navigation)
+        isLoading = false;
+      }
     }
   }
-}
   
   // Go back to previous step
   function goToPrevious() {
@@ -177,125 +177,15 @@
       </div>
     </div>
 
-    <!-- Address selection -->
-    <div class="mb-8">
-      <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
-        Your Addresses
-      </h2>
+    <!-- Address selection with Google Maps integration -->
+    <AddressSelect 
+      {addresses}
+      bind:selectedAddressId={selectedAddress}
+    />
 
-      {#if addresses.length === 0}
-        <div
-          class="mb-6 rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800"
-        >
-          <div
-            class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700"
-          >
-            <MapPin size={24} class="text-gray-500 dark:text-gray-400" />
-          </div>
-          <h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">
-            No addresses found
-          </h3>
-          <p class="mb-4 text-gray-600 dark:text-gray-400">
-            You haven't added any addresses yet. Add an address to continue with
-            your booking.
-          </p>
-          <Button
-            variant="primary"
-            href="/profile/addresses/new?redirectTo=/book/address"
-          >
-            Add New Address
-          </Button>
-        </div>
-      {:else}
-        <div class="grid gap-4 md:grid-cols-2">
-          {#each addresses as address}
-            <div
-              class={`cursor-pointer rounded-lg border-2 p-5 transition-all hover:shadow-md
-                  ${
-                    selectedAddress === address.id
-                      ? "border-primary bg-primary-50 dark:border-primary-600 dark:bg-primary-900/20"
-                      : "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
-                  }`}
-              on:click={() => selectAddress(address.id)}
-              on:keydown={(e) => e.key === "Enter" && selectAddress(address.id)}
-              role="button"
-              tabindex="0"
-            >
-              <div class="flex items-start">
-                <div class="flex-shrink-0">
-                  <div
-                    class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/20"
-                  >
-                    <Home size={20} />
-                  </div>
-                </div>
-
-                <div class="ml-4">
-                  <div class="flex items-center">
-                    <h3
-                      class="text-lg font-medium text-gray-900 dark:text-white"
-                    >
-                      {address.street}
-                    </h3>
-                    {#if address.isDefault}
-                      <span
-                        class="ml-2 inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary dark:bg-primary-900/20"
-                      >
-                        Default
-                      </span>
-                    {/if}
-                  </div>
-
-                  {#if address.aptUnit}
-                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                      Unit {address.aptUnit}
-                    </p>
-                  {/if}
-
-                  <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                    {address.city}, {address.state}
-                    {address.zipCode}
-                  </p>
-                </div>
-              </div>
-            </div>
-          {/each}
-
-          <!-- Add new address card -->
-          <div
-          class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-5 text-center hover:border-primary-300 dark:border-gray-700 dark:hover:border-primary-700"
-          on:click={() => {
-            isLoading = true; // Set loading state to true before navigation
-            goto("/profile/addresses/new?redirectTo=/book/address");
-          }}
-          on:keydown={(e) => {
-            if (e.key === "Enter") {
-              isLoading = true;
-              goto("/profile/addresses/new?redirectTo=/book/address");
-            }
-          }}
-          role="button"
-          tabindex="0"
-        >
-          <div
-            class="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800"
-          >
-            <MapPin size={24} class="text-gray-600 dark:text-gray-400" />
-          </div>
-          <h3 class="mb-1 text-lg font-medium text-gray-900 dark:text-white">
-            Add New Address
-          </h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400">
-            Add a new location for your cleaning service
-          </p>
-        </div>
-        </div>
-      {/if}
-    </div>
-
-    <!-- Special instructions -->
-    {#if addresses.length > 0}
-      <div class="mb-8">
+    <!-- Additional Instructions for existing addresses -->
+    {#if selectedAddress && !addresses.find(a => a.id === selectedAddress)?.instructions}
+      <div class="mb-8 mt-8">
         <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
           Access Instructions (Optional)
         </h2>
