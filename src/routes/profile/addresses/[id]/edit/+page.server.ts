@@ -81,17 +81,18 @@ export const actions: Actions = {
       );
       
       if (!updatedAddress) {
-        return fail(404, { error: 'Address not found' });
-      }
-      
-      // Redirect back to addresses list
-      throw redirect(303, '/profile/addresses');
-    } catch (err) {
-      console.error('Error updating address:', err);
-      return fail(500, { 
-        error: 'Failed to update address',
-        values: { street, aptUnit, city, state, zipCode, instructions, isDefault }
-      });
+        return fail(404, { error: "Address not found" });
     }
+    
+    // Throw redirect AFTER service call is complete
+    throw redirect(303, '/profile/addresses');
+} catch (error) {
+    if (error && typeof error === 'object' && 'status' in error) {
+        // This is already a redirect, just rethrow it
+        throw error;
+    }
+    
+    return fail(500, { error: "Failed to update address" });
+}
   }
 };

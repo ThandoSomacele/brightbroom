@@ -113,9 +113,16 @@ export const addressService = {
       
       return updatedAddress;
     } catch (error) {
+      // Check if the error is a redirect
+      if (error && typeof error === 'object' && 'status' in error && 'location' in error) {
+          // This is a redirect, not an error - rethrow it so the action handler can process it
+          throw error;
+      }
+      
       console.error('Error updating address:', error);
       throw error;
-    }
+  }
+
   },
   
   /**
