@@ -29,7 +29,7 @@ const PAYFAST_URL = USE_SANDBOX
   : "https://www.payfast.co.za/eng/process";
 
 // Default fallback base URL - only used if no origin is provided
-const DEFAULT_BASE_URL = import.meta.env.VITE_APP_URL || "https://development--brightbroom.netlify.app" || "http://localhost:5173";
+const DEFAULT_BASE_URL = import.meta.env.VITE_APP_URL || "https://development--brightbroom.netlify.app";
 
 // Log payment configuration on startup
 console.log("PayFast Configuration:");

@@ -13,7 +13,7 @@ import {
  * Email template configuration
  */
 const EMAIL_CONFIG = {
-  appUrl: process.env.PUBLIC_URL || "https://development--brightbroom.netlify.app" || 'http://localhost:5173',
+  appUrl: process.env.PUBLIC_URL || "https://development--brightbroom.netlify.app",
   brandName: 'BrightBroom',
   primaryColor: '#20C3AF',
   secondaryColor: '#C2511F'
