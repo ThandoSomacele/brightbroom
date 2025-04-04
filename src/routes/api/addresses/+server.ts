@@ -1,60 +1,66 @@
 // src/routes/api/addresses/+server.ts
-import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { addressService, MAX_ADDRESSES } from '$lib/server/services/address.service';
+import { MAX_ADDRESSES } from "$lib/constants/address";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ locals }) => {
   // Check authentication
   if (!locals.user) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
+    return json({ error: "Unauthorized" }, { status: 401 });
   }
-  
+
   try {
     // Get user's addresses
     const addresses = await addressService.getUserAddresses(locals.user.id);
-    
+
     // Return address count info too
-    return json({ 
+    return json({
       addresses,
       count: addresses.length,
       limit: MAX_ADDRESSES,
-      remaining: Math.max(0, MAX_ADDRESSES - addresses.length)
+      remaining: Math.max(0, MAX_ADDRESSES - addresses.length),
     });
   } catch (error) {
-    console.error('Error fetching addresses:', error);
-    return json({ error: 'Failed to fetch addresses' }, { status: 500 });
+    console.error("Error fetching addresses:", error);
+    return json({ error: "Failed to fetch addresses" }, { status: 500 });
   }
 };
 
 export const POST: RequestHandler = async ({ request, locals }) => {
   // Check authentication
   if (!locals.user) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
+    return json({ error: "Unauthorized" }, { status: 401 });
   }
-  
+
   // Check if user has reached address limit
-  const hasReachedLimit = await addressService.hasReachedAddressLimit(locals.user.id);
+  const hasReachedLimit = await addressService.hasReachedAddressLimit(
+    locals.user.id,
+  );
   if (hasReachedLimit) {
-    return json({ 
-      error: `You have reached the maximum limit of ${MAX_ADDRESSES} addresses` 
-    }, { status: 400 });
+    return json(
+      {
+        error: `You have reached the maximum limit of ${MAX_ADDRESSES} addresses`,
+      },
+      { status: 400 },
+    );
   }
-  
+
   try {
     const data = await request.json();
-    
+
     // Create new address using service
     const newAddress = await addressService.createAddress(locals.user.id, data);
-    
+
     return json({ address: newAddress }, { status: 201 });
   } catch (error) {
-    console.error('Error creating address:', error);
-    
+    console.error("Error creating address:", error);
+
     // Check if this is a limit error
-    const errorMessage = error instanceof Error && error.message.includes('Maximum limit') 
-      ? error.message 
-      : 'Failed to create address';
-    
+    const errorMessage =
+      error instanceof Error && error.message.includes("Maximum limit")
+        ? error.message
+        : "Failed to create address";
+
     return json({ error: errorMessage }, { status: 500 });
   }
 };

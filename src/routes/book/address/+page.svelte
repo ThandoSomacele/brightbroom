@@ -1,93 +1,74 @@
 <!-- src/routes/book/address/+page.svelte -->
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import Button from '$lib/components/ui/Button.svelte';
-  import AddressSelect from '$lib/components/booking/AddressSelect.svelte';
-  import { ArrowRight, ArrowLeft, AlertTriangle, Info, Plus } from 'lucide-svelte';
-  import { MAX_ADDRESSES } from '$lib/server/services/address.service';
-  
-  // Get data from the server load function
-  export let data;
-  const { addresses } = data;
-  
-  // Track selected address and instructions
-  let selectedAddress = '';
-  let accessInstructions = '';
-  
-  // Add loading state
-  let isLoading = false;
-  
-  // Get service from localStorage
-  let selectedService = '';
-  
-  // Calculate if user has reached address limit
-  $: hasReachedLimit = addresses.length >= MAX_ADDRESSES;
-  $: remainingAddresses = Math.max(0, MAX_ADDRESSES - addresses.length);
-  
+  import { goto } from "$app/navigation";
+  import AddressSelect from "$lib/components/booking/AddressSelect.svelte";
+  import Button from "$lib/components/ui/Button.svelte";
+  import { MAX_ADDRESSES } from "$lib/constants/address";
+  import { ArrowLeft, ArrowRight, Info, Plus } from "lucide-svelte";
   // Initialize data from localStorage on mount
-  import { onMount } from 'svelte';
-  
+  import { onMount } from "svelte";
+
   onMount(() => {
-    selectedService = localStorage.getItem('booking_service') || '';
-    
+    selectedService = localStorage.getItem("booking_service") || "";
+
     // If no service selected, go back to service selection
     if (!selectedService) {
-      goto('/book');
+      goto("/book");
     }
-    
+
     // Check URL for a 'loading' parameter that might be set during redirect
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('loading') === 'true') {
+    if (urlParams.get("loading") === "true") {
       isLoading = true;
       // Remove the parameter after a short delay
       setTimeout(() => {
         const url = new URL(window.location.href);
-        url.searchParams.delete('loading');
-        window.history.replaceState({}, '', url);
+        url.searchParams.delete("loading");
+        window.history.replaceState({}, "", url);
         isLoading = false;
       }, 500); // Short delay to ensure UI updates
     }
   });
-  
+
   // Continue to next step
   async function continueToNext() {
     if (selectedAddress) {
       // Show loading state
       isLoading = true;
-      
+
       try {
         // Get the instructions from the selected address
-        const address = addresses.find(a => a.id === selectedAddress);
+        const address = addresses.find((a) => a.id === selectedAddress);
         const instructions = address?.instructions || accessInstructions;
-        
+
         // Store selections in localStorage to persist through navigation
-        localStorage.setItem('booking_address', selectedAddress);
-        localStorage.setItem('booking_instructions', instructions);
-        
+        localStorage.setItem("booking_address", selectedAddress);
+        localStorage.setItem("booking_instructions", instructions);
+
         // Get the service ID from localStorage
-        const serviceId = localStorage.getItem('booking_service') || '';
-        
+        const serviceId = localStorage.getItem("booking_service") || "";
+
         // Navigate to scheduling with serviceId as a query parameter
         await goto(`/book/schedule?serviceId=${serviceId}`);
       } catch (error) {
-        console.error('Navigation error:', error);
+        console.error("Navigation error:", error);
       } finally {
         // Reset loading state (though this won't be seen due to navigation)
         isLoading = false;
       }
     }
   }
-  
+
   // Go back to previous step
   function goToPrevious() {
     isLoading = true;
-    goto('/book');
+    goto("/book");
   }
-  
+
   // Go to manage addresses page
   function goToManageAddresses() {
     isLoading = true;
-    goto('/profile/addresses?redirectTo=/book/address');
+    goto("/profile/addresses?redirectTo=/book/address");
   }
 </script>
 
@@ -189,11 +170,16 @@
     </div>
 
     <!-- Address limit information -->
-    <div class="mb-6 bg-blue-50 p-4 rounded-lg dark:bg-blue-900/20 flex items-start">
-      <Info class="h-5 w-5 mt-0.5 mr-2 flex-shrink-0 text-blue-500 dark:text-blue-400" />
+    <div
+      class="mb-6 bg-blue-50 p-4 rounded-lg dark:bg-blue-900/20 flex items-start"
+    >
+      <Info
+        class="h-5 w-5 mt-0.5 mr-2 flex-shrink-0 text-blue-500 dark:text-blue-400"
+      />
       <div>
         <p class="text-blue-800 dark:text-blue-300">
-          You are using <span class="font-semibold">{addresses.length}</span> of <span class="font-semibold">{MAX_ADDRESSES}</span> available address slots.
+          You are using <span class="font-semibold">{addresses.length}</span> of
+          <span class="font-semibold">{MAX_ADDRESSES}</span> available address slots.
         </p>
         {#if hasReachedLimit}
           <p class="text-sm text-blue-700 dark:text-blue-400 mt-1">
@@ -207,17 +193,30 @@
     <div class="mb-6">
       {#if hasReachedLimit}
         <div class="flex flex-col sm:flex-row gap-3">
-          <Button variant="primary" disabled={true} title="You have reached the maximum limit of addresses" class="w-full sm:w-auto">
+          <Button
+            variant="primary"
+            disabled={true}
+            title="You have reached the maximum limit of addresses"
+            class="w-full sm:w-auto"
+          >
             <Plus size={18} class="mr-2" />
             Add New Address (Limit Reached)
           </Button>
-          
-          <Button variant="secondary" on:click={goToManageAddresses} class="w-full sm:w-auto">
+
+          <Button
+            variant="secondary"
+            on:click={goToManageAddresses}
+            class="w-full sm:w-auto"
+          >
             Manage My Addresses
           </Button>
         </div>
       {:else}
-        <Button variant="primary" href="/profile/addresses/new?redirectTo=/book/address" class="w-full sm:w-auto">
+        <Button
+          variant="primary"
+          href="/profile/addresses/new?redirectTo=/book/address"
+          class="w-full sm:w-auto"
+        >
           <Plus size={18} class="mr-2" />
           Add New Address ({remainingAddresses} remaining)
         </Button>
@@ -225,13 +224,10 @@
     </div>
 
     <!-- Address selection with Google Maps integration -->
-    <AddressSelect 
-      {addresses}
-      bind:selectedAddressId={selectedAddress}
-    />
+    <AddressSelect {addresses} bind:selectedAddressId={selectedAddress} />
 
     <!-- Additional Instructions for existing addresses -->
-    {#if selectedAddress && !addresses.find(a => a.id === selectedAddress)?.instructions}
+    {#if selectedAddress && !addresses.find((a) => a.id === selectedAddress)?.instructions}
       <div class="mb-8 mt-8">
         <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
           Access Instructions (Optional)

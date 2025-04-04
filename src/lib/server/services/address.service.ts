@@ -1,10 +1,8 @@
 // src/lib/server/services/address.service.ts
+import { MAX_ADDRESSES } from '$lib/constants/address';
 import { db } from '$lib/server/db';
 import { address } from '$lib/server/db/schema';
 import { and, eq, ne } from 'drizzle-orm';
-
-// Maximum allowed addresses per user
-export const MAX_ADDRESSES = 3;
 
 /**
  * Service for managing user addresses

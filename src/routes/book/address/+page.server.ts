@@ -1,7 +1,7 @@
-// src/routes/book/address/+page.server.ts
+// src/routes/book/address/+page.svelte and other client files
+import { MAX_ADDRESSES } from '$lib/constants/address';
 import { db } from '$lib/server/db';
 import { address } from '$lib/server/db/schema';
-import { MAX_ADDRESSES } from '$lib/server/services/address.service';
 import { redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
