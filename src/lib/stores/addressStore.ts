@@ -1,6 +1,10 @@
 // src/lib/stores/addressStore.ts
-import { writable, derived } from 'svelte/store';
-import { isWithinServiceArea, getClosestServiceArea, SERVICE_AREAS } from '$lib/utils/serviceAreaValidator';
+import {
+  getClosestServiceArea,
+  isWithinServiceArea,
+  SERVICE_AREAS,
+} from "$lib/utils/serviceAreaValidator";
+import { derived, writable } from "svelte/store";
 
 // Define address types
 export interface AddressInput {
@@ -38,7 +42,7 @@ const initialState: AddressStoreState = {
   savedAddresses: [],
   isLoading: false,
   error: null,
-  serviceAreaEnabled: true
+  serviceAreaEnabled: true,
 };
 
 // Create the store
@@ -47,12 +51,12 @@ function createAddressStore() {
 
   return {
     subscribe,
-    
+
     /**
      * Set the current address from the autocomplete component
      */
     setCurrentAddress: (address: AddressInput | null) => {
-      update(state => {
+      update((state) => {
         // Validate service area if enabled
         if (state.serviceAreaEnabled && address && address.lat && address.lng) {
           if (!isWithinServiceArea(address.lat, address.lng)) {
@@ -60,87 +64,97 @@ function createAddressStore() {
             return {
               ...state,
               currentAddress: null,
-              error: 'Address is outside our service area'
+              error: "Address is outside our service area",
             };
           }
         }
-        
+
         return {
           ...state,
           currentAddress: address,
-          error: null
+          error: null,
         };
       });
     },
-    
+
     /**
      * Toggle service area restriction
      */
     toggleServiceAreaRestriction: (enabled: boolean) => {
-      update(state => ({
+      update((state) => ({
         ...state,
-        serviceAreaEnabled: enabled
+        serviceAreaEnabled: enabled,
       }));
     },
-    
+
     /**
      * Load user's saved addresses from the API
      */
     loadSavedAddresses: async () => {
-      update(state => ({ ...state, isLoading: true, error: null }));
-      
+      update((state) => ({ ...state, isLoading: true, error: null }));
+
       try {
-        const response = await fetch('/api/addresses');
+        const response = await fetch("/api/addresses");
         if (!response.ok) {
-          throw new Error('Failed to load addresses');
+          throw new Error("Failed to load addresses");
         }
-        
+
         const data = await response.json();
         const addresses: SavedAddress[] = data.addresses;
-        
-        update(state => ({
+
+        update((state) => ({
           ...state,
           savedAddresses: addresses,
-          isLoading: false
+          isLoading: false,
         }));
-        
+
         return addresses;
       } catch (error) {
-        console.error('Error loading addresses:', error);
-        
-        update(state => ({
+        console.error("Error loading addresses:", error);
+
+        update((state) => ({
           ...state,
           isLoading: false,
-          error: error instanceof Error ? error.message : 'An error occurred'
+          error: error instanceof Error ? error.message : "An error occurred",
         }));
-        
+
         return [];
       }
     },
-    
+
     /**
      * Save the current address to the user's saved addresses
      */
-    saveCurrentAddress: async (addressInput: AddressInput, instructions?: string, isDefault?: boolean) => {
-      update(state => ({ ...state, isLoading: true, error: null }));
-      
+    saveCurrentAddress: async (
+      addressInput: AddressInput,
+      instructions?: string,
+      isDefault?: boolean,
+    ) => {
+      // First capture the current state before beginning the async operation
+      let currentServiceAreaEnabled: boolean;
+
+      update((state) => {
+        currentServiceAreaEnabled = state.serviceAreaEnabled;
+        return { ...state, isLoading: true, error: null };
+      });
+
       try {
-        // Validate address is within service area if restriction is enabled
-        if (state.serviceAreaEnabled && addressInput.lat && addressInput.lng) {
+        // Now use the captured value instead of trying to access state directly
+        if (currentServiceAreaEnabled && addressInput.lat && addressInput.lng) {
           if (!isWithinServiceArea(addressInput.lat, addressInput.lng)) {
-            update(state => ({
+            update((state) => ({
               ...state,
               isLoading: false,
-              error: 'Address is outside our service area'
+              error: "Address is outside our service area",
             }));
             return null;
           }
         }
-        
-        const response = await fetch('/api/addresses', {
-          method: 'POST',
+
+        const response = await fetch("/api/addresses", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             street: addressInput.street,
@@ -149,79 +163,79 @@ function createAddressStore() {
             state: addressInput.state,
             zipCode: addressInput.zipCode,
             instructions,
-            isDefault
-          })
+            isDefault,
+          }),
         });
-        
+
         if (!response.ok) {
-          throw new Error('Failed to save address');
+          throw new Error("Failed to save address");
         }
-        
+
         const data = await response.json();
         const newAddress = data.address as SavedAddress;
-        
-        update(state => {
+
+        update((state) => {
           // If this is the new default, update other addresses
           let updatedAddresses = [...state.savedAddresses];
-          
+
           if (newAddress.isDefault) {
-            updatedAddresses = updatedAddresses.map(addr => ({
+            updatedAddresses = updatedAddresses.map((addr) => ({
               ...addr,
-              isDefault: addr.id === newAddress.id
+              isDefault: addr.id === newAddress.id,
             }));
           }
-          
+
           // Add the new address if it's not already in the list
-          if (!updatedAddresses.some(addr => addr.id === newAddress.id)) {
+          if (!updatedAddresses.some((addr) => addr.id === newAddress.id)) {
             updatedAddresses.push(newAddress);
           }
-          
+
           return {
             ...state,
             savedAddresses: updatedAddresses,
-            isLoading: false
+            isLoading: false,
           };
         });
-        
+
         return newAddress;
       } catch (error) {
-        console.error('Error saving address:', error);
-        
-        update(state => ({
+        console.error("Error saving address:", error);
+
+        update((state) => ({
           ...state,
           isLoading: false,
-          error: error instanceof Error ? error.message : 'An error occurred'
+          error: error instanceof Error ? error.message : "An error occurred",
         }));
-        
+
         return null;
       }
     },
-    
+
     /**
      * Get nearest service area information for a given address
      */
     getNearestServiceArea: (address: AddressInput) => {
       if (!address.lat || !address.lng) return null;
-      
+
       return getClosestServiceArea(address.lat, address.lng);
     },
-    
+
     /**
      * Clear any errors
      */
     clearError: () => {
-      update(state => ({
+      update((state) => ({
         ...state,
-        error: null
+        error: null,
       }));
     },
-    
+
     /**
      * Reset the store to initial state
      */
     reset: () => {
       set(initialState);
-    }
+    },
   };
 }
 
@@ -229,19 +243,20 @@ function createAddressStore() {
 export const addressStore = createAddressStore();
 
 // Derived store for checking if the service is available at the current address
-export const isServiceAvailable = derived(
-  addressStore,
-  $addressStore => {
-    if (!$addressStore.currentAddress || !$addressStore.currentAddress.lat || !$addressStore.currentAddress.lng) {
-      return false;
-    }
-    
-    return isWithinServiceArea(
-      $addressStore.currentAddress.lat, 
-      $addressStore.currentAddress.lng
-    );
+export const isServiceAvailable = derived(addressStore, ($addressStore) => {
+  if (
+    !$addressStore.currentAddress ||
+    !$addressStore.currentAddress.lat ||
+    !$addressStore.currentAddress.lng
+  ) {
+    return false;
   }
-);
+
+  return isWithinServiceArea(
+    $addressStore.currentAddress.lat,
+    $addressStore.currentAddress.lng,
+  );
+});
 
 // Export service areas for reference
 export { SERVICE_AREAS };
