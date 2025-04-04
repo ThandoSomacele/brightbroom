@@ -15,9 +15,9 @@ export interface ServiceArea {
  */
 export const SERVICE_AREAS: ServiceArea[] = [
   { name: 'Fourways', lat: -26.0274, lng: 28.0106, radius: 5 }, // 5km radius
-  { name: 'Sandton', lat: -26.1070, lng: 28.0567, radius: 6 },
+  // { name: 'Sandton', lat: -26.1070, lng: 28.0567, radius: 6 },
   { name: 'North Riding', lat: -26.0469, lng: 27.9510, radius: 4 },
-  { name: 'Roodepoort', lat: -26.1625, lng: 27.8727, radius: 7 }
+  // { name: 'Roodepoort', lat: -26.1625, lng: 27.8727, radius: 7 }
 ];
 
 /**

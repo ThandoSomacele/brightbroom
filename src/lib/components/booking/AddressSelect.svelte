@@ -74,7 +74,7 @@
   // Handle out of service area notification
   function handleOutOfServiceArea(event: CustomEvent<{ address: string }>) {
     const address = event.detail.address;
-    serviceAreaError = `Sorry, "${address}" is outside our current service areas. We currently serve Fourways, Sandton, North Riding AH, and Roodepoort in Gauteng.`;
+    serviceAreaError = `Sorry, "${address}" is outside our current service areas. We currently serve Fourways, North Riding AH in Gauteng.`;
   }
 
   // Save new address
