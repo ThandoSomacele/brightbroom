@@ -1,51 +1,70 @@
 <!-- src/routes/profile/addresses/+page.svelte -->
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
-  import { Edit, MapPin, Plus, Star, Trash2, AlertTriangle, Info } from "lucide-svelte";
+  import DeleteAddressModal from "$lib/components/addresses/DeleteAddressModal.svelte";
+  import { Edit, MapPin, Plus, Star, Trash2, AlertTriangle, Info, CheckCircle } from "lucide-svelte";
   import { enhance } from "$app/forms";
+  import { page } from "$app/stores";
+  import { fly, fade } from "svelte/transition";
+  import { onMount } from "svelte";
 
   export let data;
   export let form; // For form result handling
-  const { addresses, maxAddresses, hasReachedLimit, error: pageError } = data;
+  const { addresses, maxAddresses, hasReachedLimit, error: pageError, success: pageSuccess } = data;
 
   // State for delete confirmation
-  let showDeleteModal = false;
-  let addressToDelete = null;
-  let isDeleting = false;
+  let deleteModal = {
+    isOpen: false,
+    addressToDelete: null,
+    isProcessing: false,
+    hasBookings: false // We'll set this based on our check later
+  };
+
+  // Success notification
+  let showSuccessNotification = false;
+  let successMessage = "";
+  
+  onMount(() => {
+    // Show success notification if we have a success message from the URL
+    if (pageSuccess) {
+      successMessage = pageSuccess;
+      showSuccessNotification = true;
+      
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        showSuccessNotification = false;
+      }, 5000);
+    }
+  });
 
   // Function to show delete confirmation
-  function confirmDelete(id) {
-    addressToDelete = id;
-    showDeleteModal = true;
+  async function confirmDelete(address) {
+    // Check if this address has bookings by making a quick API call
+    try {
+      const response = await fetch(`/api/addresses/${address.id}/has-bookings`);
+      const data = await response.json();
+      
+      deleteModal = {
+        isOpen: true,
+        addressToDelete: address,
+        isProcessing: false,
+        hasBookings: data.hasBookings
+      };
+    } catch (error) {
+      console.error("Error checking bookings:", error);
+      // Fallback to showing the modal without booking info
+      deleteModal = {
+        isOpen: true,
+        addressToDelete: address,
+        isProcessing: false,
+        hasBookings: false
+      };
+    }
   }
 
-  // Function to handle address deletion
-  async function deleteAddress() {
-    if (!addressToDelete) return;
-
-    isDeleting = true;
-
-    const form = new FormData();
-    form.append("addressId", addressToDelete);
-
-    try {
-      const response = await fetch(`?/deleteAddress`, {
-        method: "POST",
-        body: form,
-      });
-
-      if (response.ok) {
-        // Close modal and refresh page
-        showDeleteModal = false;
-        window.location.reload();
-      } else {
-        console.error("Failed to delete address");
-      }
-    } catch (error) {
-      console.error("Error deleting address:", error);
-    } finally {
-      isDeleting = false;
-    }
+  // Function to close delete modal
+  function closeDeleteModal() {
+    deleteModal.isOpen = false;
   }
 
   // Function to set an address as default
@@ -60,12 +79,63 @@
       });
 
       if (response.ok) {
+        // Show success notification
+        successMessage = "Default address updated successfully";
+        showSuccessNotification = true;
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+          showSuccessNotification = false;
+        }, 5000);
+        
+        // Refresh addresses without full page reload
+        const result = await response.json();
+        // TODO: Update addresses in the store instead of reloading
         window.location.reload();
       } else {
         console.error("Failed to set default address");
       }
     } catch (error) {
       console.error("Error setting default address:", error);
+    }
+  }
+  
+  // Function to handle address deletion
+  async function handleDeleteAddress({ id }) {
+    deleteModal.isProcessing = true;
+    
+    const form = new FormData();
+    form.append("addressId", id);
+
+    try {
+      const response = await fetch(`?/deleteAddress`, {
+        method: "POST",
+        body: form,
+      });
+
+      if (response.ok) {
+        // Close modal
+        deleteModal.isOpen = false;
+        
+        // Show success notification
+        successMessage = "Address deleted successfully";
+        showSuccessNotification = true;
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+          showSuccessNotification = false;
+        }, 5000);
+        
+        // Refresh addresses without full page reload
+        window.location.reload();
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to delete address:", errorData);
+      }
+    } catch (error) {
+      console.error("Error deleting address:", error);
+    } finally {
+      deleteModal.isProcessing = false;
     }
   }
 </script>
@@ -96,6 +166,19 @@
         My Addresses
       </h1>
     </div>
+
+    <!-- Success notification -->
+    {#if showSuccessNotification}
+      <div 
+        transition:fly={{ y: -20, duration: 300 }}
+        class="fixed top-4 right-4 z-50 flex items-start rounded-lg bg-green-50 p-4 shadow-md dark:bg-green-900/30"
+      >
+        <CheckCircle class="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-green-500 dark:text-green-400" />
+        <div>
+          <p class="text-green-800 dark:text-green-200">{successMessage}</p>
+        </div>
+      </div>
+    {/if}
 
     <!-- Form feedback messages -->
     {#if form?.success}
@@ -131,70 +214,14 @@
     </div>
 
     <!-- Delete confirmation modal -->
-    {#if showDeleteModal}
-      <div
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-        on:click|self={() => (showDeleteModal = false)}
-        on:keydown={(e) => e.key === "Escape" && (showDeleteModal = false)}
-        role="presentation"
-      >
-        <div
-          class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6"
-          role="dialog"
-          aria-modal="true"
-        >
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            Confirm Deletion
-          </h3>
-          <p class="text-gray-600 dark:text-gray-300 mb-6">
-            Are you sure you want to delete this address? This action cannot be
-            undone.
-          </p>
-
-          <div class="flex justify-end space-x-3">
-            <Button
-              variant="outline"
-              on:click={() => (showDeleteModal = false)}
-            >
-              Cancel
-            </Button>
-
-            <Button
-              variant="primary"
-              class="!bg-red-600 hover:!bg-red-700 dark:!bg-red-700 dark:hover:!bg-red-800"
-              disabled={isDeleting}
-              on:click={deleteAddress}
-            >
-              {#if isDeleting}
-                <svg
-                  class="animate-spin h-4 w-4 mr-2"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  ></circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Deleting...
-              {:else}
-                Delete Address
-              {/if}
-            </Button>
-          </div>
-        </div>
-      </div>
-    {/if}
+    <DeleteAddressModal
+      address={deleteModal.addressToDelete}
+      isOpen={deleteModal.isOpen}
+      isProcessing={deleteModal.isProcessing}
+      hasBookings={deleteModal.hasBookings}
+      on:close={closeDeleteModal}
+      on:confirm={e => handleDeleteAddress(e.detail)}
+    />
 
     <!-- Add new address button -->
     <div class="mb-6">
@@ -287,7 +314,7 @@
                   variant="outline"
                   size="sm"
                   class="text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                  on:click={() => confirmDelete(address.id)}
+                  on:click={() => confirmDelete(address)}
                 >
                   <Trash2 size={16} class="mr-1" />
                   Delete

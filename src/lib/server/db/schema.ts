@@ -115,6 +115,7 @@ export const address = pgTable("address", {
   zipCode: text("zip_code").notNull(),
   instructions: text("instructions"),
   isDefault: boolean("is_default").default(false).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });

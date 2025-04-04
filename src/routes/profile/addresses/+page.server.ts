@@ -2,9 +2,9 @@
 import { MAX_ADDRESSES } from "$lib/constants/address";
 import { db } from "$lib/server/db";
 import { address } from "$lib/server/db/schema";
-import { addressService } from "$lib/server/services/address.service"; // Add this import
+import { addressService } from "$lib/server/services/address.service";
 import { error, fail, redirect } from "@sveltejs/kit";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals, url }) => {
@@ -14,12 +14,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   }
 
   try {
-    // Get the user's addresses
-    const addresses = await db
-      .select()
-      .from(address)
-      .where(eq(address.userId, locals.user.id))
-      .orderBy(address.isDefault, { direction: "desc" }); // Default addresses first
+    // Get the user's active addresses (excludes soft-deleted addresses)
+    const addresses = await addressService.getUserAddresses(locals.user.id);
 
     // Check if there's an error parameter in the URL
     const errorMessage = url.searchParams.get("error");
@@ -29,9 +25,20 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       error = `You have reached the maximum limit of ${MAX_ADDRESSES} addresses. Please delete an existing address before adding a new one.`;
     }
 
+    // Check if there's a success message
+    const successMessage = url.searchParams.get("success");
+    let success = null;
+    
+    if (successMessage === "deleted") {
+      success = "Address was successfully deleted.";
+    } else if (successMessage === "default_updated") {
+      success = "Default address was updated successfully.";
+    }
+
     return {
       addresses,
       error,
+      success,
       maxAddresses: MAX_ADDRESSES,
       hasReachedLimit: addresses.length >= MAX_ADDRESSES,
     };
@@ -92,6 +99,7 @@ export const actions: Actions = {
     }
 
     try {
+      // Use our improved deleteAddress method which handles soft deletion
       const result = await addressService.deleteAddress(
         locals.user.id,
         addressId,

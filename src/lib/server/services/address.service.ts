@@ -9,31 +9,42 @@ import { and, eq, ne } from "drizzle-orm";
  */
 export const addressService = {
   /**
-   * Get all addresses for a user
+   * Get all active addresses for a user
    */
   async getUserAddresses(
     userId: string,
+    includeInactive: boolean = false
   ): Promise<(typeof address.$inferSelect)[]> {
     try {
-      return await db
+      let query = db
         .select()
         .from(address)
-        .where(eq(address.userId, userId))
-        .orderBy(address.isDefault, { direction: "desc" });
+        .where(eq(address.userId, userId));
+        
+      // Only include active addresses unless specifically requested
+      if (!includeInactive) {
+        query = query.where(eq(address.isActive, true));
+      }
+        
+      return await query.orderBy(address.isDefault, { direction: "desc" });
     } catch (error) {
       console.error("Error fetching user addresses:", error);
       return [];
     }
   },
+
   /**
-   * Count user's addresses
+   * Count user's active addresses
    */
   async countUserAddresses(userId: string): Promise<number> {
     try {
       const result = await db
         .select({ count: db.fn.count() })
         .from(address)
-        .where(eq(address.userId, userId));
+        .where(and(
+          eq(address.userId, userId),
+          eq(address.isActive, true)
+        ));
 
       return Number(result[0].count) || 0;
     } catch (error) {
@@ -64,7 +75,10 @@ export const addressService = {
       let query = db
         .update(address)
         .set({ isDefault: false })
-        .where(eq(address.userId, userId));
+        .where(and(
+          eq(address.userId, userId),
+          eq(address.isActive, true) // Only update active addresses
+        ));
 
       // If we have an addressId, exclude it from the update
       if (addressId) {
@@ -118,6 +132,7 @@ export const addressService = {
           id: addressId,
           userId,
           ...addressData,
+          isActive: true,
           createdAt: new Date(),
           updatedAt: new Date(),
         })
@@ -147,11 +162,15 @@ export const addressService = {
     },
   ): Promise<typeof address.$inferSelect | null> {
     try {
-      // Verify the address belongs to this user
+      // Verify the address belongs to this user and is active
       const [existingAddress] = await db
         .select()
         .from(address)
-        .where(and(eq(address.id, addressId), eq(address.userId, userId)))
+        .where(and(
+          eq(address.id, addressId), 
+          eq(address.userId, userId),
+          eq(address.isActive, true)
+        ))
         .limit(1);
 
       if (!existingAddress) {
@@ -199,11 +218,15 @@ export const addressService = {
     addressId: string,
   ): Promise<typeof address.$inferSelect | null> {
     try {
-      // First verify the address belongs to this user
+      // First verify the address belongs to this user and is active
       const [existingAddress] = await db
         .select()
         .from(address)
-        .where(and(eq(address.id, addressId), eq(address.userId, userId)))
+        .where(and(
+          eq(address.id, addressId), 
+          eq(address.userId, userId),
+          eq(address.isActive, true)
+        ))
         .limit(1);
 
       if (!existingAddress) {
@@ -228,7 +251,96 @@ export const addressService = {
   },
 
   /**
-   * Delete an address
+   * Get an address by ID
+   */
+  async getAddressById(
+    addressId: string,
+    includeInactive: boolean = false
+  ): Promise<(typeof address.$inferSelect) | null> {
+    try {
+      let query = db
+        .select()
+        .from(address)
+        .where(eq(address.id, addressId));
+
+      // Only include active addresses unless specifically requested
+      if (!includeInactive) {
+        query = query.where(eq(address.isActive, true));
+      }
+
+      const [result] = await query.limit(1);
+      return result || null;
+    } catch (error) {
+      console.error("Error getting address by ID:", error);
+      return null;
+    }
+  },
+
+  /**
+   * Soft delete an address by marking it as inactive
+   * This preserves the address for bookings but hides it from user selection
+   */
+  async softDeleteAddress(
+    userId: string,
+    addressId: string,
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Verify the address belongs to this user and is active
+      const [existingAddress] = await db
+        .select()
+        .from(address)
+        .where(and(
+          eq(address.id, addressId), 
+          eq(address.userId, userId),
+          eq(address.isActive, true)
+        ))
+        .limit(1);
+
+      if (!existingAddress) {
+        return { success: false, error: "Address not found" };
+      }
+
+      // If this is the default address, we need to set another address as default
+      if (existingAddress.isDefault) {
+        // Find another active address to set as default
+        const [otherAddress] = await db
+          .select()
+          .from(address)
+          .where(and(
+            eq(address.userId, userId),
+            ne(address.id, addressId),
+            eq(address.isActive, true)
+          ))
+          .limit(1);
+
+        if (otherAddress) {
+          await this.setDefaultAddress(userId, otherAddress.id);
+        }
+      }
+
+      // Mark the address as inactive (soft delete)
+      await db
+        .update(address)
+        .set({ 
+          isActive: false, 
+          isDefault: false, // Ensure it's not default anymore
+          updatedAt: new Date() 
+        })
+        .where(eq(address.id, addressId));
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error soft-deleting address:", error);
+      return {
+        success: false,
+        error: "Failed to delete address due to a server error.",
+      };
+    }
+  },
+
+  /**
+   * Delete an address (hard delete)
+   * Only allowed if the address is not associated with any bookings
    */
   async deleteAddress(
     userId: string,
@@ -239,7 +351,10 @@ export const addressService = {
       const [existingAddress] = await db
         .select()
         .from(address)
-        .where(and(eq(address.id, addressId), eq(address.userId, userId)))
+        .where(and(
+          eq(address.id, addressId),
+          eq(address.userId, userId)
+        ))
         .limit(1);
 
       if (!existingAddress) {
@@ -254,14 +369,11 @@ export const addressService = {
         .limit(1);
 
       if (bookings.length > 0) {
-        return {
-          success: false,
-          error:
-            "This address cannot be deleted because it is associated with one or more bookings. Please use a different address for your bookings first.",
-        };
+        // Instead of preventing deletion, soft delete it
+        return await this.softDeleteAddress(userId, addressId);
       }
 
-      // Delete the address
+      // If no bookings reference this address, perform hard delete
       await db.delete(address).where(eq(address.id, addressId));
 
       return { success: true };
@@ -272,5 +384,8 @@ export const addressService = {
         error: "Failed to delete address due to a server error.",
       };
     }
-  },
+  }
 };
+
+// Export MAX_ADDRESSES for convenience
+export { MAX_ADDRESSES };
