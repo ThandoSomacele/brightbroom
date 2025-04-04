@@ -1,16 +1,23 @@
 // src/routes/profile/addresses/new/+page.server.ts
-import { addressService } from '$lib/server/services/address.service';
+import { addressService, MAX_ADDRESSES } from '$lib/server/services/address.service';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
   // Check if user is logged in
   if (!locals.user) {
     throw redirect(302, '/auth/login?redirectTo=/profile/addresses/new');
   }
   
+  // Check if user has reached address limit
+  const hasReachedLimit = await addressService.hasReachedAddressLimit(locals.user.id);
+  if (hasReachedLimit) {
+    // Redirect to addresses page with error param
+    throw redirect(302, '/profile/addresses?error=limit_reached');
+  }
+  
   // Get redirect URL if it exists
-  const redirectTo = locals.redirectTo || '/profile/addresses';
+  const redirectTo = url.searchParams.get('redirectTo') || '/profile/addresses';
   
   return {
     redirectTo
@@ -18,10 +25,18 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-  default: async ({ request, locals, url }) => {
+  createAddress: async ({ request, locals, url }) => {
     // Check if user is logged in
     if (!locals.user) {
       throw redirect(302, '/auth/login');
+    }
+    
+    // Check if user has reached address limit
+    const hasReachedLimit = await addressService.hasReachedAddressLimit(locals.user.id);
+    if (hasReachedLimit) {
+      return fail(400, { 
+        error: `You have reached the maximum limit of ${MAX_ADDRESSES} addresses. Please delete an existing address before adding a new one.`,
+      });
     }
     
     // Process form data
@@ -66,8 +81,14 @@ export const actions: Actions = {
       throw redirect(303, redirectTo);
     } catch (err) {
       console.error('Error creating address:', err);
-      return fail(500, { 
-        error: 'Failed to create address',
+      
+      // Check if this is a limit error
+      const errorMessage = err instanceof Error && err.message.includes('Maximum limit') 
+        ? err.message 
+        : 'Failed to create address';
+      
+      return fail(400, { 
+        error: errorMessage,
         values: { street, aptUnit, city, state, zipCode, instructions, isDefault, redirectTo }
       });
     }

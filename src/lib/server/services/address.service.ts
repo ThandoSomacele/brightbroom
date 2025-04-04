@@ -3,10 +3,51 @@ import { db } from '$lib/server/db';
 import { address } from '$lib/server/db/schema';
 import { and, eq, ne } from 'drizzle-orm';
 
+// Maximum allowed addresses per user
+export const MAX_ADDRESSES = 3;
+
 /**
  * Service for managing user addresses
  */
 export const addressService = {
+  /**
+   * Get all addresses for a user
+   */
+  async getUserAddresses(userId: string): Promise<typeof address.$inferSelect[]> {
+    try {
+      return await db.select()
+        .from(address)
+        .where(eq(address.userId, userId))
+        .orderBy(address.isDefault, { direction: 'desc' });
+    } catch (error) {
+      console.error('Error fetching user addresses:', error);
+      return [];
+    }
+  },
+  /**
+   * Count user's addresses
+   */
+  async countUserAddresses(userId: string): Promise<number> {
+    try {
+      const result = await db.select({ count: db.fn.count() })
+        .from(address)
+        .where(eq(address.userId, userId));
+      
+      return Number(result[0].count) || 0;
+    } catch (error) {
+      console.error('Error counting user addresses:', error);
+      return 0;
+    }
+  },
+
+  /**
+   * Check if user has reached address limit
+   */
+  async hasReachedAddressLimit(userId: string): Promise<boolean> {
+    const count = await this.countUserAddresses(userId);
+    return count >= MAX_ADDRESSES;
+  },
+
   /**
    * Ensures only one address is set as default for a user
    * @param userId The user ID
@@ -47,6 +88,12 @@ export const addressService = {
     isDefault?: boolean;
   }): Promise<typeof address.$inferSelect> {
     try {
+      // Check if user has reached the address limit
+      const hasReachedLimit = await this.hasReachedAddressLimit(userId);
+      if (hasReachedLimit) {
+        throw new Error(`Maximum limit of ${MAX_ADDRESSES} addresses reached`);
+      }
+
       // If this address will be default, update other addresses first
       if (addressData.isDefault) {
         await this.ensureSingleDefaultAddress(userId);
@@ -121,8 +168,7 @@ export const addressService = {
       
       console.error('Error updating address:', error);
       throw error;
-  }
-
+    }
   },
   
   /**

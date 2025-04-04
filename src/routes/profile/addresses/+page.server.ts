@@ -1,12 +1,12 @@
 // src/routes/profile/addresses/+page.server.ts
 import { db } from '$lib/server/db';
 import { address } from '$lib/server/db/schema';
-import { addressService } from '$lib/server/services/address.service';
+import { addressService, MAX_ADDRESSES } from '$lib/server/services/address.service';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
   // Check if user is logged in
   if (!locals.user) {
     throw redirect(302, '/auth/login?redirectTo=/profile/addresses');
@@ -19,8 +19,19 @@ export const load: PageServerLoad = async ({ locals }) => {
       .where(eq(address.userId, locals.user.id))
       .orderBy(address.isDefault, { direction: 'desc' }); // Default addresses first
     
+    // Check if there's an error parameter in the URL
+    const errorMessage = url.searchParams.get('error');
+    let error = null;
+    
+    if (errorMessage === 'limit_reached') {
+      error = `You have reached the maximum limit of ${MAX_ADDRESSES} addresses. Please delete an existing address before adding a new one.`;
+    }
+    
     return {
-      addresses
+      addresses,
+      error,
+      maxAddresses: MAX_ADDRESSES,
+      hasReachedLimit: addresses.length >= MAX_ADDRESSES
     };
   } catch (err) {
     console.error('Error loading addresses:', err);

@@ -4,7 +4,10 @@ import {
   isWithinServiceArea,
   SERVICE_AREAS,
 } from "$lib/utils/serviceAreaValidator";
-import { derived, writable } from "svelte/store";
+import { derived, writable, get } from "svelte/store";
+
+// Maximum addresses constant
+export const MAX_ADDRESSES = 3;
 
 // Define address types
 export interface AddressInput {
@@ -123,6 +126,14 @@ function createAddressStore() {
     },
 
     /**
+     * Check if user has reached address limit
+     */
+    hasReachedAddressLimit: () => {
+      const state = get({ subscribe });
+      return state.savedAddresses.length >= MAX_ADDRESSES;
+    },
+
+    /**
      * Save the current address to the user's saved addresses
      */
     saveCurrentAddress: async (
@@ -130,6 +141,15 @@ function createAddressStore() {
       instructions?: string,
       isDefault?: boolean,
     ) => {
+      // Check if user has reached address limit
+      if (get({ subscribe }).savedAddresses.length >= MAX_ADDRESSES) {
+        update(state => ({
+          ...state,
+          error: `You have reached the maximum limit of ${MAX_ADDRESSES} addresses. Please delete an existing address before adding a new one.`
+        }));
+        return null;
+      }
+
       // First capture the current state before beginning the async operation
       let currentServiceAreaEnabled: boolean;
 
@@ -168,7 +188,8 @@ function createAddressStore() {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to save address");
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to save address");
         }
 
         const data = await response.json();
@@ -256,6 +277,11 @@ export const isServiceAvailable = derived(addressStore, ($addressStore) => {
     $addressStore.currentAddress.lat,
     $addressStore.currentAddress.lng,
   );
+});
+
+// Derived store to check if user has reached address limit
+export const hasReachedAddressLimit = derived(addressStore, ($addressStore) => {
+  return $addressStore.savedAddresses.length >= MAX_ADDRESSES;
 });
 
 // Export service areas for reference

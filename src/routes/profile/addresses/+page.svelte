@@ -1,12 +1,12 @@
 <!-- src/routes/profile/addresses/+page.svelte -->
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
-  import { Edit, MapPin, Plus, Star, Trash2 } from "lucide-svelte";
+  import { Edit, MapPin, Plus, Star, Trash2, AlertTriangle, Info } from "lucide-svelte";
   import { enhance } from "$app/forms";
 
   export let data;
-  export let form; // This was missing in your original code
-  const { addresses } = data;
+  export let form; // For form result handling
+  const { addresses, maxAddresses, hasReachedLimit, error: pageError } = data;
 
   // State for delete confirmation
   let showDeleteModal = false;
@@ -106,13 +106,29 @@
       </div>
     {/if}
 
-    {#if form?.error}
+    {#if form?.error || pageError}
       <div
-        class="mb-6 rounded-md bg-red-50 p-4 text-red-600 dark:bg-red-900/20 dark:text-red-200"
+        class="mb-6 rounded-md bg-red-50 p-4 text-red-600 dark:bg-red-900/20 dark:text-red-200 flex items-start"
       >
-        <p>{form.error}</p>
+        <AlertTriangle class="h-5 w-5 mt-0.5 mr-2 flex-shrink-0" />
+        <p>{form?.error || pageError}</p>
       </div>
     {/if}
+
+    <!-- Address count and limit info -->
+    <div class="mb-4 bg-blue-50 p-4 rounded-lg dark:bg-blue-900/20 flex items-start">
+      <Info class="h-5 w-5 mt-0.5 mr-2 flex-shrink-0 text-blue-500 dark:text-blue-400" />
+      <div>
+        <p class="text-blue-800 dark:text-blue-300">
+          You are using <span class="font-semibold">{addresses.length}</span> of <span class="font-semibold">{maxAddresses}</span> available address slots.
+        </p>
+        {#if hasReachedLimit}
+          <p class="text-sm text-blue-700 dark:text-blue-400 mt-1">
+            To add a new address, you must first delete an existing one.
+          </p>
+        {/if}
+      </div>
+    </div>
 
     <!-- Delete confirmation modal -->
     {#if showDeleteModal}
@@ -182,10 +198,17 @@
 
     <!-- Add new address button -->
     <div class="mb-6">
-      <Button variant="primary" href="/profile/addresses/new">
-        <Plus size={18} class="mr-2" />
-        Add New Address
-      </Button>
+      {#if hasReachedLimit}
+        <Button variant="primary" disabled={true} title="You have reached the maximum limit of addresses">
+          <Plus size={18} class="mr-2" />
+          Add New Address (Limit Reached)
+        </Button>
+      {:else}
+        <Button variant="primary" href="/profile/addresses/new">
+          <Plus size={18} class="mr-2" />
+          Add New Address ({maxAddresses - addresses.length} remaining)
+        </Button>
+      {/if}
     </div>
 
     <!-- Addresses list -->
