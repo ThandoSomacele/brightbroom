@@ -3,7 +3,8 @@
   import { goto } from '$app/navigation';
   import Button from '$lib/components/ui/Button.svelte';
   import AddressSelect from '$lib/components/booking/AddressSelect.svelte';
-  import { ArrowRight, ArrowLeft } from 'lucide-svelte';
+  import { ArrowRight, ArrowLeft, AlertTriangle, Info, Plus } from 'lucide-svelte';
+  import { MAX_ADDRESSES } from '$lib/server/services/address.service';
   
   // Get data from the server load function
   export let data;
@@ -19,6 +20,10 @@
   // Get service from localStorage
   let selectedService = '';
   
+  // Calculate if user has reached address limit
+  $: hasReachedLimit = addresses.length >= MAX_ADDRESSES;
+  $: remainingAddresses = Math.max(0, MAX_ADDRESSES - addresses.length);
+  
   // Initialize data from localStorage on mount
   import { onMount } from 'svelte';
   
@@ -30,7 +35,7 @@
       goto('/book');
     }
     
-    // Add this: Check URL for a 'loading' parameter that might be set during redirect
+    // Check URL for a 'loading' parameter that might be set during redirect
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('loading') === 'true') {
       isLoading = true;
@@ -77,6 +82,12 @@
   function goToPrevious() {
     isLoading = true;
     goto('/book');
+  }
+  
+  // Go to manage addresses page
+  function goToManageAddresses() {
+    isLoading = true;
+    goto('/profile/addresses?redirectTo=/book/address');
   }
 </script>
 
@@ -175,6 +186,42 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Address limit information -->
+    <div class="mb-6 bg-blue-50 p-4 rounded-lg dark:bg-blue-900/20 flex items-start">
+      <Info class="h-5 w-5 mt-0.5 mr-2 flex-shrink-0 text-blue-500 dark:text-blue-400" />
+      <div>
+        <p class="text-blue-800 dark:text-blue-300">
+          You are using <span class="font-semibold">{addresses.length}</span> of <span class="font-semibold">{MAX_ADDRESSES}</span> available address slots.
+        </p>
+        {#if hasReachedLimit}
+          <p class="text-sm text-blue-700 dark:text-blue-400 mt-1">
+            To add a new address, you must first delete an existing one.
+          </p>
+        {/if}
+      </div>
+    </div>
+
+    <!-- Add new address button -->
+    <div class="mb-6">
+      {#if hasReachedLimit}
+        <div class="flex flex-col sm:flex-row gap-3">
+          <Button variant="primary" disabled={true} title="You have reached the maximum limit of addresses" class="w-full sm:w-auto">
+            <Plus size={18} class="mr-2" />
+            Add New Address (Limit Reached)
+          </Button>
+          
+          <Button variant="secondary" on:click={goToManageAddresses} class="w-full sm:w-auto">
+            Manage My Addresses
+          </Button>
+        </div>
+      {:else}
+        <Button variant="primary" href="/profile/addresses/new?redirectTo=/book/address" class="w-full sm:w-auto">
+          <Plus size={18} class="mr-2" />
+          Add New Address ({remainingAddresses} remaining)
+        </Button>
+      {/if}
     </div>
 
     <!-- Address selection with Google Maps integration -->

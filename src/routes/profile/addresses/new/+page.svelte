@@ -4,7 +4,7 @@
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
-  import { ArrowLeft, MapPin } from "lucide-svelte";
+  import { AlertTriangle, ArrowLeft, MapPin } from "lucide-svelte";
 
   // Get form data if there's an error
   export let form;
@@ -78,6 +78,23 @@
         class="mb-6 rounded-md bg-red-50 p-4 text-red-600 dark:bg-red-900/20 dark:text-red-200"
       >
         <p>{form.error}</p>
+      </div>
+    {/if}
+
+    {#if data.maxAddresses && data.addresses?.length >= data.maxAddresses - 1}
+      <div
+        class="mb-6 bg-yellow-50 p-4 rounded-lg dark:bg-yellow-900/20 flex items-start"
+      >
+        <AlertTriangle
+          class="h-5 w-5 mt-0.5 mr-2 flex-shrink-0 text-yellow-500 dark:text-yellow-400"
+        />
+        <div>
+          <p class="text-yellow-800 dark:text-yellow-300">
+            {data.addresses?.length === data.maxAddresses - 1
+              ? `This will be your last available address slot. You are limited to ${data.maxAddresses} total addresses.`
+              : `You have reached the maximum limit of ${data.maxAddresses} addresses. To add a new address, you must first delete an existing one.`}
+          </p>
+        </div>
       </div>
     {/if}
 

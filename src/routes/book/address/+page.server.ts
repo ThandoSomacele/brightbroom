@@ -1,7 +1,8 @@
 // src/routes/book/address/+page.server.ts
 import { db } from '$lib/server/db';
 import { address } from '$lib/server/db/schema';
-import { error, redirect } from '@sveltejs/kit';
+import { MAX_ADDRESSES } from '$lib/server/services/address.service';
+import { redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
@@ -19,10 +20,18 @@ export const load: PageServerLoad = async ({ locals }) => {
       .orderBy(address.isDefault, { direction: 'desc' });
     
     return {
-      addresses
+      addresses,
+      maxAddresses: MAX_ADDRESSES,
+      hasReachedLimit: addresses.length >= MAX_ADDRESSES,
+      remainingAddresses: Math.max(0, MAX_ADDRESSES - addresses.length)
     };
   } catch (err) {
     console.error('Error loading addresses:', err);
-    throw error(500, 'Failed to load addresses');
+    return {
+      addresses: [],
+      maxAddresses: MAX_ADDRESSES,
+      hasReachedLimit: false,
+      remainingAddresses: MAX_ADDRESSES
+    };
   }
 };

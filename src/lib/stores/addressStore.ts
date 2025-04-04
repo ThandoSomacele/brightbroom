@@ -4,7 +4,7 @@ import {
   isWithinServiceArea,
   SERVICE_AREAS,
 } from "$lib/utils/serviceAreaValidator";
-import { derived, writable, get } from "svelte/store";
+import { derived, get, writable } from "svelte/store";
 
 // Maximum addresses constant
 export const MAX_ADDRESSES = 3;
@@ -126,6 +126,19 @@ function createAddressStore() {
     },
 
     /**
+     * Get information about address limits
+     */
+    getAddressLimitInfo: () => {
+      const state = get({ subscribe });
+      return {
+        current: state.savedAddresses.length,
+        max: MAX_ADDRESSES,
+        remaining: Math.max(0, MAX_ADDRESSES - state.savedAddresses.length),
+        hasReachedLimit: state.savedAddresses.length >= MAX_ADDRESSES,
+      };
+    },
+
+    /**
      * Check if user has reached address limit
      */
     hasReachedAddressLimit: () => {
@@ -143,9 +156,9 @@ function createAddressStore() {
     ) => {
       // Check if user has reached address limit
       if (get({ subscribe }).savedAddresses.length >= MAX_ADDRESSES) {
-        update(state => ({
+        update((state) => ({
           ...state,
-          error: `You have reached the maximum limit of ${MAX_ADDRESSES} addresses. Please delete an existing address before adding a new one.`
+          error: `You have reached the maximum limit of ${MAX_ADDRESSES} addresses. Please delete an existing address before adding a new one.`,
         }));
         return null;
       }
