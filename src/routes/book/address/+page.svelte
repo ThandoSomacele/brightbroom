@@ -6,29 +6,29 @@
   import { MAX_ADDRESSES } from "$lib/constants/address";
   import { ArrowLeft, ArrowRight, Info, Plus } from "lucide-svelte";
   import { onMount } from "svelte";
-  
+
   // Get data from the server
   export let data;
-  
+
   // Extract data from the server
   const { addresses, maxAddresses, hasReachedLimit, remainingAddresses } = data;
-  
+
   // Local state variables
   let selectedAddress = ""; // This was missing!
   let accessInstructions = "";
   let isLoading = false;
   let selectedService = "";
-  
+
   // Initialize data from localStorage on mount
   onMount(() => {
     // Rest of your code remains the same
     selectedService = localStorage.getItem("booking_service") || "";
-    
+
     // If no service selected, go back to service selection
     if (!selectedService) {
       goto("/book");
     }
-    
+
     // Check URL for a 'loading' parameter that might be set during redirect
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("loading") === "true") {
@@ -166,12 +166,12 @@
     <!-- Add new address button -->
     <div class="mb-6">
       {#if hasReachedLimit}
-        <div class="flex flex-col sm:flex-row gap-3">
+        <div class="flex sm:flex-row gap-3">
           <Button
             variant="primary"
             disabled={true}
             title="You have reached the maximum limit of addresses"
-            class="w-full sm:w-auto"
+            class="w-full sm:w-auto flex"
           >
             <Plus size={18} class="mr-2" />
             Add New Address (Limit Reached)
