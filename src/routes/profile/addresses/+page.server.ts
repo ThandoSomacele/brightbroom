@@ -2,6 +2,7 @@
 import { MAX_ADDRESSES } from "$lib/constants/address";
 import { db } from "$lib/server/db";
 import { address } from "$lib/server/db/schema";
+import { addressService } from "$lib/server/services/address.service"; // Add this import
 import { error, fail, redirect } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
@@ -91,15 +92,13 @@ export const actions: Actions = {
     }
 
     try {
-      const success = await addressService.deleteAddress(
+      const result = await addressService.deleteAddress(
         locals.user.id,
         addressId,
       );
 
-      if (!success) {
-        return fail(404, {
-          error: "Address not found or could not be deleted",
-        });
+      if (!result.success) {
+        return fail(400, { error: result.error });
       }
 
       return {

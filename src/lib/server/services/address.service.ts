@@ -1,8 +1,8 @@
 // src/lib/server/services/address.service.ts
-import { MAX_ADDRESSES } from '$lib/constants/address';
-import { db } from '$lib/server/db';
-import { address } from '$lib/server/db/schema';
-import { and, eq, ne } from 'drizzle-orm';
+import { MAX_ADDRESSES } from "$lib/constants/address";
+import { db } from "$lib/server/db";
+import { address, booking } from "$lib/server/db/schema";
+import { and, eq, ne } from "drizzle-orm";
 
 /**
  * Service for managing user addresses
@@ -11,14 +11,17 @@ export const addressService = {
   /**
    * Get all addresses for a user
    */
-  async getUserAddresses(userId: string): Promise<typeof address.$inferSelect[]> {
+  async getUserAddresses(
+    userId: string,
+  ): Promise<(typeof address.$inferSelect)[]> {
     try {
-      return await db.select()
+      return await db
+        .select()
         .from(address)
         .where(eq(address.userId, userId))
-        .orderBy(address.isDefault, { direction: 'desc' });
+        .orderBy(address.isDefault, { direction: "desc" });
     } catch (error) {
-      console.error('Error fetching user addresses:', error);
+      console.error("Error fetching user addresses:", error);
       return [];
     }
   },
@@ -27,13 +30,14 @@ export const addressService = {
    */
   async countUserAddresses(userId: string): Promise<number> {
     try {
-      const result = await db.select({ count: db.fn.count() })
+      const result = await db
+        .select({ count: db.fn.count() })
         .from(address)
         .where(eq(address.userId, userId));
-      
+
       return Number(result[0].count) || 0;
     } catch (error) {
-      console.error('Error counting user addresses:', error);
+      console.error("Error counting user addresses:", error);
       return 0;
     }
   },
@@ -51,24 +55,30 @@ export const addressService = {
    * @param userId The user ID
    * @param addressId Optional address ID to exclude from update (the one to be set as default)
    */
-  async ensureSingleDefaultAddress(userId: string, addressId?: string): Promise<void> {
+  async ensureSingleDefaultAddress(
+    userId: string,
+    addressId?: string,
+  ): Promise<void> {
     try {
       // Build the query to update all addresses except the one being set as default
-      let query = db.update(address)
+      let query = db
+        .update(address)
         .set({ isDefault: false })
         .where(eq(address.userId, userId));
-      
+
       // If we have an addressId, exclude it from the update
       if (addressId) {
         query = query.where(ne(address.id, addressId));
       }
-      
+
       // Execute the update
       await query;
-      
-      console.log(`Updated default status for user ${userId}, new default: ${addressId || 'none'}`);
+
+      console.log(
+        `Updated default status for user ${userId}, new default: ${addressId || "none"}`,
+      );
     } catch (error) {
-      console.error('Error ensuring single default address:', error);
+      console.error("Error ensuring single default address:", error);
       throw error;
     }
   },
@@ -76,15 +86,18 @@ export const addressService = {
   /**
    * Create a new address for a user
    */
-  async createAddress(userId: string, addressData: {
-    street: string;
-    aptUnit?: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    instructions?: string;
-    isDefault?: boolean;
-  }): Promise<typeof address.$inferSelect> {
+  async createAddress(
+    userId: string,
+    addressData: {
+      street: string;
+      aptUnit?: string;
+      city: string;
+      state: string;
+      zipCode: string;
+      instructions?: string;
+      isDefault?: boolean;
+    },
+  ): Promise<typeof address.$inferSelect> {
     try {
       // Check if user has reached the address limit
       const hasReachedLimit = await this.hasReachedAddressLimit(userId);
@@ -99,19 +112,20 @@ export const addressService = {
 
       // Create the new address
       const addressId = crypto.randomUUID();
-      const [newAddress] = await db.insert(address)
+      const [newAddress] = await db
+        .insert(address)
         .values({
           id: addressId,
           userId,
           ...addressData,
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .returning();
-      
+
       return newAddress;
     } catch (error) {
-      console.error('Error creating address:', error);
+      console.error("Error creating address:", error);
       throw error;
     }
   },
@@ -119,86 +133,96 @@ export const addressService = {
   /**
    * Update an existing address
    */
-  async updateAddress(userId: string, addressId: string, addressData: {
-    street?: string;
-    aptUnit?: string | null;
-    city?: string;
-    state?: string;
-    zipCode?: string;
-    instructions?: string | null;
-    isDefault?: boolean;
-  }): Promise<typeof address.$inferSelect | null> {
+  async updateAddress(
+    userId: string,
+    addressId: string,
+    addressData: {
+      street?: string;
+      aptUnit?: string | null;
+      city?: string;
+      state?: string;
+      zipCode?: string;
+      instructions?: string | null;
+      isDefault?: boolean;
+    },
+  ): Promise<typeof address.$inferSelect | null> {
     try {
       // Verify the address belongs to this user
-      const [existingAddress] = await db.select()
+      const [existingAddress] = await db
+        .select()
         .from(address)
-        .where(and(
-          eq(address.id, addressId),
-          eq(address.userId, userId)
-        ))
+        .where(and(eq(address.id, addressId), eq(address.userId, userId)))
         .limit(1);
-      
+
       if (!existingAddress) {
         return null;
       }
-      
+
       // If setting as default, update other addresses first
       if (addressData.isDefault) {
         await this.ensureSingleDefaultAddress(userId, addressId);
       }
-      
+
       // Update the address
-      const [updatedAddress] = await db.update(address)
+      const [updatedAddress] = await db
+        .update(address)
         .set({
           ...addressData,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(address.id, addressId))
         .returning();
-      
+
       return updatedAddress;
     } catch (error) {
       // Check if the error is a redirect
-      if (error && typeof error === 'object' && 'status' in error && 'location' in error) {
-          // This is a redirect, not an error - rethrow it so the action handler can process it
-          throw error;
+      if (
+        error &&
+        typeof error === "object" &&
+        "status" in error &&
+        "location" in error
+      ) {
+        // This is a redirect, not an error - rethrow it so the action handler can process it
+        throw error;
       }
-      
-      console.error('Error updating address:', error);
+
+      console.error("Error updating address:", error);
       throw error;
     }
   },
-  
+
   /**
    * Set an address as the default
    */
-  async setDefaultAddress(userId: string, addressId: string): Promise<typeof address.$inferSelect | null> {
+  async setDefaultAddress(
+    userId: string,
+    addressId: string,
+  ): Promise<typeof address.$inferSelect | null> {
     try {
       // First verify the address belongs to this user
-      const [existingAddress] = await db.select()
+      const [existingAddress] = await db
+        .select()
         .from(address)
-        .where(and(
-          eq(address.id, addressId),
-          eq(address.userId, userId)
-        ))
+        .where(and(eq(address.id, addressId), eq(address.userId, userId)))
         .limit(1);
-      
+
       if (!existingAddress) {
         return null;
       }
-      
+
       // Update all other addresses to not be default
       await this.ensureSingleDefaultAddress(userId, addressId);
-      
+
       // Set this address as default
-      const [updatedAddress] = await db.update(address)
+      const [updatedAddress] = await db
+        .update(address)
         .set({ isDefault: true, updatedAt: new Date() })
         .where(eq(address.id, addressId))
         .returning();
-      
+
       return updatedAddress;
     } catch (error) {
-      console.error('Error setting default address:', error);
+      console.error("Error setting default address:", error);
       throw error;
     }
   },
@@ -206,29 +230,47 @@ export const addressService = {
   /**
    * Delete an address
    */
-  async deleteAddress(userId: string, addressId: string): Promise<boolean> {
+  async deleteAddress(
+    userId: string,
+    addressId: string,
+  ): Promise<{ success: boolean; error?: string }> {
     try {
       // Verify the address belongs to this user
-      const [existingAddress] = await db.select()
+      const [existingAddress] = await db
+        .select()
         .from(address)
-        .where(and(
-          eq(address.id, addressId),
-          eq(address.userId, userId)
-        ))
+        .where(and(eq(address.id, addressId), eq(address.userId, userId)))
         .limit(1);
-      
+
       if (!existingAddress) {
-        return false;
+        return { success: false, error: "Address not found" };
+      }
+
+      // Check if the address is used in any bookings
+      const bookings = await db
+        .select({ id: booking.id })
+        .from(booking)
+        .where(eq(booking.addressId, addressId))
+        .limit(1);
+
+      if (bookings.length > 0) {
+        return {
+          success: false,
+          error:
+            "This address cannot be deleted because it is associated with one or more bookings. Please use a different address for your bookings first.",
+        };
       }
 
       // Delete the address
-      await db.delete(address)
-        .where(eq(address.id, addressId));
-      
-      return true;
+      await db.delete(address).where(eq(address.id, addressId));
+
+      return { success: true };
     } catch (error) {
-      console.error('Error deleting address:', error);
-      return false;
+      console.error("Error deleting address:", error);
+      return {
+        success: false,
+        error: "Failed to delete address due to a server error.",
+      };
     }
-  }
+  },
 };
