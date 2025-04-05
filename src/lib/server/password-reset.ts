@@ -1,6 +1,7 @@
 // src/lib/server/password-reset.ts
 import { db } from './db';
 import { user, passwordResetToken } from './db/schema';
+import { PUBLIC_URL } from './env';
 import { eq } from 'drizzle-orm';
 import { randomBytes } from 'crypto';
 import { getPasswordResetTemplate, getPasswordResetConfirmationTemplate } from './email-templates';
@@ -13,7 +14,7 @@ import {
  * Email template configuration
  */
 const EMAIL_CONFIG = {
-  appUrl: process.env.PUBLIC_URL || "https://development--brightbroom.netlify.app",
+  appUrl: PUBLIC_URL || "https://development--brightbroom.netlify.app",
   brandName: 'BrightBroom',
   primaryColor: '#20C3AF',
   secondaryColor: '#C2511F'
