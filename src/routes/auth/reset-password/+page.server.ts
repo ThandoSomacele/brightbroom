@@ -13,6 +13,15 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 
   const token = url.searchParams.get("token");
 
+  // Skip token validation if we're coming back after successful submission
+  const justReset = url.searchParams.get("just_reset") === "true";
+  if (justReset) {
+    return {
+      token,
+      justReset: true,
+    };
+  }
+
   // Check if token is provided
   if (!token) {
     throw redirect(302, "/auth/forgot-password");
@@ -67,9 +76,11 @@ export const actions: Actions = {
         });
       }
 
-      // CHANGE: Redirect to login page after successful reset instead of just returning success
-      throw redirect(302, "/auth/login?reset=success");
-
+      // After successful reset
+      throw redirect(
+        302,
+        `/auth/reset-password?token=${token}&just_reset=true`,
+      );
       // Return success message
       return {
         success: true,
