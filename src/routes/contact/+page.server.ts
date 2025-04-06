@@ -1,4 +1,5 @@
 // src/routes/contact/+page.server.ts
+import { sendContactFormEmail } from "$lib/server/email-service";
 import { fail } from "@sveltejs/kit";
 import { z } from "zod";
 import type { Actions } from "./$types";
@@ -12,13 +13,13 @@ const contactSchema = z.object({
   subject: z.string().min(1, "Subject is required"),
   message: z.string().min(10, "Message must be at least 10 characters long"),
   referral: z.string().optional(),
-  joinAsCleaner: z.boolean().optional()
+  joinAsCleaner: z.boolean().optional(),
 });
 
 export const actions: Actions = {
   default: async ({ request }) => {
     const formData = await request.formData();
-    
+
     const firstName = formData.get("firstName")?.toString();
     const lastName = formData.get("lastName")?.toString();
     const email = formData.get("email")?.toString();
@@ -27,7 +28,7 @@ export const actions: Actions = {
     const message = formData.get("message")?.toString();
     const referral = formData.get("referral")?.toString() || undefined;
     const joinAsCleaner = formData.has("joinAsCleaner");
-    
+
     try {
       // Validate form data
       contactSchema.parse({
@@ -38,15 +39,11 @@ export const actions: Actions = {
         subject,
         message,
         referral,
-        joinAsCleaner
+        joinAsCleaner,
       });
-      
-      // In a real application, you would:
-      // 1. Store the message in your database
-      // 2. Send an email notification
-      // 3. Possibly set up an auto-responder
-      // For this example, we'll just log the data
-      console.log("Contact form submission:", {
+
+      // Create form data object
+      const contactFormData = {
         firstName,
         lastName,
         email,
@@ -54,27 +51,37 @@ export const actions: Actions = {
         subject,
         message,
         referral,
-        joinAsCleaner
-      });
-      
+        joinAsCleaner,
+      };
+
+      // Log the data (keep this for debugging)
+      console.log("Contact form submission:", contactFormData);
+
+      // Send email notification
+      const emailSent = await sendContactFormEmail(contactFormData);
+
+      if (!emailSent) {
+        console.error("Failed to send contact form email notification");
+        // We'll still return success to the user, but log the error
+      }
+
       if (joinAsCleaner) {
         // If they're interested in joining as a cleaner,
         // you might want to add them to a special list or tag them in your CRM
         console.log("Potential cleaner application flagged!");
       }
-      
+
       // Return success
       return {
         success: true,
-        message: "Your message has been sent successfully!"
+        message: "Your message has been sent successfully!",
       };
-      
     } catch (error) {
       // Handle validation errors
       if (error instanceof z.ZodError) {
         const errors = error.flatten().fieldErrors;
         const firstError = Object.values(errors)[0]?.[0] || "Invalid form data";
-        
+
         return fail(400, {
           error: firstError,
           data: {
@@ -85,11 +92,11 @@ export const actions: Actions = {
             subject,
             message,
             referral,
-            joinAsCleaner
-          }
+            joinAsCleaner,
+          },
         });
       }
-      
+
       // Generic error
       return fail(500, {
         error: "Something went wrong. Please try again later.",
@@ -101,9 +108,9 @@ export const actions: Actions = {
           subject,
           message,
           referral,
-          joinAsCleaner
-        }
+          joinAsCleaner,
+        },
       });
     }
-  }
+  },
 };

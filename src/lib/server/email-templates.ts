@@ -1401,3 +1401,168 @@ This receipt was sent to ${recipientEmail}.
     text,
   };
 }
+
+/**
+ * Generate a contact form notification email template
+ */
+export function getContactFormTemplate(
+  formData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    subject: string;
+    message: string;
+    referral?: string;
+    joinAsCleaner?: boolean;
+  },
+  data: EmailTemplateData,
+): { subject: string; html: string; text: string } {
+  const escapedEmail = escapeHtml(formData.email);
+  
+  // HTML Email template
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Contact Form Submission</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background-color: ${data.primaryColor};
+    }
+    .content {
+      padding: 30px 20px;
+      background-color: #ffffff;
+    }
+    .submission-details {
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .detail-row {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #eeeeee;
+      padding-bottom: 10px;
+    }
+    .detail-row:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .label {
+      font-weight: bold;
+      color: #666666;
+    }
+    .footer {
+      font-size: 12px;
+      text-align: center;
+      color: #888888;
+      padding: 20px;
+    }
+    .highlight {
+      background-color: #FFF9C4;
+      padding: 5px;
+      border-left: 3px solid #FBC02D;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1 style="color: #ffffff; margin: 0;">${data.brandName}</h1>
+    </div>
+    <div class="content">
+      <h2>New Contact Form Submission</h2>
+      <p>You have received a new message from your website contact form.</p>
+      
+      <div class="submission-details">
+        <div class="detail-row">
+          <span class="label">Name:</span>
+          <span>${formData.firstName} ${formData.lastName}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Email:</span>
+          <span>${escapedEmail}</span>
+        </div>
+        ${formData.phone ? `
+        <div class="detail-row">
+          <span class="label">Phone:</span>
+          <span>${formData.phone}</span>
+        </div>` : ''}
+        <div class="detail-row">
+          <span class="label">Subject:</span>
+          <span>${formData.subject}</span>
+        </div>
+        ${formData.referral ? `
+        <div class="detail-row">
+          <span class="label">Referral Source:</span>
+          <span>${formData.referral}</span>
+        </div>` : ''}
+        <div class="detail-row">
+          <span class="label">Message:</span>
+          <div style="margin-top: 5px;">
+            ${formData.message.replace(/\n/g, '<br>')}
+          </div>
+        </div>
+      </div>
+      
+      ${formData.joinAsCleaner ? `
+      <div class="highlight" style="padding: 15px; margin: 20px 0;">
+        <p><strong>Important:</strong> This person is interested in joining as a cleaner.</p>
+      </div>` : ''}
+      
+      <p>Please respond to this inquiry as soon as possible.</p>
+    </div>
+    <div class="footer">
+      <p>&copy; ${new Date().getFullYear()} ${data.brandName}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  // Plain text version
+  const text = `
+New Contact Form Submission - ${data.brandName}
+
+You have received a new message from your website contact form.
+
+Submission Details:
+Name: ${formData.firstName} ${formData.lastName}
+Email: ${formData.email}
+${formData.phone ? `Phone: ${formData.phone}\n` : ''}
+Subject: ${formData.subject}
+${formData.referral ? `Referral Source: ${formData.referral}\n` : ''}
+
+Message:
+${formData.message}
+
+${formData.joinAsCleaner ? 'IMPORTANT: This person is interested in joining as a cleaner.\n' : ''}
+
+Please respond to this inquiry as soon as possible.
+
+© ${new Date().getFullYear()} ${data.brandName}. All rights reserved.
+`;
+
+  return {
+    subject: `New Contact Form Submission: ${formData.subject}`,
+    html,
+    text,
+  };
+}

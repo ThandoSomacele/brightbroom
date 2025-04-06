@@ -1,15 +1,16 @@
 // src/lib/server/email-service.ts
+import { env } from "$env/dynamic/private";
 import { Resend } from "resend";
 import {
   getBookingConfirmationTemplate,
   getBookingReminderTemplate,
   getCleanerAssignmentTemplate,
+  getContactFormTemplate,
   getPasswordResetConfirmationTemplate,
   getPasswordResetTemplate,
   getPaymentReceiptTemplate,
   getWelcomeEmailTemplate,
 } from "./email-templates";
-import { env } from "$env/dynamic/private";
 
 // Initialize Resend with API key from environment variable
 const RESEND_API_KEY = env.RESEND_API_KEY;
@@ -43,13 +44,13 @@ export async function sendPasswordResetEmail(
 ): Promise<boolean> {
   try {
     if (!resend) {
-      console.error('Resend API key not configured');
+      console.error("Resend API key not configured");
       return false;
     }
 
     // Generate the email template
     const template = getPasswordResetTemplate(email, resetToken, EMAIL_CONFIG);
-    
+
     // Log the generated URL for debugging
     console.log(`Password reset URL generated: ${template.resetUrl}`);
 
@@ -83,10 +84,10 @@ export async function sendPasswordResetConfirmationEmail(
 ): Promise<boolean> {
   try {
     if (!resend) {
-      console.error('Resend API key not configured');
+      console.error("Resend API key not configured");
       return false;
     }
-    
+
     // Generate the confirmation template
     const template = getPasswordResetConfirmationTemplate(email, EMAIL_CONFIG);
 
@@ -124,10 +125,10 @@ export async function sendBookingConfirmationEmail(
 ): Promise<boolean> {
   try {
     if (!resend) {
-      console.error('Resend API key not configured');
+      console.error("Resend API key not configured");
       return false;
     }
-    
+
     // Use the booking confirmation template
     const template = getBookingConfirmationTemplate(
       email,
@@ -166,10 +167,10 @@ export async function sendWelcomeEmail(
 ): Promise<boolean> {
   try {
     if (!resend) {
-      console.error('Resend API key not configured');
+      console.error("Resend API key not configured");
       return false;
     }
-    
+
     // Generate the welcome template
     const template = getWelcomeEmailTemplate(email, user, EMAIL_CONFIG);
 
@@ -204,10 +205,10 @@ export async function sendBookingReminderEmail(
 ): Promise<boolean> {
   try {
     if (!resend) {
-      console.error('Resend API key not configured');
+      console.error("Resend API key not configured");
       return false;
     }
-    
+
     // Generate the reminder template
     const template = getBookingReminderTemplate(
       email,
@@ -246,10 +247,10 @@ export async function sendCleanerAssignmentEmail(
 ): Promise<boolean> {
   try {
     if (!resend) {
-      console.error('Resend API key not configured');
+      console.error("Resend API key not configured");
       return false;
     }
-    
+
     // Generate the assignment template
     const template = getCleanerAssignmentTemplate(
       email,
@@ -288,10 +289,10 @@ export async function sendPaymentReceiptEmail(
 ): Promise<boolean> {
   try {
     if (!resend) {
-      console.error('Resend API key not configured');
+      console.error("Resend API key not configured");
       return false;
     }
-    
+
     // Generate the receipt/invoice template
     const template = getPaymentReceiptTemplate(
       email,
@@ -317,6 +318,54 @@ export async function sendPaymentReceiptEmail(
     return true;
   } catch (error) {
     console.error("Error sending payment receipt email:", error);
+    return false;
+  }
+}
+
+/**
+ * Send a contact form notification email
+ */
+export async function sendContactFormEmail(
+  formData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    subject: string;
+    message: string;
+    referral?: string;
+    joinAsCleaner?: boolean;
+  },
+  notificationEmail: string = "info@brightbroom.com",
+): Promise<boolean> {
+  try {
+    if (!resend) {
+      console.error("Resend API key not configured");
+      return false;
+    }
+
+    // Generate the contact form template
+    const template = getContactFormTemplate(formData, EMAIL_CONFIG);
+
+    // Send email with Resend
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: notificationEmail,
+      replyTo: formData.email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+
+    if (error) {
+      console.error("Resend API error:", error);
+      return false;
+    }
+
+    console.log("Contact form email sent successfully:", data.id);
+    return true;
+  } catch (error) {
+    console.error("Error sending contact form email:", error);
     return false;
   }
 }
