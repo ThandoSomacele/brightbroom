@@ -189,22 +189,20 @@
                   isSubmitting = true;
                   formError = null;
 
-                  // For demonstration purposes, we'll simulate a successful submission
-                  // In a real implementation, you'd handle the actual form submission result
                   return async ({ result }) => {
                     isSubmitting = false;
 
-                    // Simulate successful submission
-                    setTimeout(() => {
+                    // Process the actual server result
+                    if (result.type === "success") {
                       formSuccess = true;
-                    }, 1000);
-
-                    // In a real implementation you'd check result type
-                    // if (result.type === 'success') {
-                    //   formSuccess = true;
-                    // } else {
-                    //   formError = 'There was an error submitting your message. Please try again.';
-                    // }
+                    } else if (result.type === "failure") {
+                      formError =
+                        result.data?.error ||
+                        "There was an error submitting your message. Please try again.";
+                    } else if (result.type === "error") {
+                      formError =
+                        "A server error occurred. Please try again later.";
+                    }
                   };
                 }}
               >
