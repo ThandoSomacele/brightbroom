@@ -16,8 +16,14 @@ export function getPasswordResetTemplate(
   recipientEmail: string,
   resetToken: string,
   data: EmailTemplateData,
-): { subject: string; html: string; text: string } {
-  const resetUrl = `${data.appUrl}/auth/reset-password?token=${resetToken}`;
+): { subject: string; html: string; text: string; resetUrl: string } {
+  // Ensure appUrl is defined and clean
+  const appUrl = data.appUrl
+    ? data.appUrl.trim().replace(/\/$/, "")
+    : "https://brightbroom.com";
+
+  // Generate the reset URL
+  const resetUrl = `${appUrl}/auth/reset-password?token=${resetToken}`;
   const escapedEmail = escapeHtml(recipientEmail);
 
   // HTML Email template
@@ -139,9 +145,9 @@ This email was sent to ${recipientEmail}.
     subject: `Reset Your ${data.brandName} Password`,
     html,
     text,
+    resetUrl, // Return the URL for logging/debugging
   };
 }
-
 /**
  * Generate a confirmation email for successful password reset
  */

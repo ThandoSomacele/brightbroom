@@ -9,21 +9,30 @@ import {
   getPaymentReceiptTemplate,
   getWelcomeEmailTemplate,
 } from "./email-templates";
-import { PUBLIC_URL, RESEND_API_KEY } from "./env";
+import { env } from "$env/dynamic/private";
 
 // Initialize Resend with API key from environment variable
-const resend = new Resend(RESEND_API_KEY);
+const RESEND_API_KEY = env.RESEND_API_KEY;
+const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
+
+// Define a guaranteed base URL for the application
+// This is crucial for generating correct links in emails
+const APP_URL = env.PUBLIC_URL || "https://brightbroom.com";
 
 // The sender email address
 const FROM_EMAIL = "BrightBroom <notifications@brightbroom.com>";
 
-// Email config for templates
+// Email config for templates - using our guaranteed APP_URL
 const EMAIL_CONFIG = {
-  appUrl: PUBLIC_URL,
+  appUrl: APP_URL,
   brandName: "BrightBroom",
   primaryColor: "#20C3AF",
   secondaryColor: "#C2511F",
 };
+
+// Log configuration for debugging
+console.log(`Email Service initialized with app URL: ${APP_URL}`);
+console.log(`Resend API key available: ${!!RESEND_API_KEY}`);
 
 /**
  * Send a password reset email
@@ -33,8 +42,16 @@ export async function sendPasswordResetEmail(
   resetToken: string,
 ): Promise<boolean> {
   try {
+    if (!resend) {
+      console.error('Resend API key not configured');
+      return false;
+    }
+
     // Generate the email template
     const template = getPasswordResetTemplate(email, resetToken, EMAIL_CONFIG);
+    
+    // Log the generated URL for debugging
+    console.log(`Password reset URL generated: ${template.resetUrl}`);
 
     // Send email with Resend
     const { data, error } = await resend.emails.send({
@@ -65,6 +82,11 @@ export async function sendPasswordResetConfirmationEmail(
   email: string,
 ): Promise<boolean> {
   try {
+    if (!resend) {
+      console.error('Resend API key not configured');
+      return false;
+    }
+    
     // Generate the confirmation template
     const template = getPasswordResetConfirmationTemplate(email, EMAIL_CONFIG);
 
@@ -101,7 +123,12 @@ export async function sendBookingConfirmationEmail(
   bookingDetails: any,
 ): Promise<boolean> {
   try {
-    // Use the booking confirmation template (we'll create this next)
+    if (!resend) {
+      console.error('Resend API key not configured');
+      return false;
+    }
+    
+    // Use the booking confirmation template
     const template = getBookingConfirmationTemplate(
       email,
       bookingDetails,
@@ -138,6 +165,11 @@ export async function sendWelcomeEmail(
   user: { firstName: string; lastName: string },
 ): Promise<boolean> {
   try {
+    if (!resend) {
+      console.error('Resend API key not configured');
+      return false;
+    }
+    
     // Generate the welcome template
     const template = getWelcomeEmailTemplate(email, user, EMAIL_CONFIG);
 
@@ -171,6 +203,11 @@ export async function sendBookingReminderEmail(
   bookingDetails: any,
 ): Promise<boolean> {
   try {
+    if (!resend) {
+      console.error('Resend API key not configured');
+      return false;
+    }
+    
     // Generate the reminder template
     const template = getBookingReminderTemplate(
       email,
@@ -208,6 +245,11 @@ export async function sendCleanerAssignmentEmail(
   bookingDetails: any,
 ): Promise<boolean> {
   try {
+    if (!resend) {
+      console.error('Resend API key not configured');
+      return false;
+    }
+    
     // Generate the assignment template
     const template = getCleanerAssignmentTemplate(
       email,
@@ -245,6 +287,11 @@ export async function sendPaymentReceiptEmail(
   paymentDetails: any,
 ): Promise<boolean> {
   try {
+    if (!resend) {
+      console.error('Resend API key not configured');
+      return false;
+    }
+    
     // Generate the receipt/invoice template
     const template = getPaymentReceiptTemplate(
       email,
