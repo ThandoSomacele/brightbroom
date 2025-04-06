@@ -57,43 +57,63 @@ export const actions: Actions = {
     const password = formData.get("password")?.toString();
     const confirmPassword = formData.get("confirmPassword")?.toString();
 
+    console.log("Processing password reset request:", {
+      tokenExists: !!token,
+      tokenLength: token?.length,
+    });
+
     // Check if token is provided
     if (!token) {
+      console.log("Missing reset token");
       return fail(400, { error: "Missing reset token" });
     }
 
     try {
       // Validate passwords
       passwordSchema.parse({ password, confirmPassword });
+      console.log("Password validation passed");
 
       // Reset password
+      console.log("Attempting to reset password with token");
       const success = await resetPassword(token, password!);
 
+      console.log("Password reset result:", { success });
+
       if (!success) {
+        console.log("Password reset failed");
         return fail(400, {
           error:
             "Failed to reset password. The link may be invalid or expired.",
         });
       }
 
-      // After successful reset
-      throw redirect(
-        302,
-        `/auth/reset-password?token=${token}&just_reset=true`,
-      );
-      // Return success message
-      return {
-        success: true,
-        message:
-          "Password has been reset successfully. You can now log in with your new password.",
-      };
+      // Log before redirect
+      console.log("Password reset successful, redirecting to login");
+
+      // IMPORTANT: Use a simple path without query parameters first
+      throw redirect(302, "/auth/login");
     } catch (error) {
+      console.error("Error in password reset:", error);
+
       if (error instanceof z.ZodError) {
         const errors = error.flatten().fieldErrors;
         const firstError = Object.values(errors)[0]?.[0] || "Invalid input";
+        console.log("Validation error:", firstError);
         return fail(400, { error: firstError });
       }
 
+      // Important: Check if it's a redirect error, and if so, re-throw it
+      if (
+        error &&
+        typeof error === "object" &&
+        "status" in error &&
+        "location" in error
+      ) {
+        console.log("Re-throwing redirect");
+        throw error;
+      }
+
+      console.log("Returning generic error");
       return fail(500, {
         error: "Something went wrong. Please try again.",
       });

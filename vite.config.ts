@@ -12,5 +12,6 @@ export default defineConfig({
       // Allow serving files from one level up to the project root
       allow: [".."],
     },
+    allowedHosts: ["913b-102-182-98-217.ngrok-free.app"],
   },
 });
