@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import {
   getBookingConfirmationTemplate,
   getBookingReminderTemplate,
+  getCleanerApplicationTemplate,
   getCleanerAssignmentTemplate,
   getContactFormTemplate,
   getPasswordResetConfirmationTemplate,
@@ -366,6 +367,64 @@ export async function sendContactFormEmail(
     return true;
   } catch (error) {
     console.error("Error sending contact form email:", error);
+    return false;
+  }
+}
+
+// Add this function to src/lib/server/email-service.ts
+
+/**
+ * Send a cleaner application notification email
+ */
+export async function sendCleanerApplicationEmail(
+  application: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    city: string;
+    experience: string;
+    availability: string;
+    ownTransport: boolean;
+    whatsApp: boolean;
+    createdAt: Date | string;
+  },
+  recruitmentEmail: string = "recruiting@brightbroom.com",
+): Promise<boolean> {
+  try {
+    if (!resend) {
+      console.error("Resend API key not configured");
+      return false;
+    }
+
+    // Generate the application notification template
+    const template = getCleanerApplicationTemplate(application, EMAIL_CONFIG);
+
+    // Send email with Resend
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: recruitmentEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+
+    if (error) {
+      console.error("Resend API error:", error);
+      return false;
+    }
+
+    console.log(
+      "Cleaner application notification email sent successfully:",
+      data.id,
+    );
+    return true;
+  } catch (error) {
+    console.error(
+      "Error sending cleaner application notification email:",
+      error,
+    );
     return false;
   }
 }

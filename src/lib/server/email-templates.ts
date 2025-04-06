@@ -1566,3 +1566,239 @@ Please respond to this inquiry as soon as possible.
     text,
   };
 }
+
+// Add this function to src/lib/server/email-templates.ts
+
+/**
+ * Generate a cleaner application notification email template
+ */
+export function getCleanerApplicationTemplate(
+  application: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    city: string;
+    experience: string;
+    availability: string;
+    ownTransport: boolean;
+    whatsApp: boolean;
+    createdAt: Date | string;
+  },
+  data: EmailTemplateData,
+): { subject: string; html: string; text: string } {
+  // Format the application date
+  const appDate = new Date(application.createdAt);
+  const dateString = appDate.toLocaleDateString("en-ZA", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  
+  // Parse availability days (assuming it's a JSON string of days)
+  let availabilityDisplay = "";
+  try {
+    const days = JSON.parse(application.availability);
+    availabilityDisplay = days.map(day => day.charAt(0) + day.slice(1).toLowerCase()).join(", ");
+  } catch (e) {
+    availabilityDisplay = "Not specified";
+  }
+  
+  // Admin dashboard URL
+  const adminUrl = `${data.appUrl}/admin/applications`;
+  const applicationUrl = `${data.appUrl}/admin/applications/${application.id}`;
+
+  // HTML Email template
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Cleaner Application</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background-color: ${data.primaryColor};
+    }
+    .header img {
+      max-height: 50px;
+    }
+    .content {
+      padding: 30px 20px;
+      background-color: #ffffff;
+    }
+    .application-details {
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .detail-row {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #eeeeee;
+      padding-bottom: 10px;
+    }
+    .detail-row:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .label {
+      font-weight: bold;
+      color: #666666;
+    }
+    .footer {
+      font-size: 12px;
+      text-align: center;
+      color: #888888;
+      padding: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: ${data.primaryColor};
+      color: #ffffff !important;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+    .highlight {
+      background-color: #e1f5fe;
+      padding: 15px;
+      border-left: 4px solid ${data.primaryColor};
+      margin: 20px 0;
+    }
+    @media only screen and (max-width: 480px) {
+      .email-container {
+        padding: 10px;
+      }
+      .content {
+        padding: 20px 15px;
+      }
+      .btn {
+        display: block;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1 style="color: #ffffff; margin: 0;">${data.brandName}</h1>
+    </div>
+    <div class="content">
+      <h2>New Cleaner Application</h2>
+      <p>A new application for the cleaner position has been submitted.</p>
+      
+      <div class="highlight">
+        <p><strong>Application ID:</strong> ${application.id}</p>
+        <p><strong>Submitted:</strong> ${dateString}</p>
+      </div>
+      
+      <div class="application-details">
+        <div class="detail-row">
+          <span class="label">Applicant:</span>
+          <span>${application.firstName} ${application.lastName}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Email:</span>
+          <span>${application.email}</span>
+        </div>
+        ${application.phone ? `
+        <div class="detail-row">
+          <span class="label">Phone:</span>
+          <span>${application.phone}</span>
+        </div>` : ''}
+        <div class="detail-row">
+          <span class="label">Location:</span>
+          <span>${application.city}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Experience:</span>
+          <span>${application.experience}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Available Days:</span>
+          <span>${availabilityDisplay}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Own Transport:</span>
+          <span>${application.ownTransport ? 'Yes' : 'No'}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">WhatsApp Available:</span>
+          <span>${application.whatsApp ? 'Yes' : 'No'}</span>
+        </div>
+      </div>
+      
+      <p>Please review this application through the admin dashboard:</p>
+      
+      <div style="text-align: center;">
+        <a href="${applicationUrl}" class="btn">Review Application</a>
+      </div>
+      
+      <p>Or view all pending applications:</p>
+      <div style="text-align: center;">
+        <a href="${adminUrl}" style="color: ${data.primaryColor};">Manage Applications</a>
+      </div>
+    </div>
+    <div class="footer">
+      <p>&copy; ${new Date().getFullYear()} ${data.brandName}. All rights reserved.</p>
+      <p>This is an automated message - please do not reply to this email.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  // Plain text version
+  const text = `
+New Cleaner Application - ${data.brandName}
+
+A new application for the cleaner position has been submitted.
+
+Application ID: ${application.id}
+Submitted: ${dateString}
+
+Applicant Details:
+- Name: ${application.firstName} ${application.lastName}
+- Email: ${application.email}
+${application.phone ? `- Phone: ${application.phone}\n` : ''}
+- Location: ${application.city}
+- Experience: ${application.experience}
+- Available Days: ${availabilityDisplay}
+- Own Transport: ${application.ownTransport ? 'Yes' : 'No'}
+- WhatsApp Available: ${application.whatsApp ? 'Yes' : 'No'}
+
+Please review this application through the admin dashboard:
+${applicationUrl}
+
+Or view all pending applications:
+${adminUrl}
+
+© ${new Date().getFullYear()} ${data.brandName}. All rights reserved.
+This is an automated message - please do not reply to this email.
+`;
+
+  return {
+    subject: `New Cleaner Application: ${application.firstName} ${application.lastName}`,
+    html,
+    text,
+  };
+}

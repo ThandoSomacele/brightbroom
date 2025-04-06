@@ -294,4 +294,70 @@ export const actions: Actions = {
       return fail(500, { error: "Failed to update specialisations" });
     }
   },
+
+  // Update active status action
+  updateActivation: async ({ params, request }) => {
+    const cleanerId = params.id;
+
+    if (!cleanerId) {
+      return fail(400, { error: "Cleaner ID is required" });
+    }
+
+    const formData = await request.formData();
+    const setActive = formData.get("setActive") === "true";
+
+    try {
+      // Update user's active status
+      await db
+        .update(user)
+        .set({
+          updatedAt: new Date(),
+        })
+        .where(eq(user.id, cleanerId));
+
+      // Update cleaner profile active status
+      const profileResults = await db
+        .select()
+        .from(cleanerProfile)
+        .where(eq(cleanerProfile.userId, cleanerId))
+        .limit(1);
+
+      if (profileResults.length > 0) {
+        await db
+          .update(cleanerProfile)
+          .set({
+            isAvailable: setActive,
+            updatedAt: new Date(),
+          })
+          .where(eq(cleanerProfile.userId, cleanerId));
+      }
+
+      // If activating a cleaner for the first time, send them a welcome email
+      if (setActive) {
+        const userData = await db
+          .select()
+          .from(user)
+          .where(eq(user.id, cleanerId))
+          .limit(1);
+
+        if (userData.length > 0) {
+          // Send welcome email to cleaner
+          await sendWelcomeEmail(userData[0].email, {
+            firstName: userData[0].firstName,
+            lastName: userData[0].lastName,
+          });
+        }
+      }
+
+      return {
+        success: true,
+        message: setActive
+          ? "Cleaner account activated successfully"
+          : "Cleaner account deactivated successfully",
+      };
+    } catch (err) {
+      console.error("Error updating cleaner active status:", err);
+      return fail(500, { error: "Failed to update cleaner activation status" });
+    }
+  },
 };

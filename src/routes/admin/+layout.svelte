@@ -30,8 +30,9 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import {
-      BarChart,
+      ChartNoAxesColumnIncreasing,
       Calendar,
+      FileText,
       Home,
       Menu,
       Settings,
@@ -46,10 +47,11 @@
   const navItems = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
     { label: 'Bookings', href: '/admin/bookings', icon: Calendar },
+    { label: 'Applications', href: '/admin/applications', icon: FileText },
     { label: 'Cleaners', href: '/admin/cleaners', icon: Users },
     { label: 'Users', href: '/admin/users', icon: User },
     { label: 'Services', href: '/admin/services', icon: Settings },
-    { label: 'Reports', href: '/admin/reports', icon: BarChart },
+    { label: 'Reports', href: '/admin/reports', icon: ChartNoAxesColumnIncreasing },
   ];
   
   function isActive(href: string) {

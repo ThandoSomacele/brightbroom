@@ -1,32 +1,26 @@
-<!-- src/routes/admin/cleaners/+page.svelte -->
+<!-- src/routes/admin/applications/+page.svelte -->
 <script lang="ts">
+  import { enhance } from "$app/forms";
+  import { invalidateAll } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
-  import {
-    ArrowLeft,
-    ArrowRight,
-    Download,
-    Filter,
-    Map,
-    PlusCircle,
-    Search,
-    Star,
-    Users,
-  } from "lucide-svelte";
+  import LoadingButton from "$lib/components/ui/LoadingButton.svelte";
+  import { Search, Filter, ArrowLeft, ArrowRight, Check, X, Eye } from "lucide-svelte";
 
   export let data;
-  let { cleaners, pagination, filters } = data;
+  let { applications, pagination, filters } = data;
 
   // Local state for filters
   let searchTerm = filters.search || "";
-  let availabilityFilter = filters.availability || "ALL";
-  let specialisationFilter = filters.specialisation || "";
+  let statusFilter = filters.status || "PENDING";
   let showFilters = false;
+  let processingIds = new Set();
 
-  // Availability options
-  const availabilityOptions = [
-    { value: "ALL", label: "All Cleaners" },
-    { value: "AVAILABLE", label: "Available" },
-    { value: "UNAVAILABLE", label: "Unavailable" },
+  // Status options
+  const statusOptions = [
+    { value: "ALL", label: "All Applications" },
+    { value: "PENDING", label: "Pending Review" },
+    { value: "APPROVED", label: "Approved" },
+    { value: "REJECTED", label: "Rejected" },
   ];
 
   // Format date function
@@ -39,29 +33,12 @@
     });
   }
 
-  // Format rating with stars
-  function formatRating(rating: number | null | string | undefined): string {
-    if (rating === null || rating === undefined) return "Not rated";
-
-    // Convert to number if it's not already
-    const numericRating =
-      typeof rating === "number" ? rating : parseFloat(String(rating));
-
-    // Check if it's a valid number after conversion
-    if (isNaN(numericRating)) return "Not rated";
-
-    return `${numericRating.toFixed(1)} / 5.0`;
-  }
-
   // Apply filters
   function applyFilters() {
     const searchParams = new URLSearchParams();
 
     if (searchTerm) searchParams.set("search", searchTerm);
-    if (availabilityFilter && availabilityFilter !== "ALL")
-      searchParams.set("availability", availabilityFilter);
-    if (specialisationFilter)
-      searchParams.set("specialisation", specialisationFilter);
+    if (statusFilter !== "ALL") searchParams.set("status", statusFilter);
 
     // Add current page if it's not the first page
     if (pagination.page > 1) {
@@ -70,15 +47,14 @@
 
     // Navigate to the same page with filters applied
     const url = searchParams.toString() ? `?${searchParams.toString()}` : "";
-    window.location.href = `/admin/cleaners${url}`;
+    window.location.href = `/admin/applications${url}`;
   }
 
   // Reset filters
   function resetFilters() {
     searchTerm = "";
-    availabilityFilter = "ALL";
-    specialisationFilter = "";
-    window.location.href = "/admin/cleaners";
+    statusFilter = "PENDING";
+    window.location.href = "/admin/applications";
   }
 
   // Navigate to a specific page
@@ -87,40 +63,23 @@
 
     const searchParams = new URLSearchParams(window.location.search);
     searchParams.set("page", page.toString());
-    window.location.href = `/admin/cleaners?${searchParams.toString()}`;
+    window.location.href = `/admin/applications?${searchParams.toString()}`;
   }
 
-  // View cleaner details
-  function viewCleanerDetails(cleanerId: string) {
-    window.location.href = `/admin/cleaners/${cleanerId}`;
-  }
-
-  // Export cleaners as CSV
-  function exportCleaners() {
-    alert("Export functionality would be implemented here");
-    // In a real application, this would trigger a server request to generate and download a CSV
+  // Process application (approve/reject)
+  async function processApplication(id: string, action: "approve" | "reject") {
+    processingIds.add(id);
+    processingIds = processingIds; // trigger reactivity
   }
 </script>
 
 <svelte:head>
-  <title>Manage Cleaners | BrightBroom Admin</title>
+  <title>Cleaner Applications | BrightBroom Admin</title>
 </svelte:head>
 
 <!-- Page header -->
 <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-  <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Cleaners</h1>
-  <div class="mt-4 flex space-x-2 sm:mt-0">
-    <div class="mt-4 sm:mt-0 flex gap-2">
-      <Button variant="primary" href="/admin/cleaners/new">
-        <PlusCircle size={16} class="mr-1" />
-        Add New Cleaner
-      </Button>
-    </div>
-    <Button variant="outline" on:click={exportCleaners}>
-      <Download size={16} class="mr-1" />
-      Export
-    </Button>
-  </div>
+  <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Cleaner Applications</h1>
 </div>
 
 <!-- Filters and search -->
@@ -137,7 +96,7 @@
       <input
         type="text"
         bind:value={searchTerm}
-        placeholder="Search cleaners..."
+        placeholder="Search applicants..."
         class="w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
       />
     </div>
@@ -160,24 +119,6 @@
     >
       <div>
         <label
-          for="availability"
-          class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-        >
-          Availability
-        </label>
-        <select
-          id="availability"
-          bind:value={availabilityFilter}
-          class="w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-        >
-          {#each availabilityOptions as option}
-            <option value={option.value}>{option.label}</option>
-          {/each}
-        </select>
-      </div>
-
-      <div>
-        <label
           for="status"
           class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
@@ -188,30 +129,9 @@
           bind:value={statusFilter}
           class="w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
         >
-          <option value="ALL">All Statuses</option>
-          <option value="ACTIVE">Active</option>
-          <option value="PENDING">Pending Review</option>
-        </select>
-      </div>
-
-      <div>
-        <label
-          for="specialisation"
-          class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-        >
-          Specialisation
-        </label>
-        <select
-          id="specialisation"
-          bind:value={specialisationFilter}
-          class="w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-        >
-          <option value="">All Specialisations</option>
-          {#if data.specialisations}
-            {#each data.specialisations as spec}
-              <option value={spec.id}>{spec.name}</option>
-            {/each}
-          {/if}
+          {#each statusOptions as option}
+            <option value={option.value}>{option.label}</option>
+          {/each}
         </select>
       </div>
 
@@ -228,7 +148,7 @@
   {/if}
 </div>
 
-<!-- Cleaners table -->
+<!-- Applications table -->
 <div class="mb-6 overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
   <div class="overflow-x-auto">
     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -238,7 +158,7 @@
             scope="col"
             class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
           >
-            Cleaner
+            Applicant
           </th>
           <th
             scope="col"
@@ -250,19 +170,19 @@
             scope="col"
             class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
           >
-            Specialisations
+            Experience
           </th>
           <th
             scope="col"
             class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
           >
-            Rating
+            Application Date
           </th>
           <th
             scope="col"
             class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
           >
-            Availability
+            Status
           </th>
           <th
             scope="col"
@@ -275,124 +195,137 @@
       <tbody
         class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"
       >
-        {#if cleaners.length === 0}
+        {#if applications.length === 0}
           <tr>
             <td
               colspan="6"
               class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
             >
-              No cleaners found
+              No applications found
             </td>
           </tr>
         {:else}
-          {#each cleaners as cleaner}
+          {#each applications as application}
             <tr
               class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <td class="whitespace-nowrap px-6 py-4">
                 <div class="flex items-center">
-                  <div
-                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"
-                  >
-                    <Users size={20} class="text-gray-500 dark:text-gray-400" />
-                  </div>
                   <div class="ml-4">
                     <div
                       class="text-sm font-medium text-gray-900 dark:text-white"
                     >
-                      {cleaner.firstName}
-                      {cleaner.lastName}
+                      {application.firstName}
+                      {application.lastName}
                     </div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">
-                      ID: {cleaner.id.substring(0, 8)}...
+                      {application.city}
                     </div>
                   </div>
                 </div>
               </td>
               <td class="whitespace-nowrap px-6 py-4">
                 <div class="text-sm text-gray-900 dark:text-white">
-                  {cleaner.email}
+                  {application.email}
                 </div>
-                {#if cleaner.phone}
+                {#if application.phone}
                   <div class="text-sm text-gray-500 dark:text-gray-400">
-                    {cleaner.phone}
+                    {application.phone}
                   </div>
                 {/if}
               </td>
-              <td class="px-6 py-4">
-                <div class="flex flex-wrap gap-1">
-                  {#if cleaner.specialisations && cleaner.specialisations.length > 0}
-                    {#each cleaner.specialisations as spec}
-                      <span
-                        class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
-                      >
-                        {spec.name}
-                      </span>
-                    {/each}
-                  {:else}
-                    <span class="text-sm text-gray-500 dark:text-gray-400"
-                      >None</span
-                    >
-                  {/if}
-                </div>
+              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
+                {application.experience}
+              </td>
+              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
+                {formatDate(application.createdAt)}
               </td>
               <td class="whitespace-nowrap px-6 py-4">
-                <div class="flex items-center">
-                  <Star size={16} class="mr-1 text-yellow-400" />
-                  <span class="text-sm text-gray-900 dark:text-white">
-                    {formatRating(cleaner.cleanerProfile?.rating)}
-                  </span>
-                </div>
-              </td>
-              <td class="whitespace-nowrap px-6 py-4">
-                {#if cleaner.cleanerProfile?.isAvailable}
-                  <span
-                    class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
-                  >
-                    Available
-                  </span>
-                {:else}
-                  <span
-                    class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/20 dark:text-red-300"
-                  >
-                    Unavailable
-                  </span>
-                {/if}
-                {#if cleaner.cleanerProfile?.workRadius}
-                  <div
-                    class="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-400"
-                  >
-                    <Map size={12} class="mr-1" />
-                    {cleaner.cleanerProfile.workRadius} km radius
-                  </div>
-                {/if}
-              </td>
-              <td
-                class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium"
-              >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  on:click={() => viewCleanerDetails(cleaner.id)}
-                  class="text-primary hover:text-primary-600"
-                >
-                  View
-                </Button>
-              </td>
-              <td class="whitespace-nowrap px-6 py-4">
-                {#if !cleaner.isActive}
+                {#if application.status === "PENDING"}
                   <span
                     class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
                   >
                     Pending Review
                   </span>
-                {:else}
+                {:else if application.status === "APPROVED"}
                   <span
                     class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
                   >
-                    Active
+                    Approved
+                  </span>
+                {:else if application.status === "REJECTED"}
+                  <span
+                    class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/20 dark:text-red-300"
+                  >
+                    Rejected
                   </span>
                 {/if}
+              </td>
+              <td
+                class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium"
+              >
+                <div class="flex justify-end space-x-2">
+                  <form method="POST" action="?/viewApplication" use:enhance>
+                    <input type="hidden" name="id" value={application.id} />
+                    <Button variant="ghost" size="sm" type="submit">
+                      <Eye size={16} />
+                    </Button>
+                  </form>
+                  
+                  {#if application.status === "PENDING"}
+                    <form method="POST" action="?/approveApplication" use:enhance={() => {
+                      processingIds.add(application.id);
+                      processingIds = processingIds;
+                      
+                      return async ({ result }) => {
+                        processingIds.delete(application.id);
+                        processingIds = processingIds;
+                        
+                        if (result.type === "success") {
+                          await invalidateAll();
+                        }
+                      };
+                    }}>
+                      <input type="hidden" name="id" value={application.id} />
+                      <LoadingButton
+                        variant="ghost"
+                        size="sm"
+                        type="submit"
+                        loading={processingIds.has(application.id)}
+                        loadingText=""
+                        class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
+                      >
+                        <Check size={16} />
+                      </LoadingButton>
+                    </form>
+                    
+                    <form method="POST" action="?/rejectApplication" use:enhance={() => {
+                      processingIds.add(application.id);
+                      processingIds = processingIds;
+                      
+                      return async ({ result }) => {
+                        processingIds.delete(application.id);
+                        processingIds = processingIds;
+                        
+                        if (result.type === "success") {
+                          await invalidateAll();
+                        }
+                      };
+                    }}>
+                      <input type="hidden" name="id" value={application.id} />
+                      <LoadingButton
+                        variant="ghost"
+                        size="sm"
+                        type="submit"
+                        loading={processingIds.has(application.id)}
+                        loadingText=""
+                        class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                      >
+                        <X size={16} />
+                      </LoadingButton>
+                    </form>
+                  {/if}
+                </div>
               </td>
             </tr>
           {/each}
@@ -417,7 +350,7 @@
               pagination.total,
             )}</span
           >
-          of <span class="font-medium">{pagination.total}</span> cleaners
+          of <span class="font-medium">{pagination.total}</span> applications
         </div>
 
         <div class="flex space-x-2">

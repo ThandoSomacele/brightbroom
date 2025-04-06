@@ -646,7 +646,7 @@
                     </div>
                     <div>
                       <label for="idNumber" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        ID Number
+                        ID Number  <span class="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -654,6 +654,7 @@
                         name="idNumber"
                         bind:value={idNumber}
                         class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                        required
                       />
                     </div>
                   </div>

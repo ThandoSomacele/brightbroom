@@ -206,6 +206,36 @@ export const cleanerProfile = pgTable("cleaner_profile", {
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
 
+// Define enum for application status
+export const applicationStatusEnum = pgEnum("ApplicationStatus", [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+]);
+
+// Cleaner application table
+export const cleanerApplication = pgTable("cleaner_application", {
+  id: text("id").primaryKey().notNull(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  city: text("city").notNull(),
+  experience: text("experience").notNull(),
+  availability: text("availability").notNull(), // JSON string of days
+  ownTransport: boolean("own_transport").default(false).notNull(),
+  whatsApp: boolean("whats_app").default(false).notNull(),
+  idType: text("id_type"),
+  idNumber: text("id_number"),
+  referralSource: text("referral_source"),
+  documents: text("documents").array(), // Array of document URLs
+  status: applicationStatusEnum("status").default("PENDING").notNull(),
+  notes: text("notes"), // Admin notes about application
+  isActive: boolean("is_active").default(false).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
 export const cleanerSpecialisation = pgTable("cleaner_specialisation", {
   id: text("id").primaryKey().notNull(),
   cleanerProfileId: text("cleaner_profile_id")
@@ -270,6 +300,9 @@ export type NewPayment = typeof payment.$inferInsert;
 
 export type CleanerProfile = typeof cleanerProfile.$inferSelect;
 export type NewCleanerProfile = typeof cleanerProfile.$inferInsert;
+
+export type CleanerApplication = typeof cleanerApplication.$inferSelect;
+export type NewCleanerApplication = typeof cleanerApplication.$inferInsert;
 
 export type CleanerSpecialisation = typeof cleanerSpecialisation.$inferSelect;
 export type NewCleanerSpecialisation =

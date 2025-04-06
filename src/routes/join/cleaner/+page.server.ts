@@ -1,7 +1,10 @@
-// src/routes/join/+page.server.ts
+// src/routes/join/cleaner/+page.server.ts
 import { fail } from "@sveltejs/kit";
 import { z } from "zod";
 import type { Actions } from "./$types";
+import { db } from "$lib/server/db";
+import { cleanerApplication } from "$lib/server/db/schema";
+import { sendCleanerApplicationEmail } from "$lib/server/email-service";
 
 // Form validation schema
 const joinApplicationSchema = z.object({
@@ -68,35 +71,81 @@ export const actions: Actions = {
         terms
       });
       
-      // In a real application, you would:
-      // 1. Store the application in your database
-      // 2. Upload the files to a storage service
-      // 3. Send email notifications to admin and applicant
-      // 4. Add them to your CRM/applicant tracking system
+      // Generate a unique ID for the application
+      const applicationId = crypto.randomUUID();
       
-      // For this example, we'll just log the data
-      console.log("Cleaner application submission:", {
-        firstName,
-        lastName,
-        email,
-        phone,
-        city,
-        experience,
-        availability,
-        ownTransport,
-        whatsApp,
-        idType,
-        idNumber,
-        hearAboutUs,
-        documents: documentFiles.map(file => file.name)
-      });
+      // Process any uploaded documents
+      // In a real implementation, you would upload these to cloud storage
+      // and store the URLs in the database
+      let documentUrls: string[] = [];
+      if (documentFiles.length > 0) {
+        // Placeholder: in a real app, upload files and get URLs
+        documentUrls = documentFiles.map(file => `${file.name}`);
+      }
       
-      // Return success
-      return {
-        success: true,
-        message: "Your application has been submitted successfully!"
-      };
-      
+      // Store the application in the database with inactive status
+      try {
+        await db.insert(cleanerApplication).values({
+          id: applicationId,
+          firstName,
+          lastName,
+          email,
+          phone,
+          city,
+          experience,
+          availability: JSON.stringify(availability),
+          ownTransport: ownTransport === "yes",
+          whatsApp: whatsApp === "yes",
+          idType: idType || null,
+          idNumber: idNumber || null,
+          referralSource: hearAboutUs,
+          documents: documentUrls,
+          status: "PENDING", // Mark as pending by default
+          isActive: false,   // Inactive until admin review
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+        
+        // Send email notification to recruitment team
+        await sendCleanerApplicationEmail({
+          id: applicationId,
+          firstName,
+          lastName,
+          email,
+          phone,
+          city,
+          experience,
+          availability: JSON.stringify(availability),
+          ownTransport: ownTransport === "yes",
+          whatsApp: whatsApp === "yes",
+          createdAt: new Date(),
+        });
+        
+        // Return success
+        return {
+          success: true,
+          message: "Your application has been submitted successfully! Our team will review it and get back to you soon."
+        };
+      } catch (error) {
+        console.error("Database error:", error);
+        return fail(500, {
+          error: "There was a problem submitting your application. Please try again later.",
+          data: {
+            firstName,
+            lastName,
+            email,
+            phone,
+            city,
+            experience,
+            availability,
+            ownTransport,
+            whatsApp,
+            idType,
+            idNumber,
+            hearAboutUs
+          }
+        });
+      }
     } catch (error) {
       // Handle validation errors
       if (error instanceof z.ZodError) {
