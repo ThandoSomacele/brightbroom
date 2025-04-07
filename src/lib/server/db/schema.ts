@@ -72,6 +72,7 @@ export const user = pgTable("user", {
   lastName: text("last_name").notNull(),
   phone: text("phone"),
   role: userRoleEnum("role").default("CUSTOMER").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });

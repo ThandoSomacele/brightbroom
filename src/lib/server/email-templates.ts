@@ -1802,3 +1802,202 @@ This is an automated message - please do not reply to this email.
     text,
   };
 }
+
+// src/lib/server/email-templates.ts
+// Add this new function for cleaner-specific welcome emails
+
+/**
+ * Generate a welcome email template specifically for cleaners
+ */
+export function getCleanerWelcomeEmailTemplate(
+  recipientEmail: string,
+  user: {
+    firstName: string;
+    lastName: string;
+  },
+  data: EmailTemplateData,
+): { subject: string; html: string; text: string } {
+  const loginUrl = `${data.appUrl}/auth/login`;
+  const cleanerDashboardUrl = `${data.appUrl}/cleaner/dashboard`;
+  const escapedEmail = escapeHtml(recipientEmail);
+
+  // HTML Email template for cleaners
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to ${data.brandName} Cleaner Team</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background-color: ${data.primaryColor};
+    }
+    .header img {
+      max-height: 50px;
+    }
+    .content {
+      padding: 30px 20px;
+      background-color: #ffffff;
+    }
+    .footer {
+      font-size: 12px;
+      text-align: center;
+      color: #888888;
+      padding: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: ${data.primaryColor};
+      color: #ffffff !important;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+    .feature {
+      margin-bottom: 20px;
+      padding-left: 15px;
+      border-left: 3px solid ${data.primaryColor};
+    }
+    .checklist-item {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    .checklist-icon {
+      margin-right: 10px;
+      color: ${data.primaryColor};
+      font-weight: bold;
+    }
+    @media only screen and (max-width: 480px) {
+      .email-container {
+        padding: 10px;
+      }
+      .content {
+        padding: 20px 15px;
+      }
+      .btn {
+        display: block;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1 style="color: #ffffff; margin: 0;">${data.brandName}</h1>
+    </div>
+    <div class="content">
+      <h2>Welcome to the ${data.brandName} Cleaner Team!</h2>
+      <p>Hello ${user.firstName},</p>
+      <p>Congratulations! Your application to join the ${data.brandName} team has been approved. We're excited to have you join our network of professional cleaners who deliver exceptional cleaning services to our customers.</p>
+      
+      <div class="feature">
+        <p><strong>Your account has been activated</strong> and you can now log in to access your cleaner dashboard.</p>
+      </div>
+      
+      <h3>Getting Started:</h3>
+      
+      <div class="checklist-item">
+        <div class="checklist-icon">✓</div>
+        <div><strong>Log in to your account</strong> using your email and password</div>
+      </div>
+      
+      <div class="checklist-item">
+        <div class="checklist-icon">✓</div>
+        <div><strong>Complete your profile</strong> to highlight your skills and experience</div>
+      </div>
+      
+      <div class="checklist-item">
+        <div class="checklist-icon">✓</div>
+        <div><strong>Set your availability</strong> to start receiving booking requests</div>
+      </div>
+      
+      <div class="checklist-item">
+        <div class="checklist-icon">✓</div>
+        <div><strong>Update your service areas</strong> to specify where you can work</div>
+      </div>
+      
+      <div style="text-align: center;">
+        <a href="${loginUrl}" class="btn">Log In To Your Account</a>
+      </div>
+      
+      <p>Once logged in, you can access your cleaner dashboard to:</p>
+      <ul>
+        <li>Manage your bookings and schedule</li>
+        <li>Update your availability and service areas</li>
+        <li>View your ratings and feedback</li>
+        <li>Track your earnings</li>
+      </ul>
+      
+      <p>If you have any questions or need assistance getting started, please don't hesitate to contact our cleaner support team.</p>
+      
+      <p>We look forward to your success with ${data.brandName}!</p>
+      
+      <p>Best regards,<br>The ${data.brandName} Team</p>
+    </div>
+    <div class="footer">
+      <p>This email was sent to ${escapedEmail}.</p>
+      <p>&copy; ${new Date().getFullYear()} ${data.brandName}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  // Plain text version
+  const text = `
+Welcome to the ${data.brandName} Cleaner Team!
+
+Hello ${user.firstName},
+
+Congratulations! Your application to join the ${data.brandName} team has been approved. We're excited to have you join our network of professional cleaners who deliver exceptional cleaning services to our customers.
+
+Your account has been activated and you can now log in to access your cleaner dashboard.
+
+Getting Started:
+✓ Log in to your account using your email and password
+✓ Complete your profile to highlight your skills and experience
+✓ Set your availability to start receiving booking requests
+✓ Update your service areas to specify where you can work
+
+Log in here: ${loginUrl}
+
+Once logged in, you can access your cleaner dashboard to:
+- Manage your bookings and schedule
+- Update your availability and service areas
+- View your ratings and feedback
+- Track your earnings
+
+If you have any questions or need assistance getting started, please don't hesitate to contact our cleaner support team.
+
+We look forward to your success with ${data.brandName}!
+
+Best regards,
+The ${data.brandName} Team
+
+This email was sent to ${recipientEmail}.
+© ${new Date().getFullYear()} ${data.brandName}. All rights reserved.
+`;
+
+  return {
+    subject: `Welcome to the ${data.brandName} Cleaner Team!`,
+    html,
+    text,
+  };
+}

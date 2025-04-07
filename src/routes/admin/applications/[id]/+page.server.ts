@@ -1,69 +1,111 @@
 // src/routes/admin/applications/[id]/+page.server.ts
 import { db } from "$lib/server/db";
-import { cleanerApplication, cleanerProfile, user } from "$lib/server/db/schema";
+import {
+  booking,
+  cleanerApplication,
+  cleanerProfile,
+  cleanerSpecialisation,
+  service,
+  user,
+} from "$lib/server/db/schema";
+import { sendWelcomeEmail } from "$lib/server/email-service";
 import { error, fail, redirect } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
-import { sendWelcomeEmail } from "$lib/server/email-service";
 
-export const load: PageServerLoad = async ({ params, locals }) => {
-  // Verify admin role
-  if (!locals.user || locals.user.role !== "ADMIN") {
-    throw redirect(302, "/auth/login?redirectTo=/admin/applications");
-  }
 
-  const applicationId = params.id;
+export const load: PageServerLoad = async ({ params }) => {
+  const cleanerId = params.id;
 
-  if (!applicationId) {
-    throw error(404, "Application not found");
+  if (!cleanerId) {
+    throw error(404, "Cleaner not found");
   }
 
   try {
-    // Fetch the application with any associated notes
-    const applicationResults = await db
-      .select()
-      .from(cleanerApplication)
-      .where(eq(cleanerApplication.id, applicationId))
+    // Fetch the cleaner with profile data
+    const userResults = await db
+      .select({
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        isActive: user.isActive, // Include isActive field from user
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
+      })
+      .from(user)
+      .where(and(eq(user.id, cleanerId), eq(user.role, "CLEANER")))
       .limit(1);
 
-    if (applicationResults.length === 0) {
-      throw error(404, "Application not found");
+    if (userResults.length === 0) {
+      throw error(404, "Cleaner not found");
     }
 
-    // Parse availability string to array for the template
-    try {
-      const application = {
-        ...applicationResults[0],
-        // Provide a default empty array if parsing fails
-        availabilityArray: applicationResults[0].availability 
-          ? JSON.parse(applicationResults[0].availability)
-          : []
-      };
-      
-      // In a real implementation, you would also fetch notes from a related table
-      // For example:
-      // const notes = await db
-      //   .select()
-      //   .from(applicationNote)
-      //   .where(eq(applicationNote.applicationId, applicationId))
-      //   .orderBy(desc(applicationNote.createdAt));
-      
-      // For now, we'll use an empty array or mock data
-      const notes = [];
+    const cleanerData = userResults[0];
 
-      return {
-        application: {
-          ...application,
-          notes
-        }
-      };
-    } catch (err) {
-      console.error("Error processing application data:", err);
-      throw error(500, "Error processing application data");
+    // Fetch cleaner profile
+    const profileResults = await db
+      .select()
+      .from(cleanerProfile)
+      .where(eq(cleanerProfile.userId, cleanerId))
+      .limit(1);
+
+    const profile = profileResults.length > 0 ? profileResults[0] : null;
+
+    // Fetch specialisations
+    let specialisations: { id: string; serviceId: string; cleanerProfileId: string; experience: number; }[] = [];
+    if (profile) {
+      specialisations = await db
+        .select({
+          id: cleanerSpecialisation.id,
+          serviceId: cleanerSpecialisation.serviceId,
+          cleanerProfileId: cleanerSpecialisation.cleanerProfileId,
+          experience: cleanerSpecialisation.experience,
+        })
+        .from(cleanerSpecialisation)
+        .where(eq(cleanerSpecialisation.cleanerProfileId, profile.id));
     }
+
+    // Fetch all services for dropdown options
+    const services = await db
+      .select()
+      .from(service)
+      .orderBy(service.sortOrder)
+      .orderBy(service.name);
+
+    // Fetch recent bookings
+    const recentBookings = await db
+      .select({
+        id: booking.id,
+        status: booking.status,
+        scheduledDate: booking.scheduledDate,
+        customer: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
+      })
+      .from(booking)
+      .innerJoin(user, eq(booking.userId, user.id))
+      .where(eq(booking.cleanerId, cleanerId))
+      .orderBy(desc(booking.scheduledDate))
+      .limit(5);
+
+    // Combine data
+    return {
+      cleaner: {
+        ...cleanerData,
+        cleanerProfile: profile,
+        specialisations,
+      },
+      services,
+      bookings: recentBookings,
+    };
   } catch (err) {
-    console.error("Error loading application details:", err);
-    throw error(500, "Error loading application details");
+    console.error("Error loading cleaner details:", err);
+    throw error(500, "Error loading cleaner details");
   }
 };
 
@@ -152,10 +194,10 @@ export const actions: Actions = {
 
       // Create user account
       const userId = crypto.randomUUID();
-      
+
       // Hash password (using a placeholder here - use your app's password hashing)
       const passwordHash = await hash(temporaryPassword);
-      
+
       // Insert new user with CLEANER role
       await db.insert(user).values({
         id: userId,
@@ -165,14 +207,14 @@ export const actions: Actions = {
         lastName: application.lastName,
         phone: application.phone,
         role: "CLEANER",
+        isActive: true, // Set initial active status to true
         createdAt: new Date(),
         updatedAt: new Date(),
       });
 
       // Create cleaner profile (inactive by default until fully onboarded)
-      // In a real implementation, you would convert the availability string to an array
       const availabilityArray = JSON.parse(application.availability || "[]");
-      
+
       const profileId = crypto.randomUUID();
       await db.insert(cleanerProfile).values({
         id: profileId,
@@ -190,12 +232,13 @@ export const actions: Actions = {
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-      
+
       // Send welcome email with temporary password
       await sendWelcomeEmail(application.email, {
         firstName: application.firstName,
         lastName: application.lastName,
-        temporaryPassword // You'd include this in a real implementation
+        role: "CLEANER", // Specify the role
+        temporaryPassword, // You'd include this in a real implementation
       });
 
       return {

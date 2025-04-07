@@ -6,6 +6,7 @@ import {
   getBookingReminderTemplate,
   getCleanerApplicationTemplate,
   getCleanerAssignmentTemplate,
+  getCleanerWelcomeEmailTemplate,
   getContactFormTemplate,
   getPasswordResetConfirmationTemplate,
   getPasswordResetTemplate,
@@ -164,7 +165,11 @@ export async function sendBookingConfirmationEmail(
  */
 export async function sendWelcomeEmail(
   email: string,
-  user: { firstName: string; lastName: string },
+  user: { 
+    firstName: string; 
+    lastName: string;
+    role?: string; // Add optional role parameter
+  },
 ): Promise<boolean> {
   try {
     if (!resend) {
@@ -172,8 +177,13 @@ export async function sendWelcomeEmail(
       return false;
     }
 
-    // Generate the welcome template
-    const template = getWelcomeEmailTemplate(email, user, EMAIL_CONFIG);
+    // Choose template based on user role
+    let template;
+    if (user.role === "CLEANER") {
+      template = getCleanerWelcomeEmailTemplate(email, user, EMAIL_CONFIG);
+    } else {
+      template = getWelcomeEmailTemplate(email, user, EMAIL_CONFIG);
+    }
 
     // Send email with Resend
     const { data, error } = await resend.emails.send({
@@ -189,14 +199,13 @@ export async function sendWelcomeEmail(
       return false;
     }
 
-    console.log("Welcome email sent successfully:", data.id);
+    console.log(`Welcome email (${user.role || 'customer'}) sent successfully:`, data.id);
     return true;
   } catch (error) {
     console.error("Error sending welcome email:", error);
     return false;
   }
 }
-
 /**
  * Send a booking reminder email
  */

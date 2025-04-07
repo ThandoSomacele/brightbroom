@@ -308,10 +308,12 @@ export const actions: Actions = {
     const setActive = formData.get("setActive") === "true";
 
     try {
-      // Update user's active status
+      // Update user record with isActive flag
       await db
         .update(user)
         .set({
+          // Add an isActive flag to the user record
+          isActive: setActive,
           updatedAt: new Date(),
         })
         .where(eq(user.id, cleanerId));
@@ -342,10 +344,11 @@ export const actions: Actions = {
           .limit(1);
 
         if (userData.length > 0) {
-          // Send welcome email to cleaner
+          // Send welcome email to cleaner with role specified
           await sendWelcomeEmail(userData[0].email, {
             firstName: userData[0].firstName,
             lastName: userData[0].lastName,
+            role: "CLEANER", // Pass the role to use the correct template
           });
         }
       }
