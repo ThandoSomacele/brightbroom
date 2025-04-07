@@ -558,7 +558,7 @@
                       for="city"
                       class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
-                      City/Area <span class="text-red-500">*</span>
+                      Home Address <span class="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
