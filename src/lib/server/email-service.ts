@@ -165,8 +165,8 @@ export async function sendBookingConfirmationEmail(
  */
 export async function sendWelcomeEmail(
   email: string,
-  user: { 
-    firstName: string; 
+  user: {
+    firstName: string;
     lastName: string;
     role?: string; // Add optional role parameter
   },
@@ -199,7 +199,10 @@ export async function sendWelcomeEmail(
       return false;
     }
 
-    console.log(`Welcome email (${user.role || 'customer'}) sent successfully:`, data.id);
+    console.log(
+      `Welcome email (${user.role || "customer"}) sent successfully:`,
+      data.id,
+    );
     return true;
   } catch (error) {
     console.error("Error sending welcome email:", error);
@@ -403,9 +406,17 @@ export async function sendCleanerApplicationEmail(
 ): Promise<boolean> {
   try {
     if (!resend) {
-      console.error("Resend API key not configured");
+      console.error(
+        "Resend API key not configured. Ensure RESEND_API_KEY environment variable is set.",
+      );
       return false;
     }
+
+    // Log the attempt
+    console.log(
+      `Attempting to send cleaner application notification for: ${application.firstName} ${application.lastName}`,
+    );
+    console.log(`Using recipient email: ${recruitmentEmail}`);
 
     // Generate the application notification template
     const template = getCleanerApplicationTemplate(application, EMAIL_CONFIG);
@@ -420,12 +431,12 @@ export async function sendCleanerApplicationEmail(
     });
 
     if (error) {
-      console.error("Resend API error:", error);
+      console.error("Resend API error in cleaner application email:", error);
       return false;
     }
 
     console.log(
-      "Cleaner application notification email sent successfully:",
+      "Cleaner application notification email sent successfully with ID:",
       data.id,
     );
     return true;

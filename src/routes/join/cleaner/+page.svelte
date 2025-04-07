@@ -1,9 +1,8 @@
-
 <!-- src/routes/join/cleaner/+page.svelte -->
 <script lang="ts">
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
-  import { Calendar, DollarSign, MapPin, Clock, ShieldCheck, Users, Wallet, Zap } from "lucide-svelte";
+  import { Clock, Wallet, Zap } from "lucide-svelte";
 
   // Form state
   let isSubmitting = false;
@@ -29,7 +28,7 @@
 
   // Reset form after submission
   function resetForm() {
-    const form = document.getElementById('join-form') as HTMLFormElement;
+    const form = document.getElementById("join-form") as HTMLFormElement;
     if (form) form.reset();
     step = 1;
     firstName = "";
@@ -344,27 +343,50 @@
   <div id="apply" class="bg-gray-100 py-16 dark:bg-gray-800">
     <div class="container mx-auto px-4">
       <div class="mx-auto max-w-3xl">
-        <h2 class="mb-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
+        <h2
+          class="mb-6 text-center text-3xl font-bold text-gray-900 dark:text-white"
+        >
           Apply to Join
         </h2>
         <p class="mb-12 text-center text-lg text-gray-600 dark:text-gray-300">
-          Fill out the application form below to start your journey with BrightBroom.
-          Our team will review your application and get back to you within 2-3 business days.
+          Fill out the application form below to start your journey with
+          BrightBroom. Our team will review your application and get back to you
+          within 2-3 business days.
         </p>
 
         {#if formSuccess}
-          <div class="rounded-lg bg-white p-8 text-center shadow-md dark:bg-gray-700">
+          <div
+            class="rounded-lg bg-white p-8 text-center shadow-md dark:bg-gray-700"
+          >
             <div class="mb-6 flex justify-center">
-              <div class="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              <div
+                class="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-8 w-8"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
             </div>
-            <h3 class="mb-4 text-2xl font-semibold text-gray-900 dark:text-white">Application Submitted!</h3>
+            <h3
+              class="mb-4 text-2xl font-semibold text-gray-900 dark:text-white"
+            >
+              Application Submitted!
+            </h3>
             <p class="mb-6 text-gray-600 dark:text-gray-300">
-              Thank you for applying to join the BrightBroom team. We've received your application and will review it shortly.
-              You'll hear back from us within 2-3 business days.
+              Thank you for applying to join the BrightBroom team. We've
+              received your application and will review it shortly. You'll hear
+              back from us within 2-3 business days.
             </p>
             <Button
               variant="primary"
@@ -383,21 +405,31 @@
               <div class="flex justify-between">
                 {#each Array(totalSteps) as _, i}
                   <div class="relative flex flex-col items-center">
-                    <div class={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
-                      i + 1 < step 
-                        ? 'border-primary bg-primary text-white' 
-                        : i + 1 === step 
-                          ? 'border-primary bg-white text-primary dark:bg-gray-700' 
-                          : 'border-gray-300 bg-white text-gray-400 dark:border-gray-600 dark:bg-gray-700'
-                    }`}>
+                    <div
+                      class={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
+                        i + 1 < step
+                          ? "border-primary bg-primary text-white"
+                          : i + 1 === step
+                            ? "border-primary bg-white text-primary dark:bg-gray-700"
+                            : "border-gray-300 bg-white text-gray-400 dark:border-gray-600 dark:bg-gray-700"
+                      }`}
+                    >
                       {i + 1}
                     </div>
                     <div class="mt-2 text-xs text-gray-600 dark:text-gray-300">
-                      {i === 0 ? 'Personal Info' : i === 1 ? 'Work Experience' : 'Additional Details'}
+                      {i === 0
+                        ? "Personal Info"
+                        : i === 1
+                          ? "Work Experience"
+                          : "Additional Details"}
                     </div>
                     {#if i < totalSteps - 1}
-                      <div class="absolute left-full top-5 -translate-y-1/2 w-full">
-                        <div class={`h-1 w-full ${i + 1 < step ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
+                      <div
+                        class="absolute left-full top-5 -translate-y-1/2 w-full"
+                      >
+                        <div
+                          class={`h-1 w-full ${i + 1 < step ? "bg-primary" : "bg-gray-300 dark:bg-gray-600"}`}
+                        ></div>
                       </div>
                     {/if}
                   </div>
@@ -406,40 +438,54 @@
             </div>
 
             {#if formError}
-              <div class="mb-6 rounded-md bg-red-50 p-4 text-red-600 dark:bg-red-900/20 dark:text-red-200">
+              <div
+                class="mb-6 rounded-md bg-red-50 p-4 text-red-600 dark:bg-red-900/20 dark:text-red-200"
+              >
                 <p>{formError}</p>
               </div>
             {/if}
 
-            <form 
+            <form
               id="join-form"
-              method="POST" 
+              method="POST"
               enctype="multipart/form-data"
               use:enhance={() => {
                 isSubmitting = true;
                 formError = null;
-                
-                // For demonstration purposes, we'll simulate a successful submission
-                // In a real implementation, you'd handle the actual form submission result
-                return async () => {
+
+                // Properly handle the form submission with server result
+                return async ({ result }) => {
                   isSubmitting = false;
-                  
-                  // Simulate successful submission
-                  setTimeout(() => {
+
+                  if (result.type === "success") {
                     formSuccess = true;
-                  }, 1500);
+                  } else if (result.type === "failure") {
+                    // Display the error message from the server
+                    formError =
+                      result.data?.error ||
+                      "Failed to submit your application. Please try again.";
+                  } else if (result.type === "error") {
+                    formError = "Something went wrong. Please try again later.";
+                  }
                 };
               }}
             >
               <!-- Step 1: Personal Information -->
               {#if step === 1}
                 <div class="space-y-6">
-                  <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Personal Information</h3>
+                  <h3
+                    class="text-xl font-semibold text-gray-900 dark:text-white"
+                  >
+                    Personal Information
+                  </h3>
 
                   <!-- Name Fields (2 columns) -->
                   <div class="grid gap-4 md:grid-cols-2">
                     <div>
-                      <label for="firstName" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <label
+                        for="firstName"
+                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
                         First Name <span class="text-red-500">*</span>
                       </label>
                       <input
@@ -452,7 +498,10 @@
                       />
                     </div>
                     <div>
-                      <label for="lastName" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <label
+                        for="lastName"
+                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
                         Last Name <span class="text-red-500">*</span>
                       </label>
                       <input
@@ -469,7 +518,10 @@
                   <!-- Email & Phone (2 columns) -->
                   <div class="grid gap-4 md:grid-cols-2">
                     <div>
-                      <label for="email" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <label
+                        for="email"
+                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
                         Email <span class="text-red-500">*</span>
                       </label>
                       <input
@@ -482,7 +534,10 @@
                       />
                     </div>
                     <div>
-                      <label for="phone" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <label
+                        for="phone"
+                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
                         Phone Number <span class="text-red-500">*</span>
                       </label>
                       <input
@@ -499,7 +554,10 @@
 
                   <!-- City -->
                   <div>
-                    <label for="city" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                      for="city"
+                      class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                       City/Area <span class="text-red-500">*</span>
                     </label>
                     <input
@@ -517,12 +575,21 @@
               <!-- Step 2: Work Experience -->
               {#if step === 2}
                 <div class="space-y-6">
-                  <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Work Experience</h3>
+                  <h3
+                    class="text-xl font-semibold text-gray-900 dark:text-white"
+                  >
+                    Work Experience
+                  </h3>
 
                   <!-- Cleaning Experience -->
                   <div>
-                    <label for="experience" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Years of Cleaning Experience <span class="text-red-500">*</span>
+                    <label
+                      for="experience"
+                      class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Years of Cleaning Experience <span class="text-red-500"
+                        >*</span
+                      >
                     </label>
                     <select
                       id="experience"
@@ -542,11 +609,14 @@
 
                   <!-- Availability -->
                   <div>
-                    <p id="availability-label" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <p
+                      id="availability-label"
+                      class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                       Availability <span class="text-red-500">*</span>
                     </p>
                     <div class="space-y-2" aria-labelledby="availability-label">
-                      {#each ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as day}
+                      {#each ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as day}
                         <label class="flex items-center">
                           <input
                             type="checkbox"
@@ -555,7 +625,9 @@
                             bind:group={availability}
                             class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                           />
-                          <span class="ml-2 text-gray-700 dark:text-gray-300">{day}</span>
+                          <span class="ml-2 text-gray-700 dark:text-gray-300"
+                            >{day}</span
+                          >
                         </label>
                       {/each}
                     </div>
@@ -564,10 +636,17 @@
                   <!-- Own Transport & Supplies -->
                   <div class="grid gap-4 md:grid-cols-2">
                     <div>
-                      <p id="transport-label" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <p
+                        id="transport-label"
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
                         Do you have your own transport?
                       </p>
-                      <div class="space-x-4" role="radiogroup" aria-labelledby="transport-label">
+                      <div
+                        class="space-x-4"
+                        role="radiogroup"
+                        aria-labelledby="transport-label"
+                      >
                         <label class="inline-flex items-center">
                           <input
                             type="radio"
@@ -576,7 +655,9 @@
                             bind:group={ownTransport}
                             class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
                           />
-                          <span class="ml-2 text-gray-700 dark:text-gray-300">Yes</span>
+                          <span class="ml-2 text-gray-700 dark:text-gray-300"
+                            >Yes</span
+                          >
                         </label>
                         <label class="inline-flex items-center">
                           <input
@@ -586,15 +667,24 @@
                             bind:group={ownTransport}
                             class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
                           />
-                          <span class="ml-2 text-gray-700 dark:text-gray-300">No</span>
+                          <span class="ml-2 text-gray-700 dark:text-gray-300"
+                            >No</span
+                          >
                         </label>
                       </div>
                     </div>
                     <div>
-                      <p id="whatsapp-label" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <p
+                        id="whatsapp-label"
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
                         Do you have your own WhatsApp?
                       </p>
-                      <div class="space-x-4" role="radiogroup" aria-labelledby="whatsapp-label">
+                      <div
+                        class="space-x-4"
+                        role="radiogroup"
+                        aria-labelledby="whatsapp-label"
+                      >
                         <label class="inline-flex items-center">
                           <input
                             type="radio"
@@ -603,7 +693,9 @@
                             bind:group={whatsApp}
                             class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
                           />
-                          <span class="ml-2 text-gray-700 dark:text-gray-300">Yes</span>
+                          <span class="ml-2 text-gray-700 dark:text-gray-300"
+                            >Yes</span
+                          >
                         </label>
                         <label class="inline-flex items-center">
                           <input
@@ -613,7 +705,9 @@
                             bind:group={whatsApp}
                             class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
                           />
-                          <span class="ml-2 text-gray-700 dark:text-gray-300">No</span>
+                          <span class="ml-2 text-gray-700 dark:text-gray-300"
+                            >No</span
+                          >
                         </label>
                       </div>
                     </div>
@@ -624,12 +718,19 @@
               <!-- Step 3: Additional Details -->
               {#if step === 3}
                 <div class="space-y-6">
-                  <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Additional Details</h3>
+                  <h3
+                    class="text-xl font-semibold text-gray-900 dark:text-white"
+                  >
+                    Additional Details
+                  </h3>
 
                   <!-- ID Type & Number -->
                   <div class="grid gap-4 md:grid-cols-2">
                     <div>
-                      <label for="idType" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <label
+                        for="idType"
+                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
                         ID Type
                       </label>
                       <select
@@ -645,8 +746,11 @@
                       </select>
                     </div>
                     <div>
-                      <label for="idNumber" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        ID Number  <span class="text-red-500">*</span>
+                      <label
+                        for="idNumber"
+                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        ID Number <span class="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -661,7 +765,10 @@
 
                   <!-- How did you hear about us -->
                   <div>
-                    <label for="hearAboutUs" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                      for="hearAboutUs"
+                      class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                       How did you hear about BrightBroom?
                     </label>
                     <select
@@ -681,11 +788,15 @@
 
                   <!-- Document Upload -->
                   <div>
-                    <label for="documents" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                      for="documents"
+                      class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                       Upload Documents (Optional)
                     </label>
                     <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">
-                      You can upload your ID, proof of address, or any relevant certifications.
+                      You can upload your ID, proof of address, or any relevant
+                      certifications.
                     </p>
                     <input
                       type="file"
@@ -705,9 +816,18 @@
                         required
                         class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                       />
-                      <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                        I agree to the <a href="/terms" class="text-primary hover:underline">Terms of Service</a> and 
-                        <a href="/privacy" class="text-primary hover:underline">Privacy Policy</a>
+                      <span
+                        class="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                      >
+                        I agree to the <a
+                          href="/terms"
+                          class="text-primary hover:underline"
+                          >Terms of Service</a
+                        >
+                        and
+                        <a href="/privacy" class="text-primary hover:underline"
+                          >Privacy Policy</a
+                        >
                       </span>
                     </label>
                   </div>
@@ -725,7 +845,8 @@
                     Previous
                   </Button>
                 {:else}
-                  <div></div> <!-- Empty div for spacing when no Previous button -->
+                  <div></div>
+                  <!-- Empty div for spacing when no Previous button -->
                 {/if}
 
                 {#if step < totalSteps}
@@ -744,9 +865,25 @@
                     disabled={isSubmitting}
                   >
                     {#if isSubmitting}
-                      <svg class="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        class="mr-2 h-4 w-4 animate-spin"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          class="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          stroke-width="4"
+                        ></circle>
+                        <path
+                          class="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                       Submitting...
                     {:else}
