@@ -1,17 +1,30 @@
-// Create in a new file: scripts/add-isactive-field.ts
+// scripts/add-isactive-field.ts
+import { config } from 'dotenv';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import { user } from '../src/lib/server/db/schema';
+import { eq } from 'drizzle-orm';
 
-import { db } from '$lib/server/db';
-import { user } from '$lib/server/db/schema';
-import { sql } from 'drizzle-orm';
+// Load environment variables from .env files
+config();
 
+async function main() {
+  // Check if DATABASE_URL is defined
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    console.error('DATABASE_URL environment variable is not defined');
+    process.exit(1);
+  }
 
-/**
- * Migration script to add isActive field to the user table
- * Run this with: npx tsx scripts/add-isactive-field.ts
- */
-async function addIsActiveFieldMigration() {
+  console.log('Connecting to database...');
+  
+  // Create database connection
+  const client = postgres(databaseUrl);
+  const db = drizzle(client);
+
   try {
-    console.log('Starting migration to add isActive field to user table...');
+    console.log('Adding isActive field to user table...');
     
     // Check if the column already exists
     const checkColumnQuery = `
@@ -20,41 +33,33 @@ async function addIsActiveFieldMigration() {
       WHERE table_name = 'user' AND column_name = 'is_active';
     `;
     
-    const result = await db.execute(sql.raw(checkColumnQuery));
+    const columnExists = await client.unsafe(checkColumnQuery);
     
-    if (result.rows.length === 0) {
-      // Column doesn't exist, add it
-      console.log('Adding is_active column to user table...');
-      
-      await db.execute(sql.raw(`
+    if (columnExists.length === 0) {
+      // Add the column if it doesn't exist
+      console.log('Column does not exist, adding it...');
+      await client.unsafe(`
         ALTER TABLE "user" 
-        ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE;
-      `));
-      
+        ADD COLUMN IF NOT EXISTS "is_active" BOOLEAN DEFAULT true NOT NULL;
+      `);
       console.log('Column added successfully!');
-      
-      // Set all CLEANER users to have isActive = false initially
-      console.log('Setting default values for CLEANER users...');
-      
-      await db.execute(sql.raw(`
-        UPDATE "user"
-        SET is_active = FALSE
-        WHERE role = 'CLEANER';
-      `));
-      
-      console.log('Default values set successfully!');
     } else {
-      console.log('The is_active column already exists in the user table.');
+      console.log('Column already exists, updating default values...');
+      // Update any NULL values to TRUE
+      await db.update(user)
+        .set({ isActive: true })
+        .where(eq(user.isActive, undefined as any));
+      console.log('Default values updated!');
     }
-    
+
     console.log('Migration completed successfully!');
   } catch (error) {
-    console.error('Migration failed:', error);
+    console.error('Error during migration:', error);
     process.exit(1);
   } finally {
-    process.exit(0);
+    // Close the database connection
+    await client.end();
   }
 }
 
-// Run the migration
-addIsActiveFieldMigration();
+main();
