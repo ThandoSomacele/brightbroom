@@ -24,7 +24,7 @@
   const statusOptions = [
     { value: "ALL", label: "All Statuses" },
     { value: "ACTIVE", label: "Active" },
-    { value: "PENDING", label: "Pending Review" },
+    { value: "INACTIVE", label: "Inactive" },
   ];
 
   // Format date function
@@ -360,7 +360,7 @@
                   <span
                     class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
                   >
-                    Pending Review
+                    Inactive
                   </span>
                 {:else}
                   <span

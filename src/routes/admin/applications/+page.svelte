@@ -1,10 +1,7 @@
 <!-- src/routes/admin/applications/+page.svelte -->
 <script lang="ts">
-  import { enhance } from "$app/forms";
-  import { invalidateAll } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
-  import LoadingButton from "$lib/components/ui/LoadingButton.svelte";
-  import { Search, Filter, ArrowLeft, ArrowRight, Check, X, Eye } from "lucide-svelte";
+  import { ArrowLeft, ArrowRight, Eye, Filter, Search } from "lucide-svelte";
 
   export let data;
   let { applications, pagination, filters } = data;
@@ -13,7 +10,6 @@
   let searchTerm = filters.search || "";
   let statusFilter = filters.status || "PENDING";
   let showFilters = false;
-  let processingIds = new Set();
 
   // Status options
   const statusOptions = [
@@ -65,12 +61,6 @@
     searchParams.set("page", page.toString());
     window.location.href = `/admin/applications?${searchParams.toString()}`;
   }
-
-  // Process application (approve/reject)
-  async function processApplication(id: string, action: "approve" | "reject") {
-    processingIds.add(id);
-    processingIds = processingIds; // trigger reactivity
-  }
 </script>
 
 <svelte:head>
@@ -79,7 +69,9 @@
 
 <!-- Page header -->
 <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-  <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Cleaner Applications</h1>
+  <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+    Cleaner Applications
+  </h1>
 </div>
 
 <!-- Filters and search -->
@@ -234,10 +226,14 @@
                   </div>
                 {/if}
               </td>
-              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
+              <td
+                class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white"
+              >
                 {application.experience}
               </td>
-              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
+              <td
+                class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white"
+              >
                 {formatDate(application.createdAt)}
               </td>
               <td class="whitespace-nowrap px-6 py-4">
@@ -264,67 +260,16 @@
               <td
                 class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium"
               >
-                <div class="flex justify-end space-x-2">
-                  <form method="POST" action="?/viewApplication" use:enhance>
-                    <input type="hidden" name="id" value={application.id} />
-                    <Button variant="ghost" size="sm" type="submit">
+                <div class="flex justify-end">
+                  <a
+                    href={`/admin/applications/${application.id}`}
+                    class="text-primary hover:text-primary-600"
+                  >
+                    <Button variant="ghost" size="sm">
                       <Eye size={16} />
+                      <span class="ml-1">View</span>
                     </Button>
-                  </form>
-                  
-                  {#if application.status === "PENDING"}
-                    <form method="POST" action="?/approveApplication" use:enhance={() => {
-                      processingIds.add(application.id);
-                      processingIds = processingIds;
-                      
-                      return async ({ result }) => {
-                        processingIds.delete(application.id);
-                        processingIds = processingIds;
-                        
-                        if (result.type === "success") {
-                          await invalidateAll();
-                        }
-                      };
-                    }}>
-                      <input type="hidden" name="id" value={application.id} />
-                      <LoadingButton
-                        variant="ghost"
-                        size="sm"
-                        type="submit"
-                        loading={processingIds.has(application.id)}
-                        loadingText=""
-                        class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
-                      >
-                        <Check size={16} />
-                      </LoadingButton>
-                    </form>
-                    
-                    <form method="POST" action="?/rejectApplication" use:enhance={() => {
-                      processingIds.add(application.id);
-                      processingIds = processingIds;
-                      
-                      return async ({ result }) => {
-                        processingIds.delete(application.id);
-                        processingIds = processingIds;
-                        
-                        if (result.type === "success") {
-                          await invalidateAll();
-                        }
-                      };
-                    }}>
-                      <input type="hidden" name="id" value={application.id} />
-                      <LoadingButton
-                        variant="ghost"
-                        size="sm"
-                        type="submit"
-                        loading={processingIds.has(application.id)}
-                        loadingText=""
-                        class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                      >
-                        <X size={16} />
-                      </LoadingButton>
-                    </form>
-                  {/if}
+                  </a>
                 </div>
               </td>
             </tr>

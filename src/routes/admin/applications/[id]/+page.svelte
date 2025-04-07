@@ -303,6 +303,58 @@
               </Button>
             {/if}
           </div>
+          
+          <hr class="border-t border-gray-200 dark:border-gray-700" />
+          
+          <!-- Decision Buttons (Highlighted) -->
+          <div class="rounded-md bg-gray-50 p-4 dark:bg-gray-700">
+            <h3 class="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Application Decision</h3>
+            <div class="space-y-3">
+              <form method="POST" action="?/approve" use:enhance={() => {
+                isProcessing = true;
+                
+                return async ({ result }) => {
+                  isProcessing = false;
+                  
+                  if (result.type === "success") {
+                    await invalidateAll();
+                  }
+                };
+              }}>
+                <LoadingButton
+                  type="submit"
+                  variant="primary"
+                  loading={isProcessing}
+                  class="w-full !bg-green-600 hover:!bg-green-700 dark:!bg-green-700 dark:hover:!bg-green-800"
+                >
+                  <Check size={16} class="mr-2" />
+                  Approve Application
+                </LoadingButton>
+              </form>
+              
+              <form method="POST" action="?/reject" use:enhance={() => {
+                isProcessing = true;
+                
+                return async ({ result }) => {
+                  isProcessing = false;
+                  
+                  if (result.type === "success") {
+                    await invalidateAll();
+                  }
+                };
+              }}>
+                <LoadingButton
+                  type="submit"
+                  variant="outline"
+                  loading={isProcessing}
+                  class="w-full !border-red-500 !text-red-500 hover:!bg-red-50 dark:hover:!bg-red-900/20"
+                >
+                  <X size={16} class="mr-2" />
+                  Reject Application
+                </LoadingButton>
+              </form>
+            </div>
+          </div>
         {:else if application.status === "APPROVED"}
           <div class="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
             <div class="flex">
