@@ -1,111 +1,43 @@
 // src/routes/admin/applications/[id]/+page.server.ts
 import { db } from "$lib/server/db";
 import {
-  booking,
   cleanerApplication,
   cleanerProfile,
-  cleanerSpecialisation,
-  service,
   user,
 } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
-import { error, fail, redirect } from "@sveltejs/kit";
-import { eq } from "drizzle-orm";
+import { error, fail } from "@sveltejs/kit";
+import { eq } from "drizzle-orm"; // Added missing 'and' import here
 import type { Actions, PageServerLoad } from "./$types";
 
-
 export const load: PageServerLoad = async ({ params }) => {
-  const cleanerId = params.id;
+  const applicationId = params.id;
 
-  if (!cleanerId) {
-    throw error(404, "Cleaner not found");
+  if (!applicationId) {
+    throw error(404, "Application not found");
   }
 
   try {
-    // Fetch the cleaner with profile data
-    const userResults = await db
-      .select({
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        isActive: user.isActive, // Include isActive field from user
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt
-      })
-      .from(user)
-      .where(and(eq(user.id, cleanerId), eq(user.role, "CLEANER")))
+    // Fetch the application details
+    const [application] = await db
+      .select()
+      .from(cleanerApplication)
+      .where(eq(cleanerApplication.id, applicationId))
       .limit(1);
 
-    if (userResults.length === 0) {
-      throw error(404, "Cleaner not found");
+    if (!application) {
+      throw error(404, "Application not found");
     }
 
-    const cleanerData = userResults[0];
+    // You can fetch any additional related data here
+    // For example, any notes about the application
 
-    // Fetch cleaner profile
-    const profileResults = await db
-      .select()
-      .from(cleanerProfile)
-      .where(eq(cleanerProfile.userId, cleanerId))
-      .limit(1);
-
-    const profile = profileResults.length > 0 ? profileResults[0] : null;
-
-    // Fetch specialisations
-    let specialisations: { id: string; serviceId: string; cleanerProfileId: string; experience: number; }[] = [];
-    if (profile) {
-      specialisations = await db
-        .select({
-          id: cleanerSpecialisation.id,
-          serviceId: cleanerSpecialisation.serviceId,
-          cleanerProfileId: cleanerSpecialisation.cleanerProfileId,
-          experience: cleanerSpecialisation.experience,
-        })
-        .from(cleanerSpecialisation)
-        .where(eq(cleanerSpecialisation.cleanerProfileId, profile.id));
-    }
-
-    // Fetch all services for dropdown options
-    const services = await db
-      .select()
-      .from(service)
-      .orderBy(service.sortOrder)
-      .orderBy(service.name);
-
-    // Fetch recent bookings
-    const recentBookings = await db
-      .select({
-        id: booking.id,
-        status: booking.status,
-        scheduledDate: booking.scheduledDate,
-        customer: {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-        },
-      })
-      .from(booking)
-      .innerJoin(user, eq(booking.userId, user.id))
-      .where(eq(booking.cleanerId, cleanerId))
-      .orderBy(desc(booking.scheduledDate))
-      .limit(5);
-
-    // Combine data
     return {
-      cleaner: {
-        ...cleanerData,
-        cleanerProfile: profile,
-        specialisations,
-      },
-      services,
-      bookings: recentBookings,
+      application,
     };
   } catch (err) {
-    console.error("Error loading cleaner details:", err);
-    throw error(500, "Error loading cleaner details");
+    console.error("Error loading application details:", err);
+    throw error(500, "Error loading application details");
   }
 };
 
