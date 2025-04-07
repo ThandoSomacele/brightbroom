@@ -865,8 +865,8 @@
             {/if}
           </div>
         {/if}
-      </div>
-      
+    
+
       {#if !cleaner.isActive}
         <div class="mt-4 rounded-md bg-amber-50 p-4 dark:bg-amber-900/20">
           <div class="flex items-center">
@@ -906,23 +906,26 @@
           </div>
         </div>
       {:else}
-        <div
-          class="mt-4 flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700"
-        >
-          <div class="flex items-center">
-            <div class="h-2.5 w-2.5 rounded-full bg-green-500 mr-2"></div>
-            <p class="text-sm text-gray-700 dark:text-gray-300">
-              Account Active
-            </p>
+       
+          <div
+            class="mt-4 flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700"
+          >
+            <div class="flex items-center">
+              <div class="h-2.5 w-2.5 rounded-full bg-green-500 mr-2"></div>
+              <p class="text-sm text-gray-700 dark:text-gray-300">
+                Account Active
+              </p>
+            </div>
+            <form method="POST" action="?/updateActivation" use:enhance>
+              <input type="hidden" name="setActive" value="false" />
+              <Button type="submit" variant="outline" size="sm">
+                Deactivate Account
+              </Button>
+            </form>
           </div>
-          <form method="POST" action="?/updateActivation" use:enhance>
-            <input type="hidden" name="setActive" value="false" />
-            <Button type="submit" variant="outline" size="sm">
-              Deactivate Account
-            </Button>
-          </form>
-        </div>
+        
       {/if}
+    </div>
     </div>
   </div>
 

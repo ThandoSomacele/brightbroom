@@ -6,14 +6,21 @@ import {
   service,
   user,
 } from "$lib/server/db/schema";
-import { desc, eq, inArray, like, or, sql } from "drizzle-orm";
+import { error, redirect } from "@sveltejs/kit";
+import { and, desc, eq, ilike, inArray, like, or, sql } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ url, locals }) => {
+  // Verify admin role
+  if (!locals.user || locals.user.role !== "ADMIN") {
+    throw redirect(302, "/auth/login?redirectTo=/admin/cleaners");
+  }
+
   // Get query parameters for filtering and pagination
   const search = url.searchParams.get("search") || "";
   const availability = url.searchParams.get("availability") || "";
   const specialisation = url.searchParams.get("specialisation") || "";
+  const status = url.searchParams.get("status") || "";
   const page = parseInt(url.searchParams.get("page") || "1");
   const limit = 10; // Number of items per page
   const offset = (page - 1) * limit;
@@ -36,6 +43,7 @@ export const load: PageServerLoad = async ({ url }) => {
         email: user.email,
         phone: user.phone,
         createdAt: user.createdAt,
+        isActive: user.isActive, // Ensure we select the isActive field
         cleanerProfile: {
           id: cleanerProfile.id,
           rating: cleanerProfile.rating,
@@ -70,6 +78,13 @@ export const load: PageServerLoad = async ({ url }) => {
       query = query.where(eq(cleanerProfile.isAvailable, false));
     }
 
+    // Apply status filter if provided
+    if (status === "ACTIVE") {
+      query = query.where(eq(user.isActive, true));
+    } else if (status === "PENDING") {
+      query = query.where(eq(user.isActive, false));
+    }
+
     // Apply specialisation filter if provided
     // Note: For specialisation filtering, we'll need to adjust our approach after the initial query
 
@@ -99,6 +114,12 @@ export const load: PageServerLoad = async ({ url }) => {
       countQuery.where(eq(cleanerProfile.isAvailable, true));
     } else if (availability === "UNAVAILABLE") {
       countQuery.where(eq(cleanerProfile.isAvailable, false));
+    }
+
+    if (status === "ACTIVE") {
+      countQuery.where(eq(user.isActive, true));
+    } else if (status === "PENDING") {
+      countQuery.where(eq(user.isActive, false));
     }
 
     // Execute initial queries
@@ -193,6 +214,7 @@ export const load: PageServerLoad = async ({ url }) => {
         search,
         availability,
         specialisation,
+        status, // Include the status filter in returned data
       },
     };
   } catch (error) {
@@ -210,6 +232,7 @@ export const load: PageServerLoad = async ({ url }) => {
         search,
         availability,
         specialisation,
+        status,
       },
     };
   }
