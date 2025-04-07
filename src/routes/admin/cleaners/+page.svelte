@@ -1,16 +1,16 @@
-<!-- src/routes/admin/cleaners/+page.svelte -->
+<!-- Part of src/routes/admin/cleaners/+page.svelte -->
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
   import {
-    ArrowLeft,
-    ArrowRight,
-    Download,
-    Filter,
-    Map,
-    PlusCircle,
-    Search,
-    Star,
-    Users,
+      ArrowLeft,
+      ArrowRight,
+      Download,
+      Filter,
+      Map,
+      PlusCircle,
+      Search,
+      Star,
+      Users,
   } from "lucide-svelte";
 
   export let data;
@@ -20,6 +20,7 @@
   let searchTerm = filters.search || "";
   let availabilityFilter = filters.availability || "ALL";
   let specialisationFilter = filters.specialisation || "";
+  let statusFilter = filters.status || "ALL";  
   let showFilters = false;
 
   // Availability options
@@ -27,6 +28,13 @@
     { value: "ALL", label: "All Cleaners" },
     { value: "AVAILABLE", label: "Available" },
     { value: "UNAVAILABLE", label: "Unavailable" },
+  ];
+
+  // Status options
+  const statusOptions = [
+    { value: "ALL", label: "All Statuses" },
+    { value: "ACTIVE", label: "Active" },
+    { value: "INACTIVE", label: "Inactive" },
   ];
 
   // Format date function
@@ -54,32 +62,35 @@
   }
 
   // Apply filters
-  function applyFilters() {
-    const searchParams = new URLSearchParams();
+function applyFilters() {
+  const searchParams = new URLSearchParams();
 
-    if (searchTerm) searchParams.set("search", searchTerm);
-    if (availabilityFilter && availabilityFilter !== "ALL")
-      searchParams.set("availability", availabilityFilter);
-    if (specialisationFilter)
-      searchParams.set("specialisation", specialisationFilter);
+  if (searchTerm) searchParams.set("search", searchTerm);
+  if (availabilityFilter && availabilityFilter !== "ALL")
+    searchParams.set("availability", availabilityFilter);
+  if (specialisationFilter)
+    searchParams.set("specialisation", specialisationFilter);
+  if (statusFilter && statusFilter !== "ALL")
+    searchParams.set("status", statusFilter);
 
-    // Add current page if it's not the first page
-    if (pagination.page > 1) {
-      searchParams.set("page", pagination.page.toString());
-    }
-
-    // Navigate to the same page with filters applied
-    const url = searchParams.toString() ? `?${searchParams.toString()}` : "";
-    window.location.href = `/admin/cleaners${url}`;
+  // Add current page if it's not the first page
+  if (pagination.page > 1) {
+    searchParams.set("page", pagination.page.toString());
   }
+
+  // Navigate to the same page with filters applied
+  const url = searchParams.toString() ? `?${searchParams.toString()}` : "";
+  window.location.href = `/admin/cleaners${url}`;
+}
 
   // Reset filters
-  function resetFilters() {
-    searchTerm = "";
-    availabilityFilter = "ALL";
-    specialisationFilter = "";
-    window.location.href = "/admin/cleaners";
-  }
+function resetFilters() {
+  searchTerm = "";
+  availabilityFilter = "ALL";
+  specialisationFilter = "";
+  statusFilter = "ALL";
+  window.location.href = "/admin/cleaners";
+}
 
   // Navigate to a specific page
   function goToPage(page: number) {

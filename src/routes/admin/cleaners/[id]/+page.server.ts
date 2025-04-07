@@ -7,6 +7,7 @@ import {
   service,
   user,
 } from "$lib/server/db/schema";
+import { sendWelcomeEmail } from "$lib/server/email-service";
 import { error, fail } from "@sveltejs/kit";
 import { and, desc, eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
