@@ -724,6 +724,31 @@
                     Additional Details
                   </h3>
 
+                  <!-- Hidden fields from previous steps -->
+                  <input type="hidden" name="firstName" value={firstName} />
+                  <input type="hidden" name="lastName" value={lastName} />
+                  <input type="hidden" name="email" value={email} />
+                  <input type="hidden" name="phone" value={phone} />
+                  <input type="hidden" name="city" value={city} />
+                  <input type="hidden" name="experience" value={experience} />
+
+                  <!-- For checkbox arrays, we need to handle differently -->
+                  {#each availability as day}
+                    <input type="hidden" name="availability" value={day} />
+                  {/each}
+
+                  <!-- Radio button values -->
+                  <input
+                    type="hidden"
+                    name="ownTransport"
+                    value={ownTransport ? "yes" : "no"}
+                  />
+                  <input
+                    type="hidden"
+                    name="whatsApp"
+                    value={whatsApp ? "yes" : "no"}
+                  />
+
                   <!-- ID Type & Number -->
                   <div class="grid gap-4 md:grid-cols-2">
                     <div>
@@ -787,7 +812,7 @@
                   </div>
 
                   <!-- Document Upload -->
-                  <div>
+                  <!-- <div>
                     <label
                       for="documents"
                       class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -805,7 +830,7 @@
                       multiple
                       class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
                     />
-                  </div>
+                  </div> -->
 
                   <!-- Terms and Conditions -->
                   <div>
