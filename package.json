@@ -57,6 +57,8 @@
     "jsdom": "^26.0.0",
     "lucia": "^3.2.2",
     "lucide-svelte": "^0.479.0",
+    "mime-types": "^2.1.35",
+    "nanoid": "^5.0.5",
     "oslo": "^1.2.1",
     "papaparse": "^5.5.2",
     "postcss": "^8.5.3",
@@ -67,6 +69,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "resend": "^4.1.2",
+    "sharp": "^0.34.1",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
     "tailwindcss": "^3.4.9",
@@ -77,10 +80,7 @@
     "vite-imagetools": "^7.0.5",
     "vite-node": "^3.0.8",
     "vitest": "^3.0.8",
-    "zod": "^3.24.2",
-    "sharp": "^0.32.6",
-    "nanoid": "^5.0.5",
-    "mime-types": "^2.1.35"
+    "zod": "^3.24.2"
   },
   "svelte-check": {
     "detailed": true

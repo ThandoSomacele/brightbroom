@@ -2,6 +2,7 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
+  import DbDebugger from "$lib/components/admin/DbDebugger.svelte";
   import ProfileImageUpload from "$lib/components/admin/ProfileImageUpload.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import {
@@ -509,6 +510,17 @@
             on:error={handleProfileImageError}
             disabled={isPersonalInfoEditMode || isLoading}
           />
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <details class="text-sm">
+            <summary
+              class="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-primary"
+            >
+              Advanced Troubleshooting
+            </summary>
+            <DbDebugger userId={cleaner.id} />
+          </details>
         </div>
       </div>
     </div>

@@ -2,9 +2,9 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
-import { cleaner_profile } from '$lib/server/db/schema';
+import { cleanerProfile } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import { error, fail } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import sharp from 'sharp';
 import { nanoid } from 'nanoid';
 import fs from 'fs';
@@ -12,18 +12,30 @@ import path from 'path';
 import { PUBLIC_URL } from '$env/static/public';
 import { UPLOAD_DIR } from '$lib/server/constants';
 
+// Log environment for debugging
+console.log('Environment check:', {
+  PUBLIC_URL,
+  UPLOAD_DIR,
+  'process.env.NODE_ENV': process.env.NODE_ENV
+});
+
 // Ensure upload directory exists
 const ensureUploadDirExists = () => {
-  if (!fs.existsSync(UPLOAD_DIR)) {
-    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  try {
+    if (!fs.existsSync(UPLOAD_DIR)) {
+      fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    }
+    
+    const profileImagesDir = path.join(UPLOAD_DIR, 'profile-images');
+    if (!fs.existsSync(profileImagesDir)) {
+      fs.mkdirSync(profileImagesDir, { recursive: true });
+    }
+    
+    return profileImagesDir;
+  } catch (err) {
+    console.error('Error creating upload directories:', err);
+    throw new Error('Failed to create upload directories');
   }
-  
-  const profileImagesDir = path.join(UPLOAD_DIR, 'profile-images');
-  if (!fs.existsSync(profileImagesDir)) {
-    fs.mkdirSync(profileImagesDir, { recursive: true });
-  }
-  
-  return profileImagesDir;
 };
 
 /**
@@ -31,6 +43,7 @@ const ensureUploadDirExists = () => {
  */
 export const POST: RequestHandler = async ({ request, params }) => {
   const cleanerId = params.id;
+  let tempFile = null;
   
   if (!cleanerId) {
     throw error(400, 'Cleaner ID is required');
@@ -50,48 +63,68 @@ export const POST: RequestHandler = async ({ request, params }) => {
       throw error(400, 'File must be an image');
     }
     
-    // Read the file as buffer
-    const fileBuffer = await imageFile.arrayBuffer();
-    
-    // Process the image with sharp for optimization
-    const processedImageBuffer = await sharp(Buffer.from(fileBuffer))
-      .resize(500, 500, { fit: 'cover' }) // Resize to standard dimensions
-      .jpeg({ quality: 80, progressive: true }) // Convert to JPEG with 80% quality
-      .toBuffer();
-    
-    // Generate a unique filename
-    const filename = `${cleanerId}-${nanoid(8)}.jpg`;
-    
     // Ensure upload directory exists
     const uploadDir = ensureUploadDirExists();
+    
+    // Generate a unique filename
+    const filename = `cleaner-${cleanerId}-${nanoid(8)}.jpg`;
     const filePath = path.join(uploadDir, filename);
     
-    // Save the file
-    await fs.promises.writeFile(filePath, processedImageBuffer);
+    // Create a temporary file path for the original upload
+    const tempPath = path.join(uploadDir, `temp-${filename}`);
+    tempFile = tempPath;
+    
+    // First, save the uploaded file to a temporary location to avoid memory issues
+    const arrayBuffer = await imageFile.arrayBuffer();
+    await fs.promises.writeFile(tempPath, Buffer.from(arrayBuffer));
+    
+    // Process the image with sharp - reading directly from the temp file to avoid memory issues
+    await sharp(tempPath)
+      .resize(500, 500, { fit: 'cover' })
+      .jpeg({ quality: 80, progressive: true })
+      .toFile(filePath);
     
     // Calculate public URL for the image
     const fileUrl = `${PUBLIC_URL}/uploads/profile-images/${filename}`;
     
-    // Update the cleaner profile in the database
-    // First check if the cleaner profile exists
-    const [cleanerProfile] = await db
-      .select()
-      .from(cleaner_profile)
-      .where(eq(cleaner_profile.userId, cleanerId))
-      .limit(1);
+    // Debug to see if the cleaner ID is correct
+    console.log(`Looking for cleaner profile for user ID: ${cleanerId}`);
     
-    if (cleanerProfile) {
+    // Check if the table exists and log its structure
+    try {
+      const tableInfo = await db.query.cleanerProfile.findMany({
+        limit: 1
+      });
+      console.log('Cleaner profile table exists, sample:', tableInfo.length > 0 ? 'Found records' : 'No records');
+    } catch (dbErr) {
+      console.error('Error querying cleaner profile table:', dbErr);
+    }
+    
+    // Update the cleaner profile in the database
+    const cleanerProfiles = await db
+      .select()
+      .from(cleanerProfile)
+      .where(eq(cleanerProfile.userId, cleanerId));
+    
+    console.log(`Found ${cleanerProfiles.length} matching cleaner profiles`);
+    
+    if (cleanerProfiles.length > 0) {
       // Update existing profile
       await db
-        .update(cleaner_profile)
+        .update(cleanerProfile)
         .set({
           profileImageUrl: fileUrl,
           updatedAt: new Date()
         })
-        .where(eq(cleaner_profile.userId, cleanerId));
+        .where(eq(cleanerProfile.userId, cleanerId));
     } else {
       // Error if profile doesn't exist - should be created separately
       throw error(404, 'Cleaner profile not found');
+    }
+    
+    // Clean up the temporary file
+    if (fs.existsSync(tempPath)) {
+      await fs.promises.unlink(tempPath);
     }
     
     return json({
@@ -99,6 +132,15 @@ export const POST: RequestHandler = async ({ request, params }) => {
       imageUrl: fileUrl
     });
   } catch (err) {
+    // Clean up any temporary file if there was an error
+    if (tempFile && fs.existsSync(tempFile)) {
+      try {
+        await fs.promises.unlink(tempFile);
+      } catch (cleanupErr) {
+        console.error('Error cleaning up temporary file:', cleanupErr);
+      }
+    }
+    
     console.error('Error uploading profile image:', err);
     throw error(500, {
       message: err instanceof Error ? err.message : 'Failed to upload image'
@@ -118,17 +160,17 @@ export const DELETE: RequestHandler = async ({ params }) => {
   
   try {
     // Get the cleaner profile to find the current image
-    const [cleanerProfile] = await db
+    const [cleanerProfileData] = await db
       .select()
-      .from(cleaner_profile)
-      .where(eq(cleaner_profile.userId, cleanerId))
+      .from(cleanerProfile)
+      .where(eq(cleanerProfile.userId, cleanerId))
       .limit(1);
     
-    if (!cleanerProfile) {
+    if (!cleanerProfileData) {
       throw error(404, 'Cleaner profile not found');
     }
     
-    const currentImageUrl = cleanerProfile.profileImageUrl;
+    const currentImageUrl = cleanerProfileData.profileImageUrl;
     
     if (!currentImageUrl) {
       // No image to delete
@@ -146,12 +188,12 @@ export const DELETE: RequestHandler = async ({ params }) => {
     
     // Update the database to remove the image URL
     await db
-      .update(cleaner_profile)
+      .update(cleanerProfile)
       .set({
         profileImageUrl: null,
         updatedAt: new Date()
       })
-      .where(eq(cleaner_profile.userId, cleanerId));
+      .where(eq(cleanerProfile.userId, cleanerId));
     
     return json({ success: true });
   } catch (err) {
