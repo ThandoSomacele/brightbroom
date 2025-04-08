@@ -261,7 +261,7 @@
     {/if}
   </div>
 
-  <div class="mt-4 sm:mt-0 space-x-2">
+  <div class="flex mt-4 sm:mt-0 space-x-2">
     <Button
       variant="outline"
       on:click={() => (showStatusChangeModal = true)}
@@ -280,43 +280,24 @@
       {booking.cleaner ? "Reassign Cleaner" : "Assign Cleaner"}
     </Button>
 
-    <div class="mt-4 sm:mt-0 space-x-2">
-      <Button
-        variant="outline"
-        on:click={() => (showStatusChangeModal = true)}
-        disabled={booking.status === "CANCELLED"}
-      >
-        Change Status
-      </Button>
+    <AutoAssignCleanerButton
+      bookingId={booking.id}
+      variant="outline"
+      size="sm"
+      disabled={booking.status === "CANCELLED" ||
+        booking.status === "COMPLETED" ||
+        isPastBooking() ||
+        booking.cleaner !== null}
+      on:success={async () => {
+        // Refresh the page data after successful assignment
+        await invalidateAll();
+      }}
+    />
 
-      <Button
-        variant="outline"
-        on:click={() => (showCleanerAssignModal = true)}
-        disabled={booking.status === "CANCELLED" ||
-          booking.status === "COMPLETED" ||
-          isPastBooking()}
-      >
-        {booking.cleaner ? "Reassign Cleaner" : "Assign Cleaner"}
-      </Button>
-
-      <AutoAssignCleanerButton
-        bookingId={booking.id}
-        variant="outline"
-        size="sm"
-        disabled={booking.status === "CANCELLED" ||
-          booking.status === "COMPLETED" ||
-          isPastBooking() ||
-          booking.cleaner !== null}
-        on:success={async () => {
-          // Refresh the page data after successful assignment
-          await invalidateAll();
-        }}
-      />
-
-      <Button variant="primary" on:click={() => (showAddCommentModal = true)}>
-        Contact Customer
-      </Button>
-    
+    <Button variant="primary" on:click={() => (showAddCommentModal = true)}>
+      Contact Customer
+    </Button>
+  </div>
 </div>
 
 <!-- Main content grid -->
