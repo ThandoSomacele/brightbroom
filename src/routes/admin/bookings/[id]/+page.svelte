@@ -2,6 +2,7 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
+  import AutoAssignCleanerButton from "$lib/components/admin/AutoAssignCleanerButton.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import {
     AlertTriangle,
@@ -279,10 +280,43 @@
       {booking.cleaner ? "Reassign Cleaner" : "Assign Cleaner"}
     </Button>
 
-    <Button variant="primary" on:click={() => (showAddCommentModal = true)}>
-      Contact Customer
-    </Button>
-  </div>
+    <div class="mt-4 sm:mt-0 space-x-2">
+      <Button
+        variant="outline"
+        on:click={() => (showStatusChangeModal = true)}
+        disabled={booking.status === "CANCELLED"}
+      >
+        Change Status
+      </Button>
+
+      <Button
+        variant="outline"
+        on:click={() => (showCleanerAssignModal = true)}
+        disabled={booking.status === "CANCELLED" ||
+          booking.status === "COMPLETED" ||
+          isPastBooking()}
+      >
+        {booking.cleaner ? "Reassign Cleaner" : "Assign Cleaner"}
+      </Button>
+
+      <AutoAssignCleanerButton
+        bookingId={booking.id}
+        variant="outline"
+        size="sm"
+        disabled={booking.status === "CANCELLED" ||
+          booking.status === "COMPLETED" ||
+          isPastBooking() ||
+          booking.cleaner !== null}
+        on:success={async () => {
+          // Refresh the page data after successful assignment
+          await invalidateAll();
+        }}
+      />
+
+      <Button variant="primary" on:click={() => (showAddCommentModal = true)}>
+        Contact Customer
+      </Button>
+    
 </div>
 
 <!-- Main content grid -->

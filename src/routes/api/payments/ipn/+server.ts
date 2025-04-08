@@ -1,111 +1,125 @@
 // src/routes/api/payments/ipn/+server.ts
-import {
-  processSuccessfulPayment,
-  validateIpnRequest,
-} from "$lib/server/payment";
-import { sendPaymentReceiptEmail, sendBookingConfirmationEmail } from "$lib/server/email-service";
-import type { RequestHandler } from "./$types";
+import { db } from "$lib/server/db";
+import { payment, booking, adminNote } from "$lib/server/db/schema";
+import { processSuccessfulPayment, validateIpnRequest } from "$lib/server/payment";
+import { json } from "@sveltejs/kit";
+import { eq } from "drizzle-orm";
+import { postPaymentHooks } from "$lib/server/hooks/post-payment-hooks";
 
 /**
- * Handle Instant Payment Notification (IPN) from PayFast
- * This endpoint receives callbacks from PayFast after payment is processed
+ * IPN (Instant Payment Notification) handler for PayFast
+ * This endpoint receives payment confirmations from PayFast
  */
-export const POST: RequestHandler = async ({ request }) => {
-  console.log("Received IPN request from PayFast");
-
+export async function POST({ request }) {
   try {
-    // Read form data from PayFast IPN
-    const formData = await request.formData();
+    // Log that we received an IPN request
+    console.log("Received IPN request from PayFast");
 
-    // Convert FormData to plain object with better logging
+    // Get the raw request body to validate it
+    const rawBody = await request.text();
+    
+    // Parse the form data
+    const formData = new URLSearchParams(rawBody);
     const pfData: Record<string, string> = {};
+    
+    // Convert FormData to a plain object
     for (const [key, value] of formData.entries()) {
-      pfData[key] = value.toString();
+      pfData[key] = value;
     }
 
-    // Enhanced logging - important for debugging
-    console.log("PayFast IPN data received:", {
-      payment_status: pfData.payment_status,
-      m_payment_id: pfData.m_payment_id,
-      pf_payment_id: pfData.pf_payment_id,
-      item_name: pfData.item_name,
-      amount_gross: pfData.amount_gross,
-      custom_str1: pfData.custom_str1, // Often contains booking ID
-    });
+    // Log the IPN data (excluding sensitive information)
+    const sanitizedData = { ...pfData };
+    delete sanitizedData.signature;
+    console.log("IPN data received:", sanitizedData);
 
-    // Get original query string for validation
-    const pfParamString = new URLSearchParams(pfData).toString();
-
-    // Validate the request is from PayFast
-    const isValid = await validateIpnRequest(pfData, pfParamString);
-
-    if (!isValid) {
-      console.error("Invalid IPN request - validation failed");
-      return new Response("OK"); // Still return 200 OK
+    // Validate the IPN request
+    const isValidIpn = await validateIpnRequest(pfData, rawBody);
+    
+    if (!isValidIpn) {
+      console.error("Invalid IPN request, ignoring");
+      return json({ status: "error", message: "Invalid IPN request" }, { status: 400 });
     }
 
-    console.log(`Valid IPN request - Payment status: ${pfData.payment_status}`);
+    // Extract the important values
+    const paymentId = pfData.m_payment_id;
+    const paymentStatus = pfData.payment_status;
+    const bookingId = pfData.custom_str1;
 
-    // Check payment status
-    if (pfData.payment_status === "COMPLETE") {
-      console.log(
-        `Processing successful payment for ID: ${pfData.m_payment_id}`,
-      );
+    // Log the payment status
+    console.log(`Payment status for ${paymentId}: ${paymentStatus}`);
 
-      try {
-        // Update payment and booking status
-        const result = await processSuccessfulPayment(pfData.m_payment_id);
-        console.log(
-          "Payment processing result:",
-          result ? "Success" : "Failed",
-        );
+    // Check if the payment record exists
+    const paymentRecord = await db
+      .select()
+      .from(payment)
+      .where(eq(payment.id, paymentId))
+      .limit(1);
 
-        if (!result) {
-          console.error(
-            "processSuccessfulPayment returned null - check if payment ID exists in database",
-          );
-        } else {
-          // Send receipt email
-          const { booking, user } = result;
-          if (user && user.email) {
-            // Create combined payment details for the receipt email
-            const paymentDetails = {
-              id: pfData.m_payment_id,
-              createdAt: new Date(),
-              amount: booking.price,
-              booking,
-              user,
-              paymentMethod: "CREDIT_CARD", // Default or get from payment record
-              vatRate: 15 // Default VAT rate for South Africa
-            };
-            
-            // Send payment receipt email
-            const receiptSent = await sendPaymentReceiptEmail(user.email, paymentDetails);
-            console.log(`Payment receipt email ${receiptSent ? 'sent' : 'failed to send'} to ${user.email}`);
-            
-            // Send booking confirmation email if not already sent
-            const confirmationSent = await sendBookingConfirmationEmail(user.email, booking);
-            console.log(`Booking confirmation email ${confirmationSent ? 'sent' : 'failed to send'} to ${user.email}`);
-          } else {
-            console.error("User email not available for sending receipt");
-          }
-        }
-      } catch (processError) {
-        console.error("Error processing payment:", processError);
+    if (!paymentRecord || paymentRecord.length === 0) {
+      console.error(`Payment record not found: ${paymentId}`);
+      return json({ status: "error", message: "Payment record not found" }, { status: 404 });
+    }
+
+    // Handle different payment statuses
+    if (paymentStatus === "COMPLETE") {
+      // Process the payment
+      const result = await processSuccessfulPayment(paymentId);
+      
+      if (!result) {
+        console.error(`Failed to process payment: ${paymentId}`);
+        return json({ status: "error", message: "Failed to process payment" }, { status: 500 });
       }
-    } else {
-      console.log(`Payment not complete. Status: ${pfData.payment_status}`);
-    }
 
-    // Return 200 OK to acknowledge receipt
-    return new Response("OK", { status: 200 });
+      // Create an admin note about the payment
+      await db.insert(adminNote).values({
+        id: crypto.randomUUID(),
+        bookingId,
+        content: `Payment completed via PayFast (ID: ${paymentId})`,
+        addedBy: "System (PayFast IPN)",
+        createdAt: new Date(),
+      });
+
+      // Run post-payment hooks (in the background)
+      // We don't await this to avoid blocking the response
+      postPaymentHooks.runAll(bookingId)
+        .catch(error => {
+          console.error(`Error running post-payment hooks: ${error}`);
+        });
+
+      return json({ status: "success", message: "Payment processed successfully" });
+    } else if (paymentStatus === "FAILED") {
+      // Update payment status to failed
+      await db
+        .update(payment)
+        .set({
+          status: "FAILED",
+          updatedAt: new Date(),
+        })
+        .where(eq(payment.id, paymentId));
+
+      // Create an admin note about the failed payment
+      await db.insert(adminNote).values({
+        id: crypto.randomUUID(),
+        bookingId,
+        content: `Payment failed via PayFast (ID: ${paymentId})`,
+        addedBy: "System (PayFast IPN)",
+        createdAt: new Date(),
+      });
+
+      return json({ status: "success", message: "Payment failure recorded" });
+    } else {
+      // Unknown or pending status
+      console.log(`Unhandled payment status: ${paymentStatus}, no action taken`);
+      return json({ status: "success", message: "IPN received, no action taken" });
+    }
   } catch (error) {
     console.error("Error processing IPN:", error);
-    return new Response("OK", { status: 200 }); // Always return 200 to PayFast
+    return json({ status: "error", message: "Server error processing IPN" }, { status: 500 });
   }
-};
+}
 
-export const OPTIONS: RequestHandler = async () => {
+// Handle OPTIONS requests for CORS preflight
+export async function OPTIONS() {
   return new Response(null, {
     status: 204,
     headers: {
@@ -114,4 +128,4 @@ export const OPTIONS: RequestHandler = async () => {
       "Access-Control-Allow-Headers": "Content-Type",
     },
   });
-};
+}

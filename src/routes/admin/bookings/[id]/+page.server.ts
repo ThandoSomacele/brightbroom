@@ -14,6 +14,7 @@ import { sendCleanerAssignmentNotification } from "$lib/server/services/notifica
 import { error, fail, redirect } from "@sveltejs/kit";
 import { and, desc, eq, sql } from "drizzle-orm"; // Added sql import
 import type { Actions, PageServerLoad } from "./$types";
+import { cleanerAssignmentService } from "$lib/server/services/cleaner-assignment.service";
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const bookingId = params.id;
@@ -415,7 +416,7 @@ export const actions: Actions = {
       });
     }
   },
-  
+
   // Action to add admin note
   addNote: async ({ params, request, locals }) => {
     // Verify admin role
@@ -565,6 +566,52 @@ export const actions: Actions = {
       console.error("Error sending communication:", err);
       return fail(500, {
         error: "Failed to send communication",
+      });
+    }
+  },
+
+  autoAssignCleaner: async ({ params, locals }) => {
+    // Verify admin role
+    if (!locals.user || locals.user.role !== "ADMIN") {
+      return fail(403, { error: "Unauthorized" });
+    }
+
+    const bookingId = params.id;
+
+    if (!bookingId) {
+      return fail(400, {
+        error: "Missing booking ID",
+      });
+    }
+
+    try {
+      // Auto-assign a cleaner
+      const result =
+        await cleanerAssignmentService.autoAssignCleaner(bookingId);
+
+      if (!result.success) {
+        return fail(400, {
+          error: result.message || "Failed to auto-assign cleaner",
+        });
+      }
+
+      // Add an admin note about the automated assignment
+      await db.insert(adminNote).values({
+        id: crypto.randomUUID(),
+        bookingId: bookingId,
+        content: `Cleaner automatically assigned: ${result.message}`,
+        addedBy: `${locals.user.firstName} ${locals.user.lastName} (Auto)`,
+        createdAt: new Date(),
+      });
+
+      return {
+        success: true,
+        message: "Cleaner automatically assigned successfully",
+      };
+    } catch (error) {
+      console.error("Error auto-assigning cleaner:", error);
+      return fail(500, {
+        error: "Failed to auto-assign cleaner",
       });
     }
   },

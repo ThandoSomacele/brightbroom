@@ -1,13 +1,14 @@
 // src/lib/server/payment.ts
 import { db } from "$lib/server/db";
 import {
+  address,
   booking,
   payment,
   service,
   user,
-  address, // Add address import which was missing
   type Payment,
 } from "$lib/server/db/schema";
+import { postPaymentHooks } from "$lib/server/hooks/post-payment-hooks";
 import crypto from "crypto";
 import { eq } from "drizzle-orm";
 
@@ -29,7 +30,9 @@ const PAYFAST_URL = USE_SANDBOX
   : "https://www.payfast.co.za/eng/process";
 
 // Default fallback base URL - only used if no origin is provided
-const DEFAULT_BASE_URL = import.meta.env.VITE_APP_URL || "https://development--brightbroom.netlify.app";
+const DEFAULT_BASE_URL =
+  import.meta.env.VITE_APP_URL ||
+  "https://development--brightbroom.netlify.app";
 
 // Log payment configuration on startup
 console.log("PayFast Configuration:");
@@ -68,19 +71,19 @@ interface PayFastPaymentData {
  */
 export async function createPaymentForBooking(
   bookingId: string,
-  options: { origin?: string } = {}
+  options: { origin?: string } = {},
 ): Promise<{ paymentId: string; redirectUrl: string }> {
   try {
     console.log(`Creating payment for booking: ${bookingId}`);
 
     // Get the origin from options or use default
     const origin = options.origin || DEFAULT_BASE_URL;
-    
+
     // Construct callback URLs using the current domain
     const returnUrl = `${origin}/payment/success`;
     const cancelUrl = `${origin}/payment/cancel`;
     const notifyUrl = `${origin}/api/payments/ipn`;
-    
+
     // Log the dynamic URLs
     console.log("Using PayFast callback URLs:");
     console.log(`- Return URL: ${returnUrl}`);
@@ -159,9 +162,9 @@ export async function createPaymentForBooking(
       userData,
       serviceData,
       newPayment,
-      { returnUrl, cancelUrl, notifyUrl } // Pass the dynamic URLs
+      { returnUrl, cancelUrl, notifyUrl }, // Pass the dynamic URLs
     );
-    
+
     console.log(
       `Generated PayFast URL (partial): ${redirectUrl.substring(0, 100)}...`,
     );
@@ -184,7 +187,7 @@ function generatePayFastUrl(
   userData: any,
   serviceData: any,
   paymentData: Payment,
-  urls: { returnUrl: string; cancelUrl: string; notifyUrl: string }
+  urls: { returnUrl: string; cancelUrl: string; notifyUrl: string },
 ): string {
   // Format amount to 2 decimal places as required by PayFast
   const formattedAmount = Number(bookingData.price).toFixed(2);
@@ -501,6 +504,12 @@ export async function processSuccessfulPayment(
       console.error(`User not found: ${paymentData.userId}`);
       return null;
     }
+
+    // Run post-payment hooks (in the background)
+    // We don't await this to avoid blocking the response
+    postPaymentHooks.runAll(bookingId).catch((error) => {
+      console.error(`Error running post-payment hooks: ${error}`);
+    });
 
     return {
       booking: bookingResult[0],
