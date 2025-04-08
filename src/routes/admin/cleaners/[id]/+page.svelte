@@ -14,7 +14,6 @@
     PenTool,
     Phone,
     Save,
-    Star,
     User,
     X,
   } from "lucide-svelte";
@@ -57,12 +56,23 @@
     SUNDAY: false,
   };
 
+  // Experience types constant
+  const EXPERIENCE_TYPES = [
+    { id: "GUEST_HOUSE", label: "Cleaning Guest house/Hotel/BnB" },
+    { id: "OFFICE", label: "Cleaning Offices" },
+    { id: "CARE_GIVING", label: "Care Giving" },
+  ];
+
   // Initialize availableDays if data exists
   if (cleaner.cleanerProfile?.availableDays) {
     cleaner.cleanerProfile.availableDays.forEach((day) => {
       availableDays[day] = true;
     });
   }
+
+  // Initialize selected experience types
+  let selectedExperienceTypes: string[] =
+    cleaner.cleanerProfile?.experienceTypes || [];
 
   // Track specialisations
   let selectedSpecialisations = new Map();
@@ -228,6 +238,36 @@
       }
     });
     return JSON.stringify(result);
+  }
+
+  // Function to handle form submission
+  function toggleProfileEdit() {
+    isProfileEditMode = !isProfileEditMode;
+
+    if (isProfileEditMode) {
+      // Set initial values when entering edit mode
+      workAddress = cleaner.cleanerProfile?.workAddress || "";
+      workRadius = cleaner.cleanerProfile?.workRadius?.toString() || "10";
+      bio = cleaner.cleanerProfile?.bio || "";
+      petCompatibility = cleaner.cleanerProfile?.petCompatibility || "NONE";
+      isAvailable = cleaner.cleanerProfile?.isAvailable || true;
+      idType = cleaner.cleanerProfile?.idType || "SOUTH_AFRICAN_ID";
+      idNumber = cleaner.cleanerProfile?.idNumber || "";
+      taxNumber = cleaner.cleanerProfile?.taxNumber || "";
+      selectedExperienceTypes = cleaner.cleanerProfile?.experienceTypes || [];
+
+      // Reset available days
+      Object.keys(availableDays).forEach((day) => {
+        availableDays[day] = false;
+      });
+
+      // Set available days from cleaner data
+      if (cleaner.cleanerProfile?.availableDays) {
+        cleaner.cleanerProfile.availableDays.forEach((day) => {
+          availableDays[day] = true;
+        });
+      }
+    }
   }
 
   // Navigate to all cleaner bookings
@@ -605,6 +645,50 @@
                 />
               </div>
 
+              <div>
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Experience Types
+                </label>
+                <div class="space-y-2">
+                  {#each EXPERIENCE_TYPES as expType}
+                    <label class="flex items-center">
+                      <input
+                        type="checkbox"
+                        name="experienceTypes"
+                        value={expType.id}
+                        checked={selectedExperienceTypes.includes(expType.id)}
+                        on:change={(e) => {
+                          if (e.currentTarget.checked) {
+                            selectedExperienceTypes = [
+                              ...selectedExperienceTypes,
+                              expType.id,
+                            ];
+                          } else {
+                            selectedExperienceTypes =
+                              selectedExperienceTypes.filter(
+                                (id) => id !== expType.id,
+                              );
+                          }
+                        }}
+                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <span
+                        class="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                        >{expType.label}</span
+                      >
+                    </label>
+                  {/each}
+                </div>
+              </div>
+
+              <input
+                type="hidden"
+                name="experienceTypesJson"
+                value={JSON.stringify(selectedExperienceTypes)}
+              />
+
               <!-- ID Type and Number -->
               <div>
                 <label
@@ -745,6 +829,7 @@
                 </label>
               </div>
 
+              <!-- Submit button -->
               <div class="pt-2">
                 <Button
                   type="submit"
@@ -783,23 +868,45 @@
             </div>
           </form>
         {:else}
+          <!-- Display mode for cleaner profile -->
           <div class="space-y-4">
             {#if cleaner.cleanerProfile}
-              {#if cleaner.cleanerProfile.rating}
-                <div class="flex items-center">
-                  <Star class="h-5 w-5 text-yellow-500 mr-2" />
-                  <div>
-                    <p
-                      class="text-sm font-medium text-gray-500 dark:text-gray-400"
-                    >
-                      Rating
+              <!-- Rating, Work Location, etc. remain the same -->
+
+              <!-- Add Experience Types section -->
+              <div class="flex items-start mt-3">
+                <Briefcase
+                  class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-1"
+                />
+                <div>
+                  <p
+                    class="text-sm font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Experience Types
+                  </p>
+                  {#if cleaner.cleanerProfile.experienceTypes && cleaner.cleanerProfile.experienceTypes.length > 0}
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      {#each cleaner.cleanerProfile.experienceTypes as expType}
+                        <span
+                          class="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary dark:bg-primary-900/20"
+                        >
+                          {expType === "GUEST_HOUSE"
+                            ? "Cleaning Guest house/Hotel/BnB"
+                            : expType === "OFFICE"
+                              ? "Cleaning Offices"
+                              : expType === "CARE_GIVING"
+                                ? "Care Giving"
+                                : expType}
+                        </span>
+                      {/each}
+                    </div>
+                  {:else}
+                    <p class="text-gray-600 dark:text-gray-400">
+                      No experience types specified
                     </p>
-                    <p class="text-gray-900 dark:text-white">
-                      {cleaner.cleanerProfile.rating} / 5
-                    </p>
-                  </div>
+                  {/if}
                 </div>
-              {/if}
+              </div>
 
               {#if cleaner.cleanerProfile.workAddress}
                 <div class="flex items-start">

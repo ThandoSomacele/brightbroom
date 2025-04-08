@@ -17,7 +17,10 @@
   let email = "";
   let phone = "";
   let city = "";
-  let experience = "";
+
+  // Change experience from string to array of selected types
+  let experienceTypes: string[] = [];
+
   let availability: string[] = [];
   let ownTransport = false;
   let whatsApp = false;
@@ -25,6 +28,13 @@
   let idNumber = "";
   let hearAboutUs = "";
   let documents: File[] = [];
+
+  // Experience types
+  const EXPERIENCE_TYPES = [
+    { id: "GUEST_HOUSE", label: "Cleaning Guest house/Hotel/BnB" },
+    { id: "OFFICE", label: "Cleaning Offices" },
+    { id: "CARE_GIVING", label: "Care Giving" },
+  ];
 
   // Reset form after submission
   function resetForm() {
@@ -36,7 +46,7 @@
     email = "";
     phone = "";
     city = "";
-    experience = "";
+    experienceTypes = [];
     availability = [];
     ownTransport = false;
     whatsApp = false;
@@ -50,26 +60,24 @@
   function nextStep() {
     if (step < totalSteps) {
       step++;
-      // Remove scrolling to preserve user's position
     }
   }
 
   function previousStep() {
     if (step > 1) {
       step--;
-      // Remove scrolling to preserve user's position
     }
   }
 
   // Helper function to validate current step
   function validateCurrentStep(): boolean {
-    // This is a simplified validation - you would want more robust validation in production
     if (step === 1) {
       return !!firstName && !!lastName && !!email && !!phone && !!city;
     } else if (step === 2) {
-      return !!experience && availability.length > 0;
+      // Make sure at least one experience type is selected
+      return experienceTypes.length > 0 && availability.length > 0;
     } else {
-      return true; // The last step doesn't have required fields in this example
+      return true;
     }
   }
 </script>
@@ -581,33 +589,43 @@
                     Work Experience
                   </h3>
 
-                  <!-- Cleaning Experience -->
+                  <!-- Experience Types - Replace the old dropdown with checkboxes -->
                   <div>
-                    <label
-                      for="experience"
-                      class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    <p
+                      id="experience-types-label"
+                      class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
-                      What is Your Cleaning Experience <span class="text-red-500"
-                        >*</span
+                      What types of cleaning experience do you have? <span
+                        class="text-red-500">*</span
                       >
-                    </label>
-                    <select
-                      id="experience"
-                      name="experience"
-                      bind:value={experience}
-                      required
-                      class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    </p>
+                    <div
+                      class="space-y-2"
+                      aria-labelledby="experience-types-label"
                     >
-                      <option value="">Select experience...</option>
-                      <option value="0-6">Less than 6 months</option>
-                      <option value="6-12">6-12 months</option>
-                      <option value="1-2">1-2 years</option>
-                      <option value="3-5">3-5 years</option>
-                      <option value="5+">More than 5 years</option>
-                    </select>
+                      {#each EXPERIENCE_TYPES as expType}
+                        <label class="flex items-center">
+                          <input
+                            type="checkbox"
+                            name="experienceTypes"
+                            value={expType.id}
+                            bind:group={experienceTypes}
+                            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <span class="ml-2 text-gray-700 dark:text-gray-300"
+                            >{expType.label}</span
+                          >
+                        </label>
+                      {/each}
+                    </div>
+                    {#if experienceTypes.length === 0}
+                      <p class="mt-1 text-xs text-red-500">
+                        Please select at least one type of experience
+                      </p>
+                    {/if}
                   </div>
 
-                  <!-- Availability -->
+                  <!-- Availability section remains the same -->
                   <div>
                     <p
                       id="availability-label"
@@ -730,13 +748,19 @@
                   <input type="hidden" name="email" value={email} />
                   <input type="hidden" name="phone" value={phone} />
                   <input type="hidden" name="city" value={city} />
-                  <input type="hidden" name="experience" value={experience} />
 
-                  <!-- For checkbox arrays, we need to handle differently -->
+                  <!-- For checkbox arrays, we need to handle each item -->
+                  {#each experienceTypes as expType}
+                    <input
+                      type="hidden"
+                      name="experienceTypes"
+                      value={expType}
+                    />
+                  {/each}
+
                   {#each availability as day}
                     <input type="hidden" name="availability" value={day} />
                   {/each}
-
                   <!-- Radio button values -->
                   <input
                     type="hidden"

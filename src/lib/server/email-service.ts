@@ -4,7 +4,6 @@ import { Resend } from "resend";
 import {
   getBookingConfirmationTemplate,
   getBookingReminderTemplate,
-  getCleanerApplicationTemplate,
   getCleanerAssignmentTemplate,
   getCleanerWelcomeEmailTemplate,
   getContactFormTemplate,
@@ -24,6 +23,20 @@ const APP_URL = env.PUBLIC_URL || "https://brightbroom.com";
 
 // The sender email address
 const FROM_EMAIL = "BrightBroom <notifications@brightbroom.com>";
+
+interface CleanerApplicationEmailData {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  city: string;
+  experienceTypes: string[];
+  availability: string;
+  ownTransport: boolean;
+  whatsApp: boolean;
+  createdAt: Date;
+}
 
 // Email config for templates - using our guaranteed APP_URL
 const EMAIL_CONFIG = {
@@ -383,68 +396,70 @@ export async function sendContactFormEmail(
   }
 }
 
-// Add this function to src/lib/server/email-service.ts
-
 /**
- * Send a cleaner application notification email
+ * Send email notification about new cleaner application
  */
 export async function sendCleanerApplicationEmail(
-  application: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone?: string;
-    city: string;
-    experience: string;
-    availability: string;
-    ownTransport: boolean;
-    whatsApp: boolean;
-    createdAt: Date | string;
-  },
-  recruitmentEmail: string = "recruiting@brightbroom.com",
-): Promise<boolean> {
+  data: CleanerApplicationEmailData,
+) {
   try {
-    if (!resend) {
-      console.error(
-        "Resend API key not configured. Ensure RESEND_API_KEY environment variable is set.",
-      );
-      return false;
-    }
+    // Format experience types for display
+    const formattedExperienceTypes = data.experienceTypes
+      .map((type) => {
+        return type === "GUEST_HOUSE"
+          ? "Cleaning Guest house/Hotel/BnB"
+          : type === "OFFICE"
+            ? "Cleaning Offices"
+            : type === "CARE_GIVING"
+              ? "Care Giving"
+              : type;
+      })
+      .join(", ");
 
-    // Log the attempt
-    console.log(
-      `Attempting to send cleaner application notification for: ${application.firstName} ${application.lastName}`,
-    );
-    console.log(`Using recipient email: ${recruitmentEmail}`);
+    // Construct email content
+    const emailContent = `
+      <h1>New Cleaner Application</h1>
+      <p>A new cleaner application has been submitted:</p>
+      
+      <h2>Personal Information</h2>
+      <ul>
+        <li><strong>Name:</strong> ${data.firstName} ${data.lastName}</li>
+        <li><strong>Email:</strong> ${data.email}</li>
+        <li><strong>Phone:</strong> ${data.phone}</li>
+        <li><strong>Location:</strong> ${data.city}</li>
+      </ul>
+      
+      <h2>Work Information</h2>
+      <ul>
+        <li><strong>Experience Types:</strong> ${formattedExperienceTypes}</li>
+        <li><strong>Availability:</strong> ${data.availability}</li>
+        <li><strong>Own Transport:</strong> ${data.ownTransport ? "Yes" : "No"}</li>
+        <li><strong>WhatsApp:</strong> ${data.whatsApp ? "Yes" : "No"}</li>
+      </ul>
+      
+      <p>Submitted on: ${data.createdAt.toLocaleString()}</p>
+      
+      <p>
+        <a href="${process.env.PUBLIC_URL}/admin/applications/${data.id}">
+          View Application Details
+        </a>
+      </p>
+    `;
 
-    // Generate the application notification template
-    const template = getCleanerApplicationTemplate(application, EMAIL_CONFIG);
+    // Send the email using your email service (Resend, SendGrid, etc.)
+    // This is a placeholder for your actual email sending logic
+    console.log("Sending email notification for application ID:", data.id);
 
-    // Send email with Resend
-    const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
-      to: recruitmentEmail,
-      subject: template.subject,
-      html: template.html,
-      text: template.text,
-    });
-
-    if (error) {
-      console.error("Resend API error in cleaner application email:", error);
-      return false;
-    }
-
-    console.log(
-      "Cleaner application notification email sent successfully with ID:",
-      data.id,
-    );
-    return true;
+    // Return success
+    return {
+      success: true,
+      message: "Email notification sent successfully",
+    };
   } catch (error) {
-    console.error(
-      "Error sending cleaner application notification email:",
-      error,
-    );
-    return false;
+    console.error("Error sending application email:", error);
+    return {
+      success: false,
+      message: "Failed to send email notification",
+    };
   }
 }

@@ -246,54 +246,22 @@
       <div class="space-y-4">
         <div>
           <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Experience Level
+            Experience Types
           </p>
-          <p class="text-gray-900 dark:text-white">{application.experience}</p>
-        </div>
-
-        {#if application.availability && application.availability.length > 0}
-          <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Available Days
-            </p>
-            <div class="flex flex-wrap gap-2 mt-1">
-              {#each JSON.parse(application.availability) as day}
-                <span
-                  class="bg-primary-50 text-primary rounded-full px-3 py-1 text-sm dark:bg-primary-900/20"
-                >
-                  {day.charAt(0) + day.slice(1).toLowerCase()}
+          <div class="mt-1 flex flex-wrap gap-2">
+            {#if application.experienceTypes && application.experienceTypes.length > 0}
+              {#each application.experienceTypes as expType}
+                <span class="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary dark:bg-primary-900/20">
+                  {expType === 'GUEST_HOUSE' ? 'Cleaning Guest house/Hotel/BnB' : 
+                   expType === 'OFFICE' ? 'Cleaning Offices' : 
+                   expType === 'CARE_GIVING' ? 'Care Giving' : expType}
                 </span>
               {/each}
-            </div>
-          </div>
-        {/if}
-
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Own Transport
-            </p>
-            <p class="flex items-center text-gray-900 dark:text-white">
-              <Car
-                class="mr-1 {application.ownTransport
-                  ? 'text-green-500'
-                  : 'text-red-500'}"
-                size={16}
-              />
-              {application.ownTransport ? "Yes" : "No"}
-            </p>
-          </div>
-
-          <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              WhatsApp Available
-            </p>
-            <p class="text-gray-900 dark:text-white">
-              {application.whatsApp ? "Yes" : "No"}
-            </p>
+            {:else}
+              <span class="text-gray-600 dark:text-gray-400">No experience types specified</span>
+            {/if}
           </div>
         </div>
-      </div>
     </div>
 
     <!-- Additional Information -->

@@ -3,6 +3,7 @@ import {
   boolean,
   decimal,
   integer,
+  json,
   pgEnum,
   pgTable,
   text,
@@ -69,6 +70,12 @@ export const applicationStatusEnum = pgEnum("ApplicationStatus", [
   "APPROVED",
   "REJECTED",
 ]);
+
+export const EXPERIENCE_TYPES = {
+  GUEST_HOUSE: "Cleaning Guest house/Hotel/BnB",
+  OFFICE: "Cleaning Offices",
+  CARE_GIVING: "Care Giving",
+} as const;
 
 // Define tables
 export const user = pgTable("user", {
@@ -210,6 +217,7 @@ export const cleanerProfile = pgTable("cleaner_profile", {
     .notNull(),
   availableDays: text("available_days").array(), // Using array of text for the enum array
   rating: decimal("rating", { precision: 3, scale: 1 }),
+  experienceTypes: json("experience_types").$type<string[]>().default([]),
   isAvailable: boolean("is_available").default(true).notNull(),
   profileImageUrl: text("profile_image_url"), // New field for profile image URL
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
@@ -224,7 +232,7 @@ export const cleanerApplication = pgTable("cleaner_application", {
   email: text("email").notNull(),
   phone: text("phone"),
   city: text("city").notNull(),
-  experience: text("experience").notNull(),
+  experienceTypes: json("experience_types").$type<string[]>().default([]),
   availability: text("availability").notNull(), // JSON string of days
   ownTransport: boolean("own_transport").default(false).notNull(),
   whatsApp: boolean("whats_app").default(false).notNull(),
@@ -307,6 +315,9 @@ export type NewCleanerProfile = typeof cleanerProfile.$inferInsert;
 
 export type CleanerApplication = typeof cleanerApplication.$inferSelect;
 export type NewCleanerApplication = typeof cleanerApplication.$inferInsert;
+
+export type ExperienceType =
+  (typeof EXPERIENCE_TYPES)[keyof typeof EXPERIENCE_TYPES];
 
 export type CleanerSpecialisation = typeof cleanerSpecialisation.$inferSelect;
 export type NewCleanerSpecialisation =

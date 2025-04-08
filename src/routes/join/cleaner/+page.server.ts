@@ -6,7 +6,7 @@ import { fail } from "@sveltejs/kit";
 import { z } from "zod";
 import type { Actions } from "./$types";
 
-// Form validation schema
+// Update form validation schema to include experienceTypes
 const joinApplicationSchema = z.object({
   // Step 1: Personal Information
   firstName: z.string().min(1, "First name is required"),
@@ -16,7 +16,9 @@ const joinApplicationSchema = z.object({
   city: z.string().min(1, "City/Area is required"),
 
   // Step 2: Work Experience
-  experience: z.string().min(1, "Experience selection is required"),
+  // Replace the single experience field with an array of experience types
+  experienceTypes: z.array(z.string()).min(1, "Please select at least one type of experience"),
+  
   availability: z
     .array(z.string())
     .min(1, "Please select at least one day of availability"),
@@ -42,7 +44,12 @@ export const actions: Actions = {
     const email = formData.get("email")?.toString();
     const phone = formData.get("phone")?.toString();
     const city = formData.get("city")?.toString();
-    const experience = formData.get("experience")?.toString();
+    
+    // Get all selected experience types (could be multiple values)
+    const experienceTypes = formData
+      .getAll("experienceTypes")
+      .map(item => item.toString());
+      
     const availability = formData
       .getAll("availability")
       .map((item) => item.toString());
@@ -60,7 +67,7 @@ export const actions: Actions = {
       email,
       phone,
       city,
-      experience,
+      experienceTypes,
       availability,
       ownTransport,
       whatsApp,
@@ -82,7 +89,7 @@ export const actions: Actions = {
         email,
         phone,
         city,
-        experience,
+        experienceTypes,
         availability,
         ownTransport,
         whatsApp,
@@ -118,7 +125,8 @@ export const actions: Actions = {
           email,
           phone,
           city,
-          experience,
+          // Change from experience (string) to experienceTypes (array)
+          experienceTypes: experienceTypes,
           availability: JSON.stringify(availability),
           ownTransport: ownTransport === "yes",
           whatsApp: whatsApp === "yes",
@@ -142,7 +150,8 @@ export const actions: Actions = {
           email,
           phone,
           city,
-          experience,
+          // Include the new experienceTypes in the email
+          experienceTypes: experienceTypes,
           availability: JSON.stringify(availability),
           ownTransport: ownTransport === "yes",
           whatsApp: whatsApp === "yes",
@@ -168,7 +177,7 @@ export const actions: Actions = {
             email,
             phone,
             city,
-            experience,
+            experienceTypes,
             availability,
             ownTransport,
             whatsApp,
@@ -193,7 +202,7 @@ export const actions: Actions = {
             email,
             phone,
             city,
-            experience,
+            experienceTypes,
             availability,
             ownTransport,
             whatsApp,
@@ -214,7 +223,7 @@ export const actions: Actions = {
           email,
           phone,
           city,
-          experience,
+          experienceTypes,
           availability,
           ownTransport,
           whatsApp,
