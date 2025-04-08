@@ -21,6 +21,7 @@ export const load: PageServerLoad = async ({ url }) => {
       id: booking.id,
       status: booking.status,
       scheduledDate: booking.scheduledDate,
+      createdAt: booking.createdAt, // Added createdAt to the selected fields
       price: booking.price,
       service: {
         id: service.id,
@@ -116,7 +117,7 @@ export const load: PageServerLoad = async ({ url }) => {
     // Execute both queries
     const [bookings, countResult] = await Promise.all([
       query
-        .orderBy(desc(booking.scheduledDate))
+        .orderBy(desc(booking.createdAt)) // Changed from scheduledDate to createdAt
         .limit(limit)
         .offset(offset),
       countQuery
