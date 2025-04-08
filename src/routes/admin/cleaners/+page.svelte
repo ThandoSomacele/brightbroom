@@ -268,9 +268,20 @@
               <td class="whitespace-nowrap px-6 py-4">
                 <div class="flex items-center">
                   <div
-                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"
+                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700"
                   >
-                    <Users size={20} class="text-gray-500 dark:text-gray-400" />
+                    {#if cleaner.cleanerProfile?.profileImageUrl}
+                      <img
+                        src={cleaner.cleanerProfile.profileImageUrl}
+                        alt="{cleaner.firstName} {cleaner.lastName}"
+                        class="h-full w-full object-cover"
+                      />
+                    {:else}
+                      <Users
+                        size={20}
+                        class="text-gray-500 dark:text-gray-400"
+                      />
+                    {/if}
                   </div>
                   <div class="ml-4">
                     <div

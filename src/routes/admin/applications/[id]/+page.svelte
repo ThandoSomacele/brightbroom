@@ -2,9 +2,22 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
+    import ProfileImageUpload from "$lib/components/admin/ProfileImageUpload.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import LoadingButton from "$lib/components/ui/LoadingButton.svelte";
-  import { ArrowLeft, Check, X, Clipboard, Calendar, FileText, MapPin, Phone, Mail, User, Briefcase, Car } from "lucide-svelte";
+  import {
+    ArrowLeft,
+    Briefcase,
+    Car,
+    Check,
+    Clipboard,
+    FileText,
+    Mail,
+    MapPin,
+    Phone,
+    User,
+    X,
+  } from "lucide-svelte";
 
   export let data;
   const { application } = data;
@@ -24,7 +37,7 @@
 
   // Status badge class
   function getStatusBadgeClass(status: string) {
-    switch(status) {
+    switch (status) {
       case "PENDING":
         return "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300";
       case "APPROVED":
@@ -34,6 +47,20 @@
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300";
     }
+  }
+
+  // Add handlers for profile image upload events
+  function handleProfileImageSuccess({ detail }: CustomEvent<{ url: string }>) {
+    // Profile image was updated successfully
+    // You might want to show a success message or update the UI
+  }
+
+  function handleProfileImageError({
+    detail,
+  }: CustomEvent<{ message: string }>) {
+    // There was an error with the profile image upload
+    console.error("Profile image error:", detail.message);
+    // You could set an error state here to display to the user
   }
 </script>
 
@@ -69,17 +96,21 @@
 
   {#if application.status === "PENDING"}
     <div class="flex gap-2">
-      <form method="POST" action="?/approve" use:enhance={() => {
-        isProcessing = true;
-        
-        return async ({ result }) => {
-          isProcessing = false;
-          
-          if (result.type === "success") {
-            await invalidateAll();
-          }
-        };
-      }}>
+      <form
+        method="POST"
+        action="?/approve"
+        use:enhance={() => {
+          isProcessing = true;
+
+          return async ({ result }) => {
+            isProcessing = false;
+
+            if (result.type === "success") {
+              await invalidateAll();
+            }
+          };
+        }}
+      >
         <LoadingButton
           type="submit"
           variant="primary"
@@ -90,18 +121,22 @@
           Approve Application
         </LoadingButton>
       </form>
-      
-      <form method="POST" action="?/reject" use:enhance={() => {
-        isProcessing = true;
-        
-        return async ({ result }) => {
-          isProcessing = false;
-          
-          if (result.type === "success") {
-            await invalidateAll();
-          }
-        };
-      }}>
+
+      <form
+        method="POST"
+        action="?/reject"
+        use:enhance={() => {
+          isProcessing = true;
+
+          return async ({ result }) => {
+            isProcessing = false;
+
+            if (result.type === "success") {
+              await invalidateAll();
+            }
+          };
+        }}
+      >
         <LoadingButton
           type="submit"
           variant="outline"
@@ -122,93 +157,137 @@
   <div class="lg:col-span-2 space-y-6">
     <!-- Personal information card -->
     <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-      <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+      <h2
+        class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center"
+      >
         <User class="mr-2 text-primary" size={20} />
         Personal Information
       </h2>
-      
+
+      <!-- Profile Image -->
+      <div class="mb-6 flex justify-center">
+        <ProfileImageUpload
+          userId={application.id}
+          userType="applicant"
+          currentImageUrl={application.profileImageUrl || null}
+          on:success={handleProfileImageSuccess}
+          on:error={handleProfileImageError}
+          disabled={isProcessing}
+        />
+      </div>
+
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Full Name</p>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Full Name
+          </p>
           <p class="text-lg text-gray-900 dark:text-white">
-            {application.firstName} {application.lastName}
+            {application.firstName}
+            {application.lastName}
           </p>
         </div>
-        
+
         <div>
-          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</p>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Email
+          </p>
           <div class="flex items-center">
             <Mail class="mr-1 text-gray-400" size={16} />
             <p class="text-gray-900 dark:text-white">{application.email}</p>
           </div>
         </div>
-        
+
         {#if application.phone}
           <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Phone</p>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+              Phone
+            </p>
             <div class="flex items-center">
               <Phone class="mr-1 text-gray-400" size={16} />
               <p class="text-gray-900 dark:text-white">{application.phone}</p>
             </div>
           </div>
         {/if}
-        
+
         <div>
-          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Location</p>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Location
+          </p>
           <div class="flex items-center">
             <MapPin class="mr-1 text-gray-400" size={16} />
             <p class="text-gray-900 dark:text-white">{application.city}</p>
           </div>
         </div>
-        
+
         {#if application.idType && application.idNumber}
           <div class="sm:col-span-2">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">ID Information</p>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+              ID Information
+            </p>
             <p class="text-gray-900 dark:text-white">
-              {application.idType === "SOUTH_AFRICAN_ID" ? "South African ID" : "Passport"}: {application.idNumber}
+              {application.idType === "SOUTH_AFRICAN_ID"
+                ? "South African ID"
+                : "Passport"}: {application.idNumber}
             </p>
           </div>
         {/if}
       </div>
     </div>
-    
+
     <!-- Experience & Availability -->
     <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-      <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+      <h2
+        class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center"
+      >
         <Briefcase class="mr-2 text-primary" size={20} />
         Work Experience & Availability
       </h2>
-      
+
       <div class="space-y-4">
         <div>
-          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Experience Level</p>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Experience Level
+          </p>
           <p class="text-gray-900 dark:text-white">{application.experience}</p>
         </div>
-        
+
         {#if application.availability && application.availability.length > 0}
           <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Available Days</p>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+              Available Days
+            </p>
             <div class="flex flex-wrap gap-2 mt-1">
               {#each JSON.parse(application.availability) as day}
-                <span class="bg-primary-50 text-primary rounded-full px-3 py-1 text-sm dark:bg-primary-900/20">
+                <span
+                  class="bg-primary-50 text-primary rounded-full px-3 py-1 text-sm dark:bg-primary-900/20"
+                >
                   {day.charAt(0) + day.slice(1).toLowerCase()}
                 </span>
               {/each}
             </div>
           </div>
         {/if}
-        
+
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Own Transport</p>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+              Own Transport
+            </p>
             <p class="flex items-center text-gray-900 dark:text-white">
-              <Car class="mr-1 {application.ownTransport ? 'text-green-500' : 'text-red-500'}" size={16} />
+              <Car
+                class="mr-1 {application.ownTransport
+                  ? 'text-green-500'
+                  : 'text-red-500'}"
+                size={16}
+              />
               {application.ownTransport ? "Yes" : "No"}
             </p>
           </div>
-          
+
           <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">WhatsApp Available</p>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+              WhatsApp Available
+            </p>
             <p class="text-gray-900 dark:text-white">
               {application.whatsApp ? "Yes" : "No"}
             </p>
@@ -216,32 +295,48 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Additional Information -->
     {#if application.referralSource || application.documents}
       <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-        <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+        <h2
+          class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center"
+        >
           <FileText class="mr-2 text-primary" size={20} />
           Additional Information
         </h2>
-        
+
         <div class="space-y-4">
           {#if application.referralSource}
             <div>
-              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Referral Source</p>
-              <p class="text-gray-900 dark:text-white">{application.referralSource}</p>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Referral Source
+              </p>
+              <p class="text-gray-900 dark:text-white">
+                {application.referralSource}
+              </p>
             </div>
           {/if}
-          
+
           {#if application.documents && application.documents.length > 0}
             <div>
-              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Documents</p>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Documents
+              </p>
               <div class="mt-2 space-y-2">
                 {#each application.documents as document}
-                  <div class="flex items-center gap-2 rounded-md border border-gray-200 p-2 dark:border-gray-700">
+                  <div
+                    class="flex items-center gap-2 rounded-md border border-gray-200 p-2 dark:border-gray-700"
+                  >
                     <FileText size={16} class="text-gray-500" />
-                    <span class="text-sm text-gray-900 dark:text-white">{document}</span>
-                    <a href={document} target="_blank" class="ml-auto text-primary hover:underline">View</a>
+                    <span class="text-sm text-gray-900 dark:text-white"
+                      >{document}</span
+                    >
+                    <a
+                      href={document}
+                      target="_blank"
+                      class="ml-auto text-primary hover:underline">View</a
+                    >
                   </div>
                 {/each}
               </div>
@@ -251,18 +346,23 @@
       </div>
     {/if}
   </div>
-  
+
   <!-- Right column: Admin actions -->
   <div class="space-y-6">
     <!-- Admin Actions Card -->
     <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-      <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">Admin Actions</h2>
-      
+      <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+        Admin Actions
+      </h2>
+
       <div class="space-y-4">
         {#if application.status === "PENDING"}
           <form method="POST" action="?/addNote" use:enhance>
             <div class="mb-3">
-              <label for="note" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                for="note"
+                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Add Note
               </label>
               <textarea
@@ -279,9 +379,9 @@
               Save Note
             </Button>
           </form>
-          
+
           <hr class="border-t border-gray-200 dark:border-gray-700" />
-          
+
           <div class="grid grid-cols-2 gap-3">
             <Button
               href={`mailto:${application.email}`}
@@ -291,7 +391,7 @@
               <Mail size={16} class="mr-2" />
               Email Applicant
             </Button>
-            
+
             {#if application.phone}
               <Button
                 href={`tel:${application.phone}`}
@@ -303,24 +403,32 @@
               </Button>
             {/if}
           </div>
-          
+
           <hr class="border-t border-gray-200 dark:border-gray-700" />
-          
+
           <!-- Decision Buttons (Highlighted) -->
           <div class="rounded-md bg-gray-50 p-4 dark:bg-gray-700">
-            <h3 class="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Application Decision</h3>
+            <h3
+              class="text-lg font-semibold mb-3 text-gray-900 dark:text-white"
+            >
+              Application Decision
+            </h3>
             <div class="space-y-3">
-              <form method="POST" action="?/approve" use:enhance={() => {
-                isProcessing = true;
-                
-                return async ({ result }) => {
-                  isProcessing = false;
-                  
-                  if (result.type === "success") {
-                    await invalidateAll();
-                  }
-                };
-              }}>
+              <form
+                method="POST"
+                action="?/approve"
+                use:enhance={() => {
+                  isProcessing = true;
+
+                  return async ({ result }) => {
+                    isProcessing = false;
+
+                    if (result.type === "success") {
+                      await invalidateAll();
+                    }
+                  };
+                }}
+              >
                 <LoadingButton
                   type="submit"
                   variant="primary"
@@ -331,18 +439,22 @@
                   Approve Application
                 </LoadingButton>
               </form>
-              
-              <form method="POST" action="?/reject" use:enhance={() => {
-                isProcessing = true;
-                
-                return async ({ result }) => {
-                  isProcessing = false;
-                  
-                  if (result.type === "success") {
-                    await invalidateAll();
-                  }
-                };
-              }}>
+
+              <form
+                method="POST"
+                action="?/reject"
+                use:enhance={() => {
+                  isProcessing = true;
+
+                  return async ({ result }) => {
+                    isProcessing = false;
+
+                    if (result.type === "success") {
+                      await invalidateAll();
+                    }
+                  };
+                }}
+              >
                 <LoadingButton
                   type="submit"
                   variant="outline"
@@ -362,9 +474,16 @@
                 <Check class="h-5 w-5 text-green-400" />
               </div>
               <div class="ml-3">
-                <h3 class="text-sm font-medium text-green-800 dark:text-green-300">Application Approved</h3>
+                <h3
+                  class="text-sm font-medium text-green-800 dark:text-green-300"
+                >
+                  Application Approved
+                </h3>
                 <div class="mt-2 text-sm text-green-700 dark:text-green-200">
-                  <p>This application has been approved and a cleaner account has been created.</p>
+                  <p>
+                    This application has been approved and a cleaner account has
+                    been created.
+                  </p>
                 </div>
                 <div class="mt-4">
                   <Button href="/admin/cleaners" variant="outline" size="sm">
@@ -381,7 +500,9 @@
                 <X class="h-5 w-5 text-red-400" />
               </div>
               <div class="ml-3">
-                <h3 class="text-sm font-medium text-red-800 dark:text-red-300">Application Rejected</h3>
+                <h3 class="text-sm font-medium text-red-800 dark:text-red-300">
+                  Application Rejected
+                </h3>
                 <div class="mt-2 text-sm text-red-700 dark:text-red-200">
                   <p>This application has been rejected.</p>
                 </div>
@@ -391,16 +512,20 @@
         {/if}
       </div>
     </div>
-    
+
     <!-- Notes History Card -->
     {#if application.notes && application.notes.length > 0}
       <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-        <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Notes History</h2>
-        
+        <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+          Notes History
+        </h2>
+
         <div class="space-y-4">
           {#each application.notes as note}
             <div class="rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-              <p class="text-sm text-gray-900 dark:text-white">{note.content}</p>
+              <p class="text-sm text-gray-900 dark:text-white">
+                {note.content}
+              </p>
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 {formatDate(note.createdAt)} by {note.addedBy}
               </p>

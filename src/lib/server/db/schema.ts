@@ -63,6 +63,13 @@ export const communicationDirectionEnum = pgEnum("CommunicationDirection", [
   "OUTGOING",
 ]);
 
+// Define enum for application status
+export const applicationStatusEnum = pgEnum("ApplicationStatus", [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+]);
+
 // Define tables
 export const user = pgTable("user", {
   id: text("id").primaryKey().notNull(),
@@ -176,6 +183,7 @@ export const payment = pgTable("payment", {
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
 
+//  cleanerProfile table
 export const cleanerProfile = pgTable("cleaner_profile", {
   id: text("id").primaryKey().notNull(),
   userId: text("user_id")
@@ -203,18 +211,12 @@ export const cleanerProfile = pgTable("cleaner_profile", {
   availableDays: text("available_days").array(), // Using array of text for the enum array
   rating: decimal("rating", { precision: 3, scale: 1 }),
   isAvailable: boolean("is_available").default(true).notNull(),
+  profileImageUrl: text("profile_image_url"), // New field for profile image URL
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
 
-// Define enum for application status
-export const applicationStatusEnum = pgEnum("ApplicationStatus", [
-  "PENDING",
-  "APPROVED",
-  "REJECTED",
-]);
-
-// Cleaner application table
+// cleanerApplication table
 export const cleanerApplication = pgTable("cleaner_application", {
   id: text("id").primaryKey().notNull(),
   firstName: text("first_name").notNull(),
@@ -230,6 +232,7 @@ export const cleanerApplication = pgTable("cleaner_application", {
   idNumber: text("id_number"),
   referralSource: text("referral_source"),
   documents: text("documents").array(), // Array of document URLs
+  profileImageUrl: text("profile_image_url"), // New field for profile image URL
   status: applicationStatusEnum("status").default("PENDING").notNull(),
   notes: text("notes"), // Admin notes about application
   isActive: boolean("is_active").default(false).notNull(),

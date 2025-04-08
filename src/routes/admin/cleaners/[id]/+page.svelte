@@ -2,6 +2,7 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
+  import ProfileImageUpload from "$lib/components/admin/ProfileImageUpload.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import {
     Briefcase,
@@ -231,6 +232,25 @@
   // Navigate to all cleaner bookings
   function viewAllBookings() {
     window.location.href = `/admin/bookings?search=${cleaner.email}`;
+  }
+  // Add a function to handle profile image upload success
+  function handleProfileImageSuccess({ detail }: CustomEvent<{ url: string }>) {
+    // Show success message or update UI as needed
+    if (detail.url) {
+      // Profile image updated successfully
+      // You could show a notification or simply let the UI update via invalidation
+    } else {
+      // Profile image removed successfully
+    }
+  }
+
+  // Add a function to handle profile image upload errors
+  function handleProfileImageError({
+    detail,
+  }: CustomEvent<{ message: string }>) {
+    // Show error message
+    console.error("Profile image error:", detail.message);
+    // You could set an error state variable here to show to the user
   }
 </script>
 
@@ -475,6 +495,21 @@
             </div>
           </div>
         {/if}
+
+        <!-- Profile Image Upload -->
+        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            Profile Image
+          </h3>
+          <ProfileImageUpload
+            userId={cleaner.id}
+            userType="cleaner"
+            currentImageUrl={cleaner.cleanerProfile?.profileImageUrl || null}
+            on:success={handleProfileImageSuccess}
+            on:error={handleProfileImageError}
+            disabled={isPersonalInfoEditMode || isLoading}
+          />
+        </div>
       </div>
     </div>
 

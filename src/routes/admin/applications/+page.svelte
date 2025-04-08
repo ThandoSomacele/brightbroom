@@ -1,7 +1,7 @@
 <!-- src/routes/admin/applications/+page.svelte -->
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
-  import { ArrowLeft, ArrowRight, Eye, Filter, Search } from "lucide-svelte";
+  import { ArrowLeft, ArrowRight, Eye, Filter, Search, User } from "lucide-svelte";
 
   export let data;
   let { applications, pagination, filters } = data;
@@ -201,21 +201,34 @@
             <tr
               class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
             >
-              <td class="whitespace-nowrap px-6 py-4">
-                <div class="flex items-center">
-                  <div class="ml-4">
-                    <div
-                      class="text-sm font-medium text-gray-900 dark:text-white"
-                    >
-                      {application.firstName}
-                      {application.lastName}
-                    </div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                      {application.city}
-                    </div>
+            <td class="whitespace-nowrap px-6 py-4">
+              <div class="flex items-center">
+                <div
+                  class="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700"
+                >
+                  {#if application.profileImageUrl}
+                    <img 
+                      src={application.profileImageUrl} 
+                      alt="{application.firstName} {application.lastName}"
+                      class="h-full w-full object-cover"
+                    />
+                  {:else}
+                    <User size={20} class="text-gray-500 dark:text-gray-400" />
+                  {/if}
+                </div>
+                <div class="ml-4">
+                  <div
+                    class="text-sm font-medium text-gray-900 dark:text-white"
+                  >
+                    {application.firstName}
+                    {application.lastName}
+                  </div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
+                    {application.city}
                   </div>
                 </div>
-              </td>
+              </div>
+            </td>
               <td class="whitespace-nowrap px-6 py-4">
                 <div class="text-sm text-gray-900 dark:text-white">
                   {application.email}
