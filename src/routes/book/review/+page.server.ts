@@ -5,6 +5,7 @@ import { error, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 import { sendBookingConfirmationEmail } from '$lib/server/email-service';
+import { addressService } from '$lib/server/services/address.service';
 
 export const load: PageServerLoad = async ({ locals, cookies }) => {
   // Check if the user is logged in
@@ -17,9 +18,8 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
   
   try {
     // Get the user's addresses and services for validation
-    const addresses = await db.select()
-      .from(address)
-      .where(eq(address.userId, locals.user.id));
+       const addresses = await addressService.getUserAddresses(locals.user.id);
+   
     
     const services = await db.select()
       .from(service);

@@ -1,7 +1,8 @@
-// src/routes/book/address/+page.svelte and other client files
+// src/routes/book/address/+page.server.ts
 import { MAX_ADDRESSES } from '$lib/constants/address';
 import { db } from '$lib/server/db';
 import { address } from '$lib/server/db/schema';
+import { addressService } from '$lib/server/services/address.service'; // Import the service
 import { redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
@@ -13,11 +14,8 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
   
   try {
-    // Get the user's addresses
-    const addresses = await db.select()
-      .from(address)
-      .where(eq(address.userId, locals.user.id))
-      .orderBy(address.isDefault, { direction: 'desc' });
+    // Use the address service to get only active addresses
+    const addresses = await addressService.getUserAddresses(locals.user.id);
     
     return {
       addresses,
