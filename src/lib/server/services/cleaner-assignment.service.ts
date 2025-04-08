@@ -1,7 +1,7 @@
 // src/lib/server/services/cleaner-assignment.service.ts
 import { db } from "$lib/server/db";
 import { booking, cleanerProfile, user, service, address } from "$lib/server/db/schema";
-import { eq, and, gte, lt, inArray, ne } from "drizzle-orm";
+import { eq, and, gte, lt, like, or, ne, sql } from "drizzle-orm"; // Added sql import
 import { getDistanceFromLatLonInKm } from "$lib/utils/serviceAreaValidator";
 import { sendCleanerAssignmentNotification } from "./notification.service";
 
@@ -122,8 +122,8 @@ export const cleanerAssignmentService = {
             lt(booking.scheduledDate, new Date(startTime.setHours(23, 59, 59, 999))),
             // Not cancelled
             ne(booking.status, "CANCELLED"),
-            // Has assigned cleaner
-            booking.cleanerId.isNotNull()
+            // Has assigned cleaner - FIX: Using SQL expression instead of isNotNull
+            sql`${booking.cleanerId} IS NOT NULL`
           )
         );
       

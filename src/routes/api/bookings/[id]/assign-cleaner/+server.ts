@@ -1,70 +1,48 @@
 // src/routes/api/bookings/[id]/assign-cleaner/+server.ts
-import { db } from "$lib/server/db";
-import { booking } from "$lib/server/db/schema";
-import { cleanerAssignmentService } from "$lib/server/services/cleaner-assignment.service";
-import { error, json } from "@sveltejs/kit";
-import { eq } from "drizzle-orm";
+import { json } from '@sveltejs/kit';
+import { cleanerAssignmentService } from '$lib/server/services/cleaner-assignment.service';
+import type { RequestHandler } from './$types';
 
-export async function POST({ params, locals }) {
-  // Ensure the user is authenticated and has admin privileges
-  if (!locals.user || locals.user.role !== "ADMIN") {
-    throw error(403, "Unauthorized access");
+export const POST: RequestHandler = async ({ params, locals }) => {
+  // Check authentication
+  if (!locals.user) {
+    return json({ error: 'Authentication required' }, { status: 401 });
   }
 
+  // Check authorization (only admin can auto-assign)
+  if (locals.user.role !== 'ADMIN') {
+    return json({ error: 'Unauthorized' }, { status: 403 });
+  }
+
+  // Get the booking ID from route params
   const bookingId = params.id;
+  
+  if (!bookingId) {
+    return json({ error: 'Booking ID is required' }, { status: 400 });
+  }
 
   try {
-    // Check if booking exists
-    const bookingCheck = await db
-      .select({ id: booking.id })
-      .from(booking)
-      .where(eq(booking.id, bookingId))
-      .limit(1);
-
-    if (bookingCheck.length === 0) {
-      throw error(404, "Booking not found");
-    }
-
-    // Auto-assign a cleaner
+    // Auto-assign the cleaner
     const result = await cleanerAssignmentService.autoAssignCleaner(bookingId);
-
+    
     if (!result.success) {
-      return json({
+      return json({ 
         success: false,
-        message: result.message || "Failed to assign cleaner"
+        message: result.message || 'Failed to assign cleaner'
       }, { status: 400 });
     }
 
     return json({
       success: true,
       cleanerId: result.cleanerId,
-      message: result.message || "Cleaner assigned successfully"
+      message: result.message
     });
-  } catch (err) {
-    console.error(`Error assigning cleaner to booking ${bookingId}:`, err);
-    throw error(500, "Failed to assign cleaner");
+  } catch (error) {
+    console.error('Error auto-assigning cleaner:', error);
+    
+    return json({ 
+      success: false,
+      message: error instanceof Error ? error.message : 'Internal server error'
+    }, { status: 500 });
   }
-}
-
-// GET endpoint to find available cleaners without assigning
-export async function GET({ params, locals }) {
-  // Ensure the user is authenticated and has admin privileges
-  if (!locals.user || locals.user.role !== "ADMIN") {
-    throw error(403, "Unauthorized access");
-  }
-
-  const bookingId = params.id;
-
-  try {
-    // Find available cleaners
-    const { cleaners } = await cleanerAssignmentService.findAvailableCleaners(bookingId);
-
-    return json({
-      success: true,
-      availableCleaners: cleaners
-    });
-  } catch (err) {
-    console.error(`Error finding available cleaners for booking ${bookingId}:`, err);
-    throw error(500, "Failed to find available cleaners");
-  }
-}
+};
