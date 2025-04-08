@@ -136,35 +136,6 @@
     }
   }
 
-  // Toggle profile edit mode
-  function toggleProfileEdit() {
-    isProfileEditMode = !isProfileEditMode;
-
-    if (isProfileEditMode) {
-      // Set initial values when entering edit mode
-      workAddress = cleaner.cleanerProfile?.workAddress || "";
-      workRadius = cleaner.cleanerProfile?.workRadius?.toString() || "10";
-      bio = cleaner.cleanerProfile?.bio || "";
-      petCompatibility = cleaner.cleanerProfile?.petCompatibility || "NONE";
-      isAvailable = cleaner.cleanerProfile?.isAvailable || true;
-      idType = cleaner.cleanerProfile?.idType || "SOUTH_AFRICAN_ID";
-      idNumber = cleaner.cleanerProfile?.idNumber || "";
-      taxNumber = cleaner.cleanerProfile?.taxNumber || "";
-
-      // Reset available days
-      Object.keys(availableDays).forEach((day) => {
-        availableDays[day] = false;
-      });
-
-      // Set available days from cleaner data
-      if (cleaner.cleanerProfile?.availableDays) {
-        cleaner.cleanerProfile.availableDays.forEach((day) => {
-          availableDays[day] = true;
-        });
-      }
-    }
-  }
-
   // Toggle specialisations edit mode
   function toggleSpecialisationsEdit() {
     isSpecialisationsEditMode = !isSpecialisationsEditMode;
