@@ -2,13 +2,12 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
-    import ProfileImageUpload from "$lib/components/admin/ProfileImageUpload.svelte";
+  import ProfileImageUpload from "$lib/components/admin/ProfileImageUpload.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import LoadingButton from "$lib/components/ui/LoadingButton.svelte";
   import {
     ArrowLeft,
     Briefcase,
-    Car,
     Check,
     Clipboard,
     FileText,
@@ -251,17 +250,26 @@
           <div class="mt-1 flex flex-wrap gap-2">
             {#if application.experienceTypes && application.experienceTypes.length > 0}
               {#each application.experienceTypes as expType}
-                <span class="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary dark:bg-primary-900/20">
-                  {expType === 'GUEST_HOUSE' ? 'Cleaning Guest house/Hotel/BnB' : 
-                   expType === 'OFFICE' ? 'Cleaning Offices' : 
-                   expType === 'CARE_GIVING' ? 'Care Giving' : expType}
+                <span
+                  class="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary dark:bg-primary-900/20"
+                >
+                  {expType === "GUEST_HOUSE"
+                    ? "Cleaning Guest house/Hotel/BnB"
+                    : expType === "OFFICE"
+                      ? "Cleaning Offices"
+                      : expType === "CARE_GIVING"
+                        ? "Care Giving"
+                        : expType}
                 </span>
               {/each}
             {:else}
-              <span class="text-gray-600 dark:text-gray-400">No experience types specified</span>
+              <span class="text-gray-600 dark:text-gray-400"
+                >No experience types specified</span
+              >
             {/if}
           </div>
         </div>
+      </div>
     </div>
 
     <!-- Additional Information -->
