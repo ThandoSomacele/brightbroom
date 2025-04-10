@@ -1,5 +1,5 @@
 // scripts/db/seed.ts
-import { crypto } from "crypto";
+import crypto from "crypto";
 import { eq } from "drizzle-orm";
 import fs from "fs";
 import path from "path";
