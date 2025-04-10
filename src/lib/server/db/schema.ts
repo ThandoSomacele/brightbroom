@@ -254,6 +254,17 @@ export const cleanerApplication = pgTable("cleaner_application", {
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
 
+// Application notes table
+export const applicationNote = pgTable("application_note", {
+  id: text("id").primaryKey().notNull(),
+  applicationId: text("application_id")
+    .notNull()
+    .references(() => cleanerApplication.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  addedBy: text("added_by").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
 export const cleanerSpecialisation = pgTable("cleaner_specialisation", {
   id: text("id").primaryKey().notNull(),
   cleanerProfileId: text("cleaner_profile_id")
@@ -321,6 +332,9 @@ export type NewCleanerProfile = typeof cleanerProfile.$inferInsert;
 
 export type CleanerApplication = typeof cleanerApplication.$inferSelect;
 export type NewCleanerApplication = typeof cleanerApplication.$inferInsert;
+
+export type ApplicationNote = typeof applicationNote.$inferSelect;
+export type NewApplicationNote = typeof applicationNote.$inferInsert;
 
 export type ExperienceType =
   (typeof EXPERIENCE_TYPES)[keyof typeof EXPERIENCE_TYPES];

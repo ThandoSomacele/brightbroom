@@ -1,13 +1,14 @@
 // src/routes/admin/applications/[id]/+page.server.ts
 import { db } from "$lib/server/db";
 import {
+  applicationNote, 
   cleanerApplication,
   cleanerProfile,
   user,
 } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
 import { error, fail } from "@sveltejs/kit";
-import { eq } from "drizzle-orm"; // Added missing 'and' import here
+import { desc, eq } from "drizzle-orm"; // Added desc import for sorting
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -29,11 +30,16 @@ export const load: PageServerLoad = async ({ params }) => {
       throw error(404, "Application not found");
     }
 
-    // You can fetch any additional related data here
-    // For example, any notes about the application
+    // Fetch notes for this application
+    const notes = await db
+      .select()
+      .from(applicationNote)
+      .where(eq(applicationNote.applicationId, applicationId))
+      .orderBy(desc(applicationNote.createdAt)); // Most recent first
 
     return {
       application,
+      notes
     };
   } catch (err) {
     console.error("Error loading application details:", err);
@@ -63,15 +69,19 @@ export const actions: Actions = {
     }
 
     try {
-      // In a real implementation, you would save the note to a related table
-      // For example:
-      // await db.insert(applicationNote).values({
-      //   id: crypto.randomUUID(),
-      //   applicationId,
-      //   content: noteText,
-      //   addedBy: `${adminUser.firstName} ${adminUser.lastName}`,
-      //   createdAt: new Date()
-      // });
+      // Save the note to the application_note table
+      await db.insert(applicationNote).values({
+        id: crypto.randomUUID(),
+        applicationId,
+        content: noteText,
+        addedBy: `${adminUser.firstName} ${adminUser.lastName}`,
+        createdAt: new Date()
+      });
+
+      // Optionally update the lastUpdated timestamp on the application itself
+      await db.update(cleanerApplication)
+        .set({ updatedAt: new Date() })
+        .where(eq(cleanerApplication.id, applicationId));
 
       return {
         success: true,
@@ -144,25 +154,38 @@ export const actions: Actions = {
         updatedAt: new Date(),
       });
 
-      // Create cleaner profile (inactive by default until fully onboarded)
+      // Parse availability array from application
       const availabilityArray = JSON.parse(application.availability || "[]");
 
+      // Create cleaner profile with data from application
       const profileId = crypto.randomUUID();
       await db.insert(cleanerProfile).values({
         id: profileId,
         userId,
-        workAddress: application.city, // Default to city, would be updated later
-        workLocationLat: 0, // Placeholder
-        workLocationLng: 0, // Placeholder
-        workRadius: 10, // Default radius
-        idType: application.idType as any, // Type assertion
-        idNumber: application.idNumber,
-        bio: "",
-        petCompatibility: "NONE",
-        availableDays: availabilityArray,
+        idType: application.idType ? application.idType : "SOUTH_AFRICAN_ID",
+        idNumber: application.idNumber || "0000000000000",
+        workAddress: application.city,
+        // Use actual coordinates from application if available
+        workLocationLat: application.latitude || -26.0274,
+        workLocationLng: application.longitude || 28.0106,
+        workRadius: 10, // Default radius in km
+        bio: "", // Empty bio initially
+        petCompatibility: "NONE", // Default to no pet compatibility
+        availableDays: availabilityArray, // Use availability days from application
+        experienceTypes: application.experienceTypes || [], // Use experience types from application
         isAvailable: false, // Start as unavailable until fully onboarded
+        profileImageUrl: application.profileImageUrl, // Transfer profile image if any
         createdAt: new Date(),
         updatedAt: new Date(),
+      });
+
+      // Add a note about the approval
+      await db.insert(applicationNote).values({
+        id: crypto.randomUUID(),
+        applicationId,
+        content: `Application approved by ${adminUser.firstName} ${adminUser.lastName}. User account and cleaner profile created.`,
+        addedBy: `${adminUser.firstName} ${adminUser.lastName}`,
+        createdAt: new Date()
       });
 
       // Send welcome email with temporary password
@@ -170,7 +193,7 @@ export const actions: Actions = {
         firstName: application.firstName,
         lastName: application.lastName,
         role: "CLEANER", // Specify the role
-        temporaryPassword, // You'd include this in a real implementation
+        temporaryPassword, // Include this in email for the cleaner to log in
       });
 
       return {
@@ -206,6 +229,15 @@ export const actions: Actions = {
           updatedAt: new Date(),
         })
         .where(eq(cleanerApplication.id, applicationId));
+
+      // Add a note about the rejection
+      await db.insert(applicationNote).values({
+        id: crypto.randomUUID(),
+        applicationId,
+        content: `Application rejected by ${adminUser.firstName} ${adminUser.lastName}.`,
+        addedBy: `${adminUser.firstName} ${adminUser.lastName}`,
+        createdAt: new Date()
+      });
 
       // In a real implementation, you might send a notification email
 

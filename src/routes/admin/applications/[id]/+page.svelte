@@ -18,8 +18,8 @@
     X,
   } from "lucide-svelte";
 
-   // Environment variables
-   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  // Environment variables
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   export let data;
   const { application } = data;
@@ -473,14 +473,14 @@
     </div>
 
     <!-- Notes History Card -->
-    {#if application.notes && application.notes.length > 0}
+    {#if data.notes && data.notes.length > 0}
       <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
         <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
           Notes History
         </h2>
 
         <div class="space-y-4">
-          {#each application.notes as note}
+          {#each data.notes as note}
             <div class="rounded-md bg-gray-50 p-3 dark:bg-gray-700">
               <p class="text-sm text-gray-900 dark:text-white">
                 {note.content}
