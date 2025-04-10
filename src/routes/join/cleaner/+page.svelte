@@ -1,13 +1,15 @@
 <!-- src/routes/join/cleaner/+page.svelte -->
 <script lang="ts">
   import { enhance } from "$app/forms";
-  import { VITE_GOOGLE_MAPS_API_KEY } from "$env/static/public";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import {
     getClosestServiceArea,
     isWithinServiceArea,
   } from "$lib/utils/serviceAreaValidator";
+
+   // Environment variables
+   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   // Form state
   let isSubmitting = false;
@@ -394,7 +396,7 @@
                   <!-- Address - Google Maps Autocomplete -->
                   <div>
                     <GoogleMapsAutocomplete
-                      apiKey={VITE_GOOGLE_MAPS_API_KEY}
+                      apiKey={googleMapsApiKey}
                       label="Home Address"
                       placeholder="Enter your address"
                       required

@@ -3,8 +3,19 @@
   import { enhance } from "$app/forms";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
+  import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
+  import {
+    getClosestServiceArea,
+    isWithinServiceArea,
+  } from "$lib/utils/serviceAreaValidator";
   import { AlertTriangle, ArrowLeft, MapPin } from "lucide-svelte";
+
+   // Environment variables
+   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  // Get data from the server load function
+  export let data;
 
   // Get form data if there's an error
   export let form;
@@ -17,14 +28,52 @@
   let isLoading = false;
   let isSubmitting = false;
 
+  // Address state variables
+  let selectedAddress = {
+    formatted: "",
+    street: "",
+    aptUnit: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    lat: 0,
+    lng: 0,
+  };
+  let addressError = "";
+  let isOutOfServiceArea = false;
+
   // Form data with defaults
-  let street = form?.street || "";
   let aptUnit = form?.aptUnit || "";
-  let city = form?.city || "";
-  let state = form?.state || "Western Cape"; // Default value
-  let zipCode = form?.zipCode || "";
   let isDefault = form?.isDefault || false;
   let instructions = form?.instructions || "";
+
+  // Handle address selection from Google autocomplete
+  function handleAddressSelect(event) {
+    selectedAddress = event.detail.address;
+    addressError = "";
+
+    // Check if address is within service area
+    if (selectedAddress.lat && selectedAddress.lng) {
+      isOutOfServiceArea = !isWithinServiceArea(
+        selectedAddress.lat,
+        selectedAddress.lng,
+      );
+
+      if (isOutOfServiceArea) {
+        const { area, distance } = getClosestServiceArea(
+          selectedAddress.lat,
+          selectedAddress.lng,
+        );
+        addressError = `This address is outside our current service areas. The closest area is ${area.name}, which is ${distance.toFixed(1)}km away.`;
+      }
+    }
+  }
+
+  // Handle out-of-service-area warning
+  function handleOutOfServiceArea(event) {
+    isOutOfServiceArea = true;
+    addressError = "This address is outside our current service areas.";
+  }
 </script>
 
 <svelte:head>
@@ -106,6 +155,9 @@
         use:enhance={({ formData }) => {
           isSubmitting = true;
 
+          // Add the formatted address to the form data
+          formData.append("formattedAddress", selectedAddress.formatted);
+
           return async ({ result }) => {
             if (result.type === "success" && result.data?.redirect) {
               // Keep the loading state active
@@ -132,23 +184,35 @@
           };
         }}
       >
-        <!-- Street address -->
+        <!-- Address input -->
         <div class="mb-4">
-          <label
-            for="street"
-            class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Street Address <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="street"
-            name="street"
-            bind:value={street}
+          <GoogleMapsAutocomplete
+            apiKey={googleMapsApiKey}
+            label="Address"
+            placeholder="Enter your address"
             required
-            class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            placeholder="123 Main Street"
+            error={addressError}
+            bind:selectedAddress
+            on:select={handleAddressSelect}
+            on:outOfServiceArea={handleOutOfServiceArea}
           />
+
+          {#if isOutOfServiceArea}
+            <div class="mt-2 text-sm text-amber-600 dark:text-amber-400">
+              <p>
+                Note: This address is outside our current service areas. We may
+                have limited availability in your location.
+              </p>
+            </div>
+          {/if}
+
+          <!-- Hidden fields to store all address components -->
+          <input type="hidden" name="street" value={selectedAddress.street} />
+          <input type="hidden" name="city" value={selectedAddress.city} />
+          <input type="hidden" name="state" value={selectedAddress.state} />
+          <input type="hidden" name="zipCode" value={selectedAddress.zipCode} />
+          <input type="hidden" name="lat" value={selectedAddress.lat} />
+          <input type="hidden" name="lng" value={selectedAddress.lng} />
         </div>
 
         <!-- Apartment/Unit -->
@@ -167,75 +231,6 @@
             class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             placeholder="Apt 4B (optional)"
           />
-        </div>
-
-        <!-- City & State (2-column grid) -->
-        <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label
-              for="city"
-              class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              City <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="city"
-              name="city"
-              bind:value={city}
-              required
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-              placeholder="Cape Town"
-            />
-          </div>
-
-          <div>
-            <label
-              for="state"
-              class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Province <span class="text-red-500">*</span>
-            </label>
-            <select
-              id="state"
-              name="state"
-              bind:value={state}
-              required
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            >
-              <option value="Eastern Cape">Eastern Cape</option>
-              <option value="Free State">Free State</option>
-              <option value="Gauteng">Gauteng</option>
-              <option value="KwaZulu-Natal">KwaZulu-Natal</option>
-              <option value="Limpopo">Limpopo</option>
-              <option value="Mpumalanga">Mpumalanga</option>
-              <option value="Northern Cape">Northern Cape</option>
-              <option value="North West">North West</option>
-              <option value="Western Cape">Western Cape</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Zip/Postal Code -->
-        <div class="mb-4">
-          <label
-            for="zipCode"
-            class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Postal Code <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="zipCode"
-            name="zipCode"
-            bind:value={zipCode}
-            required
-            class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            placeholder="8001"
-          />
-          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            South African postal codes are typically 4 digits
-          </p>
         </div>
 
         <!-- Access Instructions -->

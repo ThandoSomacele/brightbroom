@@ -45,8 +45,11 @@ export const addressService = {
           eq(address.userId, userId),
           eq(address.isActive, true)
         ));
-
-      return Number(result[0].count) || 0;
+  
+      // Add safer access to the count property
+      return result && result.length > 0 && result[0].count !== undefined 
+        ? Number(result[0].count) 
+        : 0;
     } catch (error) {
       console.error("Error counting user addresses:", error);
       return 0;
@@ -110,6 +113,8 @@ export const addressService = {
       zipCode: string;
       instructions?: string;
       isDefault?: boolean;
+      lat?: number | null;
+      lng?: number | null;
     },
   ): Promise<typeof address.$inferSelect> {
     try {
@@ -118,28 +123,42 @@ export const addressService = {
       if (hasReachedLimit) {
         throw new Error(`Maximum limit of ${MAX_ADDRESSES} addresses reached`);
       }
-
+  
       // If this address will be default, update other addresses first
       if (addressData.isDefault) {
         await this.ensureSingleDefaultAddress(userId);
       }
-
+  
       // Create the new address
       const addressId = crypto.randomUUID();
+      
+      // Extract lat and lng if provided, otherwise use default values
+      const { lat, lng, ...otherAddressData } = addressData;
+      
       const [newAddress] = await db
         .insert(address)
         .values({
           id: addressId,
           userId,
-          ...addressData,
+          ...otherAddressData,
+          // Add lat/lng if they exist
+          ...(lat !== undefined && { lat }),
+          ...(lng !== undefined && { lng }),
           isActive: true,
           createdAt: new Date(),
           updatedAt: new Date(),
         })
         .returning();
-
+  
       return newAddress;
     } catch (error) {
+      // Check if the error is a redirect
+      if (error && typeof error === 'object' && 
+          'status' in error && 'location' in error) {
+        // This is a redirect, not an error - rethrow it
+        throw error;
+      }
+      
       console.error("Error creating address:", error);
       throw error;
     }

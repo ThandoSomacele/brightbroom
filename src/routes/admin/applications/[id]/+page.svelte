@@ -2,7 +2,6 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
-  import { VITE_GOOGLE_MAPS_API_KEY } from "$env/static/public";
   import ServiceAreaMap from "$lib/components/maps/ServiceAreaMap.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import LoadingButton from "$lib/components/ui/LoadingButton.svelte";
@@ -18,6 +17,9 @@
     Phone,
     X,
   } from "lucide-svelte";
+
+   // Environment variables
+   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   export let data;
   const { application } = data;
@@ -203,7 +205,7 @@
           <!-- Small service area map -->
           <div class="mt-3 h-40 w-full">
             <ServiceAreaMap
-              apiKey={VITE_GOOGLE_MAPS_API_KEY}
+              apiKey={googleMapsApiKey}
               height="100%"
               width="100%"
               showLabels={true}

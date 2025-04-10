@@ -82,6 +82,13 @@ export const actions: Actions = {
     const zipCode = formData.get("zipCode")?.toString();
     const instructions = formData.get("instructions")?.toString() || null;
     const isDefault = formData.get("isDefault") === "on";
+    // Get latitude and longitude if provided
+    const lat = formData.get("lat")
+      ? parseFloat(formData.get("lat")?.toString() || "0")
+      : null;
+    const lng = formData.get("lng")
+      ? parseFloat(formData.get("lng")?.toString() || "0")
+      : null;
 
     // Get redirect URL if provided
     const redirectTo =
@@ -116,31 +123,32 @@ export const actions: Actions = {
         zipCode,
         instructions,
         isDefault,
+        lat,
+        lng
       });
-
+    
       // Redirect to the appropriate page
       throw redirect(303, redirectTo);
     } catch (err) {
+      // Check if this is a redirect
+      if (err && typeof err === 'object' && 'status' in err) {
+        // This is a redirect, not an error - rethrow it
+        throw err;
+      }
+      
       console.error("Error creating address:", err);
-
+      
       // Check if this is a limit error
-      const errorMessage =
-        err instanceof Error && err.message.includes("Maximum limit")
-          ? err.message
-          : "Failed to create address";
-
-      return fail(400, {
+      const errorMessage = err instanceof Error && err.message.includes("Maximum limit")
+        ? err.message
+        : "Failed to create address";
+        
+      return fail(400, { 
         error: errorMessage,
-        values: {
-          street,
-          aptUnit,
-          city,
-          state,
-          zipCode,
-          instructions,
-          isDefault,
-          redirectTo,
-        },
+        values: { 
+          street, aptUnit, city, state, zipCode, 
+          instructions, isDefault, redirectTo 
+        }
       });
     }
   },
