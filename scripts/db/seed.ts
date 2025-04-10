@@ -16,6 +16,9 @@ import {
   ensureDirectoryExists
 } from "./utils";
 
+// Import the schema directly - this is the key fix
+import * as schema from "../../src/lib/server/db/schema";
+
 // Get current directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -100,6 +103,8 @@ async function seedDatabase() {
 
   // Create database connection
   const { client, db } = createDbConnection();
+  
+  // Get references to schema tables directly from the imported schema, not from db.schema
   const { 
     service, 
     user, 
@@ -109,7 +114,7 @@ async function seedDatabase() {
     booking, 
     payment, 
     key 
-  } = db.schema;
+  } = schema;
 
   try {
     // Start seeding process
@@ -285,7 +290,7 @@ async function seedServices(db: any) {
 
     // Insert services
     if (services.length > 0) {
-      await db.insert(db.schema.service).values(services);
+      await db.insert(schema.service).values(services);
       console.log(`Successfully inserted ${services.length} services`);
 
       // Log the services added
@@ -313,7 +318,7 @@ async function seedUsers(db: any) {
     const adminPassword = await hasher.hash("admin123");
     const adminId = crypto.randomUUID();
     
-    const [adminUser] = await db.insert(db.schema.user)
+    const [adminUser] = await db.insert(schema.user)
       .values({
         id: adminId,
         firstName: "Admin",
@@ -327,7 +332,7 @@ async function seedUsers(db: any) {
       .returning();
 
     // Create key for admin
-    await db.insert(db.schema.key).values({
+    await db.insert(schema.key).values({
       id: `email:admin@brightbroom.com`,
       userId: adminId,
       hashedPassword: adminPassword,
@@ -338,7 +343,7 @@ async function seedUsers(db: any) {
     const customerPassword = await hasher.hash("customer123");
     const customerId = crypto.randomUUID();
     
-    const [customer] = await db.insert(db.schema.user)
+    const [customer] = await db.insert(schema.user)
       .values({
         id: customerId,
         firstName: "Test",
@@ -352,14 +357,14 @@ async function seedUsers(db: any) {
       .returning();
 
     // Create key for customer
-    await db.insert(db.schema.key).values({
+    await db.insert(schema.key).values({
       id: `email:customer@example.com`,
       userId: customerId,
       hashedPassword: customerPassword,
     });
 
     // Create addresses for customer
-    const [address1] = await db.insert(db.schema.address)
+    const [address1] = await db.insert(schema.address)
       .values({
         id: crypto.randomUUID(),
         userId: customer.id,
@@ -372,7 +377,7 @@ async function seedUsers(db: any) {
       })
       .returning();
 
-    await db.insert(db.schema.address)
+    await db.insert(schema.address)
       .values({
         id: crypto.randomUUID(),
         userId: customer.id,
@@ -390,7 +395,7 @@ async function seedUsers(db: any) {
 
     // First cleaner
     const johnId = crypto.randomUUID();
-    const [johnCleaner] = await db.insert(db.schema.user)
+    const [johnCleaner] = await db.insert(schema.user)
       .values({
         id: johnId,
         firstName: "John",
@@ -404,14 +409,14 @@ async function seedUsers(db: any) {
       .returning();
 
     // Create key for john
-    await db.insert(db.schema.key).values({
+    await db.insert(schema.key).values({
       id: `email:john@brightbroom.com`,
       userId: johnId,
       hashedPassword: cleanerPassword,
     });
 
     // Create cleaner profile
-    const [johnProfile] = await db.insert(db.schema.cleanerProfile)
+    const [johnProfile] = await db.insert(schema.cleanerProfile)
       .values({
         id: crypto.randomUUID(),
         userId: johnCleaner.id,
@@ -431,7 +436,7 @@ async function seedUsers(db: any) {
 
     // Second cleaner
     const sarahId = crypto.randomUUID();
-    const [sarahCleaner] = await db.insert(db.schema.user)
+    const [sarahCleaner] = await db.insert(schema.user)
       .values({
         id: sarahId,
         firstName: "Sarah",
@@ -445,14 +450,14 @@ async function seedUsers(db: any) {
       .returning();
 
     // Create key for sarah
-    await db.insert(db.schema.key).values({
+    await db.insert(schema.key).values({
       id: `email:sarah@brightbroom.com`,
       userId: sarahId,
       hashedPassword: cleanerPassword,
     });
 
     // Create profile for Sarah
-    const [sarahProfile] = await db.insert(db.schema.cleanerProfile)
+    const [sarahProfile] = await db.insert(schema.cleanerProfile)
       .values({
         id: crypto.randomUUID(),
         userId: sarahCleaner.id,
@@ -474,7 +479,7 @@ async function seedUsers(db: any) {
     console.log("Creating specialisations...");
     
     // Get services
-    const services = await db.select().from(db.schema.service);
+    const services = await db.select().from(schema.service);
     
     // Find services by name
     const regularCleaning = services.find(s => s.name === "Regular Cleaning");
@@ -482,7 +487,7 @@ async function seedUsers(db: any) {
     const officeCleaning = services.find(s => s.name === "Office Cleaning");
     
     if (regularCleaning) {
-      await db.insert(db.schema.cleanerSpecialisation).values({
+      await db.insert(schema.cleanerSpecialisation).values({
         id: crypto.randomUUID(),
         cleanerProfileId: johnProfile.id,
         serviceId: regularCleaning.id,
@@ -491,7 +496,7 @@ async function seedUsers(db: any) {
     }
 
     if (extendedCleaning) {
-      await db.insert(db.schema.cleanerSpecialisation).values({
+      await db.insert(schema.cleanerSpecialisation).values({
         id: crypto.randomUUID(),
         cleanerProfileId: sarahProfile.id,
         serviceId: extendedCleaning.id,
@@ -500,7 +505,7 @@ async function seedUsers(db: any) {
     }
 
     if (officeCleaning) {
-      await db.insert(db.schema.cleanerSpecialisation).values({
+      await db.insert(schema.cleanerSpecialisation).values({
         id: crypto.randomUUID(),
         cleanerProfileId: sarahProfile.id,
         serviceId: officeCleaning.id,
@@ -515,7 +520,7 @@ async function seedUsers(db: any) {
       const oneWeekFromNow = new Date();
       oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7);
       
-      const [booking1] = await db.insert(db.schema.booking)
+      const [booking1] = await db.insert(schema.booking)
         .values({
           id: crypto.randomUUID(),
           userId: customer.id,
@@ -533,7 +538,7 @@ async function seedUsers(db: any) {
         .returning();
 
       // Add payment
-      await db.insert(db.schema.payment).values({
+      await db.insert(schema.payment).values({
         id: crypto.randomUUID(),
         bookingId: booking1.id,
         userId: customer.id,
@@ -551,7 +556,7 @@ async function seedUsers(db: any) {
       const twoWeeksFromNow = new Date();
       twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
       
-      await db.insert(db.schema.booking)
+      await db.insert(schema.booking)
         .values({
           id: crypto.randomUUID(),
           userId: customer.id,
