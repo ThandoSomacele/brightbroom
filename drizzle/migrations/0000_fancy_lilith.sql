@@ -1,3 +1,4 @@
+CREATE TYPE "public"."ApplicationStatus" AS ENUM('PENDING', 'APPROVED', 'REJECTED');--> statement-breakpoint
 CREATE TYPE "public"."BookingStatus" AS ENUM('PENDING', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');--> statement-breakpoint
 CREATE TYPE "public"."CommunicationDirection" AS ENUM('INCOMING', 'OUTGOING');--> statement-breakpoint
 CREATE TYPE "public"."CommunicationType" AS ENUM('EMAIL', 'SMS', 'NOTE');--> statement-breakpoint
@@ -17,6 +18,7 @@ CREATE TABLE "address" (
 	"zip_code" text NOT NULL,
 	"instructions" text,
 	"is_default" boolean DEFAULT false NOT NULL,
+	"is_active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
@@ -44,6 +46,32 @@ CREATE TABLE "booking" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "cleaner_application" (
+	"id" text PRIMARY KEY NOT NULL,
+	"first_name" text NOT NULL,
+	"last_name" text NOT NULL,
+	"email" text NOT NULL,
+	"phone" text,
+	"city" text NOT NULL,
+	"latitude" numeric(10, 6),
+	"longitude" numeric(10, 6),
+	"formatted_address" text,
+	"experience_types" json DEFAULT '[]'::json,
+	"availability" text NOT NULL,
+	"own_transport" boolean DEFAULT false NOT NULL,
+	"whats_app" boolean DEFAULT false NOT NULL,
+	"id_type" text,
+	"id_number" text,
+	"referral_source" text,
+	"documents" text[],
+	"profile_image_url" text,
+	"status" "ApplicationStatus" DEFAULT 'PENDING' NOT NULL,
+	"notes" text,
+	"is_active" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "cleaner_profile" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
@@ -59,7 +87,9 @@ CREATE TABLE "cleaner_profile" (
 	"pet_compatibility" "PetCompatibility" DEFAULT 'NONE' NOT NULL,
 	"available_days" text[],
 	"rating" numeric(3, 1),
+	"experience_types" json DEFAULT '[]'::json,
 	"is_available" boolean DEFAULT true NOT NULL,
+	"profile_image_url" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "cleaner_profile_user_id_unique" UNIQUE("user_id")
@@ -121,8 +151,11 @@ CREATE TABLE "service" (
 	"description" text NOT NULL,
 	"base_price" numeric(10, 2) NOT NULL,
 	"duration_hours" integer NOT NULL,
+	"details" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"sort_order" integer DEFAULT 999
 );
 --> statement-breakpoint
 CREATE TABLE "user_session" (
@@ -139,6 +172,7 @@ CREATE TABLE "user" (
 	"last_name" text NOT NULL,
 	"phone" text,
 	"role" "UserRole" DEFAULT 'CUSTOMER' NOT NULL,
+	"is_active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "user_email_unique" UNIQUE("email")

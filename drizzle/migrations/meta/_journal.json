@@ -5,50 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1743068133418,
-      "tag": "0000_tiresome_red_skull",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1743250215002,
-      "tag": "0001_service_updates",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1743623568000,
-      "tag": "0002_medical_true_believers",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1743777534332,
-      "tag": "0003_foamy_vampiro",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1743970894153,
-      "tag": "0004_lean_post",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1744099318744,
-      "tag": "0005_redundant_the_santerians",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1744299328802,
-      "tag": "0006_tricky_dreaming_celestial",
+      "when": 1744301066767,
+      "tag": "0000_fancy_lilith",
       "breakpoints": true
     }
   ]

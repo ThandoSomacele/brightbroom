@@ -28,8 +28,3 @@ if [ "$DEPLOY_CONTEXT" == "production" ] && [ "$SEED_DATABASE" == "true" ]; then
   exit 1
 fi
 
-# Only run seeds when explicitly requested and not in production
-if [ "$SEED_DATABASE" == "true" ]; then
-  echo "Seeding database..."
-  node ./src/commands/seed.js
-fi
