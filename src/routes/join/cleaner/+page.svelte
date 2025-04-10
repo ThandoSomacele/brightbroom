@@ -1,7 +1,7 @@
 <!-- src/routes/join/cleaner/+page.svelte -->
 <script lang="ts">
   import { enhance } from "$app/forms";
-  import { PUBLIC_GOOGLE_MAPS_API_KEY } from "$env/static/public";
+  import { VITE_GOOGLE_MAPS_API_KEY } from "$env/static/public";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import {
@@ -394,7 +394,7 @@
                   <!-- Address - Google Maps Autocomplete -->
                   <div>
                     <GoogleMapsAutocomplete
-                      apiKey={PUBLIC_GOOGLE_MAPS_API_KEY}
+                      apiKey={VITE_GOOGLE_MAPS_API_KEY}
                       label="Home Address"
                       placeholder="Enter your address"
                       required

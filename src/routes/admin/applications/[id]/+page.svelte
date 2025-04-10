@@ -2,7 +2,7 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
-  import { PUBLIC_GOOGLE_MAPS_API_KEY } from "$env/static/public";
+  import { VITE_GOOGLE_MAPS_API_KEY } from "$env/static/public";
   import ServiceAreaMap from "$lib/components/maps/ServiceAreaMap.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import LoadingButton from "$lib/components/ui/LoadingButton.svelte";
@@ -203,7 +203,7 @@
           <!-- Small service area map -->
           <div class="mt-3 h-40 w-full">
             <ServiceAreaMap
-              apiKey={PUBLIC_GOOGLE_MAPS_API_KEY}
+              apiKey={VITE_GOOGLE_MAPS_API_KEY}
               height="100%"
               width="100%"
               showLabels={true}

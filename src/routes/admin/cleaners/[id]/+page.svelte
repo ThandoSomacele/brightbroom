@@ -2,7 +2,7 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
-  import { PUBLIC_GOOGLE_MAPS_API_KEY } from "$env/static/public";
+  import { VITE_GOOGLE_MAPS_API_KEY } from "$env/static/public";
   import DbDebugger from "$lib/components/admin/DbDebugger.svelte";
   import ProfileImageUpload from "$lib/components/admin/ProfileImageUpload.svelte";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
@@ -640,7 +640,7 @@
               <!-- Work Address -->
               <div>
                 <GoogleMapsAutocomplete
-                  apiKey={PUBLIC_GOOGLE_MAPS_API_KEY}
+                  apiKey={VITE_GOOGLE_MAPS_API_KEY}
                   label="Work Address"
                   placeholder="Enter cleaner's home/work address"
                   required
