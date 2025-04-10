@@ -412,6 +412,7 @@ export function getBookingConfirmationTemplate(
       <h2>Booking Confirmation</h2>
       <p>Hello,</p>
       <p>Thank you for booking with ${data.brandName}! Your cleaning service has been confirmed.</p>
+      <p>You you will shortly recieve notification of your assigned clearner and their details.</p>
       
       <div class="booking-details">
         <div class="booking-detail">
@@ -436,7 +437,7 @@ export function getBookingConfirmationTemplate(
         </div>
       </div>
       
-      <p>You can view your booking details and manage your appointment by clicking the button below:</p>
+      <p>You can view your booking details by clicking the button below:</p>
       
       <div style="text-align: center;">
         <a href="${bookingUrl}" class="btn">View Booking</a>
@@ -1419,7 +1420,7 @@ export function getContactFormTemplate(
   data: EmailTemplateData,
 ): { subject: string; html: string; text: string } {
   const escapedEmail = escapeHtml(formData.email);
-  
+
   // HTML Email template
   const html = `
 <!DOCTYPE html>
@@ -1501,32 +1502,44 @@ export function getContactFormTemplate(
           <span class="label">Email:</span>
           <span>${escapedEmail}</span>
         </div>
-        ${formData.phone ? `
+        ${
+          formData.phone
+            ? `
         <div class="detail-row">
           <span class="label">Phone:</span>
           <span>${formData.phone}</span>
-        </div>` : ''}
+        </div>`
+            : ""
+        }
         <div class="detail-row">
           <span class="label">Subject:</span>
           <span>${formData.subject}</span>
         </div>
-        ${formData.referral ? `
+        ${
+          formData.referral
+            ? `
         <div class="detail-row">
           <span class="label">Referral Source:</span>
           <span>${formData.referral}</span>
-        </div>` : ''}
+        </div>`
+            : ""
+        }
         <div class="detail-row">
           <span class="label">Message:</span>
           <div style="margin-top: 5px;">
-            ${formData.message.replace(/\n/g, '<br>')}
+            ${formData.message.replace(/\n/g, "<br>")}
           </div>
         </div>
       </div>
       
-      ${formData.joinAsCleaner ? `
+      ${
+        formData.joinAsCleaner
+          ? `
       <div class="highlight" style="padding: 15px; margin: 20px 0;">
         <p><strong>Important:</strong> This person is interested in joining as a cleaner.</p>
-      </div>` : ''}
+      </div>`
+          : ""
+      }
       
       <p>Please respond to this inquiry as soon as possible.</p>
     </div>
@@ -1546,14 +1559,14 @@ You have received a new message from your website contact form.
 Submission Details:
 Name: ${formData.firstName} ${formData.lastName}
 Email: ${formData.email}
-${formData.phone ? `Phone: ${formData.phone}\n` : ''}
+${formData.phone ? `Phone: ${formData.phone}\n` : ""}
 Subject: ${formData.subject}
-${formData.referral ? `Referral Source: ${formData.referral}\n` : ''}
+${formData.referral ? `Referral Source: ${formData.referral}\n` : ""}
 
 Message:
 ${formData.message}
 
-${formData.joinAsCleaner ? 'IMPORTANT: This person is interested in joining as a cleaner.\n' : ''}
+${formData.joinAsCleaner ? "IMPORTANT: This person is interested in joining as a cleaner.\n" : ""}
 
 Please respond to this inquiry as soon as possible.
 
@@ -1566,8 +1579,6 @@ Please respond to this inquiry as soon as possible.
     text,
   };
 }
-
-// Add this function to src/lib/server/email-templates.ts
 
 /**
  * Generate a cleaner application notification email template
@@ -1595,16 +1606,18 @@ export function getCleanerApplicationTemplate(
     month: "long",
     day: "numeric",
   });
-  
+
   // Parse availability days (assuming it's a JSON string of days)
   let availabilityDisplay = "";
   try {
     const days = JSON.parse(application.availability);
-    availabilityDisplay = days.map(day => day.charAt(0) + day.slice(1).toLowerCase()).join(", ");
+    availabilityDisplay = days
+      .map((day) => day.charAt(0) + day.slice(1).toLowerCase())
+      .join(", ");
   } catch (e) {
     availabilityDisplay = "Not specified";
   }
-  
+
   // Admin dashboard URL
   const adminUrl = `${data.appUrl}/admin/applications`;
   const applicationUrl = `${data.appUrl}/admin/applications/${application.id}`;
@@ -1721,11 +1734,15 @@ export function getCleanerApplicationTemplate(
           <span class="label">Email:</span>
           <span>${application.email}</span>
         </div>
-        ${application.phone ? `
+        ${
+          application.phone
+            ? `
         <div class="detail-row">
           <span class="label">Phone:</span>
           <span>${application.phone}</span>
-        </div>` : ''}
+        </div>`
+            : ""
+        }
         <div class="detail-row">
           <span class="label">Location:</span>
           <span>${application.city}</span>
@@ -1740,11 +1757,11 @@ export function getCleanerApplicationTemplate(
         </div>
         <div class="detail-row">
           <span class="label">Own Transport:</span>
-          <span>${application.ownTransport ? 'Yes' : 'No'}</span>
+          <span>${application.ownTransport ? "Yes" : "No"}</span>
         </div>
         <div class="detail-row">
           <span class="label">WhatsApp Available:</span>
-          <span>${application.whatsApp ? 'Yes' : 'No'}</span>
+          <span>${application.whatsApp ? "Yes" : "No"}</span>
         </div>
       </div>
       
@@ -1779,12 +1796,12 @@ Submitted: ${dateString}
 Applicant Details:
 - Name: ${application.firstName} ${application.lastName}
 - Email: ${application.email}
-${application.phone ? `- Phone: ${application.phone}\n` : ''}
+${application.phone ? `- Phone: ${application.phone}\n` : ""}
 - Location: ${application.city}
 - Experience: ${application.experience}
 - Available Days: ${availabilityDisplay}
-- Own Transport: ${application.ownTransport ? 'Yes' : 'No'}
-- WhatsApp Available: ${application.whatsApp ? 'Yes' : 'No'}
+- Own Transport: ${application.ownTransport ? "Yes" : "No"}
+- WhatsApp Available: ${application.whatsApp ? "Yes" : "No"}
 
 Please review this application through the admin dashboard:
 ${applicationUrl}
