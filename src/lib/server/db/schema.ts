@@ -232,6 +232,12 @@ export const cleanerApplication = pgTable("cleaner_application", {
   email: text("email").notNull(),
   phone: text("phone"),
   city: text("city").notNull(),
+  
+  // Add new fields for address data
+  latitude: decimal("latitude", { precision: 10, scale: 6 }),
+  longitude: decimal("longitude", { precision: 10, scale: 6 }),
+  formattedAddress: text("formatted_address"),
+  
   experienceTypes: json("experience_types").$type<string[]>().default([]),
   availability: text("availability").notNull(), // JSON string of days
   ownTransport: boolean("own_transport").default(false).notNull(),

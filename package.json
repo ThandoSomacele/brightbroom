@@ -14,7 +14,7 @@
     "db:migrate": "tsx scripts/db/migrate.ts",
     "db:migrate:dev": "tsx scripts/db/migrate.ts --env=development",
     "db:migrate:prod": "tsx scripts/db/migrate.ts --env=production --confirm",
-    "db:generate": "tsx scripts/db/migrate.ts --generate",
+    "db:generate": "npx drizzle-kit generate --schema=./src/lib/server/db/schema.ts --out=./drizzle/migrations --dialect=postgresql",
     "db:seed": "tsx scripts/db/seed.ts",
     "db:seed:services": "tsx scripts/db/seed.ts services",
     "db:seed:users": "tsx scripts/db/seed.ts users",

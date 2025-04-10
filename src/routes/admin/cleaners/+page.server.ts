@@ -24,6 +24,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
   const page = parseInt(url.searchParams.get("page") || "1");
   const limit = 10; // Number of items per page
   const offset = (page - 1) * limit;
+  
 
   try {
     // Get all services for the specialisation filter dropdown

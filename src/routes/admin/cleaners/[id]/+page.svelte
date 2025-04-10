@@ -2,9 +2,15 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
+  import { PUBLIC_GOOGLE_MAPS_API_KEY } from "$env/static/public";
   import DbDebugger from "$lib/components/admin/DbDebugger.svelte";
   import ProfileImageUpload from "$lib/components/admin/ProfileImageUpload.svelte";
+  import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
+  import {
+    getClosestServiceArea,
+    isWithinServiceArea,
+  } from "$lib/utils/serviceAreaValidator";
   import {
     Briefcase,
     Calendar,
@@ -263,6 +269,59 @@
     // Show error message
     console.error("Profile image error:", detail.message);
     // You could set an error state variable here to show to the user
+  }
+  // Add geocoding data for the work address
+  let addressInput = cleaner.cleanerProfile?.workAddress || "";
+  let workCoordinates = {
+    lat: cleaner.cleanerProfile?.workLocationLat || 0,
+    lng: cleaner.cleanerProfile?.workLocationLng || 0,
+  };
+  let selectedAddress = {
+    formatted: cleaner.cleanerProfile?.workAddress || "",
+    street: "",
+    aptUnit: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    lat: cleaner.cleanerProfile?.workLocationLat || 0,
+    lng: cleaner.cleanerProfile?.workLocationLng || 0,
+  };
+  let addressError = "";
+  let isOutOfServiceArea = false;
+
+  // Add address selection handler
+  function handleAddressSelect(event) {
+    selectedAddress = event.detail.address;
+    addressError = "";
+
+    // Update work address and coordinates
+    workAddress = selectedAddress.formatted;
+    workCoordinates = {
+      lat: selectedAddress.lat,
+      lng: selectedAddress.lng,
+    };
+
+    // Check if address is within service area
+    if (selectedAddress.lat && selectedAddress.lng) {
+      isOutOfServiceArea = !isWithinServiceArea(
+        selectedAddress.lat,
+        selectedAddress.lng,
+      );
+
+      if (isOutOfServiceArea) {
+        const { area, distance } = getClosestServiceArea(
+          selectedAddress.lat,
+          selectedAddress.lng,
+        );
+        addressError = `This address is outside our current service areas. The closest area is ${area.name}, which is ${distance.toFixed(1)}km away.`;
+      }
+    }
+  }
+
+  // Handle out-of-service-area warning
+  function handleOutOfServiceArea(event) {
+    isOutOfServiceArea = true;
+    addressError = "This address is outside our current service areas.";
   }
 </script>
 
@@ -580,19 +639,41 @@
             <div class="space-y-4">
               <!-- Work Address -->
               <div>
-                <label
-                  for="workAddress"
-                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Work Address
-                </label>
-                <input
-                  type="text"
-                  id="workAddress"
-                  name="workAddress"
-                  bind:value={workAddress}
+                <GoogleMapsAutocomplete
+                  apiKey={PUBLIC_GOOGLE_MAPS_API_KEY}
+                  label="Work Address"
+                  placeholder="Enter cleaner's home/work address"
                   required
-                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  error={addressError}
+                  value={addressInput}
+                  bind:selectedAddress
+                  on:select={handleAddressSelect}
+                  on:outOfServiceArea={handleOutOfServiceArea}
+                />
+
+                {#if isOutOfServiceArea}
+                  <div class="mt-2 text-sm text-amber-600 dark:text-amber-400">
+                    <p>
+                      Note: This address is outside our current service areas.
+                    </p>
+                  </div>
+                {/if}
+
+                <!-- Hidden fields to store all address components -->
+                <input
+                  type="hidden"
+                  name="workAddress"
+                  value={selectedAddress.formatted}
+                />
+                <input
+                  type="hidden"
+                  name="workLocationLat"
+                  value={selectedAddress.lat}
+                />
+                <input
+                  type="hidden"
+                  name="workLocationLng"
+                  value={selectedAddress.lng}
                 />
               </div>
 
@@ -618,7 +699,7 @@
 
               <div>
                 <label
-                for="experience-types"
+                  for="experience-types"
                   class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                 >
                   Experience Types
@@ -880,28 +961,42 @@
                 </div>
               </div>
 
-              {#if cleaner.cleanerProfile.workAddress}
-                <div class="flex items-start">
-                  <MapPin
-                    class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-1"
-                  />
-                  <div>
-                    <p
-                      class="text-sm font-medium text-gray-500 dark:text-gray-400"
-                    >
-                      Work Location
+              {#if cleaner.cleanerProfile && cleaner.cleanerProfile.workAddress}
+              <div class="flex items-start">
+                <MapPin
+                  class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-1"
+                />
+                <div>
+                  <p
+                    class="text-sm font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Work Location
+                  </p>
+                  <p class="text-gray-900 dark:text-white">
+                    {cleaner.cleanerProfile.workAddress}
+                  </p>
+                  {#if cleaner.cleanerProfile.workRadius}
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      {cleaner.cleanerProfile.workRadius}km radius
                     </p>
-                    <p class="text-gray-900 dark:text-white">
-                      {cleaner.cleanerProfile.workAddress}
-                    </p>
-                    {#if cleaner.cleanerProfile.workRadius}
-                      <p class="text-sm text-gray-500 dark:text-gray-400">
-                        {cleaner.cleanerProfile.workRadius}km radius
+                  {/if}
+                  
+                  <!-- Add a small service area status indicator -->
+                  {#if cleaner.cleanerProfile.workLocationLat && cleaner.cleanerProfile.workLocationLng}
+                    {#if isWithinServiceArea(cleaner.cleanerProfile.workLocationLat, cleaner.cleanerProfile.workLocationLng)}
+                      <p class="text-xs text-green-600 dark:text-green-400 mt-1">
+                        Within service area
+                      </p>
+                    {:else}
+                      <p class="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                        Outside main service areas
                       </p>
                     {/if}
-                  </div>
+                  {/if}
                 </div>
-              {/if}
+              </div>
+            {/if}
+            
 
               {#if cleaner.cleanerProfile.availableDays && cleaner.cleanerProfile.availableDays.length > 0}
                 <div class="flex items-start">

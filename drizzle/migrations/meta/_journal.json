@@ -43,6 +43,13 @@
       "when": 1744099318744,
       "tag": "0005_redundant_the_santerians",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1744299328802,
+      "tag": "0006_tricky_dreaming_celestial",
+      "breakpoints": true
     }
   ]
 }

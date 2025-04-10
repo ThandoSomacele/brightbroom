@@ -4,6 +4,7 @@ import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import { exec } from 'child_process';
 import { 
   getDbUrl, 
   isProduction, 
@@ -63,7 +64,7 @@ async function runMigrations() {
   // Generate migrations if requested
   if (generateMigrations) {
     console.log('Generating migrations from schema changes...');
-    const { exec } = require('child_process');
+   
     
     return new Promise((resolve, reject) => {
       exec('npx drizzle-kit generate --schema=./src/lib/server/db/schema.ts --out=./drizzle/migrations --dialect=postgresql', 

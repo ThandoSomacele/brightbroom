@@ -2,9 +2,11 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
-  import ProfileImageUpload from "$lib/components/admin/ProfileImageUpload.svelte";
+  import { PUBLIC_GOOGLE_MAPS_API_KEY } from "$env/static/public";
+  import ServiceAreaMap from "$lib/components/maps/ServiceAreaMap.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import LoadingButton from "$lib/components/ui/LoadingButton.svelte";
+  import { isWithinServiceArea } from "$lib/utils/serviceAreaValidator";
   import {
     ArrowLeft,
     Briefcase,
@@ -14,7 +16,6 @@
     Mail,
     MapPin,
     Phone,
-    User,
     X,
   } from "lucide-svelte";
 
@@ -155,82 +156,62 @@
   <!-- Left column: Applicant details -->
   <div class="lg:col-span-2 space-y-6">
     <!-- Personal information card -->
-    <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-      <h2
-        class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center"
-      >
-        <User class="mr-2 text-primary" size={20} />
-        Personal Information
-      </h2>
-
-      <!-- Profile Image -->
-      <div class="mb-6 flex justify-center">
-        <ProfileImageUpload
-          userId={application.id}
-          userType="applicant"
-          currentImageUrl={application.profileImageUrl || null}
-          on:success={handleProfileImageSuccess}
-          on:error={handleProfileImageError}
-          disabled={isProcessing}
-        />
+    <div>
+      <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+        Location
+      </p>
+      <div class="flex items-center">
+        <MapPin class="mr-1 text-gray-400" size={16} />
+        <p class="text-gray-900 dark:text-white">{application.city}</p>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Full Name
-          </p>
-          <p class="text-lg text-gray-900 dark:text-white">
-            {application.firstName}
-            {application.lastName}
-          </p>
-        </div>
+      <!-- Add location coordinates if available -->
+      {#if application.latitude && application.longitude}
+        <div class="mt-3 rounded-md bg-gray-50 p-4 dark:bg-gray-700">
+          <div class="flex items-start">
+            <!-- Service area status -->
+            <div class="mr-4">
+              <div
+                class={`px-2 py-1 rounded-md text-xs font-medium ${
+                  isWithinServiceArea(
+                    application.latitude,
+                    application.longitude,
+                  )
+                    ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                    : "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+                }`}
+              >
+                {isWithinServiceArea(
+                  application.latitude,
+                  application.longitude,
+                )
+                  ? "Within Service Area"
+                  : "Outside Service Area"}
+              </div>
+            </div>
 
-        <div>
-          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Email
-          </p>
-          <div class="flex items-center">
-            <Mail class="mr-1 text-gray-400" size={16} />
-            <p class="text-gray-900 dark:text-white">{application.email}</p>
-          </div>
-        </div>
-
-        {#if application.phone}
-          <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Phone
-            </p>
-            <div class="flex items-center">
-              <Phone class="mr-1 text-gray-400" size={16} />
-              <p class="text-gray-900 dark:text-white">{application.phone}</p>
+            <!-- Coordinates -->
+            <div class="text-sm">
+              <p class="text-gray-600 dark:text-gray-300">
+                Coordinates: {application.latitude.toFixed(5)}, {application.longitude.toFixed(
+                  5,
+                )}
+              </p>
             </div>
           </div>
-        {/if}
 
-        <div>
-          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Location
-          </p>
-          <div class="flex items-center">
-            <MapPin class="mr-1 text-gray-400" size={16} />
-            <p class="text-gray-900 dark:text-white">{application.city}</p>
+          <!-- Small service area map -->
+          <div class="mt-3 h-40 w-full">
+            <ServiceAreaMap
+              apiKey={PUBLIC_GOOGLE_MAPS_API_KEY}
+              height="100%"
+              width="100%"
+              showLabels={true}
+              selectedAreaName={null}
+            />
           </div>
         </div>
-
-        {#if application.idType && application.idNumber}
-          <div class="sm:col-span-2">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              ID Information
-            </p>
-            <p class="text-gray-900 dark:text-white">
-              {application.idType === "SOUTH_AFRICAN_ID"
-                ? "South African ID"
-                : "Passport"}: {application.idNumber}
-            </p>
-          </div>
-        {/if}
-      </div>
+      {/if}
     </div>
 
     <!-- Experience & Availability -->

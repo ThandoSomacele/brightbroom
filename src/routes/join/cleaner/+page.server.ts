@@ -17,8 +17,10 @@ const joinApplicationSchema = z.object({
 
   // Step 2: Work Experience
   // Replace the single experience field with an array of experience types
-  experienceTypes: z.array(z.string()).min(1, "Please select at least one type of experience"),
-  
+  experienceTypes: z
+    .array(z.string())
+    .min(1, "Please select at least one type of experience"),
+
   availability: z
     .array(z.string())
     .min(1, "Please select at least one day of availability"),
@@ -43,13 +45,28 @@ export const actions: Actions = {
     const lastName = formData.get("lastName")?.toString();
     const email = formData.get("email")?.toString();
     const phone = formData.get("phone")?.toString();
-    const city = formData.get("city")?.toString();
-    
+
+    // Get detailed address information from Google Places
+    const street = formData.get("street")?.toString() || "";
+    const city = formData.get("city")?.toString() || "";
+    const state = formData.get("state")?.toString() || "";
+    const zipCode = formData.get("zipCode")?.toString() || "";
+    const latitude = formData.get("latitude")
+      ? parseFloat(formData.get("latitude")?.toString() || "0")
+      : null;
+    const longitude = formData.get("longitude")
+      ? parseFloat(formData.get("longitude")?.toString() || "0")
+      : null;
+    const formattedAddress =
+      street || city || state
+        ? `${street}, ${city}, ${state} ${zipCode}`.trim()
+        : "";
+
     // Get all selected experience types (could be multiple values)
     const experienceTypes = formData
       .getAll("experienceTypes")
-      .map(item => item.toString());
-      
+      .map((item) => item.toString());
+
     const availability = formData
       .getAll("availability")
       .map((item) => item.toString());
@@ -66,7 +83,10 @@ export const actions: Actions = {
       lastName,
       email,
       phone,
+      formattedAddress,
       city,
+      latitude,
+      longitude,
       experienceTypes,
       availability,
       ownTransport,
@@ -82,7 +102,7 @@ export const actions: Actions = {
     ) as File[];
 
     try {
-      // Validate form data with Zod
+      // Validate form data with Zod (update schema to include address fields)
       joinApplicationSchema.parse({
         firstName,
         lastName,
@@ -124,8 +144,10 @@ export const actions: Actions = {
           lastName,
           email,
           phone,
-          city,
-          // Change from experience (string) to experienceTypes (array)
+          city, // Keep city for backward compatibility
+          formattedAddress, // Add the full formatted address
+          latitude, // Store latitude
+          longitude, // Store longitude
           experienceTypes: experienceTypes,
           availability: JSON.stringify(availability),
           ownTransport: ownTransport === "yes",
@@ -149,8 +171,7 @@ export const actions: Actions = {
           lastName,
           email,
           phone,
-          city,
-          // Include the new experienceTypes in the email
+          city: formattedAddress || city, // Use formatted address in email
           experienceTypes: experienceTypes,
           availability: JSON.stringify(availability),
           ownTransport: ownTransport === "yes",

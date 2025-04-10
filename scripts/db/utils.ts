@@ -1,7 +1,7 @@
 // scripts/db/utils.ts
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import * as schema from "../src/lib/server/db/schema";
+import * as schema from "../../src/lib/server/db/schema";
 import dotenv from 'dotenv';
 import readline from 'readline';
 import fs from 'fs';
