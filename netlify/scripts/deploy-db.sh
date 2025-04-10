@@ -18,7 +18,7 @@ export NODE_ENV=$DEPLOY_CONTEXT
 
 # Run migrations with the appropriate environment
 echo "Applying migrations to database..."
-npx tsx ./scripts/apply-migrations.ts
+npx drizzle-kit migrate
 
 # SAFETY CHECK: Never attempt to run seeds in production environment
 if [ "$DEPLOY_CONTEXT" == "production" ] && [ "$SEED_DATABASE" == "true" ]; then
