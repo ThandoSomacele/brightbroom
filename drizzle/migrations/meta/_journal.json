@@ -8,6 +8,13 @@
       "when": 1744301066767,
       "tag": "0000_fancy_lilith",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1744322796801,
+      "tag": "0001_faithful_riptide",
+      "breakpoints": true
     }
   ]
 }
