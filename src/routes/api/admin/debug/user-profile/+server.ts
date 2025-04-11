@@ -5,7 +5,16 @@ import { error, json } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import type { RequestHandler } from "./$types";
 
-export const GET: RequestHandler = async ({ url }) => {
+/**
+ * Admin debug endpoint to check if a cleaner user has a profile
+ * GET: Check if a user has a profile
+ */
+export const GET: RequestHandler = async ({ url, locals }) => {
+  // Ensure admin access
+  if (!locals.user || locals.user.role !== "ADMIN") {
+    throw error(403, "Unauthorized access");
+  }
+  
   // Get userId from query parameter
   const userId = url.searchParams.get("userId");
 
@@ -41,10 +50,16 @@ export const GET: RequestHandler = async ({ url }) => {
   }
 };
 
-// src/routes/api/admin/debug/create-profile/+server.ts
-import { nanoid } from "nanoid";
-
-export const POST: RequestHandler = async ({ request }) => {
+/**
+ * Admin debug endpoint to create a profile for a cleaner user that doesn't have one
+ * POST: Create a profile for a user
+ */
+export const POST: RequestHandler = async ({ request, locals }) => {
+  // Ensure admin access
+  if (!locals.user || locals.user.role !== "ADMIN") {
+    throw error(403, "Unauthorized access");
+  }
+  
   // Get userId from request body
   const body = await request.json();
   const userId = body.userId;
@@ -82,8 +97,8 @@ export const POST: RequestHandler = async ({ request }) => {
       throw error(400, "Profile already exists for this user");
     }
 
-    // Create new profile
-    const profileId = nanoid();
+    // Create new profile with default values
+    const profileId = crypto.randomUUID();
 
     const [newProfile] = await db
       .insert(cleanerProfile)
@@ -91,14 +106,15 @@ export const POST: RequestHandler = async ({ request }) => {
         id: profileId,
         userId,
         idType: "SOUTH_AFRICAN_ID",
-        idNumber: "0000000000000", // Placeholder
+        idNumber: "0000000000000", // Placeholder - admin should update this
         workLocationLat: -26.0274, // Default to Fourways
         workLocationLng: 28.0106,
         workAddress: "Fourways, Johannesburg", // Default address
-        workRadius: 10,
+        workRadius: 10, // Default radius in km
         petCompatibility: "NONE",
         availableDays: ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
-        isAvailable: true,
+        isAvailable: false, // Start as unavailable until configured properly
+        experienceTypes: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -107,9 +123,12 @@ export const POST: RequestHandler = async ({ request }) => {
     return json({
       success: true,
       profile: newProfile,
+      message: "Cleaner profile created successfully. Please update with accurate information."
     });
   } catch (err) {
     console.error("Error creating cleaner profile:", err);
-    throw error(500, "Failed to create cleaner profile");
+    throw error(500, {
+      message: err instanceof Error ? err.message : "Failed to create cleaner profile",
+    });
   }
 };

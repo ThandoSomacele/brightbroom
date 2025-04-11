@@ -1,7 +1,7 @@
 // src/routes/admin/applications/[id]/+page.server.ts
 import { db } from "$lib/server/db";
 import {
-  applicationNote, 
+  applicationNote,
   cleanerApplication,
   cleanerProfile,
   user,
@@ -39,7 +39,7 @@ export const load: PageServerLoad = async ({ params }) => {
 
     return {
       application,
-      notes
+      notes,
     };
   } catch (err) {
     console.error("Error loading application details:", err);
@@ -75,11 +75,12 @@ export const actions: Actions = {
         applicationId,
         content: noteText,
         addedBy: `${adminUser.firstName} ${adminUser.lastName}`,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       // Optionally update the lastUpdated timestamp on the application itself
-      await db.update(cleanerApplication)
+      await db
+        .update(cleanerApplication)
         .set({ updatedAt: new Date() })
         .where(eq(cleanerApplication.id, applicationId));
 
@@ -155,29 +156,57 @@ export const actions: Actions = {
       });
 
       // Parse availability array from application
-      const availabilityArray = JSON.parse(application.availability || "[]");
+      let availabilityArray = [];
+      try {
+        availabilityArray = JSON.parse(application.availability || "[]");
+      } catch (error) {
+        console.error("Error parsing availability:", error);
+        // Default to weekdays if parsing fails
+        availabilityArray = [
+          "MONDAY",
+          "TUESDAY",
+          "WEDNESDAY",
+          "THURSDAY",
+          "FRIDAY",
+        ];
+      }
 
       // Create cleaner profile with data from application
       const profileId = crypto.randomUUID();
-      await db.insert(cleanerProfile).values({
-        id: profileId,
-        userId,
-        idType: application.idType ? application.idType : "SOUTH_AFRICAN_ID",
-        idNumber: application.idNumber || "0000000000000",
-        workAddress: application.city,
-        // Use actual coordinates from application if available
-        workLocationLat: application.latitude || -26.0274,
-        workLocationLng: application.longitude || 28.0106,
-        workRadius: 10, // Default radius in km
-        bio: "", // Empty bio initially
-        petCompatibility: "NONE", // Default to no pet compatibility
-        availableDays: availabilityArray, // Use availability days from application
-        experienceTypes: application.experienceTypes || [], // Use experience types from application
-        isAvailable: false, // Start as unavailable until fully onboarded
-        profileImageUrl: application.profileImageUrl, // Transfer profile image if any
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      try {
+        await db.insert(cleanerProfile).values({
+          id: profileId,
+          userId,
+          idType: application.idType ? application.idType : "SOUTH_AFRICAN_ID",
+          idNumber: application.idNumber || "0000000000000",
+          workAddress: application.formattedAddress || application.city,
+          // Use actual coordinates from application if available
+          workLocationLat: application.latitude || -26.0274, // Default to Fourways
+          workLocationLng: application.longitude || 28.0106, // Fixed: Correct longitude for Fourways
+          workRadius: 10, // Default radius in km
+          bio: "", // Empty bio initially
+          petCompatibility: "NONE", // Default to no pet compatibility
+          availableDays: availabilityArray, // Use availability days from application
+          experienceTypes: application.experienceTypes || [], // Use experience types from application
+          isAvailable: false, // Start as unavailable until fully onboarded
+          profileImageUrl: application.profileImageUrl, // Transfer profile image if any
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+
+        console.log(`Successfully created cleaner profile for user ${userId}`);
+      } catch (profileError) {
+        console.error("Error creating cleaner profile:", profileError);
+        // Continue execution even if profile creation fails - we can fix it later
+        // Add note about the profile creation error
+        await db.insert(applicationNote).values({
+          id: crypto.randomUUID(),
+          applicationId,
+          content: `WARNING: Error creating cleaner profile: ${profileError.message || "Unknown error"}. Please create the profile manually.`,
+          addedBy: `System`,
+          createdAt: new Date(),
+        });
+      }
 
       // Add a note about the approval
       await db.insert(applicationNote).values({
@@ -185,7 +214,7 @@ export const actions: Actions = {
         applicationId,
         content: `Application approved by ${adminUser.firstName} ${adminUser.lastName}. User account and cleaner profile created.`,
         addedBy: `${adminUser.firstName} ${adminUser.lastName}`,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       // Send welcome email with temporary password
@@ -236,7 +265,7 @@ export const actions: Actions = {
         applicationId,
         content: `Application rejected by ${adminUser.firstName} ${adminUser.lastName}.`,
         addedBy: `${adminUser.firstName} ${adminUser.lastName}`,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       // In a real implementation, you might send a notification email

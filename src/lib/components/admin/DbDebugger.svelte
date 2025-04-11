@@ -2,128 +2,113 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import CreateMissingProfileButton from './CreateMissingProfileButton.svelte';
   
+  // Props
   export let userId: string;
   
+  // Local state
   let isLoading = false;
-  let results: any = null;
+  let userData: any = null;
+  let hasProfile = false;
+  let profileData: any = null;
   let error: string | null = null;
+  let successMessage: string | null = null;
   
-  async function checkUserProfile() {
+  // Fetch user data and profile
+  async function fetchUserData() {
     isLoading = true;
     error = null;
-    results = null;
     
     try {
       const response = await fetch(`/api/admin/debug/user-profile?userId=${userId}`);
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to check user profile');
-      }
-      
-      results = await response.json();
-    } catch (err) {
-      console.error('Error checking user profile:', err);
-      error = err instanceof Error ? err.message : 'Unknown error occurred';
-    } finally {
-      isLoading = false;
-    }
-  }
-  
-  async function createMissingProfile() {
-    isLoading = true;
-    error = null;
-    
-    try {
-      const response = await fetch(`/api/admin/debug/create-profile`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ userId })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create profile');
+        throw new Error('Failed to fetch user data');
       }
       
       const data = await response.json();
-      results = {
-        ...results,
-        profileCreated: true,
-        newProfile: data.profile
-      };
+      userData = data.user;
+      hasProfile = data.hasProfile;
+      profileData = data.profile;
     } catch (err) {
-      console.error('Error creating profile:', err);
+      console.error("Error fetching user data:", err);
       error = err instanceof Error ? err.message : 'Unknown error occurred';
     } finally {
       isLoading = false;
     }
   }
   
-  // Automatically check on mount
+  // Handle profile creation success
+  function handleProfileCreated() {
+    successMessage = "Profile created successfully!";
+    // Refresh data
+    fetchUserData();
+    
+    // Clear success message after 5 seconds
+    setTimeout(() => {
+      successMessage = null;
+    }, 5000);
+  }
+  
+  // Handle profile creation error
+  function handleProfileError(message: string) {
+    error = `Failed to create profile: ${message}`;
+  }
+  
+  // Initialize data
   onMount(() => {
-    checkUserProfile();
+    fetchUserData();
   });
 </script>
 
-<div class="bg-gray-50 p-4 rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 mt-4">
-  <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Database Diagnostic Tool</h3>
+<div class="space-y-4 mt-4 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+  <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Database Diagnostics</h3>
   
   {#if isLoading}
-    <div class="animate-pulse p-4 text-center">
-      <p class="text-sm text-gray-500 dark:text-gray-400">Loading...</p>
+    <div class="flex items-center text-gray-500 dark:text-gray-400">
+      <div class="animate-spin h-4 w-4 mr-2 border-2 border-primary border-t-transparent rounded-full"></div>
+      <span>Loading user data...</span>
     </div>
   {:else if error}
-    <div class="bg-red-50 p-3 rounded-md dark:bg-red-900/20 mb-3">
-      <p class="text-sm text-red-700 dark:text-red-300">{error}</p>
+    <div class="text-red-500 dark:text-red-400">
+      <p>{error}</p>
+      <Button variant="outline" size="sm" on:click={fetchUserData} class="mt-2">
+        Retry
+      </Button>
     </div>
-    <Button variant="outline" size="sm" on:click={checkUserProfile} class="w-full mb-2">
-      Retry Check
-    </Button>
-  {:else if results}
+  {:else if successMessage}
+    <div class="text-green-600 dark:text-green-400 p-2 bg-green-50 dark:bg-green-900/20 rounded">
+      <p>{successMessage}</p>
+    </div>
+  {:else}
     <div class="space-y-3">
-      <div class="grid grid-cols-2 gap-2 text-sm">
-        <div class="text-gray-500 dark:text-gray-400">User ID:</div>
-        <div class="text-gray-900 dark:text-white">{results.user?.id || 'Not found'}</div>
-        
-        <div class="text-gray-500 dark:text-gray-400">User Role:</div>
-        <div class="text-gray-900 dark:text-white">{results.user?.role || 'N/A'}</div>
-        
-        <div class="text-gray-500 dark:text-gray-400">Profile Exists:</div>
-        <div class="text-gray-900 dark:text-white">
-          {#if results.hasProfile}
-            <span class="text-green-600 dark:text-green-400">Yes</span>
-          {:else}
-            <span class="text-red-600 dark:text-red-400">No</span>
-          {/if}
-        </div>
-        
-        {#if results.profile}
-          <div class="text-gray-500 dark:text-gray-400">Profile ID:</div>
-          <div class="text-gray-900 dark:text-white">{results.profile.id}</div>
-        {/if}
+      <div>
+        <p class="text-sm text-gray-500 dark:text-gray-400">User Role: <span class="font-medium text-gray-700 dark:text-gray-300">{userData?.role || 'Unknown'}</span></p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">User Status: <span class="font-medium text-gray-700 dark:text-gray-300">{userData?.isActive ? 'Active' : 'Inactive'}</span></p>
       </div>
       
-      {#if !results.hasProfile && !results.profileCreated}
-        <Button variant="primary" size="sm" on:click={createMissingProfile} class="w-full mt-3">
-          Create Missing Profile
-        </Button>
-      {:else if results.profileCreated}
-        <div class="bg-green-50 p-3 rounded-md dark:bg-green-900/20 mt-3">
-          <p class="text-sm text-green-700 dark:text-green-300">Profile created successfully!</p>
+      <div>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Cleaner Profile:</p>
+        <CreateMissingProfileButton 
+          {userId} 
+          onSuccess={handleProfileCreated}
+          onError={handleProfileError}
+        />
+      </div>
+      
+      {#if hasProfile}
+        <div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Profile ID: <span class="font-mono text-xs">{profileData?.id}</span></p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Work Address: {profileData?.workAddress || 'Not set'}</p>
         </div>
       {/if}
       
-      <Button variant="outline" size="sm" on:click={checkUserProfile} class="w-full mt-3">
-        Refresh Data
-      </Button>
+      <div>
+        <Button variant="outline" size="sm" on:click={fetchUserData}>
+          Refresh Data
+        </Button>
+      </div>
     </div>
-  {:else}
-    <Button variant="outline" size="sm" on:click={checkUserProfile} class="w-full">
-      Check Profile
-    </Button>
   {/if}
 </div>
