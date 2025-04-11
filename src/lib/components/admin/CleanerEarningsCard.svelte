@@ -1,6 +1,6 @@
 <!-- src/lib/components/admin/CleanerEarningsCard.svelte -->
 <script lang="ts">
-  import { DollarSign, Calendar, TrendingUp, ArrowUpRight } from "lucide-svelte";
+  import { DollarSign, Calendar, TrendingUp, ArrowUpRight, Wallet } from "lucide-svelte";
   import Button from "$lib/components/ui/Button.svelte";
   
   // Props
@@ -44,7 +44,7 @@
   <div class="p-6">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-        <DollarSign class="mr-2 text-primary" size={20} />
+        <Wallet class="mr-2 text-primary" size={20} />
         Earnings Summary
       </h2>
       

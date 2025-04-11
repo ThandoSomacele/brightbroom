@@ -8,30 +8,29 @@
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import {
-      getClosestServiceArea,
-      isWithinServiceArea,
+    getClosestServiceArea,
+    isWithinServiceArea,
   } from "$lib/utils/serviceAreaValidator";
   import {
-      Briefcase,
-      Calendar,
-      ChevronLeft,
-      Mail,
-      MapPin,
-      PenTool,
-      Phone,
-      Save,
-      User,
-      X,
+    Briefcase,
+    Calendar,
+    ChevronLeft,
+    Mail,
+    MapPin,
+    PenTool,
+    Phone,
+    Save,
+    User,
+    X,
   } from "lucide-svelte";
-  
+
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   export let data;
   export let form;
 
-
-   // Environment variables
-   const { cleaner, services, bookings, earnings } = data;
+  // Environment variables
+  const { cleaner, services, bookings, earnings } = data;
 
   // Mode tracking
   let isPersonalInfoEditMode = false;
@@ -966,41 +965,44 @@
               </div>
 
               {#if cleaner.cleanerProfile && cleaner.cleanerProfile.workAddress}
-              <div class="flex items-start">
-                <MapPin
-                  class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-1"
-                />
-                <div>
-                  <p
-                    class="text-sm font-medium text-gray-500 dark:text-gray-400"
-                  >
-                    Work Location
-                  </p>
-                  <p class="text-gray-900 dark:text-white">
-                    {cleaner.cleanerProfile.workAddress}
-                  </p>
-                  {#if cleaner.cleanerProfile.workRadius}
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                      {cleaner.cleanerProfile.workRadius}km radius
+                <div class="flex items-start">
+                  <MapPin
+                    class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-1"
+                  />
+                  <div>
+                    <p
+                      class="text-sm font-medium text-gray-500 dark:text-gray-400"
+                    >
+                      Work Location
                     </p>
-                  {/if}
-                  
-                  <!-- Add a small service area status indicator -->
-                  {#if cleaner.cleanerProfile.workLocationLat && cleaner.cleanerProfile.workLocationLng}
-                    {#if isWithinServiceArea(cleaner.cleanerProfile.workLocationLat, cleaner.cleanerProfile.workLocationLng)}
-                      <p class="text-xs text-green-600 dark:text-green-400 mt-1">
-                        Within service area
-                      </p>
-                    {:else}
-                      <p class="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                        Outside main service areas
+                    <p class="text-gray-900 dark:text-white">
+                      {cleaner.cleanerProfile.workAddress}
+                    </p>
+                    {#if cleaner.cleanerProfile.workRadius}
+                      <p class="text-sm text-gray-500 dark:text-gray-400">
+                        {cleaner.cleanerProfile.workRadius}km radius
                       </p>
                     {/if}
-                  {/if}
+
+                    <!-- Add a small service area status indicator -->
+                    {#if cleaner.cleanerProfile.workLocationLat && cleaner.cleanerProfile.workLocationLng}
+                      {#if isWithinServiceArea(cleaner.cleanerProfile.workLocationLat, cleaner.cleanerProfile.workLocationLng)}
+                        <p
+                          class="text-xs text-green-600 dark:text-green-400 mt-1"
+                        >
+                          Within service area
+                        </p>
+                      {:else}
+                        <p
+                          class="text-xs text-amber-600 dark:text-amber-400 mt-1"
+                        >
+                          Outside main service areas
+                        </p>
+                      {/if}
+                    {/if}
+                  </div>
                 </div>
-              </div>
-            {/if}
-            
+              {/if}
 
               {#if cleaner.cleanerProfile.availableDays && cleaner.cleanerProfile.availableDays.length > 0}
                 <div class="flex items-start">
@@ -1091,8 +1093,6 @@
           </div>
         {/if}
 
-        
-
         {#if !cleaner.isActive}
           <div class="mt-4 rounded-md bg-amber-50 p-4 dark:bg-amber-900/20">
             <div class="flex items-center">
@@ -1149,9 +1149,12 @@
         {/if}
       </div>
     </div>
+  </div>
 
+  <!-- Right columns -->
+  <div class="lg:col-span-2 space-y-6">
     <!-- Earnings Card -->
-    <CleanerEarningsCard 
+    <CleanerEarningsCard
       cleanerId={cleaner.id}
       earnings={{
         totalEarnings: earnings.totalEarnings,
@@ -1162,13 +1165,10 @@
         lastMonthEarnings: earnings.lastMonthEarnings,
         yearToDateEarnings: earnings.yearToDateEarnings,
         lastPayoutAmount: earnings.lastPayoutAmount,
-        lastPayoutDate: earnings.lastPayoutDate
+        lastPayoutDate: earnings.lastPayoutDate,
       }}
     />
-  </div>
 
-  <!-- Right columns -->
-  <div class="lg:col-span-2 space-y-6">
     <!-- Specialisations -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
       <div class="p-6">
