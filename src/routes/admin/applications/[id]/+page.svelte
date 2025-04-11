@@ -195,9 +195,7 @@
             <!-- Coordinates -->
             <div class="text-sm">
               <p class="text-gray-600 dark:text-gray-300">
-                Coordinates: {application.latitude.toFixed(5)}, {application.longitude.toFixed(
-                  5,
-                )}
+                Coordinates: {parseFloat(application.latitude || 0).toFixed(5)}, {parseFloat(application.longitude || 0).toFixed(5)}
               </p>
             </div>
           </div>

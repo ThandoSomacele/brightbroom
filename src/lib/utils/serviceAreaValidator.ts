@@ -23,7 +23,7 @@ export const SERVICE_AREAS: ServiceArea[] = [
     // { name: 'Sandton', lat: -26.1070, lng: 28.0567, radius: 6 },
     { name: "North Riding", lat: -26.0469, lng: 27.951, radius: 6 },
     // { name: 'Roodepoort', lat: -26.1625, lng: 27.8727, radius: 7 }
-    { name: "Cosmo City", lat: -26.028783, lng: 27.92653, radius: 50 }, 
+    { name: "Cosmo City,Roodepoort", lat: -26.0287393, lng: 27.8876044, radius: 50 },
     { name: "Diepsloot", lat:-25.9412555, lng: 27.96671, radius: 100 },
     { name: "Honeydew", lat: -26.0225, lng: 27.9475, radius: 30 },
   
