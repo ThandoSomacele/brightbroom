@@ -693,9 +693,8 @@
                         class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                       >
                         <option value="">Select ID type...</option>
-                        <option value="sa_id">South African ID</option>
-                        <option value="passport">Passport</option>
-                        <option value="work_permit">Work Permit</option>
+                        <option value="SOUTH_AFRICAN_ID">South African ID</option>
+                        <option value="PASSPORT">Passport</option>
                       </select>
                     </div>
                     <div>
