@@ -7,6 +7,7 @@ import {
   service,
   user,
 } from "$lib/server/db/schema";
+import { cleanerEarningsService } from "$lib/server/services/cleaner-earnings.service";
 import { sendWelcomeEmail } from "$lib/server/email-service";
 import { error, fail } from "@sveltejs/kit";
 import { and, desc, eq } from "drizzle-orm";
@@ -80,6 +81,9 @@ export const load: PageServerLoad = async ({ params }) => {
       .where(eq(booking.cleanerId, cleanerId))
       .orderBy(desc(booking.scheduledDate))
       .limit(5);
+      
+    // Fetch earnings data
+    const earningsData = await cleanerEarningsService.getCleanerEarningsSummary(cleanerId);
 
     // Combine data
     return {
@@ -90,6 +94,7 @@ export const load: PageServerLoad = async ({ params }) => {
       },
       services,
       bookings: recentBookings,
+      earnings: earningsData,
     };
   } catch (err) {
     console.error("Error loading cleaner details:", err);

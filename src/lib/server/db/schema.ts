@@ -183,6 +183,22 @@ export const payment = pgTable("payment", {
   paymentMethod: paymentMethodEnum("payment_method")
     .default("CREDIT_CARD")
     .notNull(),
+  platformCommissionRate: decimal("platform_commission_rate", {
+    precision: 5,
+    scale: 2,
+  })
+    .default("25.00")
+    .notNull(),
+  platformCommissionAmount: decimal("platform_commission_amount", {
+    precision: 10,
+    scale: 2,
+  }),
+  cleanerPayoutAmount: decimal("cleaner_payout_amount", {
+    precision: 10,
+    scale: 2,
+  }),
+  isPaidToProvider: boolean("is_paid_to_provider").default(false).notNull(),
+  providerPayoutDate: timestamp("provider_payout_date", { mode: "date" }),
   payFastId: text("pay_fast_id"),
   payFastToken: text("pay_fast_token"),
   merchantReference: text("merchant_reference"),
@@ -232,12 +248,12 @@ export const cleanerApplication = pgTable("cleaner_application", {
   email: text("email").notNull(),
   phone: text("phone"),
   city: text("city").notNull(),
-  
+
   // Add new fields for address data
   latitude: decimal("latitude", { precision: 10, scale: 6 }),
   longitude: decimal("longitude", { precision: 10, scale: 6 }),
   formattedAddress: text("formatted_address"),
-  
+
   experienceTypes: json("experience_types").$type<string[]>().default([]),
   availability: text("availability").notNull(), // JSON string of days
   ownTransport: boolean("own_transport").default(false).notNull(),
@@ -302,6 +318,26 @@ export const communicationLog = pgTable("communication_log", {
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
+export const cleanerPayoutSummary = pgTable("cleaner_payout_summary", {
+  id: text("id").primaryKey().notNull(),
+  cleanerId: text("cleaner_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  totalEarnings: decimal("total_earnings", { precision: 10, scale: 2 }).default("0.00").notNull(),
+  totalCommission: decimal("total_commission", { precision: 10, scale: 2 }).default("0.00").notNull(),
+  totalPayout: decimal("total_payout", { precision: 10, scale: 2 }).default("0.00").notNull(),
+  pendingPayout: decimal("pending_payout", { precision: 10, scale: 2 }).default("0.00").notNull(),
+  lastUpdated: timestamp("last_updated", { mode: "date" }).defaultNow().notNull(),
+  
+  // Running totals by period
+  totalEarningsCurrentMonth: decimal("total_earnings_current_month", { precision: 10, scale: 2 }).default("0.00"),
+  totalEarningsLastMonth: decimal("total_earnings_last_month", { precision: 10, scale: 2 }).default("0.00"),
+  totalEarningsThisYear: decimal("total_earnings_this_year", { precision: 10, scale: 2 }).default("0.00"),
+  
+  // Last payout info
+  lastPayoutAmount: decimal("last_payout_amount", { precision: 10, scale: 2 }),
+  lastPayoutDate: timestamp("last_payout_date", { mode: "date" }),
+});
+
+
 // Define types
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
@@ -348,3 +384,6 @@ export type NewAdminNote = typeof adminNote.$inferInsert;
 
 export type CommunicationLog = typeof communicationLog.$inferSelect;
 export type NewCommunicationLog = typeof communicationLog.$inferInsert;
+
+export type CleanerPayoutSummary = typeof cleanerPayoutSummary.$inferSelect;
+export type NewCleanerPayoutSummary = typeof cleanerPayoutSummary.$inferInsert;

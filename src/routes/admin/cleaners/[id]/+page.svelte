@@ -2,25 +2,26 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
+  import CleanerEarningsCard from "$lib/components/admin/CleanerEarningsCard.svelte";
   import DbDebugger from "$lib/components/admin/DbDebugger.svelte";
   import ProfileImageUpload from "$lib/components/admin/ProfileImageUpload.svelte";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import {
-    getClosestServiceArea,
-    isWithinServiceArea,
+      getClosestServiceArea,
+      isWithinServiceArea,
   } from "$lib/utils/serviceAreaValidator";
   import {
-    Briefcase,
-    Calendar,
-    ChevronLeft,
-    Mail,
-    MapPin,
-    PenTool,
-    Phone,
-    Save,
-    User,
-    X,
+      Briefcase,
+      Calendar,
+      ChevronLeft,
+      Mail,
+      MapPin,
+      PenTool,
+      Phone,
+      Save,
+      User,
+      X,
   } from "lucide-svelte";
   
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -28,9 +29,9 @@
   export let data;
   export let form;
 
-   // Environment variables
 
-  const { cleaner, services, bookings } = data;
+   // Environment variables
+   const { cleaner, services, bookings, earnings } = data;
 
   // Mode tracking
   let isPersonalInfoEditMode = false;
@@ -1090,6 +1091,8 @@
           </div>
         {/if}
 
+        
+
         {#if !cleaner.isActive}
           <div class="mt-4 rounded-md bg-amber-50 p-4 dark:bg-amber-900/20">
             <div class="flex items-center">
@@ -1146,6 +1149,22 @@
         {/if}
       </div>
     </div>
+
+    <!-- Earnings Card -->
+    <CleanerEarningsCard 
+      cleanerId={cleaner.id}
+      earnings={{
+        totalEarnings: earnings.totalEarnings,
+        totalCommission: earnings.totalCommission,
+        totalPayout: earnings.totalPayout,
+        pendingPayout: earnings.pendingPayout,
+        currentMonthEarnings: earnings.currentMonthEarnings,
+        lastMonthEarnings: earnings.lastMonthEarnings,
+        yearToDateEarnings: earnings.yearToDateEarnings,
+        lastPayoutAmount: earnings.lastPayoutAmount,
+        lastPayoutDate: earnings.lastPayoutDate
+      }}
+    />
   </div>
 
   <!-- Right columns -->

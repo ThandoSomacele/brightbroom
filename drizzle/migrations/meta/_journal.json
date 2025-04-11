@@ -15,6 +15,13 @@
       "when": 1744322796801,
       "tag": "0001_faithful_riptide",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1744364398887,
+      "tag": "0002_low_micromacro",
+      "breakpoints": true
     }
   ]
 }
