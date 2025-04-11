@@ -883,7 +883,12 @@ export function getCleanerAssignmentTemplate(
     service: { name: string };
     scheduledDate: string;
     address: { street: string; city: string; state: string; zipCode: string };
-    cleaner: { firstName: string; lastName: string; phone?: string };
+    cleaner: { 
+      firstName: string; 
+      lastName: string; 
+      phone?: string;
+      profileImageUrl?: string; // Add profile image URL
+    };
   },
   data: EmailTemplateData,
 ): { subject: string; html: string; text: string } {
@@ -903,6 +908,20 @@ export function getCleanerAssignmentTemplate(
     hour: "2-digit",
     minute: "2-digit",
   });
+  
+  // Get full URL for profile image if it exists
+  const profileImageUrl = booking.cleaner.profileImageUrl 
+    ? (booking.cleaner.profileImageUrl.startsWith('http') 
+        ? booking.cleaner.profileImageUrl 
+        : `${data.appUrl}${booking.cleaner.profileImageUrl}`)
+    : null;
+
+  // Default avatar for when no profile image is available
+  const defaultAvatarSvg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${data.primaryColor}" width="60" height="60">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+    </svg>
+  `;
 
   // HTML Email template
   const html = `
@@ -962,6 +981,21 @@ export function getCleanerAssignmentTemplate(
       border-left: 4px solid ${data.primaryColor};
       padding: 15px;
       margin: 20px 0;
+      display: flex;
+      align-items: center;
+    }
+    .cleaner-image {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin-right: 15px;
+      object-fit: cover;
+      background-color: #f1f1f1;
+      border: 1px solid #e0e0e0;
+      overflow: hidden;
+    }
+    .cleaner-info {
+      flex: 1;
     }
     .footer {
       font-size: 12px;
@@ -990,6 +1024,14 @@ export function getCleanerAssignmentTemplate(
         display: block;
         text-align: center;
       }
+      .cleaner-box {
+        flex-direction: column;
+        text-align: center;
+      }
+      .cleaner-image {
+        margin-right: 0;
+        margin-bottom: 10px;
+      }
     }
   </style>
 </head>
@@ -1004,8 +1046,15 @@ export function getCleanerAssignmentTemplate(
       <p>Great news! A professional cleaner has been assigned to your upcoming booking.</p>
       
       <div class="cleaner-box">
-        <p><strong>Your cleaner:</strong> ${booking.cleaner.firstName} ${booking.cleaner.lastName}</p>
-        ${booking.cleaner.phone ? `<p><strong>Contact number:</strong> ${booking.cleaner.phone}</p>` : ""}
+        <div class="cleaner-image">
+          ${profileImageUrl 
+            ? `<img src="${profileImageUrl}" alt="${booking.cleaner.firstName}" width="60" height="60" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">`
+            : defaultAvatarSvg}
+        </div>
+        <div class="cleaner-info">
+          <p style="margin-top: 0; margin-bottom: 5px;"><strong>Your cleaner:</strong> ${booking.cleaner.firstName} ${booking.cleaner.lastName}</p>
+          ${booking.cleaner.phone ? `<p style="margin-top: 0; margin-bottom: 0;"><strong>Contact:</strong> ${booking.cleaner.phone}</p>` : ""}
+        </div>
       </div>
       
       <div class="booking-details">
@@ -1047,7 +1096,7 @@ export function getCleanerAssignmentTemplate(
 </body>
 </html>`;
 
-  // Plain text version
+  // Plain text version - no changes needed here since it can't display images
   const text = `
 Cleaner Assigned to Your Booking - ${data.brandName}
 
@@ -1820,8 +1869,6 @@ This is an automated message - please do not reply to this email.
   };
 }
 
-// src/lib/server/email-templates.ts
-// Add this new function for cleaner-specific welcome emails
 
 /**
  * Generate a welcome email template specifically for cleaners
