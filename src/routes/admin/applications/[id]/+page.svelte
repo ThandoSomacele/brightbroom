@@ -2,7 +2,6 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
-  import ServiceAreaMap from "$lib/components/maps/ServiceAreaMap.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import LoadingButton from "$lib/components/ui/LoadingButton.svelte";
   import { isWithinServiceArea } from "$lib/utils/serviceAreaValidator";
@@ -18,11 +17,8 @@
     X,
   } from "lucide-svelte";
 
-  // Environment variables
-  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
   export let data;
-  const { application } = data;
+  const { application, notes } = data;
 
   let isProcessing = false;
   let noteText = ""; // For admin notes
@@ -51,18 +47,17 @@
     }
   }
 
-  // Add handlers for profile image upload events
-  function handleProfileImageSuccess({ detail }: CustomEvent<{ url: string }>) {
-    // Profile image was updated successfully
-    // You might want to show a success message or update the UI
-  }
-
-  function handleProfileImageError({
-    detail,
-  }: CustomEvent<{ message: string }>) {
-    // There was an error with the profile image upload
-    console.error("Profile image error:", detail.message);
-    // You could set an error state here to display to the user
+  // Safely parse availability JSON
+  function formatAvailability(availabilityString: string): string {
+    try {
+      const days = JSON.parse(availabilityString);
+      if (Array.isArray(days)) {
+        return days.join(", ");
+      }
+      return availabilityString;
+    } catch (error) {
+      return availabilityString;
+    }
   }
 </script>
 
@@ -157,61 +152,63 @@
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
   <!-- Left column: Applicant details -->
   <div class="lg:col-span-2 space-y-6">
-    <!-- Personal information card -->
-    <div>
-      <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-        Location
-      </p>
-      <div class="flex items-center">
-        <MapPin class="mr-1 text-gray-400" size={16} />
-        <p class="text-gray-900 dark:text-white">{application.city}</p>
-      </div>
+    <!-- Location information card - Modified to remove map -->
+    <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+      <h2
+        class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center"
+      >
+        <MapPin class="mr-2 text-primary" size={20} />
+        Location Information
+      </h2>
 
-      <!-- Add location coordinates if available -->
-      {#if application.latitude && application.longitude}
-        <div class="mt-3 rounded-md bg-gray-50 p-4 dark:bg-gray-700">
-          <div class="flex items-start">
-            <!-- Service area status -->
-            <div class="mr-4">
-              <div
-                class={`px-2 py-1 rounded-md text-xs font-medium ${
-                  isWithinServiceArea(
-                    application.latitude,
-                    application.longitude,
-                  )
-                    ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
-                    : "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
-                }`}
-              >
-                {isWithinServiceArea(
-                  application.latitude,
-                  application.longitude,
-                )
-                  ? "Within Service Area"
-                  : "Outside Service Area"}
-              </div>
-            </div>
-
-            <!-- Coordinates -->
-            <div class="text-sm">
-              <p class="text-gray-600 dark:text-gray-300">
-                Coordinates: {parseFloat(application.latitude || 0).toFixed(5)}, {parseFloat(application.longitude || 0).toFixed(5)}
-              </p>
-            </div>
+      <div class="space-y-3">
+        <!-- Address display -->
+        <div class="flex items-start">
+          <div
+            class="w-32 flex-shrink-0 text-sm font-medium text-gray-500 dark:text-gray-400"
+          >
+            Address:
           </div>
-
-          <!-- Small service area map -->
-          <div class="mt-3 h-40 w-full">
-            <ServiceAreaMap
-              apiKey={googleMapsApiKey}
-              height="100%"
-              width="100%"
-              showLabels={true}
-              selectedAreaName={null}
-            />
+          <div class="text-gray-900 dark:text-white">
+            {application.formattedAddress || application.city}
           </div>
         </div>
-      {/if}
+
+        <!-- Coordinates if available -->
+        {#if application.latitude && application.longitude}
+          <div class="flex items-start">
+            <div
+              class="w-32 flex-shrink-0 text-sm font-medium text-gray-500 dark:text-gray-400"
+            >
+              Coordinates:
+            </div>
+            <div class="text-gray-900 dark:text-white">
+              {parseFloat(application.latitude || 0).toFixed(5)}, {parseFloat(
+                application.longitude || 0,
+              ).toFixed(5)}
+            </div>
+          </div>
+
+          <!-- Service area status indicator -->
+          <div class="mt-3">
+            {#if isWithinServiceArea(application.latitude, application.longitude)}
+              <div
+                class="inline-flex items-center rounded-md bg-green-50 px-3 py-1 text-sm font-medium text-green-700 dark:bg-green-900/20 dark:text-green-300"
+              >
+                <Check class="mr-1 h-4 w-4" />
+                Within Service Area
+              </div>
+            {:else}
+              <div
+                class="inline-flex items-center rounded-md bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700 dark:bg-amber-900/20 dark:text-amber-300"
+              >
+                <X class="mr-1 h-4 w-4" />
+                Outside Service Area
+              </div>
+            {/if}
+          </div>
+        {/if}
+      </div>
     </div>
 
     <!-- Experience & Availability -->
@@ -247,6 +244,24 @@
               <span class="text-gray-600 dark:text-gray-400"
                 >No experience types specified</span
               >
+            {/if}
+          </div>
+        </div>
+
+        <!-- Availability -->
+        <div>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Availability
+          </p>
+          <div class="mt-1">
+            {#if application.availability}
+              <p class="text-gray-900 dark:text-white">
+                {formatAvailability(application.availability)}
+              </p>
+            {:else}
+              <p class="text-gray-600 dark:text-gray-400">
+                No availability specified
+              </p>
             {/if}
           </div>
         </div>
@@ -471,14 +486,14 @@
     </div>
 
     <!-- Notes History Card -->
-    {#if data.notes && data.notes.length > 0}
+    {#if notes && notes.length > 0}
       <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
         <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
           Notes History
         </h2>
 
         <div class="space-y-4">
-          {#each data.notes as note}
+          {#each notes as note}
             <div class="rounded-md bg-gray-50 p-3 dark:bg-gray-700">
               <p class="text-sm text-gray-900 dark:text-white">
                 {note.content}
