@@ -51,9 +51,9 @@
     }
   });
   
-  // Navigate to retry payment
+  // Navigate to retry payment - using booking_id to match the rest of the app
   function retryPayment() {
-    goto(`/payment/process?bookingId=${bookingId}`);
+    goto(`/payment/process?booking_id=${bookingId}`);
   }
   
   // Go to bookings

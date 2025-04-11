@@ -24,7 +24,7 @@ export async function GET({ url, locals }) {
     
     // Check if the user is authenticated
     if (!locals.user) {
-      throw redirect(302, `/auth/login?redirectTo=/payment/cancel?bookingId=${bookingId}`);
+      throw redirect(302, `/auth/login?redirectTo=/payment/cancel?booking_id=${bookingId}`);
     }
     
     // Find the payment record for this booking
@@ -70,8 +70,8 @@ export async function GET({ url, locals }) {
     const errorCode = url.searchParams.get("error_code") || "";
     const errorMessage = url.searchParams.get("error_message") || "";
     
-    // Redirect to the cancellation page
-    let redirectUrl = `/payment/cancel?bookingId=${bookingId}`;
+    // Redirect to the cancellation page - using booking_id for consistency with success page
+    let redirectUrl = `/payment/cancel?booking_id=${bookingId}`;
     if (errorCode) redirectUrl += `&error_code=${errorCode}`;
     if (errorMessage) redirectUrl += `&error_message=${encodeURIComponent(errorMessage)}`;
     
