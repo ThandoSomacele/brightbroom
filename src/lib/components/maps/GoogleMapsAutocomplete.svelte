@@ -36,10 +36,19 @@
 
   // Service area boundaries (approximate coordinates)
   const serviceAreas = [
-    { name: "Fourways", lat: -26.0274, lng: 28.0106, radius: 5 }, // 5km radius
+    { name: "Fourways", lat: -26.0274, lng: 28.0106, radius: 10 },
+    { name: "Bryanston", lat: -26.0525, lng: 28.0074, radius: 10 },
+    { name: "Randburg", lat: -26.1063, lng: 27.9947, radius: 10 },
+    { name: "Midrand", lat: -25.9992, lng: 28.1182, radius: 10 },
+    // { name: "Sandhurst", lat: -26.1041, lng: 28.0425, radius: 10 },
+    // { name: "Linden", lat: -26.1146, lng: 27.9928, radius: 10 },
     // { name: 'Sandton', lat: -26.1070, lng: 28.0567, radius: 6 },
-    { name: "North Riding", lat: -26.0469, lng: 27.951, radius: 4 },
+    { name: "North Riding", lat: -26.0469, lng: 27.951, radius: 6 },
     // { name: 'Roodepoort', lat: -26.1625, lng: 27.8727, radius: 7 }
+    { name: "Cosmo City", lat: -26.028783, lng: 27.92653, radius: 50 }, 
+    { name: "Diepsloot", lat:-25.9412555, lng: 27.96671, radius: 100 },
+    { name: "Honeydew", lat: -26.0225, lng: 27.9475, radius: 30 },
+
   ];
 
   // Create custom dispatch events
