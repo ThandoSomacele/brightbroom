@@ -1,88 +1,74 @@
-// src/routes/api/payments/cancel/+server.ts
-import { db } from "$lib/server/db";
-import { payment, booking, adminNote } from "$lib/server/db/schema";
-import { error, redirect } from "@sveltejs/kit";
-import { eq } from "drizzle-orm";
+// src/routes/payment/cancel/+page.server.ts
+import { db } from '$lib/server/db';
+import { booking } from '$lib/server/db/schema';
+import { error } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
+import type { PageServerLoad } from './$types';
 
-/**
- * API handler for payment cancellation redirects
- * This captures payment cancellations from the payment provider
- */
-export async function GET({ url, locals }) {
+export const load: PageServerLoad = async ({ url, locals }) => {
+  // Get the booking ID from query parameters
+  const bookingId = url.searchParams.get('booking_id');
+  
+  // If no booking ID is provided, return empty data
+  // The client-side will handle this case
+  if (!bookingId) {
+    return {
+      bookingId: null,
+      userCanceled: url.searchParams.has('canceled')
+    };
+  }
+  
   try {
-    // Get the booking ID from query params
-    const bookingId = url.searchParams.get("booking_id") || 
-                    url.searchParams.get("m_payment_id") ||
-                    url.searchParams.get("custom_str1");
-    
-    if (!bookingId) {
-      throw error(400, "Missing booking ID");
-    }
-    
-    // Log the callback
-    console.log(`Payment cancellation callback received for booking: ${bookingId}`);
-    
-    // Check if the user is authenticated
+    // Check if user is logged in
     if (!locals.user) {
-      throw redirect(302, `/auth/login?redirectTo=/payment/cancel?booking_id=${bookingId}`);
+      // Even if not logged in, we want to maintain the booking ID in the query params
+      return {
+        bookingId,
+        userCanceled: true
+      };
     }
     
-    // Find the payment record for this booking
-    const paymentRecord = await db
-      .select()
-      .from(payment)
-      .where(eq(payment.bookingId, bookingId))
-      .limit(1);
-    
-    // Find booking info
-    const bookingRecord = await db
+    // Verify the booking exists and belongs to the user
+    const bookingData = await db
       .select()
       .from(booking)
       .where(eq(booking.id, bookingId))
       .limit(1);
-      
-    // If payment record exists, update it to cancelled/failed status
-    if (paymentRecord.length > 0) {
-      const paymentData = paymentRecord[0];
-      
-      // Only update if not already completed
-      if (paymentData.status !== "COMPLETED") {
-        await db
-          .update(payment)
-          .set({
-            status: "FAILED",
-            updatedAt: new Date()
-          })
-          .where(eq(payment.id, paymentData.id));
-        
-        // Create an admin note about the payment cancellation
-        await db.insert(adminNote).values({
-          id: crypto.randomUUID(),
-          bookingId,
-          content: `Payment cancelled by user (ID: ${paymentData.id})`,
-          addedBy: "System (Payment Redirect)",
-          createdAt: new Date(),
-        });
-      }
+    
+    if (bookingData.length === 0) {
+      console.error(`Booking not found: ${bookingId}`);
+      return {
+        bookingId,
+        bookingFound: false,
+        userCanceled: true
+      };
     }
     
-    // Get error details if available
-    const errorCode = url.searchParams.get("error_code") || "";
-    const errorMessage = url.searchParams.get("error_message") || "";
-    
-    // Redirect to the cancellation page - using booking_id for consistency with success page
-    let redirectUrl = `/payment/cancel?booking_id=${bookingId}`;
-    if (errorCode) redirectUrl += `&error_code=${errorCode}`;
-    if (errorMessage) redirectUrl += `&error_message=${encodeURIComponent(errorMessage)}`;
-    
-    throw redirect(302, redirectUrl);
-  } catch (error) {
-    // If it's already a redirect, just pass it through
-    if (error.status === 302) {
-      throw error;
+    // Verify the booking belongs to the user
+    if (bookingData[0].userId !== locals.user.id) {
+      console.error(`Unauthorized access to booking: ${bookingId}`);
+      return {
+        bookingId,
+        bookingFound: false,
+        unauthorized: true,
+        userCanceled: true
+      };
     }
     
-    console.error("Error processing payment cancellation:", error);
-    throw error;
+    // Return the booking data needed for the cancel page
+    return {
+      bookingId,
+      bookingData: bookingData[0],
+      bookingFound: true,
+      userCanceled: true
+    };
+  } catch (err) {
+    console.error('Error processing payment cancellation:', err);
+    return {
+      bookingId,
+      bookingFound: false,
+      error: 'Failed to process cancellation',
+      userCanceled: true
+    };
   }
 };
