@@ -2,48 +2,14 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
-  import { onMount } from 'svelte';
   import Button from '$lib/components/ui/Button.svelte';
-  import { X } from 'lucide-svelte';
-
-  // Get booking ID from URL params
-  let bookingId = $page.url.searchParams.get('booking_id');
+  import { XCircle, AlertTriangle, Calendar, MapPin } from 'lucide-svelte';
   
-  // We'll track whether this was canceled by the user or if it's just missing params
-  let userCanceled = $page.url.searchParams.has('canceled');
-  let isLoading = false;
+  // Get data from the server load function
+  export let data;
   
-  onMount(() => {
-    // If no booking ID was provided in the URL params, check local storage
-    if (!bookingId) {
-      // Try to recover the booking ID from localStorage (if the payment process saved it)
-      const storedBookingData = localStorage.getItem('current_booking_id');
-      if (storedBookingData) {
-        bookingId = storedBookingData;
-        console.log('Recovered booking ID from local storage:', bookingId);
-      } else {
-        console.error('No booking ID found in redirect parameters or local storage');
-      }
-    }
-  });
-  
-  // Function to go to bookings page
-  function viewBookings() {
-    isLoading = true;
-    goto('/profile/bookings');
-  }
-  
-  // Function to go back to home
-  function goHome() {
-    isLoading = true;
-    goto('/');
-  }
-  
-  // Function to try booking again
-  function bookAgain() {
-    isLoading = true;
-    goto('/book');
-  }
+  // Destructure the data
+  const { bookingId, bookingData, bookingFound, userCanceled, error, unauthorized } = data;
 </script>
 
 <svelte:head>
@@ -51,78 +17,131 @@
 </svelte:head>
 
 <div class="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-gray-900">
-  <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
-    <div class="mb-6 flex justify-center">
-      <div class="w-16 h-16 flex items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400">
-        <X size={32} />
-      </div>
-    </div>
-    
-    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-      Payment Cancelled
-    </h1>
-    
+  <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <!-- Payment cancellation confirmation -->
     {#if userCanceled}
-      <p class="text-gray-600 dark:text-gray-300 mb-6">
-        You've cancelled your payment. Your booking will remain pending until payment is completed.
-      </p>
-    {:else}
-      <p class="text-gray-600 dark:text-gray-300 mb-6">
-        The payment process was interrupted. Your booking will remain pending until payment is completed.
-      </p>
-    {/if}
-    
-    {#if bookingId}
-      <div class="space-y-3 mt-6">
-        <Button 
-          variant="primary" 
-          href={`/payment/process?bookingId=${bookingId}`} 
-          class="w-full"
-        >
-          Try Payment Again
-        </Button>
+      <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-center">
+        <XCircle size={60} class="text-red-500 dark:text-red-400" />
+      </div>
+      
+      <div class="p-6">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white text-center mb-4">
+          Payment Cancelled
+        </h1>
         
-        <Button 
-          variant="outline" 
-          href={`/profile/bookings/${bookingId}`} 
-          class="w-full"
-        >
-          View Booking Details
-        </Button>
+        {#if error}
+          <div class="mb-6 bg-red-50 dark:bg-red-900/20 p-4 rounded-lg flex items-start">
+            <AlertTriangle class="h-5 w-5 mr-2 mt-0.5 flex-shrink-0 text-red-500 dark:text-red-400" />
+            <p class="text-red-700 dark:text-red-300">
+              {error === 'missing_reference' ? 'No booking information found.' : 
+               error === 'booking_not_found' ? 'The booking could not be found.' : 
+               error === 'processing_error' ? 'There was an error processing your cancellation.' :
+               error}
+            </p>
+          </div>
+        {/if}
+        
+        {#if bookingFound && bookingData}
+          <div class="mb-6">
+            <p class="text-gray-600 dark:text-gray-300 mb-4">
+              Your booking has been cancelled and no payment has been processed.
+            </p>
+            
+            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+              <h2 class="font-medium text-gray-800 dark:text-gray-200 mb-2">Booking Details</h2>
+              
+              <div class="space-y-2">
+                <div class="flex items-start">
+                  <Calendar size={18} class="mr-2 mt-0.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                  <div>
+                    <p class="text-sm text-gray-700 dark:text-gray-300">
+                      {new Date(bookingData.booking.scheduledDate).toLocaleDateString('en-ZA', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                      {new Date(bookingData.booking.scheduledDate).toLocaleTimeString('en-ZA', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                </div>
+                
+                <div class="flex items-start">
+                  <MapPin size={18} class="mr-2 mt-0.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                  <p class="text-sm text-gray-700 dark:text-gray-300">
+                    {bookingData.address.street}, {bookingData.address.city}
+                  </p>
+                </div>
+                
+                <div class="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-600 mt-2">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Service:</span>
+                  <span class="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    {bookingData.service.name}
+                  </span>
+                </div>
+                
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Status:</span>
+                  <span class="text-sm font-medium text-red-600 dark:text-red-400">
+                    CANCELLED
+                  </span>
+                </div>
+                
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Amount:</span>
+                  <span class="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    R{typeof bookingData.booking.price === 'number' 
+                      ? bookingData.booking.price.toFixed(2) 
+                      : parseFloat(bookingData.booking.price).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        {:else}
+          <p class="text-gray-600 dark:text-gray-300 mb-6 text-center">
+            Your payment has been cancelled. No charges have been made to your account.
+          </p>
+        {/if}
+        
+        <div class="flex flex-col space-y-3">
+          {#if bookingFound}
+            <Button variant="primary" href={`/profile/bookings`}>
+              View My Bookings
+            </Button>
+          {/if}
+          
+          <Button variant="outline" href="/book">
+            Book Another Service
+          </Button>
+          
+          <Button variant="outline" href="/">
+            Return to Home
+          </Button>
+        </div>
       </div>
     {:else}
-      <div class="space-y-3 mt-6">
-        <Button 
-          variant="primary" 
-          on:click={viewBookings} 
-          disabled={isLoading} 
-          class="w-full"
-        >
-          View My Bookings
-        </Button>
+      <!-- Default state if not a cancellation -->
+      <div class="p-6">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white text-center mb-4">
+          Payment Page
+        </h1>
         
-        <Button 
-          variant="outline" 
-          on:click={bookAgain} 
-          disabled={isLoading} 
-          class="w-full"
-        >
-          Book Again
-        </Button>
+        <p class="text-gray-600 dark:text-gray-300 mb-6 text-center">
+          This page handles payment cancellations from our payment provider.
+        </p>
         
-        <Button 
-          variant="ghost" 
-          on:click={goHome} 
-          disabled={isLoading} 
-          class="w-full"
-        >
-          Back to Home
-        </Button>
+        <div class="flex justify-center">
+          <Button variant="primary" href="/">
+            Return to Home
+          </Button>
+        </div>
       </div>
     {/if}
   </div>
-  
-  <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
-    Need help? Contact our support team.
-  </p>
 </div>

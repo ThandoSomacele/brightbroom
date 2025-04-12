@@ -81,7 +81,7 @@ export async function createPaymentForBooking(
 
     // Construct callback URLs using the current domain
     const returnUrl = `${origin}/payment/success`;
-    const cancelUrl = `${origin}/payment/cancel`;
+    const cancelUrl = `${origin}/api/payments/cancel`;
     const notifyUrl = `${origin}/api/payments/ipn`;
 
     // Log the dynamic URLs
@@ -201,8 +201,8 @@ function generatePayFastUrl(
   const data: PayFastPaymentData = {
     merchant_id: PAYFAST_MERCHANT_ID,
     merchant_key: PAYFAST_MERCHANT_KEY,
-    return_url: `${urls.returnUrl}?booking_id=${bookingData.id}`, // Add booking_id to return_url
-    cancel_url: urls.cancelUrl,
+    return_url: `${urls.returnUrl}?booking_id=${bookingData.id}`, 
+    cancel_url: `${urls.cancelUrl}?booking_id=${bookingData.id}`,     
     notify_url: urls.notifyUrl,
     name_first: firstName,
     name_last: lastName,
