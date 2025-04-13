@@ -136,7 +136,7 @@ export async function sendPasswordResetConfirmationEmail(
 /**
  * Send a booking confirmation email
  * @param email Recipient email address
- * @param bookingDetails Booking details including status
+ * @param bookingDetails Booking details including status and optional paymentStatus
  * @returns Success indicator
  */
 export async function sendBookingConfirmationEmail(
@@ -152,23 +152,38 @@ export async function sendBookingConfirmationEmail(
       return true; // Return true to indicate we handled this properly (by not sending)
     }
 
-    // ADD THIS CHECK: Only send email if payment is complete
-    // Get payment status from database
-    const payments = await db
-      .select()
-      .from(payment)
-      .where(eq(payment.bookingId, bookingDetails.id))
-      .limit(1);
+    // Check for payment status from the passed parameter or query the database
+    let paymentIsComplete = false;
 
-    // If no payment record or status is not COMPLETED, don't send email yet
-    if (payments.length === 0 || payments[0].status !== "COMPLETED") {
+    // If payment status is provided directly, use that
+    if (bookingDetails.paymentStatus) {
+      paymentIsComplete = bookingDetails.paymentStatus === "COMPLETED";
+    } else {
+      // Otherwise, query the database (this is the old behavior)
+      const payments = await db
+        .select()
+        .from(payment)
+        .where(eq(payment.bookingId, bookingDetails.id))
+        .limit(1);
+
+      // If no payment record or status is not COMPLETED, don't send email yet
+      paymentIsComplete =
+        payments.length > 0 && payments[0].status === "COMPLETED";
+    }
+
+    // Only send email if payment is complete
+    if (!paymentIsComplete) {
       console.log(
         `Delaying confirmation email for booking ${bookingDetails.id} until payment completes`,
       );
       return true; // Return true to indicate handling correctly
     }
 
-    // Your existing email sending code...
+    console.log(
+      `Sending booking confirmation email for booking ${bookingDetails.id}`,
+    );
+
+    // Generate the email template
     const template = getBookingConfirmationTemplate(
       email,
       bookingDetails,

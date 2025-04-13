@@ -1,7 +1,7 @@
 // src/lib/server/hooks/post-payment-hooks.ts
 import { cleanerAssignmentService } from "$lib/server/services/cleaner-assignment.service";
 import { db } from "$lib/server/db";
-import { adminNote, booking } from "$lib/server/db/schema";
+import { adminNote, booking, service, address, user } from "$lib/server/db/schema";
 import { eq } from "drizzle-orm";
 import { sendBookingConfirmationEmail } from "$lib/server/email-service";
 
@@ -63,9 +63,10 @@ export const postPaymentHooks = {
   /**
    * Send booking confirmation email
    * @param bookingId The booking ID
+   * @param paymentStatus Optional payment status to override database check
    * @returns Success status
    */
-  async sendConfirmationEmail(bookingId: string): Promise<boolean> {
+  async sendConfirmationEmail(bookingId: string, paymentStatus = 'COMPLETED'): Promise<boolean> {
     try {
       console.log(`Preparing to send confirmation email for booking: ${bookingId}`);
       
@@ -111,7 +112,8 @@ export const postPaymentHooks = {
         return true; // Return true to indicate we handled this correctly (by not sending)
       }
       
-      // Send the confirmation email
+      // Send the confirmation email with the provided payment status
+      // This is the key fix - we're passing the payment status directly instead of querying it again
       const success = await sendBookingConfirmationEmail(
         bookingData.user.email,
         {
@@ -121,6 +123,7 @@ export const postPaymentHooks = {
           scheduledDate: bookingData.booking.scheduledDate,
           address: bookingData.address,
           price: bookingData.booking.price,
+          paymentStatus: paymentStatus // Pass the payment status directly
         }
       );
       
@@ -159,8 +162,9 @@ export const postPaymentHooks = {
   /**
    * Run all post-payment hooks
    * @param bookingId The booking ID
+   * @param paymentStatus Optional payment status to override database check
    */
-  async runAll(bookingId: string): Promise<void> {
+  async runAll(bookingId: string, paymentStatus = 'COMPLETED'): Promise<void> {
     try {
       // Get booking status first to check if it's cancelled
       const bookingData = await db
@@ -183,8 +187,8 @@ export const postPaymentHooks = {
       // Run the hooks in sequence
       console.log(`Running post-payment hooks for booking ${bookingId}`);
       
-      // 1. Send confirmation email
-      await this.sendConfirmationEmail(bookingId);
+      // 1. Send confirmation email with the payment status
+      await this.sendConfirmationEmail(bookingId, paymentStatus);
       
       // 2. Attempt cleaner assignment
       await this.attemptCleanerAssignment(bookingId);
