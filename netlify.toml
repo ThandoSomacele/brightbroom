@@ -20,9 +20,8 @@
   ]
 
 
-# Define specific headers for the IPN endpoint
 [[headers]]
-  for = "/api/payments/ipn"
+  for = "/payfast-ipn"
   [headers.values]
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "POST, OPTIONS"
