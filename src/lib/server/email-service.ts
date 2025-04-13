@@ -133,23 +133,23 @@ export async function sendPasswordResetConfirmationEmail(
 
 /**
  * Send a booking confirmation email
+ * @param email Recipient email address
+ * @param bookingDetails Booking details including status
+ * @returns Success indicator
  */
 export async function sendBookingConfirmationEmail(
   email: string,
-  bookingDetails: any,
+  bookingDetails: any
 ): Promise<boolean> {
   try {
-    if (!resend) {
-      console.error("Resend API key not configured");
-      return false;
+    // Check if the booking is cancelled - don't send confirmation for cancelled bookings
+    if (bookingDetails.status === 'CANCELLED') {
+      console.log(`Skipping confirmation email for cancelled booking: ${bookingDetails.id}`);
+      return true; // Return true to indicate we handled this properly (by not sending)
     }
 
-    // Use the booking confirmation template
-    const template = getBookingConfirmationTemplate(
-      email,
-      bookingDetails,
-      EMAIL_CONFIG,
-    );
+    // Your existing email sending code...
+    const template = getBookingConfirmationTemplate(email, bookingDetails, EMAIL_CONFIG);
 
     // Send email with Resend
     const { data, error } = await resend.emails.send({
