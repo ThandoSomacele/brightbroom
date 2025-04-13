@@ -83,7 +83,7 @@ export async function createPaymentForBooking(
     const returnUrl = `${origin}/payment/success`;
     const cancelUrl = `${origin}/api/payments/cancel`;
     // const notifyUrl = `${origin}/payfast-ipn`;
-    const notifyUrl = `https://brightbroom.netlify.app/payfast-ipn`;
+    const notifyUrl = `${origin}/.netlify/functions/payfast-ipn`;
 
     // Log the dynamic URLs
     console.log("Using PayFast callback URLs:");
@@ -202,8 +202,8 @@ function generatePayFastUrl(
   const data: PayFastPaymentData = {
     merchant_id: PAYFAST_MERCHANT_ID,
     merchant_key: PAYFAST_MERCHANT_KEY,
-    return_url: `${urls.returnUrl}?booking_id=${bookingData.id}`, 
-    cancel_url: `${urls.cancelUrl}?booking_id=${bookingData.id}`,     
+    return_url: `${urls.returnUrl}?booking_id=${bookingData.id}`,
+    cancel_url: `${urls.cancelUrl}?booking_id=${bookingData.id}`,
     notify_url: urls.notifyUrl,
     name_first: firstName,
     name_last: lastName,
