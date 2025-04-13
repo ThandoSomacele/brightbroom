@@ -19,7 +19,6 @@
     "react/jsx-runtime"
   ]
 
-
 [[headers]]
   for = "/payfast-ipn"
   [headers.values]
