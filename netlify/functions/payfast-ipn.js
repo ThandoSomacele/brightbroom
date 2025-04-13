@@ -1,30 +1,6 @@
 // netlify/functions/payfast-ipn.js
 const postgres = require('postgres');
-const { drizzle } = require('drizzle-orm/postgres-js');
-const { eq } = require('drizzle-orm');
 const { randomUUID } = require('crypto');
-
-// Define simplified schema for the function
-const schema = {
-  payment: {
-    id: { name: 'id' },
-    bookingId: { name: 'booking_id' },
-    status: { name: 'status' },
-    updatedAt: { name: 'updated_at' }
-  },
-  booking: {
-    id: { name: 'id' },
-    status: { name: 'status' },
-    updatedAt: { name: 'updated_at' }
-  },
-  adminNote: {
-    id: { name: 'id' },
-    bookingId: { name: 'booking_id' },
-    content: { name: 'content' },
-    addedBy: { name: 'added_by' },
-    createdAt: { name: 'created_at' }
-  }
-};
 
 exports.handler = async (event, context) => {
   console.log("PayFast IPN Handler invoked", {
@@ -42,6 +18,14 @@ exports.handler = async (event, context) => {
         'Access-Control-Allow-Headers': 'Content-Type'
       },
       body: ''
+    };
+  }
+
+  // For GET requests, just confirm the endpoint is working
+  if (event.httpMethod === 'GET') {
+    return {
+      statusCode: 200,
+      body: "PayFast IPN endpoint is operational. POST requests are required for IPN processing."
     };
   }
 
@@ -77,37 +61,31 @@ exports.handler = async (event, context) => {
         }
         
         console.log("Connecting to database...");
-        client = postgres(connectionString);
-        const db = drizzle(client);
+        client = postgres(connectionString, { ssl: { rejectUnauthorized: false } });
         
         // Update payment status to COMPLETED
         console.log(`Updating payment status for ID: ${paymentId}`);
-        await db.execute(`
+        await client`
           UPDATE payment 
           SET status = 'COMPLETED', updated_at = NOW() 
-          WHERE id = $1
-        `, [paymentId]);
+          WHERE id = ${paymentId}
+        `;
         
-        // Update booking status to CONFIRMED
+        // Update booking status to CONFIRMED - THIS IS THE CRITICAL PART
         console.log(`Updating booking status for ID: ${bookingId}`);
-        await db.execute(`
+        await client`
           UPDATE booking 
           SET status = 'CONFIRMED', updated_at = NOW() 
-          WHERE id = $1
-        `, [bookingId]);
+          WHERE id = ${bookingId}
+        `;
         
         // Create admin note about the payment
         console.log("Creating admin note");
         const noteId = randomUUID();
-        await db.execute(`
+        await client`
           INSERT INTO admin_note (id, booking_id, content, added_by, created_at)
-          VALUES ($1, $2, $3, $4, NOW())
-        `, [
-          noteId,
-          bookingId,
-          `Payment completed via PayFast IPN (ID: ${paymentId})`,
-          'System (Netlify Function)'
-        ]);
+          VALUES (${noteId}, ${bookingId}, ${`Payment completed via PayFast IPN (ID: ${paymentId})`}, ${'System (Netlify Function)'}, NOW())
+        `;
         
         console.log("Database updates completed successfully");
       } catch (dbError) {

@@ -19,8 +19,11 @@
     "react/jsx-runtime"
   ]
 
+
+
+# Set CORS headers for PayFast IPN requests
 [[headers]]
-  for = "/payfast-ipn"
+  for = "/.netlify/functions/payfast-ipn"
   [headers.values]
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "POST, OPTIONS"

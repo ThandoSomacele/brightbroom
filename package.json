@@ -61,6 +61,7 @@
     "lucide-svelte": "^0.479.0",
     "mime-types": "^2.1.35",
     "nanoid": "^5.0.5",
+    "node-fetch": "^3.3.2",
     "oslo": "^1.2.1",
     "papaparse": "^5.5.2",
     "postcss": "^8.5.3",
