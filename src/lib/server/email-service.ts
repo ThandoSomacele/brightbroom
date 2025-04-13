@@ -1,6 +1,8 @@
 // src/lib/server/email-service.ts
 import { env } from "$env/dynamic/private";
 import { Resend } from "resend";
+import { db } from "./db";
+import { payment } from "./db/schema";
 import {
   getBookingConfirmationTemplate,
   getBookingReminderTemplate,
@@ -139,17 +141,39 @@ export async function sendPasswordResetConfirmationEmail(
  */
 export async function sendBookingConfirmationEmail(
   email: string,
-  bookingDetails: any
+  bookingDetails: any,
 ): Promise<boolean> {
   try {
     // Check if the booking is cancelled - don't send confirmation for cancelled bookings
-    if (bookingDetails.status === 'CANCELLED') {
-      console.log(`Skipping confirmation email for cancelled booking: ${bookingDetails.id}`);
+    if (bookingDetails.status === "CANCELLED") {
+      console.log(
+        `Skipping confirmation email for cancelled booking: ${bookingDetails.id}`,
+      );
       return true; // Return true to indicate we handled this properly (by not sending)
     }
 
+    // ADD THIS CHECK: Only send email if payment is complete
+    // Get payment status from database
+    const payments = await db
+      .select()
+      .from(payment)
+      .where(eq(payment.bookingId, bookingDetails.id))
+      .limit(1);
+
+    // If no payment record or status is not COMPLETED, don't send email yet
+    if (payments.length === 0 || payments[0].status !== "COMPLETED") {
+      console.log(
+        `Delaying confirmation email for booking ${bookingDetails.id} until payment completes`,
+      );
+      return true; // Return true to indicate handling correctly
+    }
+
     // Your existing email sending code...
-    const template = getBookingConfirmationTemplate(email, bookingDetails, EMAIL_CONFIG);
+    const template = getBookingConfirmationTemplate(
+      email,
+      bookingDetails,
+      EMAIL_CONFIG,
+    );
 
     // Send email with Resend
     const { data, error } = await resend.emails.send({

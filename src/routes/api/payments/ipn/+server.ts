@@ -1,10 +1,13 @@
 // src/routes/api/payments/ipn/+server.ts
 import { db } from "$lib/server/db";
-import { payment, booking, adminNote } from "$lib/server/db/schema";
-import { processSuccessfulPayment, validateIpnRequest } from "$lib/server/payment";
+import { adminNote, booking, payment } from "$lib/server/db/schema";
+import { postPaymentHooks } from "$lib/server/hooks/post-payment-hooks";
+import {
+  processSuccessfulPayment,
+  validateIpnRequest,
+} from "$lib/server/payment";
 import { json } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
-import { postPaymentHooks } from "$lib/server/hooks/post-payment-hooks";
 
 /**
  * IPN (Instant Payment Notification) handler for PayFast
@@ -17,11 +20,11 @@ export async function POST({ request }) {
 
     // Get the raw request body to validate it
     const rawBody = await request.text();
-    
+
     // Parse the form data
     const formData = new URLSearchParams(rawBody);
     const pfData: Record<string, string> = {};
-    
+
     // Convert FormData to a plain object
     for (const [key, value] of formData.entries()) {
       pfData[key] = value;
@@ -34,10 +37,13 @@ export async function POST({ request }) {
 
     // Validate the IPN request
     const isValidIpn = await validateIpnRequest(pfData, rawBody);
-    
+
     if (!isValidIpn) {
       console.error("Invalid IPN request, ignoring");
-      return json({ status: "error", message: "Invalid IPN request" }, { status: 400 });
+      return json(
+        { status: "error", message: "Invalid IPN request" },
+        { status: 400 },
+      );
     }
 
     // Extract the important values
@@ -57,36 +63,30 @@ export async function POST({ request }) {
 
     if (!paymentRecord || paymentRecord.length === 0) {
       console.error(`Payment record not found: ${paymentId}`);
-      return json({ status: "error", message: "Payment record not found" }, { status: 404 });
+      return json(
+        { status: "error", message: "Payment record not found" },
+        { status: 404 },
+      );
     }
 
     // Handle different payment statuses
     if (paymentStatus === "COMPLETE") {
       // Process the payment
       const result = await processSuccessfulPayment(paymentId);
-      
-      if (!result) {
-        console.error(`Failed to process payment: ${paymentId}`);
-        return json({ status: "error", message: "Failed to process payment" }, { status: 500 });
-      }
 
-      // Create an admin note about the payment
-      await db.insert(adminNote).values({
-        id: crypto.randomUUID(),
-        bookingId,
-        content: `Payment completed via PayFast (ID: ${paymentId})`,
-        addedBy: "System (PayFast IPN)",
-        createdAt: new Date(),
-      });
+      // Verify booking is not cancelled before triggering hooks
+      const bookingStatus = await db
+        .select({ status: booking.status })
+        .from(booking)
+        .where(eq(booking.id, bookingId))
+        .limit(1);
 
-      // Run post-payment hooks (in the background)
-      // We don't await this to avoid blocking the response
-      postPaymentHooks.runAll(bookingId)
-        .catch(error => {
+      if (bookingStatus.length > 0 && bookingStatus[0].status !== "CANCELLED") {
+        // Only run hooks if booking is not cancelled
+        postPaymentHooks.runAll(bookingId).catch((error) => {
           console.error(`Error running post-payment hooks: ${error}`);
         });
-
-      return json({ status: "success", message: "Payment processed successfully" });
+      }
     } else if (paymentStatus === "FAILED") {
       // Update payment status to failed
       await db
@@ -109,12 +109,20 @@ export async function POST({ request }) {
       return json({ status: "success", message: "Payment failure recorded" });
     } else {
       // Unknown or pending status
-      console.log(`Unhandled payment status: ${paymentStatus}, no action taken`);
-      return json({ status: "success", message: "IPN received, no action taken" });
+      console.log(
+        `Unhandled payment status: ${paymentStatus}, no action taken`,
+      );
+      return json({
+        status: "success",
+        message: "IPN received, no action taken",
+      });
     }
   } catch (error) {
     console.error("Error processing IPN:", error);
-    return json({ status: "error", message: "Server error processing IPN" }, { status: 500 });
+    return json(
+      { status: "error", message: "Server error processing IPN" },
+      { status: 500 },
+    );
   }
 }
 
