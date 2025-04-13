@@ -138,7 +138,7 @@
         </div>
       </div>
       
-      {#if canCancel}
+      <!-- {#if canCancel}
         <form method="POST" action={`/profile/bookings/${booking.id}/cancel`}>
           <Button 
             type="submit"
@@ -148,7 +148,7 @@
             Cancel Booking
           </Button>
         </form>
-      {/if}
+      {/if} -->
     </div>
     
     <!-- Booking details card -->
