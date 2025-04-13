@@ -82,8 +82,8 @@ export async function createPaymentForBooking(
     // Construct callback URLs using the current domain
     const returnUrl = `${origin}/payment/success`;
     const cancelUrl = `${origin}/api/payments/cancel`;
-    const notifyUrl = `${origin}/api/payments/ipn`;
-
+    const notifyUrl = `${origin}/payfast-ipn`;
+    
     // Log the dynamic URLs
     console.log("Using PayFast callback URLs:");
     console.log(`- Return URL: ${returnUrl}`);

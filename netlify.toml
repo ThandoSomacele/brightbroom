@@ -18,7 +18,12 @@
     "react-dom",
     "react/jsx-runtime"
   ]
-
+  
+[[redirects]]
+  from = "/payfast-ipn"
+  to = "/.netlify/functions/payfast-ipn"
+  status = 200
+  force = true
 
 # Define specific headers for the IPN endpoint
 [[headers]]
