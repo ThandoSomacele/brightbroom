@@ -1,5 +1,0 @@
-[[redirects]]
-  from = "/payfast-ipn"
-  to = "/.netlify/functions/payfast-ipn"
-  status = 200
-  force = true
