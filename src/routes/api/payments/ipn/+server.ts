@@ -15,8 +15,11 @@ import { eq } from "drizzle-orm";
  */
 export async function POST({ request }) {
   try {
-    // Log that we received an IPN request
-    console.log("Received IPN request from PayFast");
+    // Enhanced logging
+    console.log("IPN: Received PayFast notification", {
+      headers: Object.fromEntries([...request.headers.entries()]),
+      url: request.url,
+    });
 
     // Get the raw request body to validate it
     const rawBody = await request.text();
