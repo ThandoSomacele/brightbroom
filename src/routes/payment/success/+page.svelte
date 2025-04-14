@@ -11,6 +11,29 @@
   let isLoading = true;
   let booking: any = null;
   let error = '';
+  let webhookExecuted = false;
+  
+  // Execute the webhook to ensure email is sent
+  async function executeWebhook(bookingId: string) {
+    try {
+      console.log('Executing webhook for booking:', bookingId);
+      const response = await fetch('/api/bookings/execute-webhook', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ bookingId })
+      });
+      
+      const result = await response.json();
+      console.log('Webhook execution result:', result);
+      webhookExecuted = true;
+      return result.success;
+    } catch (err) {
+      console.error('Error executing webhook:', err);
+      return false;
+    }
+  }
   
   onMount(async () => {
     if (!bookingId) {
@@ -39,6 +62,12 @@
       }
       
       booking = await response.json();
+      
+      // IMPORTANT: Execute the webhook to ensure email is sent
+      if (booking && booking.status === 'CONFIRMED') {
+        await executeWebhook(bookingId);
+      }
+      
       isLoading = false;
       console.log('Booking details retrieved successfully');
     } catch (e) {
