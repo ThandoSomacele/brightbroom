@@ -73,8 +73,6 @@ export const postPaymentHooks = {
     }
   },
 
-  // Modified function in src/lib/server/hooks/post-payment-hooks.ts
-
   /**
    * Send booking confirmation email
    * @param bookingId The booking ID
