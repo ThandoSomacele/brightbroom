@@ -254,48 +254,5 @@ export const postPaymentHooks = {
     }
   },
 
-  /**
-   * Run all post-payment hooks
-   * @param bookingId The booking ID
-   * @param paymentStatus Optional payment status to override database check
-   */
-  async runAll(bookingId: string, paymentStatus = "COMPLETED"): Promise<void> {
-    try {
-      // Get booking status first to check if it's cancelled
-      const bookingData = await db
-        .select({ status: booking.status })
-        .from(booking)
-        .where(eq(booking.id, bookingId))
-        .limit(1);
-
-      if (bookingData.length === 0) {
-        console.log(`Booking not found for post-payment hooks: ${bookingId}`);
-        return;
-      }
-
-      // Skip all hooks if the booking is cancelled
-      if (bookingData[0].status === "CANCELLED") {
-        console.log(
-          `Skipping post-payment hooks for cancelled booking: ${bookingId}`,
-        );
-        return;
-      }
-
-      // Run the hooks in sequence
-      console.log(`Running post-payment hooks for booking ${bookingId}`);
-
-      // 1. Send confirmation email with the payment status
-      await this.sendConfirmationEmail(bookingId, paymentStatus);
-
-      // 2. Attempt cleaner assignment
-      await this.attemptCleanerAssignment(bookingId);
-
-      // 3. Add more hooks here as needed
-    } catch (error) {
-      console.error(
-        `Error running post-payment hooks for booking ${bookingId}:`,
-        error,
-      );
-    }
-  },
+ 
 };
