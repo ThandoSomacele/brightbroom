@@ -1,6 +1,7 @@
 // src/routes/api/payments/ipn/+server.ts
 import { db } from "$lib/server/db";
 import { adminNote, booking, payment } from "$lib/server/db/schema";
+import { sendBookingConfirmationEmail } from "$lib/server/email-service";
 import { postPaymentHooks } from "$lib/server/hooks/post-payment-hooks";
 import { validateIpnRequest } from "$lib/server/payment";
 import { json } from "@sveltejs/kit";
@@ -128,12 +129,59 @@ export async function POST({ request }) {
         try {
           console.log(`[IPN] Running post-payment hooks directly for booking ${bookingId}`);
           await postPaymentHooks.runAll(bookingId, "COMPLETED");
-          console.log(
-            `[IPN] Successfully ran post-payment hooks for booking ${bookingId}`,
-          );
+          console.log(`[IPN] Successfully ran post-payment hooks for booking ${bookingId}`);
         } catch (hooksError) {
           console.error(`[IPN] Error running post-payment hooks: ${hooksError}`);
-          // Don't fail the entire request if hooks fail
+          
+          // Add this fallback direct email trigger
+          try {
+            console.log(`[IPN] Attempting direct email sending as fallback for booking ${bookingId}`);
+            // Get booking details for the email
+            const bookingDetails = await db.select({
+              booking: {
+                id: booking.id,
+                status: booking.status,
+                scheduledDate: booking.scheduledDate,
+                price: booking.price,
+              },
+              user: {
+                email: user.email,
+              },
+              service: {
+                name: service.name,
+              },
+              address: {
+                street: address.street,
+                city: address.city,
+                state: address.state,
+                zipCode: address.zipCode,
+              },
+            })
+            .from(booking)
+            .innerJoin(service, eq(booking.serviceId, service.id))
+            .innerJoin(address, eq(booking.addressId, address.id))
+            .innerJoin(user, eq(booking.userId, user.id))
+            .where(eq(booking.id, bookingId))
+            .limit(1);
+            
+            if (bookingDetails.length > 0) {
+              const emailResult = await sendBookingConfirmationEmail(
+                bookingDetails[0].user.email, 
+                {
+                  id: bookingDetails[0].booking.id,
+                  status: bookingDetails[0].booking.status,
+                  service: bookingDetails[0].service,
+                  scheduledDate: bookingDetails[0].booking.scheduledDate,
+                  address: bookingDetails[0].address,
+                  price: bookingDetails[0].booking.price,
+                  paymentStatus: "COMPLETED" // Explicitly set
+                }
+              );
+              console.log(`[IPN] Direct email fallback result: ${emailResult ? 'Success' : 'Failed'}`);
+            }
+          } catch (emailError) {
+            console.error(`[IPN] Fallback email sending failed: ${emailError}`);
+          }
         }
 
         return json({

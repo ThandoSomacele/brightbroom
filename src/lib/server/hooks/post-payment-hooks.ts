@@ -73,123 +73,141 @@ export const postPaymentHooks = {
     }
   },
 
-  /**
-   * Send booking confirmation email
-   * @param bookingId The booking ID
-   * @param paymentStatus Optional payment status to override database check
-   * @returns Success status
-   */
-  async sendConfirmationEmail(
-    bookingId: string,
-    paymentStatus = "COMPLETED",
-  ): Promise<boolean> {
-    try {
-      console.log(
-        `[POST-PAYMENT HOOKS] Preparing to send confirmation email for booking: ${bookingId}, payment status: ${paymentStatus}`,
-      );
 
-      // Get booking details with user email
-      const results = await db
-        .select({
-          booking: {
-            id: booking.id,
-            status: booking.status,
-            scheduledDate: booking.scheduledDate,
-            price: booking.price,
-          },
-          user: {
-            email: user.email,
-          },
-          service: {
-            name: service.name,
-          },
-          address: {
-            street: address.street,
-            city: address.city,
-            state: address.state,
-            zipCode: address.zipCode,
-          },
-        })
-        .from(booking)
-        .innerJoin(service, eq(booking.serviceId, service.id))
-        .innerJoin(address, eq(booking.addressId, address.id))
-        .innerJoin(user, eq(booking.userId, user.id))
-        .where(eq(booking.id, bookingId))
-        .limit(1);
+/**
+ * Send booking confirmation email
+ * @param bookingId The booking ID
+ * @param paymentStatus Optional payment status to override database check
+ * @returns Success status
+ */
+async sendConfirmationEmail(
+  bookingId: string,
+  paymentStatus = "COMPLETED",
+): Promise<boolean> {
+  try {
+    console.log(
+      `[POST-PAYMENT HOOKS] Preparing to send confirmation email for booking: ${bookingId}, payment status: ${paymentStatus}`,
+    );
 
-      if (results.length === 0) {
-        console.error(
-          `[POST-PAYMENT HOOKS] Booking not found when sending confirmation: ${bookingId}`,
-        );
-        return false;
-      }
+    // Check if we've already sent an email for this booking
+    const existingEmailNotes = await db
+      .select()
+      .from(adminNote)
+      .where(eq(adminNote.bookingId, bookingId))
+      .limit(100);
 
-      const bookingData = results[0];
+    const alreadySent = existingEmailNotes.some(note => 
+      note.content.includes("confirmation email sent successfully") ||
+      note.content.includes("EMAIL_SENT:")
+    );
 
-      // Check if booking is cancelled - don't send confirmation for cancelled bookings
-      if (bookingData.booking.status === "CANCELLED") {
-        console.log(
-          `[POST-PAYMENT HOOKS] Skipping confirmation email for cancelled booking: ${bookingId}`,
-        );
-        return true; // Return true to indicate we handled this correctly (by not sending)
-      }
+    if (alreadySent) {
+      console.log(`[POST-PAYMENT HOOKS] Email already sent for booking ${bookingId}, skipping`);
+      return true;
+    }
 
-      console.log(
-        `[POST-PAYMENT HOOKS] Sending confirmation email with explicit payment status: ${paymentStatus}`,
-      );
-
-      // Send the confirmation email with the explicit payment status
-      // This is the key fix - we're passing the payment status directly instead of querying it again
-      const success = await sendBookingConfirmationEmail(
-        bookingData.user.email,
-        {
-          id: bookingData.booking.id,
-          status: bookingData.booking.status,
-          service: bookingData.service,
-          scheduledDate: bookingData.booking.scheduledDate,
-          address: bookingData.address,
-          price: bookingData.booking.price,
-          paymentStatus: paymentStatus, // Pass the payment status directly and explicitly
+    // Get booking details with user email
+    const results = await db
+      .select({
+        booking: {
+          id: booking.id,
+          status: booking.status,
+          scheduledDate: booking.scheduledDate,
+          price: booking.price,
         },
-      );
+        user: {
+          email: user.email,
+        },
+        service: {
+          name: service.name,
+        },
+        address: {
+          street: address.street,
+          city: address.city,
+          state: address.state,
+          zipCode: address.zipCode,
+        },
+      })
+      .from(booking)
+      .innerJoin(service, eq(booking.serviceId, service.id))
+      .innerJoin(address, eq(booking.addressId, address.id))
+      .innerJoin(user, eq(booking.userId, user.id))
+      .where(eq(booking.id, bookingId))
+      .limit(1);
 
-      // Record the result in admin notes
+    if (results.length === 0) {
+      console.error(
+        `[POST-PAYMENT HOOKS] Booking not found when sending confirmation: ${bookingId}`,
+      );
+      return false;
+    }
+
+    const bookingData = results[0];
+
+    // Check if booking is cancelled - don't send confirmation for cancelled bookings
+    if (bookingData.booking.status === "CANCELLED") {
+      console.log(
+        `[POST-PAYMENT HOOKS] Skipping confirmation email for cancelled booking: ${bookingId}`,
+      );
+      return true; // Return true to indicate we handled this correctly (by not sending)
+    }
+
+    console.log(
+      `[POST-PAYMENT HOOKS] Sending confirmation email with explicit payment status: ${paymentStatus}`,
+    );
+
+    // Send the confirmation email with the explicit payment status
+    // This is the key fix - we're passing the payment status directly instead of querying it again
+    const success = await sendBookingConfirmationEmail(
+      bookingData.user.email,
+      {
+        id: bookingData.booking.id,
+        status: bookingData.booking.status,
+        service: bookingData.service,
+        scheduledDate: bookingData.booking.scheduledDate,
+        address: bookingData.address,
+        price: bookingData.booking.price,
+        paymentStatus: paymentStatus, // Pass the payment status directly and explicitly
+      },
+    );
+
+    // Record the result in admin notes
+    await db.insert(adminNote).values({
+      id: crypto.randomUUID(),
+      bookingId,
+      content: success
+        ? `Booking confirmation email sent successfully`
+        : `Failed to send booking confirmation email`,
+      addedBy: "System (Auto)",
+      createdAt: new Date(),
+    });
+
+    return success;
+  } catch (error) {
+    console.error(
+      `[POST-PAYMENT HOOKS] Error sending confirmation email for booking ${bookingId}:`,
+      error,
+    );
+
+    // Record the error
+    try {
       await db.insert(adminNote).values({
         id: crypto.randomUUID(),
         bookingId,
-        content: success
-          ? `Booking confirmation email sent successfully`
-          : `Failed to send booking confirmation email`,
+        content: `Error sending confirmation email: ${error instanceof Error ? error.message : "Unknown error"}`,
         addedBy: "System (Auto)",
         createdAt: new Date(),
       });
-
-      return success;
-    } catch (error) {
+    } catch (noteError) {
       console.error(
-        `[POST-PAYMENT HOOKS] Error sending confirmation email for booking ${bookingId}:`,
-        error,
+        "[POST-PAYMENT HOOKS] Failed to create admin note about email error:",
+        noteError,
       );
-
-      // Record the error
-      try {
-        await db.insert(adminNote).values({
-          id: crypto.randomUUID(),
-          bookingId,
-          content: `Error sending confirmation email: ${error instanceof Error ? error.message : "Unknown error"}`,
-          addedBy: "System (Auto)",
-          createdAt: new Date(),
-        });
-      } catch (noteError) {
-        console.error(
-          "[POST-PAYMENT HOOKS] Failed to create admin note about email error:",
-          noteError,
-        );
-      }
-
-      return false;
     }
-  },
+
+    return false;
+  }
+},
 
   /**
    * Run all post-payment hooks

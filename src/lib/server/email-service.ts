@@ -134,6 +134,7 @@ export async function sendPasswordResetConfirmationEmail(
 }
 
 
+
 /**
  * Send a booking confirmation email
  * @param email Recipient email address
@@ -147,7 +148,8 @@ export async function sendBookingConfirmationEmail(
   try {
     console.log(`[EMAIL SERVICE] Preparing confirmation email for booking ${bookingDetails.id}`, { 
       paymentStatus: bookingDetails.paymentStatus || 'Not provided',
-      bookingStatus: bookingDetails.status 
+      bookingStatus: bookingDetails.status,
+      email: email
     });
 
     // Check if the booking is cancelled - don't send confirmation for cancelled bookings
@@ -193,13 +195,29 @@ export async function sendBookingConfirmationEmail(
       return true; // Return true to indicate handling correctly
     }
 
-    // We've confirmed payment is complete, proceed with sending email
-    console.log(`[EMAIL SERVICE] Payment complete, sending confirmation email for booking ${bookingDetails.id}`);
-
+    // Safety check to make sure we have Resend API key configured
     if (!resend) {
-      console.error("[EMAIL SERVICE] Resend API key not configured");
+      console.error("[EMAIL SERVICE] Resend API key not configured! Check environment variables");
+      // Add an admin note about this error
+      try {
+        await db.insert(adminNote).values({
+          id: crypto.randomUUID(),
+          bookingId: bookingDetails.id,
+          content: "EMAIL ERROR: Resend API key is not configured. Check environment variables.",
+          addedBy: "Email Service",
+          createdAt: new Date(),
+        });
+      } catch (noteError) {
+        console.error("[EMAIL SERVICE] Failed to create admin note about missing API key:", noteError);
+      }
       return false;
     }
+
+    // Check RESEND_API_KEY value (redacted for security)
+    console.log(`[EMAIL SERVICE] Resend API key present: ${!!RESEND_API_KEY}, value length: ${RESEND_API_KEY ? RESEND_API_KEY.length : 0}`);
+
+    // We've confirmed payment is complete, proceed with sending email
+    console.log(`[EMAIL SERVICE] Payment complete, sending confirmation email for booking ${bookingDetails.id} to ${email}`);
 
     // Generate the email template
     const template = getBookingConfirmationTemplate(
@@ -219,16 +237,58 @@ export async function sendBookingConfirmationEmail(
 
     if (error) {
       console.error("[EMAIL SERVICE] Resend API error:", error);
+      
+      // Add admin note about the error
+      try {
+        await db.insert(adminNote).values({
+          id: crypto.randomUUID(),
+          bookingId: bookingDetails.id,
+          content: `EMAIL ERROR: ${error.message || 'Unknown Resend API error'}`,
+          addedBy: "Email Service",
+          createdAt: new Date(),
+        });
+      } catch (noteError) {
+        console.error("[EMAIL SERVICE] Failed to create admin note about API error:", noteError);
+      }
+      
       return false;
     }
 
     console.log("[EMAIL SERVICE] Booking confirmation email sent successfully:", data.id);
+    
+    // Add admin note about successful email
+    try {
+      await db.insert(adminNote).values({
+        id: crypto.randomUUID(),
+        bookingId: bookingDetails.id,
+        content: `EMAIL_SENT: Booking confirmation email sent successfully. Resend ID: ${data.id}`,
+        addedBy: "Email Service",
+        createdAt: new Date(),
+      });
+    } catch (noteError) {
+      console.error("[EMAIL SERVICE] Failed to create admin note about successful email:", noteError);
+    }
+    
     return true;
   } catch (error) {
     console.error("[EMAIL SERVICE] Error sending booking confirmation email:", error);
+    
+    // Try to add admin note about the error
+    try {
+      await db.insert(adminNote).values({
+        id: crypto.randomUUID(),
+        bookingId: bookingDetails.id,
+        content: `EMAIL ERROR: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        addedBy: "Email Service",
+        createdAt: new Date(),
+      });
+    } catch (noteError) {
+      console.error("[EMAIL SERVICE] Failed to create admin note about error:", noteError);
+    }
+    
     return false;
   }
-}
+},
 
 /**
  * Send a welcome email to new users

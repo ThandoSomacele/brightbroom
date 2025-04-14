@@ -2,8 +2,6 @@
 const postgres = require("postgres");
 const { randomUUID } = require("crypto");
 
-// Modified function in netlify/functions/payfast-ipn.js
-
 exports.handler = async (event, context) => {
   console.log("[NETLIFY IPN] PayFast IPN Handler invoked", {
     method: event.httpMethod,
@@ -93,6 +91,44 @@ exports.handler = async (event, context) => {
           VALUES (${noteId}, ${bookingId}, ${`Payment completed via PayFast IPN (ID: ${paymentId})`}, ${"System (Netlify Function)"}, NOW())
         `;
 
+        // Add a direct trigger for email as well - this ensures it runs even if API call fails
+        try {
+          console.log("[NETLIFY IPN] Triggering direct database notification for email");
+          
+          // Add special email trigger admin note
+          const emailTriggerNoteId = randomUUID();
+          await client`
+            INSERT INTO admin_note (id, booking_id, content, added_by, created_at)
+            VALUES (${emailTriggerNoteId}, ${bookingId}, ${"TRIGGER_EMAIL_SEND: Payment completed via PayFast IPN"}, ${"System (Netlify Email Trigger)"}, NOW())
+          `;
+          
+          // Get relevant booking data for email processing
+          const bookingData = await client`
+            SELECT 
+              b.id as booking_id,
+              b.status as booking_status,
+              b.user_id as user_id,
+              u.email as user_email
+            FROM booking b
+            INNER JOIN "user" u ON b.user_id = u.id
+            WHERE b.id = ${bookingId}
+            LIMIT 1
+          `;
+          
+          if (bookingData && bookingData.length > 0) {
+            // Insert another note with the user's email to help debugging
+            const emailLogNoteId = randomUUID();
+            await client`
+              INSERT INTO admin_note (id, booking_id, content, added_by, created_at)
+              VALUES (${emailLogNoteId}, ${bookingId}, ${`EMAIL_INFO: User email for confirmation: ${bookingData[0].user_email}`}, ${"System (Netlify Email Info)"}, NOW())
+            `;
+          }
+          
+          console.log("[NETLIFY IPN] Added special email trigger notes");
+        } catch (emailTriggerError) {
+          console.error("[NETLIFY IPN] Failed to add email trigger notes:", emailTriggerError);
+        }
+
         console.log("[NETLIFY IPN] Database updates completed successfully");
       } catch (dbError) {
         console.error("[NETLIFY IPN] Database error:", dbError);
@@ -169,6 +205,35 @@ exports.handler = async (event, context) => {
                 "[NETLIFY IPN] Fallback API call also failed:",
                 fallbackResponse.status,
               );
+              
+              // Last resort: Direct email endpoint call
+              console.log("[NETLIFY IPN] Attempting direct email endpoint as final fallback");
+              
+              const directEmailUrl = process.env.NODE_ENV === "production"
+                ? `${prodBaseUrl}/api/payments/direct-email`
+                : `http://localhost:5173/api/payments/direct-email`;
+              
+              try {
+                const emailResponse = await fetch(directEmailUrl, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    bookingId,
+                    paymentId,
+                    forceEmail: true
+                  }),
+                });
+                
+                if (emailResponse.ok) {
+                  console.log("[NETLIFY IPN] Direct email endpoint call succeeded");
+                } else {
+                  console.error("[NETLIFY IPN] Direct email endpoint call failed");
+                }
+              } catch (emailError) {
+                console.error("[NETLIFY IPN] Error calling direct email endpoint:", emailError);
+              }
             }
           } catch (fallbackError) {
             console.error("[NETLIFY IPN] Error in fallback API call:", fallbackError);
