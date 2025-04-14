@@ -68,7 +68,9 @@ exports.handler = async (event, context) => {
         });
 
         // Update payment status to COMPLETED
-        console.log(`[NETLIFY IPN] Updating payment status for ID: ${paymentId}`);
+        console.log(
+          `[NETLIFY IPN] Updating payment status for ID: ${paymentId}`,
+        );
         await client`
           UPDATE payment 
           SET status = 'COMPLETED', updated_at = NOW() 
@@ -76,7 +78,9 @@ exports.handler = async (event, context) => {
         `;
 
         // Update booking status to CONFIRMED - THIS IS THE CRITICAL PART
-        console.log(`[NETLIFY IPN] Updating booking status for ID: ${bookingId}`);
+        console.log(
+          `[NETLIFY IPN] Updating booking status for ID: ${bookingId}`,
+        );
         await client`
           UPDATE booking 
           SET status = 'CONFIRMED', updated_at = NOW() 
@@ -93,15 +97,17 @@ exports.handler = async (event, context) => {
 
         // Add a direct trigger for email as well - this ensures it runs even if API call fails
         try {
-          console.log("[NETLIFY IPN] Triggering direct database notification for email");
-          
+          console.log(
+            "[NETLIFY IPN] Triggering direct database notification for email",
+          );
+
           // Add special email trigger admin note
           const emailTriggerNoteId = randomUUID();
           await client`
             INSERT INTO admin_note (id, booking_id, content, added_by, created_at)
             VALUES (${emailTriggerNoteId}, ${bookingId}, ${"TRIGGER_EMAIL_SEND: Payment completed via PayFast IPN"}, ${"System (Netlify Email Trigger)"}, NOW())
           `;
-          
+
           // Get relevant booking data for email processing
           const bookingData = await client`
             SELECT 
@@ -114,7 +120,7 @@ exports.handler = async (event, context) => {
             WHERE b.id = ${bookingId}
             LIMIT 1
           `;
-          
+
           if (bookingData && bookingData.length > 0) {
             // Insert another note with the user's email to help debugging
             const emailLogNoteId = randomUUID();
@@ -123,10 +129,13 @@ exports.handler = async (event, context) => {
               VALUES (${emailLogNoteId}, ${bookingId}, ${`EMAIL_INFO: User email for confirmation: ${bookingData[0].user_email}`}, ${"System (Netlify Email Info)"}, NOW())
             `;
           }
-          
+
           console.log("[NETLIFY IPN] Added special email trigger notes");
         } catch (emailTriggerError) {
-          console.error("[NETLIFY IPN] Failed to add email trigger notes:", emailTriggerError);
+          console.error(
+            "[NETLIFY IPN] Failed to add email trigger notes:",
+            emailTriggerError,
+          );
         }
 
         console.log("[NETLIFY IPN] Database updates completed successfully");
@@ -143,15 +152,19 @@ exports.handler = async (event, context) => {
       // Call the SvelteKit API to trigger hooks
       try {
         console.log("[NETLIFY IPN] Triggering post-payment hooks via API call");
-        
+
         // Define both possible API URLs
-        const prodBaseUrl = process.env.URL || process.env.DEPLOY_URL || "https://brightbroom.com";
-        const apiUrl = process.env.NODE_ENV === "production"
-          ? `${prodBaseUrl}/api/bookings/${bookingId}/process-payment`
-          : `http://localhost:5173/api/bookings/${bookingId}/process-payment`;
-        
+        const prodBaseUrl =
+          process.env.URL ||
+          process.env.DEPLOY_URL ||
+          "https://brightbroom.com";
+        const apiUrl =
+          process.env.NODE_ENV === "production"
+            ? `${prodBaseUrl}/api/bookings/${bookingId}/process-payment`
+            : `http://localhost:5173/api/bookings/${bookingId}/process-payment`;
+
         console.log(`[NETLIFY IPN] Calling API: ${apiUrl}`);
-        
+
         // Use node-fetch or similar to make the request
         const fetch = require("node-fetch");
         const response = await fetch(apiUrl, {
@@ -166,7 +179,9 @@ exports.handler = async (event, context) => {
         });
 
         if (response.ok) {
-          console.log("[NETLIFY IPN] Post-payment hooks triggered successfully");
+          console.log(
+            "[NETLIFY IPN] Post-payment hooks triggered successfully",
+          );
         } else {
           console.error(
             "[NETLIFY IPN] Failed to trigger post-payment hooks. Status:",
@@ -174,18 +189,21 @@ exports.handler = async (event, context) => {
             "Response:",
             await response.text(),
           );
-          
-          // Fallback: Try the alternate URL format 
+
+          // Fallback: Try the alternate URL format
           // (this is critical for some Netlify deployments)
-          console.log("[NETLIFY IPN] Trying alternate API URL format as fallback");
-          
+          console.log(
+            "[NETLIFY IPN] Trying alternate API URL format as fallback",
+          );
+
           // Try with /.netlify/functions/handler path prefix
-          const alternateUrl = process.env.NODE_ENV === "production"
-            ? `${prodBaseUrl}/.netlify/functions/handler/api/bookings/${bookingId}/process-payment`
-            : `http://localhost:8888/.netlify/functions/handler/api/bookings/${bookingId}/process-payment`;
-          
+          const alternateUrl =
+            process.env.NODE_ENV === "production"
+              ? `${prodBaseUrl}/.netlify/functions/handler/api/bookings/${bookingId}/process-payment`
+              : `http://localhost:8888/.netlify/functions/handler/api/bookings/${bookingId}/process-payment`;
+
           console.log(`[NETLIFY IPN] Fallback API: ${alternateUrl}`);
-          
+
           try {
             const fallbackResponse = await fetch(alternateUrl, {
               method: "POST",
@@ -197,7 +215,7 @@ exports.handler = async (event, context) => {
                 paymentStatus: "COMPLETED",
               }),
             });
-            
+
             if (fallbackResponse.ok) {
               console.log("[NETLIFY IPN] Fallback hooks call succeeded");
             } else {
@@ -205,14 +223,17 @@ exports.handler = async (event, context) => {
                 "[NETLIFY IPN] Fallback API call also failed:",
                 fallbackResponse.status,
               );
-              
-              // Last resort: Direct email endpoint call
-              console.log("[NETLIFY IPN] Attempting direct email endpoint as final fallback");
-              
-              const directEmailUrl = process.env.NODE_ENV === "production"
-                ? `${prodBaseUrl}/api/payments/direct-email`
-                : `http://localhost:5173/api/payments/direct-email`;
-              
+
+              // NEW: Call the direct email endpoint as a last resort
+              console.log(
+                "[NETLIFY IPN] Attempting direct email endpoint as final fallback",
+              );
+
+              const directEmailUrl =
+                process.env.NODE_ENV === "production"
+                  ? `${prodBaseUrl}/api/payments/direct-email`
+                  : `http://localhost:5173/api/payments/direct-email`;
+
               try {
                 const emailResponse = await fetch(directEmailUrl, {
                   method: "POST",
@@ -222,29 +243,112 @@ exports.handler = async (event, context) => {
                   body: JSON.stringify({
                     bookingId,
                     paymentId,
-                    forceEmail: true
+                    forceEmail: true,
                   }),
                 });
-                
+
                 if (emailResponse.ok) {
-                  console.log("[NETLIFY IPN] Direct email endpoint call succeeded");
+                  console.log(
+                    "[NETLIFY IPN] Direct email endpoint call succeeded",
+                  );
                 } else {
-                  console.error("[NETLIFY IPN] Direct email endpoint call failed");
+                  console.error(
+                    "[NETLIFY IPN] Direct email endpoint call failed",
+                  );
+
+                  // NEW: Try one more alternate URL path for the direct email endpoint
+                  const lastResortEmailUrl =
+                    process.env.NODE_ENV === "production"
+                      ? `${prodBaseUrl}/.netlify/functions/handler/api/payments/direct-email`
+                      : `http://localhost:8888/.netlify/functions/handler/api/payments/direct-email`;
+
+                  console.log(
+                    `[NETLIFY IPN] Last resort email endpoint attempt: ${lastResortEmailUrl}`,
+                  );
+
+                  try {
+                    const lastResortResponse = await fetch(lastResortEmailUrl, {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        bookingId,
+                        paymentId,
+                        forceEmail: true,
+                      }),
+                    });
+
+                    console.log(
+                      `[NETLIFY IPN] Last resort email status: ${lastResortResponse.status}`,
+                    );
+                  } catch (lastResortError) {
+                    console.error(
+                      "[NETLIFY IPN] Last resort email attempt failed:",
+                      lastResortError,
+                    );
+                  }
                 }
               } catch (emailError) {
-                console.error("[NETLIFY IPN] Error calling direct email endpoint:", emailError);
+                console.error(
+                  "[NETLIFY IPN] Error calling direct email endpoint:",
+                  emailError,
+                );
               }
             }
           } catch (fallbackError) {
-            console.error("[NETLIFY IPN] Error in fallback API call:", fallbackError);
+            console.error(
+              "[NETLIFY IPN] Error in fallback API call:",
+              fallbackError,
+            );
           }
         }
       } catch (hookError) {
-        console.error("[NETLIFY IPN] Error triggering post-payment hooks:", hookError);
-        // Don't fail the entire request if hooks fail
+        console.error(
+          "[NETLIFY IPN] Error triggering post-payment hooks:",
+          hookError,
+        );
+
+        // NEW: Try the direct email endpoint even if the main hook call fails completely
+        try {
+          console.log("[NETLIFY IPN] Attempting direct email after hook error");
+
+          const fetch = require("node-fetch");
+          const prodBaseUrl =
+            process.env.URL ||
+            process.env.DEPLOY_URL ||
+            "https://brightbroom.com";
+          const directEmailUrl =
+            process.env.NODE_ENV === "production"
+              ? `${prodBaseUrl}/api/payments/direct-email`
+              : `http://localhost:5173/api/payments/direct-email`;
+
+          const emailResponse = await fetch(directEmailUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              bookingId,
+              paymentId,
+              forceEmail: true,
+            }),
+          });
+
+          console.log(
+            `[NETLIFY IPN] Emergency direct email status: ${emailResponse.status}`,
+          );
+        } catch (emergencyEmailError) {
+          console.error(
+            "[NETLIFY IPN] Emergency direct email attempt failed:",
+            emergencyEmailError,
+          );
+        }
       }
     } else {
-      console.log(`[NETLIFY IPN] Ignoring payment with status: ${paymentStatus}`);
+      console.log(
+        `[NETLIFY IPN] Ignoring payment with status: ${paymentStatus}`,
+      );
     }
 
     // Always return 200 to acknowledge receipt

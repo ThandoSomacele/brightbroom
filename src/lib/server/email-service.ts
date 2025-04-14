@@ -171,21 +171,31 @@ export async function sendBookingConfirmationEmail(
     } else {
       // Otherwise, query the database (fallback path)
       console.log(`[EMAIL SERVICE] No payment status provided, querying database for booking: ${bookingDetails.id}`);
-      const payments = await db
-        .select()
-        .from(payment)
-        .where(eq(payment.bookingId, bookingDetails.id))
-        .limit(1);
+      try {
+        const payments = await db
+          .select()
+          .from(payment)
+          .where(eq(payment.bookingId, bookingDetails.id))
+          .limit(1);
 
-      if (payments.length === 0) {
-        console.log(`[EMAIL SERVICE] No payment record found for booking: ${bookingDetails.id}`);
-      } else {
-        console.log(`[EMAIL SERVICE] Found payment record with status: ${payments[0].status}`);
+        if (payments.length === 0) {
+          console.log(`[EMAIL SERVICE] No payment record found for booking: ${bookingDetails.id}`);
+          
+          // NEW: If the booking status is CONFIRMED, assume payment is complete even without payment record
+          if (bookingDetails.status === "CONFIRMED") {
+            console.log(`[EMAIL SERVICE] Booking is CONFIRMED, assuming payment is complete despite no payment record`);
+            paymentIsComplete = true;
+          }
+        } else {
+          console.log(`[EMAIL SERVICE] Found payment record with status: ${payments[0].status}`);
+          paymentIsComplete = payments[0].status === "COMPLETED";
+        }
+      } catch (dbError) {
+        console.error(`[EMAIL SERVICE] Database error when checking payment: ${dbError}`);
+        // NEW: On DB error, fall back to checking booking status
+        paymentIsComplete = bookingDetails.status === "CONFIRMED";
+        console.log(`[EMAIL SERVICE] DB error recovery - assuming payment is ${paymentIsComplete ? 'complete' : 'incomplete'} based on booking status`);
       }
-
-      // If no payment record or status is not COMPLETED, don't send email yet
-      paymentIsComplete =
-        payments.length > 0 && payments[0].status === "COMPLETED";
     }
 
     // Only send email if payment is complete
