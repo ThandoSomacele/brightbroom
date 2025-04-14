@@ -193,10 +193,17 @@
                 >Admin Dashboard</a
               >
             {/if}
-            <form action="/auth/logout" method="POST">
+            <!-- Fixed Logout Form: Remove onClick handler from button and add onSubmit to form -->
+            <form 
+              action="/auth/logout" 
+              method="POST"
+              on:submit={() => {
+                // Close menu after submission is initiated
+                setTimeout(closeMenu, 100);
+              }}
+            >
               <button
                 type="submit"
-                on:click={closeMenu}
                 class="block w-full px-3 py-2 text-left text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
               >
                 Sign out
