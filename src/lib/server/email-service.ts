@@ -2,7 +2,7 @@
 import { env } from "$env/dynamic/private";
 import { Resend } from "resend";
 import { db } from "./db";
-import { payment } from "./db/schema";
+import { adminNote, payment } from "./db/schema";
 import {
   getBookingConfirmationTemplate,
   getBookingReminderTemplate,
@@ -14,6 +14,7 @@ import {
   getPaymentReceiptTemplate,
   getWelcomeEmailTemplate,
 } from "./email-templates";
+import { eq } from "drizzle-orm";
 
 // Initialize Resend with API key from environment variable
 const RESEND_API_KEY = env.RESEND_API_KEY;
@@ -288,7 +289,7 @@ export async function sendBookingConfirmationEmail(
     
     return false;
   }
-},
+}
 
 /**
  * Send a welcome email to new users
