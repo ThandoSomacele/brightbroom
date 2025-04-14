@@ -133,6 +133,7 @@ export async function sendPasswordResetConfirmationEmail(
   }
 }
 
+
 /**
  * Send a booking confirmation email
  * @param email Recipient email address
@@ -144,27 +145,40 @@ export async function sendBookingConfirmationEmail(
   bookingDetails: any,
 ): Promise<boolean> {
   try {
+    console.log(`[EMAIL SERVICE] Preparing confirmation email for booking ${bookingDetails.id}`, { 
+      paymentStatus: bookingDetails.paymentStatus || 'Not provided',
+      bookingStatus: bookingDetails.status 
+    });
+
     // Check if the booking is cancelled - don't send confirmation for cancelled bookings
     if (bookingDetails.status === "CANCELLED") {
       console.log(
-        `Skipping confirmation email for cancelled booking: ${bookingDetails.id}`,
+        `[EMAIL SERVICE] Skipping confirmation email for cancelled booking: ${bookingDetails.id}`,
       );
       return true; // Return true to indicate we handled this properly (by not sending)
     }
 
-    // Check for payment status from the passed parameter or query the database
+    // Determine payment status with more detailed logging
     let paymentIsComplete = false;
 
-    // If payment status is provided directly, use that
+    // If payment status is provided directly, use that (this is the preferred path)
     if (bookingDetails.paymentStatus) {
       paymentIsComplete = bookingDetails.paymentStatus === "COMPLETED";
+      console.log(`[EMAIL SERVICE] Using provided payment status: ${bookingDetails.paymentStatus}, complete: ${paymentIsComplete}`);
     } else {
-      // Otherwise, query the database (this is the old behavior)
+      // Otherwise, query the database (fallback path)
+      console.log(`[EMAIL SERVICE] No payment status provided, querying database for booking: ${bookingDetails.id}`);
       const payments = await db
         .select()
         .from(payment)
         .where(eq(payment.bookingId, bookingDetails.id))
         .limit(1);
+
+      if (payments.length === 0) {
+        console.log(`[EMAIL SERVICE] No payment record found for booking: ${bookingDetails.id}`);
+      } else {
+        console.log(`[EMAIL SERVICE] Found payment record with status: ${payments[0].status}`);
+      }
 
       // If no payment record or status is not COMPLETED, don't send email yet
       paymentIsComplete =
@@ -174,14 +188,18 @@ export async function sendBookingConfirmationEmail(
     // Only send email if payment is complete
     if (!paymentIsComplete) {
       console.log(
-        `Delaying confirmation email for booking ${bookingDetails.id} until payment completes`,
+        `[EMAIL SERVICE] Delaying confirmation email for booking ${bookingDetails.id} until payment completes`,
       );
       return true; // Return true to indicate handling correctly
     }
 
-    console.log(
-      `Sending booking confirmation email for booking ${bookingDetails.id}`,
-    );
+    // We've confirmed payment is complete, proceed with sending email
+    console.log(`[EMAIL SERVICE] Payment complete, sending confirmation email for booking ${bookingDetails.id}`);
+
+    if (!resend) {
+      console.error("[EMAIL SERVICE] Resend API key not configured");
+      return false;
+    }
 
     // Generate the email template
     const template = getBookingConfirmationTemplate(
@@ -200,14 +218,14 @@ export async function sendBookingConfirmationEmail(
     });
 
     if (error) {
-      console.error("Resend API error:", error);
+      console.error("[EMAIL SERVICE] Resend API error:", error);
       return false;
     }
 
-    console.log("Booking confirmation email sent successfully:", data.id);
+    console.log("[EMAIL SERVICE] Booking confirmation email sent successfully:", data.id);
     return true;
   } catch (error) {
-    console.error("Error sending booking confirmation email:", error);
+    console.error("[EMAIL SERVICE] Error sending booking confirmation email:", error);
     return false;
   }
 }

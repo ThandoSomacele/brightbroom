@@ -6,6 +6,7 @@ import { validateIpnRequest } from "$lib/server/payment";
 import { json } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
+
 /**
  * IPN (Instant Payment Notification) handler for PayFast
  * This endpoint receives payment confirmations from PayFast
@@ -13,7 +14,7 @@ import { eq } from "drizzle-orm";
 export async function POST({ request }) {
   try {
     // Enhanced logging for debugging
-    console.log("IPN: Received PayFast notification", {
+    console.log("[IPN] Received PayFast notification", {
       url: request.url,
       method: request.method,
     });
@@ -33,7 +34,7 @@ export async function POST({ request }) {
     // Log the IPN data (excluding sensitive information)
     const sanitizedData = { ...pfData };
     delete sanitizedData.signature;
-    console.log("IPN data received:", sanitizedData);
+    console.log("[IPN] Data received:", sanitizedData);
 
     // Extract the important values
     const paymentId = pfData.m_payment_id;
@@ -42,7 +43,7 @@ export async function POST({ request }) {
 
     // Log the key information
     console.log(
-      `Processing IPN: Payment ID: ${paymentId}, Status: ${paymentStatus}, Booking ID: ${bookingId}`,
+      `[IPN] Processing: Payment ID: ${paymentId}, Status: ${paymentStatus}, Booking ID: ${bookingId}`,
     );
 
     // Check if the payment record exists
@@ -53,7 +54,7 @@ export async function POST({ request }) {
       .limit(1);
 
     if (!paymentRecords || paymentRecords.length === 0) {
-      console.error(`Payment record not found: ${paymentId}`);
+      console.error(`[IPN] Payment record not found: ${paymentId}`);
       return json(
         { status: "error", message: "Payment record not found" },
         { status: 404 },
@@ -65,18 +66,18 @@ export async function POST({ request }) {
     try {
       isValidIpn = await validateIpnRequest(pfData, rawBody);
     } catch (validationError) {
-      console.warn("IPN validation error:", validationError);
+      console.warn("[IPN] Validation error:", validationError);
       // In development or testing, we might want to proceed anyway
       if (process.env.NODE_ENV !== "production") {
         console.log(
-          "Non-production environment - proceeding despite validation error",
+          "[IPN] Non-production environment - proceeding despite validation error",
         );
         isValidIpn = true;
       }
     }
 
-    if (!isValidIpn) {
-      console.error("Invalid IPN request, ignoring");
+    if (!isValidIpn && process.env.NODE_ENV === "production") {
+      console.error("[IPN] Invalid request, ignoring");
       return json(
         { status: "error", message: "Invalid IPN request" },
         { status: 400 },
@@ -86,7 +87,7 @@ export async function POST({ request }) {
     // Handle different payment statuses
     if (paymentStatus === "COMPLETE") {
       console.log(
-        `Processing completed payment: ${paymentId} for booking: ${bookingId}`,
+        `[IPN] Processing completed payment: ${paymentId} for booking: ${bookingId}`,
       );
 
       try {
@@ -99,7 +100,7 @@ export async function POST({ request }) {
           })
           .where(eq(payment.id, paymentId));
 
-        console.log(`Updated payment status to COMPLETED for ID: ${paymentId}`);
+        console.log(`[IPN] Updated payment status to COMPLETED for ID: ${paymentId}`);
 
         // Update booking status to CONFIRMED
         await db
@@ -110,7 +111,7 @@ export async function POST({ request }) {
           })
           .where(eq(booking.id, bookingId));
 
-        console.log(`Updated booking status to CONFIRMED for ID: ${bookingId}`);
+        console.log(`[IPN] Updated booking status to CONFIRMED for ID: ${bookingId}`);
 
         // Create admin note about successful payment
         await db.insert(adminNote).values({
@@ -121,16 +122,17 @@ export async function POST({ request }) {
           createdAt: new Date(),
         });
 
-        console.log(`Created admin note for booking ${bookingId}`);
+        console.log(`[IPN] Created admin note for booking ${bookingId}`);
 
-        // Run post-payment hooks (like sending confirmation emails)
+        // Run post-payment hooks directly in the same process (more reliable)
         try {
+          console.log(`[IPN] Running post-payment hooks directly for booking ${bookingId}`);
           await postPaymentHooks.runAll(bookingId, "COMPLETED");
           console.log(
-            `Successfully ran post-payment hooks for booking ${bookingId}`,
+            `[IPN] Successfully ran post-payment hooks for booking ${bookingId}`,
           );
         } catch (hooksError) {
-          console.error(`Error running post-payment hooks: ${hooksError}`);
+          console.error(`[IPN] Error running post-payment hooks: ${hooksError}`);
           // Don't fail the entire request if hooks fail
         }
 
@@ -139,7 +141,7 @@ export async function POST({ request }) {
           message: "Payment processed successfully",
         });
       } catch (dbError) {
-        console.error("Database error processing payment:", dbError);
+        console.error("[IPN] Database error processing payment:", dbError);
         return json(
           { status: "error", message: "Database error processing payment" },
           { status: 500 },
@@ -168,7 +170,7 @@ export async function POST({ request }) {
     } else {
       // Unknown or pending status
       console.log(
-        `Unhandled payment status: ${paymentStatus}, no action taken`,
+        `[IPN] Unhandled payment status: ${paymentStatus}, no action taken`,
       );
       return json({
         status: "success",
@@ -176,7 +178,7 @@ export async function POST({ request }) {
       });
     }
   } catch (error) {
-    console.error("Error processing IPN:", error);
+    console.error("[IPN] Error processing:", error);
     return json(
       { status: "error", message: "Server error processing IPN" },
       { status: 500 },

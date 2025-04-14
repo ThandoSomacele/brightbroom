@@ -2,8 +2,10 @@
 const postgres = require("postgres");
 const { randomUUID } = require("crypto");
 
+// Modified function in netlify/functions/payfast-ipn.js
+
 exports.handler = async (event, context) => {
-  console.log("PayFast IPN Handler invoked", {
+  console.log("[NETLIFY IPN] PayFast IPN Handler invoked", {
     method: event.httpMethod,
     path: event.path,
   });
@@ -30,7 +32,7 @@ exports.handler = async (event, context) => {
   }
 
   // Log the request details
-  console.log("PayFast IPN request body:", event.body);
+  console.log("[NETLIFY IPN] Request body:", event.body);
 
   let client;
 
@@ -50,7 +52,7 @@ exports.handler = async (event, context) => {
     const bookingId = paymentData.custom_str1;
 
     console.log(
-      `Processing payment: ${paymentId} for booking: ${bookingId} with status: ${paymentStatus}`,
+      `[NETLIFY IPN] Processing payment: ${paymentId} for booking: ${bookingId} with status: ${paymentStatus}`,
     );
 
     // Only process if payment is COMPLETE
@@ -62,13 +64,13 @@ exports.handler = async (event, context) => {
           throw new Error("DATABASE_URL environment variable is not set");
         }
 
-        console.log("Connecting to database...");
+        console.log("[NETLIFY IPN] Connecting to database...");
         client = postgres(connectionString, {
           ssl: { rejectUnauthorized: false },
         });
 
         // Update payment status to COMPLETED
-        console.log(`Updating payment status for ID: ${paymentId}`);
+        console.log(`[NETLIFY IPN] Updating payment status for ID: ${paymentId}`);
         await client`
           UPDATE payment 
           SET status = 'COMPLETED', updated_at = NOW() 
@@ -76,7 +78,7 @@ exports.handler = async (event, context) => {
         `;
 
         // Update booking status to CONFIRMED - THIS IS THE CRITICAL PART
-        console.log(`Updating booking status for ID: ${bookingId}`);
+        console.log(`[NETLIFY IPN] Updating booking status for ID: ${bookingId}`);
         await client`
           UPDATE booking 
           SET status = 'CONFIRMED', updated_at = NOW() 
@@ -84,32 +86,36 @@ exports.handler = async (event, context) => {
         `;
 
         // Create admin note about the payment
-        console.log("Creating admin note");
+        console.log("[NETLIFY IPN] Creating admin note");
         const noteId = randomUUID();
         await client`
           INSERT INTO admin_note (id, booking_id, content, added_by, created_at)
           VALUES (${noteId}, ${bookingId}, ${`Payment completed via PayFast IPN (ID: ${paymentId})`}, ${"System (Netlify Function)"}, NOW())
         `;
 
-        console.log("Database updates completed successfully");
+        console.log("[NETLIFY IPN] Database updates completed successfully");
       } catch (dbError) {
-        console.error("Database error:", dbError);
+        console.error("[NETLIFY IPN] Database error:", dbError);
         // We'll still return 200 to acknowledge receipt to PayFast
       } finally {
         if (client) {
           await client.end();
-          console.log("Database connection closed");
+          console.log("[NETLIFY IPN] Database connection closed");
         }
       }
 
       // Call the SvelteKit API to trigger hooks
       try {
-        console.log("Triggering post-payment hooks via API call");
-        const apiUrl =
-          process.env.NODE_ENV === "production"
-            ? `${process.env.URL || "https://brightbroom.com"}/api/bookings/${bookingId}/process-payment`
-            : `http://localhost:5173/api/bookings/${bookingId}/process-payment`;
-
+        console.log("[NETLIFY IPN] Triggering post-payment hooks via API call");
+        
+        // Define both possible API URLs
+        const prodBaseUrl = process.env.URL || process.env.DEPLOY_URL || "https://brightbroom.com";
+        const apiUrl = process.env.NODE_ENV === "production"
+          ? `${prodBaseUrl}/api/bookings/${bookingId}/process-payment`
+          : `http://localhost:5173/api/bookings/${bookingId}/process-payment`;
+        
+        console.log(`[NETLIFY IPN] Calling API: ${apiUrl}`);
+        
         // Use node-fetch or similar to make the request
         const fetch = require("node-fetch");
         const response = await fetch(apiUrl, {
@@ -119,24 +125,61 @@ exports.handler = async (event, context) => {
           },
           body: JSON.stringify({
             paymentId,
-            paymentStatus: "COMPLETED",
+            paymentStatus: "COMPLETED", // Explicitly set to COMPLETED
           }),
         });
 
         if (response.ok) {
-          console.log("Post-payment hooks triggered successfully");
+          console.log("[NETLIFY IPN] Post-payment hooks triggered successfully");
         } else {
           console.error(
-            "Failed to trigger post-payment hooks:",
+            "[NETLIFY IPN] Failed to trigger post-payment hooks. Status:",
+            response.status,
+            "Response:",
             await response.text(),
           );
+          
+          // Fallback: Try the alternate URL format 
+          // (this is critical for some Netlify deployments)
+          console.log("[NETLIFY IPN] Trying alternate API URL format as fallback");
+          
+          // Try with /.netlify/functions/handler path prefix
+          const alternateUrl = process.env.NODE_ENV === "production"
+            ? `${prodBaseUrl}/.netlify/functions/handler/api/bookings/${bookingId}/process-payment`
+            : `http://localhost:8888/.netlify/functions/handler/api/bookings/${bookingId}/process-payment`;
+          
+          console.log(`[NETLIFY IPN] Fallback API: ${alternateUrl}`);
+          
+          try {
+            const fallbackResponse = await fetch(alternateUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                paymentId,
+                paymentStatus: "COMPLETED",
+              }),
+            });
+            
+            if (fallbackResponse.ok) {
+              console.log("[NETLIFY IPN] Fallback hooks call succeeded");
+            } else {
+              console.error(
+                "[NETLIFY IPN] Fallback API call also failed:",
+                fallbackResponse.status,
+              );
+            }
+          } catch (fallbackError) {
+            console.error("[NETLIFY IPN] Error in fallback API call:", fallbackError);
+          }
         }
       } catch (hookError) {
-        console.error("Error triggering post-payment hooks:", hookError);
+        console.error("[NETLIFY IPN] Error triggering post-payment hooks:", hookError);
         // Don't fail the entire request if hooks fail
       }
     } else {
-      console.log(`Ignoring payment with status: ${paymentStatus}`);
+      console.log(`[NETLIFY IPN] Ignoring payment with status: ${paymentStatus}`);
     }
 
     // Always return 200 to acknowledge receipt
@@ -145,7 +188,7 @@ exports.handler = async (event, context) => {
       body: "IPN received successfully",
     };
   } catch (error) {
-    console.error("Error processing PayFast IPN:", error);
+    console.error("[NETLIFY IPN] Error processing:", error);
 
     // Still return 200 to acknowledge receipt
     return {
