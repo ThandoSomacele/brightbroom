@@ -1,5 +1,6 @@
 // src/lib/server/email-service.ts
 import { env } from "$env/dynamic/private";
+import { eq } from "drizzle-orm";
 import { Resend } from "resend";
 import { db } from "./db";
 import { adminNote, payment } from "./db/schema";
@@ -15,7 +16,6 @@ import {
   getPaymentReceiptTemplate,
   getWelcomeEmailTemplate,
 } from "./email-templates";
-import { eq } from "drizzle-orm";
 
 // Initialize Resend with API key from environment variable
 const RESEND_API_KEY = env.RESEND_API_KEY;
@@ -135,8 +135,6 @@ export async function sendPasswordResetConfirmationEmail(
   }
 }
 
-
-
 /**
  * Send a booking confirmation email
  * @param email Recipient email address
@@ -148,11 +146,14 @@ export async function sendBookingConfirmationEmail(
   bookingDetails: any,
 ): Promise<boolean> {
   try {
-    console.log(`[EMAIL SERVICE] Preparing confirmation email for booking ${bookingDetails.id}`, { 
-      paymentStatus: bookingDetails.paymentStatus || 'Not provided',
-      bookingStatus: bookingDetails.status,
-      email: email
-    });
+    console.log(
+      `[EMAIL SERVICE] Preparing confirmation email for booking ${bookingDetails.id}`,
+      {
+        paymentStatus: bookingDetails.paymentStatus || "Not provided",
+        bookingStatus: bookingDetails.status,
+        email: email,
+      },
+    );
 
     // Check if the booking is cancelled - don't send confirmation for cancelled bookings
     if (bookingDetails.status === "CANCELLED") {
@@ -168,10 +169,14 @@ export async function sendBookingConfirmationEmail(
     // If payment status is provided directly, use that (this is the preferred path)
     if (bookingDetails.paymentStatus) {
       paymentIsComplete = bookingDetails.paymentStatus === "COMPLETED";
-      console.log(`[EMAIL SERVICE] Using provided payment status: ${bookingDetails.paymentStatus}, complete: ${paymentIsComplete}`);
+      console.log(
+        `[EMAIL SERVICE] Using provided payment status: ${bookingDetails.paymentStatus}, complete: ${paymentIsComplete}`,
+      );
     } else {
       // Otherwise, query the database (fallback path)
-      console.log(`[EMAIL SERVICE] No payment status provided, querying database for booking: ${bookingDetails.id}`);
+      console.log(
+        `[EMAIL SERVICE] No payment status provided, querying database for booking: ${bookingDetails.id}`,
+      );
       try {
         const payments = await db
           .select()
@@ -180,22 +185,32 @@ export async function sendBookingConfirmationEmail(
           .limit(1);
 
         if (payments.length === 0) {
-          console.log(`[EMAIL SERVICE] No payment record found for booking: ${bookingDetails.id}`);
-          
+          console.log(
+            `[EMAIL SERVICE] No payment record found for booking: ${bookingDetails.id}`,
+          );
+
           // NEW: If the booking status is CONFIRMED, assume payment is complete even without payment record
           if (bookingDetails.status === "CONFIRMED") {
-            console.log(`[EMAIL SERVICE] Booking is CONFIRMED, assuming payment is complete despite no payment record`);
+            console.log(
+              `[EMAIL SERVICE] Booking is CONFIRMED, assuming payment is complete despite no payment record`,
+            );
             paymentIsComplete = true;
           }
         } else {
-          console.log(`[EMAIL SERVICE] Found payment record with status: ${payments[0].status}`);
+          console.log(
+            `[EMAIL SERVICE] Found payment record with status: ${payments[0].status}`,
+          );
           paymentIsComplete = payments[0].status === "COMPLETED";
         }
       } catch (dbError) {
-        console.error(`[EMAIL SERVICE] Database error when checking payment: ${dbError}`);
+        console.error(
+          `[EMAIL SERVICE] Database error when checking payment: ${dbError}`,
+        );
         // NEW: On DB error, fall back to checking booking status
         paymentIsComplete = bookingDetails.status === "CONFIRMED";
-        console.log(`[EMAIL SERVICE] DB error recovery - assuming payment is ${paymentIsComplete ? 'complete' : 'incomplete'} based on booking status`);
+        console.log(
+          `[EMAIL SERVICE] DB error recovery - assuming payment is ${paymentIsComplete ? "complete" : "incomplete"} based on booking status`,
+        );
       }
     }
 
@@ -209,27 +224,37 @@ export async function sendBookingConfirmationEmail(
 
     // Safety check to make sure we have Resend API key configured
     if (!resend) {
-      console.error("[EMAIL SERVICE] Resend API key not configured! Check environment variables");
+      console.error(
+        "[EMAIL SERVICE] Resend API key not configured! Check environment variables",
+      );
       // Add an admin note about this error
       try {
         await db.insert(adminNote).values({
           id: crypto.randomUUID(),
           bookingId: bookingDetails.id,
-          content: "EMAIL ERROR: Resend API key is not configured. Check environment variables.",
+          content:
+            "EMAIL ERROR: Resend API key is not configured. Check environment variables.",
           addedBy: "Email Service",
           createdAt: new Date(),
         });
       } catch (noteError) {
-        console.error("[EMAIL SERVICE] Failed to create admin note about missing API key:", noteError);
+        console.error(
+          "[EMAIL SERVICE] Failed to create admin note about missing API key:",
+          noteError,
+        );
       }
       return false;
     }
 
     // Check RESEND_API_KEY value (redacted for security)
-    console.log(`[EMAIL SERVICE] Resend API key present: ${!!RESEND_API_KEY}, value length: ${RESEND_API_KEY ? RESEND_API_KEY.length : 0}`);
+    console.log(
+      `[EMAIL SERVICE] Resend API key present: ${!!RESEND_API_KEY}, value length: ${RESEND_API_KEY ? RESEND_API_KEY.length : 0}`,
+    );
 
     // We've confirmed payment is complete, proceed with sending email
-    console.log(`[EMAIL SERVICE] Payment complete, sending confirmation email for booking ${bookingDetails.id} to ${email}`);
+    console.log(
+      `[EMAIL SERVICE] Payment complete, sending confirmation email for booking ${bookingDetails.id} to ${email}`,
+    );
 
     // Generate the email template
     const template = getBookingConfirmationTemplate(
@@ -249,25 +274,31 @@ export async function sendBookingConfirmationEmail(
 
     if (error) {
       console.error("[EMAIL SERVICE] Resend API error:", error);
-      
+
       // Add admin note about the error
       try {
         await db.insert(adminNote).values({
           id: crypto.randomUUID(),
           bookingId: bookingDetails.id,
-          content: `EMAIL ERROR: ${error.message || 'Unknown Resend API error'}`,
+          content: `EMAIL ERROR: ${error.message || "Unknown Resend API error"}`,
           addedBy: "Email Service",
           createdAt: new Date(),
         });
       } catch (noteError) {
-        console.error("[EMAIL SERVICE] Failed to create admin note about API error:", noteError);
+        console.error(
+          "[EMAIL SERVICE] Failed to create admin note about API error:",
+          noteError,
+        );
       }
-      
+
       return false;
     }
 
-    console.log("[EMAIL SERVICE] Booking confirmation email sent successfully:", data.id);
-    
+    console.log(
+      "[EMAIL SERVICE] Booking confirmation email sent successfully:",
+      data.id,
+    );
+
     // Add admin note about successful email
     try {
       await db.insert(adminNote).values({
@@ -278,26 +309,35 @@ export async function sendBookingConfirmationEmail(
         createdAt: new Date(),
       });
     } catch (noteError) {
-      console.error("[EMAIL SERVICE] Failed to create admin note about successful email:", noteError);
+      console.error(
+        "[EMAIL SERVICE] Failed to create admin note about successful email:",
+        noteError,
+      );
     }
-    
+
     return true;
   } catch (error) {
-    console.error("[EMAIL SERVICE] Error sending booking confirmation email:", error);
-    
+    console.error(
+      "[EMAIL SERVICE] Error sending booking confirmation email:",
+      error,
+    );
+
     // Try to add admin note about the error
     try {
       await db.insert(adminNote).values({
         id: crypto.randomUUID(),
         bookingId: bookingDetails.id,
-        content: `EMAIL ERROR: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        content: `EMAIL ERROR: ${error instanceof Error ? error.message : "Unknown error"}`,
         addedBy: "Email Service",
         createdAt: new Date(),
       });
     } catch (noteError) {
-      console.error("[EMAIL SERVICE] Failed to create admin note about error:", noteError);
+      console.error(
+        "[EMAIL SERVICE] Failed to create admin note about error:",
+        noteError,
+      );
     }
-    
+
     return false;
   }
 }
@@ -406,7 +446,11 @@ export async function sendCleanerAssignmentEmail(
       return false;
     }
 
-    // Generate the assignment template
+    console.log(
+      `Preparing cleaner assignment email for booking ${bookingDetails.id}`,
+    );
+
+    // Generate the assignment template with enhanced service details
     const template = getCleanerAssignmentTemplate(
       email,
       bookingDetails,
@@ -525,7 +569,6 @@ export async function sendContactFormEmail(
   }
 }
 
-
 /**
  * Send email notification about new cleaner application
  */
@@ -538,7 +581,9 @@ export async function sendCleanerApplicationEmail(
       return false;
     }
 
-    console.log(`Sending cleaner application notification for: ${data.firstName} ${data.lastName}`);
+    console.log(
+      `Sending cleaner application notification for: ${data.firstName} ${data.lastName}`,
+    );
 
     // Use the proper email template function
     const template = getCleanerApplicationTemplate(
@@ -549,15 +594,15 @@ export async function sendCleanerApplicationEmail(
         email: data.email,
         phone: data.phone,
         city: data.city,
-        experience: Array.isArray(data.experienceTypes) 
+        experience: Array.isArray(data.experienceTypes)
           ? data.experienceTypes.join(", ")
           : String(data.experienceTypes),
         availability: data.availability,
         ownTransport: data.ownTransport,
         whatsApp: data.whatsApp,
-        createdAt: data.createdAt
+        createdAt: data.createdAt,
       },
-      EMAIL_CONFIG
+      EMAIL_CONFIG,
     );
 
     // Notification email recipient - replace with your recruitment team email
@@ -577,7 +622,10 @@ export async function sendCleanerApplicationEmail(
       return false;
     }
 
-    console.log("Cleaner application notification sent successfully:", emailData.id);
+    console.log(
+      "Cleaner application notification sent successfully:",
+      emailData.id,
+    );
     return true;
   } catch (error) {
     console.error("Error sending cleaner application notification:", error);

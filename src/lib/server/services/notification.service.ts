@@ -30,16 +30,20 @@ export async function sendCleanerAssignmentNotification(
     const bookingData = bookingResults[0];
     const cleanerId = bookingData.cleanerId;
 
-    // Get booking details with related data
+    // Get booking details with related data - now including more service details
     const results = await db
       .select({
         booking: {
           id: booking.id,
           scheduledDate: booking.scheduledDate,
+          duration: booking.duration, // Add duration
+          notes: booking.notes, // Add customer notes
         },
         service: {
           id: service.id,
           name: service.name,
+          description: service.description, // Add full service description
+          details: service.details, // Add structured service details
         },
         address: {
           street: address.street,
@@ -65,16 +69,16 @@ export async function sendCleanerAssignmentNotification(
 
     const result = results[0];
 
-    // Get cleaner information in a separate query - now including profileImageUrl
+    // Get cleaner information
     const cleanerResults = await db
       .select({
         firstName: user.firstName,
         lastName: user.lastName,
         phone: user.phone,
-        profileImageUrl: cleanerProfile.profileImageUrl, // Add profile image URL
+        profileImageUrl: cleanerProfile.profileImageUrl,
       })
       .from(user)
-      .leftJoin(cleanerProfile, eq(user.id, cleanerProfile.userId)) // Use left join to ensure we get the user even if profile is incomplete
+      .leftJoin(cleanerProfile, eq(user.id, cleanerProfile.userId))
       .where(eq(user.id, cleanerId))
       .limit(1);
 
@@ -85,13 +89,15 @@ export async function sendCleanerAssignmentNotification(
 
     const cleanerInfo = cleanerResults[0];
 
-    // Prepare booking data for the email
+    // Prepare booking data for the email - now with enhanced service details
     const emailData = {
       id: result.booking.id,
       scheduledDate: result.booking.scheduledDate.toISOString(),
-      service: result.service,
+      duration: result.booking.duration,
+      notes: result.booking.notes,
+      service: result.service, // This now includes description and details
       address: result.address,
-      cleaner: cleanerInfo, // This now includes profileImageUrl
+      cleaner: cleanerInfo,
     };
 
     // Send notification to the customer
