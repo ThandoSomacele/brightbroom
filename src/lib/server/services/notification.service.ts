@@ -1,6 +1,12 @@
 // src/lib/server/services/notification.service.ts
 import { db } from "$lib/server/db";
-import { address, booking, service, user } from "$lib/server/db/schema";
+import {
+  address,
+  booking,
+  cleanerProfile,
+  service,
+  user,
+} from "$lib/server/db/schema";
 import { sendCleanerAssignmentEmail } from "$lib/server/email-service";
 import { eq } from "drizzle-orm";
 
@@ -70,6 +76,7 @@ export async function sendCleanerAssignmentNotification(
     const result = results[0];
 
     // Get cleaner information
+    // Using proper SQL syntax for the query:
     const cleanerResults = await db
       .select({
         firstName: user.firstName,
@@ -79,7 +86,7 @@ export async function sendCleanerAssignmentNotification(
       })
       .from(user)
       .leftJoin(cleanerProfile, eq(user.id, cleanerProfile.userId))
-      .where(eq(user.id, cleanerId))
+      .where(eq(user.id, cleanerId)) // Use cleanerId directly here, we know it's not null
       .limit(1);
 
     if (cleanerResults.length === 0) {
