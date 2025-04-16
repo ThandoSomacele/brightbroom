@@ -6,6 +6,7 @@ import { adminNote, payment } from "./db/schema";
 import {
   getBookingConfirmationTemplate,
   getBookingReminderTemplate,
+  getCleanerApplicationTemplate,
   getCleanerAssignmentTemplate,
   getCleanerWelcomeEmailTemplate,
   getContactFormTemplate,
@@ -524,70 +525,62 @@ export async function sendContactFormEmail(
   }
 }
 
+
 /**
  * Send email notification about new cleaner application
  */
 export async function sendCleanerApplicationEmail(
   data: CleanerApplicationEmailData,
-) {
+): Promise<boolean> {
   try {
-    // Format experience types for display
-    const formattedExperienceTypes = data.experienceTypes
-      .map((type) => {
-        return type === "GUEST_HOUSE"
-          ? "Cleaning Guest house/Hotel/BnB"
-          : type === "OFFICE"
-            ? "Cleaning Offices"
-            : type === "CARE_GIVING"
-              ? "Care Giving"
-              : type;
-      })
-      .join(", ");
+    if (!resend) {
+      console.error("Resend API key not configured");
+      return false;
+    }
 
-    // Construct email content
-    const emailContent = `
-      <h1>New Cleaner Application</h1>
-      <p>A new cleaner application has been submitted:</p>
-      
-      <h2>Personal Information</h2>
-      <ul>
-        <li><strong>Name:</strong> ${data.firstName} ${data.lastName}</li>
-        <li><strong>Email:</strong> ${data.email}</li>
-        <li><strong>Phone:</strong> ${data.phone}</li>
-        <li><strong>Location:</strong> ${data.city}</li>
-      </ul>
-      
-      <h2>Work Information</h2>
-      <ul>
-        <li><strong>Experience Types:</strong> ${formattedExperienceTypes}</li>
-        <li><strong>Availability:</strong> ${data.availability}</li>
-        <li><strong>Own Transport:</strong> ${data.ownTransport ? "Yes" : "No"}</li>
-        <li><strong>WhatsApp:</strong> ${data.whatsApp ? "Yes" : "No"}</li>
-      </ul>
-      
-      <p>Submitted on: ${data.createdAt.toLocaleString()}</p>
-      
-      <p>
-        <a href="${process.env.PUBLIC_URL}/admin/applications/${data.id}">
-          View Application Details
-        </a>
-      </p>
-    `;
+    console.log(`Sending cleaner application notification for: ${data.firstName} ${data.lastName}`);
 
-    // Send the email using your email service (Resend, SendGrid, etc.)
-    // This is a placeholder for your actual email sending logic
-    console.log("Sending email notification for application ID:", data.id);
+    // Use the proper email template function
+    const template = getCleanerApplicationTemplate(
+      {
+        id: data.id,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        city: data.city,
+        experience: Array.isArray(data.experienceTypes) 
+          ? data.experienceTypes.join(", ")
+          : String(data.experienceTypes),
+        availability: data.availability,
+        ownTransport: data.ownTransport,
+        whatsApp: data.whatsApp,
+        createdAt: data.createdAt
+      },
+      EMAIL_CONFIG
+    );
 
-    // Return success
-    return {
-      success: true,
-      message: "Email notification sent successfully",
-    };
+    // Notification email recipient - replace with your recruitment team email
+    const notificationEmail = "recruitment@brightbroom.com"; // Or use an environment variable
+
+    // Send email with Resend
+    const { data: emailData, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: notificationEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+
+    if (error) {
+      console.error("Error sending cleaner application notification:", error);
+      return false;
+    }
+
+    console.log("Cleaner application notification sent successfully:", emailData.id);
+    return true;
   } catch (error) {
-    console.error("Error sending application email:", error);
-    return {
-      success: false,
-      message: "Failed to send email notification",
-    };
+    console.error("Error sending cleaner application notification:", error);
+    return false;
   }
 }

@@ -758,7 +758,7 @@
                         and
                         <a href="/privacy" class="text-primary hover:underline"
                           >Privacy Policy</a
-                        >
+                        > <span class="text-red-500">*</span>
                       </span>
                     </label>
                   </div>
