@@ -8,8 +8,8 @@
     isWithinServiceArea,
   } from "$lib/utils/serviceAreaValidator";
 
-   // Environment variables
-   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  // Environment variables
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   // Form state
   let isSubmitting = false;
@@ -620,6 +620,8 @@
                   <input type="hidden" name="lastName" value={lastName} />
                   <input type="hidden" name="email" value={email} />
                   <input type="hidden" name="phone" value={phone} />
+                  <!-- Hidden field for work radius - default 20km -->
+                  <input type="hidden" name="workRadius" value="20" />
 
                   <!-- Hidden address fields -->
                   <input
@@ -693,7 +695,9 @@
                         class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                       >
                         <option value="">Select ID type...</option>
-                        <option value="SOUTH_AFRICAN_ID">South African ID</option>
+                        <option value="SOUTH_AFRICAN_ID"
+                          >South African ID</option
+                        >
                         <option value="PASSPORT">Passport</option>
                       </select>
                     </div>
@@ -713,6 +717,47 @@
                         required
                       />
                     </div>
+                  </div>
+
+                  <!-- Bio Field -->
+                  <div>
+                    <label
+                      for="bio"
+                      class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Short Bio (Optional)
+                    </label>
+                    <textarea
+                      id="bio"
+                      name="bio"
+                      rows="3"
+                      class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      placeholder="Tell us a bit about yourself and your cleaning experience"
+                    ></textarea>
+                  </div>
+
+                  <!-- Pet Compatibility -->
+                  <div>
+                    <label
+                      for="petCompatibility"
+                      class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Which Pets can you work with?
+                    </label>
+                    <select
+                      id="petCompatibility"
+                      name="petCompatibility"
+                      class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    >
+                      <option value="NONE">No Pets</option>
+                      <option value="DOGS">Dogs Only</option>
+                      <option value="CATS">Cats Only</option>
+                      <option value="BOTH">Both Dogs and Cats</option>
+                    </select>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      Do you have any preferences regarding pets at cleaning
+                      locations?
+                    </p>
                   </div>
 
                   <!-- How did you hear about us -->

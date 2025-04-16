@@ -249,10 +249,17 @@ export const cleanerApplication = pgTable("cleaner_application", {
   phone: text("phone"),
   city: text("city").notNull(),
 
-  // Add new fields for address data
+  // Address data fields
   latitude: decimal("latitude", { precision: 10, scale: 6 }),
   longitude: decimal("longitude", { precision: 10, scale: 6 }),
   formattedAddress: text("formatted_address"),
+
+  // Additional fields for profile creation
+  workRadius: decimal("work_radius", { precision: 10, scale: 2 }).default("20"),
+  bio: text("bio"),
+  taxNumber: text("tax_number"),
+  bankAccount: text("bank_account"),
+  petCompatibility: text("pet_compatibility").default("NONE"),
 
   experienceTypes: json("experience_types").$type<string[]>().default([]),
   availability: text("availability").notNull(), // JSON string of days
@@ -320,23 +327,43 @@ export const communicationLog = pgTable("communication_log", {
 
 export const cleanerPayoutSummary = pgTable("cleaner_payout_summary", {
   id: text("id").primaryKey().notNull(),
-  cleanerId: text("cleaner_id").notNull().references(() => user.id, { onDelete: "cascade" }),
-  totalEarnings: decimal("total_earnings", { precision: 10, scale: 2 }).default("0.00").notNull(),
-  totalCommission: decimal("total_commission", { precision: 10, scale: 2 }).default("0.00").notNull(),
-  totalPayout: decimal("total_payout", { precision: 10, scale: 2 }).default("0.00").notNull(),
-  pendingPayout: decimal("pending_payout", { precision: 10, scale: 2 }).default("0.00").notNull(),
-  lastUpdated: timestamp("last_updated", { mode: "date" }).defaultNow().notNull(),
-  
+  cleanerId: text("cleaner_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  totalEarnings: decimal("total_earnings", { precision: 10, scale: 2 })
+    .default("0.00")
+    .notNull(),
+  totalCommission: decimal("total_commission", { precision: 10, scale: 2 })
+    .default("0.00")
+    .notNull(),
+  totalPayout: decimal("total_payout", { precision: 10, scale: 2 })
+    .default("0.00")
+    .notNull(),
+  pendingPayout: decimal("pending_payout", { precision: 10, scale: 2 })
+    .default("0.00")
+    .notNull(),
+  lastUpdated: timestamp("last_updated", { mode: "date" })
+    .defaultNow()
+    .notNull(),
+
   // Running totals by period
-  totalEarningsCurrentMonth: decimal("total_earnings_current_month", { precision: 10, scale: 2 }).default("0.00"),
-  totalEarningsLastMonth: decimal("total_earnings_last_month", { precision: 10, scale: 2 }).default("0.00"),
-  totalEarningsThisYear: decimal("total_earnings_this_year", { precision: 10, scale: 2 }).default("0.00"),
-  
+  totalEarningsCurrentMonth: decimal("total_earnings_current_month", {
+    precision: 10,
+    scale: 2,
+  }).default("0.00"),
+  totalEarningsLastMonth: decimal("total_earnings_last_month", {
+    precision: 10,
+    scale: 2,
+  }).default("0.00"),
+  totalEarningsThisYear: decimal("total_earnings_this_year", {
+    precision: 10,
+    scale: 2,
+  }).default("0.00"),
+
   // Last payout info
   lastPayoutAmount: decimal("last_payout_amount", { precision: 10, scale: 2 }),
   lastPayoutDate: timestamp("last_payout_date", { mode: "date" }),
 });
-
 
 // Define types
 export type User = typeof user.$inferSelect;

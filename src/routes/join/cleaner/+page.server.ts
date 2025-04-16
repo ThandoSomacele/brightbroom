@@ -13,10 +13,20 @@ const joinApplicationSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().min(1, "Phone number is required"),
+  
+  // Address Information - enhanced to store for work location
+  street: z.string().optional(),
   city: z.string().min(1, "City/Area is required"),
-
+  state: z.string().optional(),
+  zipCode: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  formattedAddress: z.string().optional(),
+  
+  // Work radius can be set with default later
+  workRadius: z.number().default(20), // Default 20km work radius
+  
   // Step 2: Work Experience
-  // Replace the single experience field with an array of experience types
   experienceTypes: z
     .array(z.string())
     .min(1, "Please select at least one type of experience"),
@@ -26,10 +36,14 @@ const joinApplicationSchema = z.object({
     .min(1, "Please select at least one day of availability"),
   ownTransport: z.string().optional(),
   whatsApp: z.string().optional(),
-
+  
   // Step 3: Additional Details
-  idType: z.string().optional(),
-  idNumber: z.string().optional(),
+  idType: z.string().min(1, "ID type is required"),
+  idNumber: z.string().min(1, "ID number is required"),
+  taxNumber: z.string().optional(),
+  bankAccount: z.string().optional(),
+  bio: z.string().optional(),
+  petCompatibility: z.string().default("NONE"),
   hearAboutUs: z.string().optional(),
   terms: z.literal("on", {
     errorMap: () => ({ message: "You must accept the Terms of Service" }),
@@ -40,7 +54,7 @@ export const actions: Actions = {
   default: async ({ request }) => {
     const formData = await request.formData();
 
-    // Extract basic form fields
+    // Extract all form fields
     const firstName = formData.get("firstName")?.toString();
     const lastName = formData.get("lastName")?.toString();
     const email = formData.get("email")?.toString();
@@ -62,7 +76,7 @@ export const actions: Actions = {
         ? `${street}, ${city}, ${state} ${zipCode}`.trim()
         : "";
 
-    // Get all selected experience types (could be multiple values)
+    // Get all selected experience types
     const experienceTypes = formData
       .getAll("experienceTypes")
       .map((item) => item.toString());
@@ -70,39 +84,24 @@ export const actions: Actions = {
     const availability = formData
       .getAll("availability")
       .map((item) => item.toString());
-    const ownTransport = formData.get("ownTransport")?.toString();
-    const whatsApp = formData.get("whatsApp")?.toString();
+    const ownTransport = formData.get("ownTransport")?.toString() === "yes";
+    const whatsApp = formData.get("whatsApp")?.toString() === "yes";
     const idType = formData.get("idType")?.toString();
     const idNumber = formData.get("idNumber")?.toString();
     const hearAboutUs = formData.get("hearAboutUs")?.toString();
     const terms = formData.get("terms")?.toString();
+    
+    // Optional fields that can enhance the profile later
+    const bio = formData.get("bio")?.toString() || "";
+    const taxNumber = formData.get("taxNumber")?.toString() || "";
+    const bankAccount = formData.get("bankAccount")?.toString() || "";
+    const petCompatibility = formData.get("petCompatibility")?.toString() || "NONE";
 
-    // Log received data for debugging
-    console.log("Received cleaner application data:", {
-      firstName,
-      lastName,
-      email,
-      phone,
-      formattedAddress,
-      city,
-      latitude,
-      longitude,
-      experienceTypes,
-      availability,
-      ownTransport,
-      whatsApp,
-      idType,
-      idNumber,
-    });
-
-    // Handle file uploads
-    const documents = formData.getAll("documents");
-    const documentFiles = documents.filter(
-      (item) => item instanceof File,
-    ) as File[];
+    // Default work radius (20km)
+    const workRadius = 20;
 
     try {
-      // Validate form data with Zod (update schema to include address fields)
+      // Validate form data with Zod
       joinApplicationSchema.parse({
         firstName,
         lastName,
@@ -111,8 +110,8 @@ export const actions: Actions = {
         city,
         experienceTypes,
         availability,
-        ownTransport,
-        whatsApp,
+        ownTransport: ownTransport ? "yes" : "no",
+        whatsApp: whatsApp ? "yes" : "no",
         idType,
         idNumber,
         hearAboutUs,
@@ -121,15 +120,6 @@ export const actions: Actions = {
 
       // Generate a unique ID for the application
       const applicationId = crypto.randomUUID();
-
-      // Process any uploaded documents
-      // In a real implementation, you would upload these to cloud storage
-      // and store the URLs in the database
-      let documentUrls: string[] = [];
-      if (documentFiles.length > 0) {
-        // Placeholder: in a real app, upload files and get URLs
-        documentUrls = documentFiles.map((file) => `${file.name}`);
-      }
 
       // Store the application in the database with inactive status
       try {
@@ -144,20 +134,26 @@ export const actions: Actions = {
           lastName,
           email,
           phone,
-          city, // Keep city for backward compatibility
-          formattedAddress, // Add the full formatted address
-          latitude, // Store latitude
-          longitude, // Store longitude
-          experienceTypes: experienceTypes,
+          city,
+          formattedAddress,
+          latitude,
+          longitude,
+          experienceTypes,
           availability: JSON.stringify(availability),
-          ownTransport: ownTransport === "yes",
-          whatsApp: whatsApp === "yes",
+          ownTransport,
+          whatsApp,
           idType: idType || null,
           idNumber: idNumber || null,
           referralSource: hearAboutUs,
-          documents: documentUrls,
-          status: "PENDING", // Mark as pending by default
-          isActive: false, // Inactive until admin review
+          // Additional fields for easier profile creation later
+          bio,
+          taxNumber,
+          bankAccount,
+          petCompatibility,
+          workRadius, // Default 20km work radius
+          documents: [],
+          status: "PENDING",
+          isActive: false,
           createdAt: new Date(),
           updatedAt: new Date(),
         });
@@ -171,11 +167,11 @@ export const actions: Actions = {
           lastName,
           email,
           phone,
-          city: formattedAddress || city, // Use formatted address in email
-          experienceTypes: experienceTypes,
+          city: formattedAddress || city,
+          experienceTypes,
           availability: JSON.stringify(availability),
-          ownTransport: ownTransport === "yes",
-          whatsApp: whatsApp === "yes",
+          ownTransport,
+          whatsApp,
           createdAt: new Date(),
         });
 
@@ -200,8 +196,8 @@ export const actions: Actions = {
             city,
             experienceTypes,
             availability,
-            ownTransport,
-            whatsApp,
+            ownTransport: ownTransport ? "yes" : "no",
+            whatsApp: whatsApp ? "yes" : "no",
             idType,
             idNumber,
             hearAboutUs,
@@ -225,8 +221,8 @@ export const actions: Actions = {
             city,
             experienceTypes,
             availability,
-            ownTransport,
-            whatsApp,
+            ownTransport: ownTransport ? "yes" : "no",
+            whatsApp: whatsApp ? "yes" : "no",
             idType,
             idNumber,
             hearAboutUs,
@@ -246,8 +242,8 @@ export const actions: Actions = {
           city,
           experienceTypes,
           availability,
-          ownTransport,
-          whatsApp,
+          ownTransport: ownTransport ? "yes" : "no",
+          whatsApp: whatsApp ? "yes" : "no",
           idType,
           idNumber,
           hearAboutUs,
