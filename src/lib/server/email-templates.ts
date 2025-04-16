@@ -1972,43 +1972,43 @@ export function getCleanerWelcomeEmailTemplate(
       <p>Hello ${user.firstName},</p>
       <p>Congratulations! Your application to join the ${data.brandName} team has been approved. We're excited to have you join our network of professional cleaners who deliver exceptional cleaning services to our customers.</p>
       
-      // <div class="feature">
-      //   <p><strong>Your account has been activated</strong> and you can now log in to access your cleaner dashboard.</p>
-      // </div>
+      <!-- <div class="feature">
+        <p><strong>Your account has been activated</strong> and you can now log in to access your cleaner dashboard.</p>
+      </div>
       
-      // <h3>Getting Started:</h3>
+      <h3>Getting Started:</h3>
       
-      // <div class="checklist-item">
-      //   <div class="checklist-icon">✓</div>
-      //   <div><strong>Log in to your account</strong> using your email and password</div>
-      // </div>
+      <div class="checklist-item">
+        <div class="checklist-icon">✓</div>
+        <div><strong>Log in to your account</strong> using your email and password</div>
+      </div>
       
-      // <div class="checklist-item">
-      //   <div class="checklist-icon">✓</div>
-      //   <div><strong>Complete your profile</strong> to highlight your skills and experience</div>
-      // </div>
+      <div class="checklist-item">
+        <div class="checklist-icon">✓</div>
+        <div><strong>Complete your profile</strong> to highlight your skills and experience</div>
+      </div>
       
-      // <div class="checklist-item">
-      //   <div class="checklist-icon">✓</div>
-      //   <div><strong>Set your availability</strong> to start receiving booking requests</div>
-      // </div>
+      <div class="checklist-item">
+        <div class="checklist-icon">✓</div>
+        <div><strong>Set your availability</strong> to start receiving booking requests</div>
+      </div>
       
-      // <div class="checklist-item">
-      //   <div class="checklist-icon">✓</div>
-      //   <div><strong>Update your service areas</strong> to specify where you can work</div>
-      // </div>
+      <div class="checklist-item">
+        <div class="checklist-icon">✓</div>
+        <div><strong>Update your service areas</strong> to specify where you can work</div>
+      </div>
       
-      // <div style="text-align: center;">
-      //   <a href="${loginUrl}" class="btn">Log In To Your Account</a>
-      // </div>
+      <div style="text-align: center;">
+        <a href="${loginUrl}" class="btn">Log In To Your Account</a>
+      </div>
       
-      // <p>Once logged in, you can access your cleaner dashboard to:</p>
-      // <ul>
-      //   <li>Manage your bookings and schedule</li>
-      //   <li>Update your availability and service areas</li>
-      //   <li>View your ratings and feedback</li>
-      //   <li>Track your earnings</li>
-      // </ul>
+      <p>Once logged in, you can access your cleaner dashboard to:</p>
+      <ul>
+        <li>Manage your bookings and schedule</li>
+        <li>Update your availability and service areas</li>
+        <li>View your ratings and feedback</li>
+        <li>Track your earnings</li>
+      </ul> -->
       
       <p>If you have any questions or need assistance getting started, please don't hesitate to contact our cleaner support team.</p>
       
