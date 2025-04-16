@@ -80,6 +80,34 @@
     }
   }
 
+  function getCleanerAvailabilityBadge(availability: string) {
+    switch (availability) {
+      case "AVAILABLE":
+        return {
+          class:
+            "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300",
+          label: "Available",
+        };
+      case "LIMITED":
+        return {
+          class:
+            "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300",
+          label: "Limited",
+        };
+      case "UNAVAILABLE":
+        return {
+          class: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300",
+          label: "Unavailable",
+        };
+      default:
+        return {
+          class:
+            "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300",
+          label: "Unknown",
+        };
+    }
+  }
+
   // Is the booking in the past?
   function isPastBooking(): boolean {
     const now = new Date();
@@ -988,7 +1016,7 @@
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
   >
     <div
-      class="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full p-6"
+      class="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto"
     >
       <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
         {booking.cleaner ? "Reassign Cleaner" : "Assign Cleaner"}
@@ -1011,71 +1039,153 @@
           };
         }}
       >
-        <div class="mb-4">
-          <label
-            for="cleanerId"
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-          >
-            Select Cleaner
-          </label>
-          <select
-            id="cleanerId"
-            name="cleanerId"
-            bind:value={selectedCleaner}
-            class="w-full border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-          >
-            <option value="">No Cleaner Assigned</option>
-            {#each availableCleaners as cleaner}
-              <option value={cleaner.id}>
-                {cleaner.firstName}
-                {cleaner.lastName}
-                {#if cleaner.cleanerProfile && cleaner.cleanerProfile.rating}
-                  (Rating: {cleaner.cleanerProfile.rating})
-                {/if}
-                {#if cleaner.availability}
-                  - {cleaner.availability}
-                {/if}
-              </option>
-            {/each}
-          </select>
-        </div>
+        <div class="space-y-4">
+          <div class="mb-4">
+            <label
+              for="cleanerId"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Select Cleaner
+            </label>
 
-        <div class="flex justify-end space-x-3">
-          <Button
-            type="button"
-            variant="outline"
-            on:click={() => (showCleanerAssignModal = false)}
-          >
-            Cancel
-          </Button>
+            <div class="mb-3 flex space-x-2">
+              <div class="flex items-center">
+                <span class="w-3 h-3 rounded-full bg-green-500 mr-1"></span>
+                <span class="text-xs">Available</span>
+              </div>
+              <div class="flex items-center">
+                <span class="w-3 h-3 rounded-full bg-yellow-500 mr-1"></span>
+                <span class="text-xs">Limited</span>
+              </div>
+              <div class="flex items-center">
+                <span class="w-3 h-3 rounded-full bg-red-500 mr-1"></span>
+                <span class="text-xs">Unavailable</span>
+              </div>
+            </div>
 
-          <Button type="submit" variant="primary" disabled={isUpdateLoading}>
-            {#if isUpdateLoading}
-              <svg
-                class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Updating...
-            {:else}
-              {booking.cleaner ? "Update Assignment" : "Assign Cleaner"}
-            {/if}
-          </Button>
+            <div
+              class="border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden"
+            >
+              <div class="max-h-60 overflow-y-auto">
+                <div
+                  class="p-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600"
+                >
+                  <label class="flex items-center">
+                    <input
+                      type="radio"
+                      name="cleanerId"
+                      value=""
+                      bind:group={selectedCleaner}
+                      class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <span class="ml-2 text-gray-700 dark:text-gray-200"
+                      >No Cleaner Assigned</span
+                    >
+                  </label>
+                </div>
+
+                {#each availableCleaners as cleaner}
+                  {@const availabilityBadge = getCleanerAvailabilityBadge(
+                    cleaner.availability,
+                  )}
+                  <div
+                    class="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700/30"
+                    class:opacity-60={cleaner.availability === "UNAVAILABLE"}
+                    class:cursor-pointer={cleaner.availability !==
+                      "UNAVAILABLE"}
+                    on:click={() => {
+                      if (cleaner.availability !== "UNAVAILABLE") {
+                        selectedCleaner = cleaner.id;
+                      }
+                    }}
+                  >
+                    <div class="flex items-center">
+                      <input
+                        type="radio"
+                        name="cleanerId"
+                        value={cleaner.id}
+                        bind:group={selectedCleaner}
+                        disabled={cleaner.availability === "UNAVAILABLE"}
+                        class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <div class="ml-3">
+                        <div class="font-medium text-gray-900 dark:text-white">
+                          {cleaner.firstName}
+                          {cleaner.lastName}
+                        </div>
+                        <div
+                          class="text-xs text-gray-500 dark:text-gray-400 flex flex-wrap items-center mt-1"
+                        >
+                          {#if cleaner.cleanerProfile && cleaner.cleanerProfile.rating}
+                            <span class="flex items-center mr-2">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-3 w-3 text-yellow-400 mr-0.5"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
+                                <path
+                                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                                />
+                              </svg>
+                              {cleaner.cleanerProfile.rating}
+                            </span>
+                          {/if}
+                          {#if cleaner.distance !== undefined}
+                            <span class="mr-2">•</span>
+                            <span>{cleaner.distance.toFixed(1)}km away</span>
+                          {/if}
+                        </div>
+                      </div>
+                    </div>
+                    <span
+                      class={`text-xs px-2.5 py-0.5 rounded-full ${availabilityBadge.class}`}
+                    >
+                      {availabilityBadge.label}
+                    </span>
+                  </div>
+                {/each}
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3">
+            <Button
+              type="button"
+              variant="outline"
+              on:click={() => (showCleanerAssignModal = false)}
+            >
+              Cancel
+            </Button>
+
+            <Button type="submit" variant="primary" disabled={isUpdateLoading}>
+              {#if isUpdateLoading}
+                <svg
+                  class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Updating...
+              {:else}
+                {booking.cleaner ? "Update Assignment" : "Assign Cleaner"}
+              {/if}
+            </Button>
+          </div>
         </div>
       </form>
     </div>
@@ -1128,20 +1238,16 @@
           ></textarea>
         </div>
 
-        <div class="flex justify-end space-x-3">
+        <div class="flex justify-end space-x-3 mt-4">
           <Button
             type="button"
             variant="outline"
-            on:click={() => (showAddNoteModal = false)}
+            on:click={() => (showCleanerAssignModal = false)}
           >
             Cancel
           </Button>
 
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={isUpdateLoading || !newNote.trim()}
-          >
+          <Button type="submit" variant="primary" disabled={isUpdateLoading}>
             {#if isUpdateLoading}
               <svg
                 class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
@@ -1163,9 +1269,9 @@
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
-              Saving...
+              Updating...
             {:else}
-              Add Note
+              {booking.cleaner ? "Update Assignment" : "Assign Cleaner"}
             {/if}
           </Button>
         </div>

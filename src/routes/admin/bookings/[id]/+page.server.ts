@@ -11,10 +11,10 @@ import {
   user,
 } from "$lib/server/db/schema";
 import { cleanerAssignmentService } from "$lib/server/services/cleaner-assignment.service";
+import { sendCleanerAssignmentNotifications } from "$lib/server/services/notification.service";
 import { error, fail, redirect } from "@sveltejs/kit";
 import { and, desc, eq, sql } from "drizzle-orm"; // Added sql import
 import type { Actions, PageServerLoad } from "./$types";
-import { sendCleanerAssignmentNotifications } from "$lib/server/services/notification.service";
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const bookingId = params.id;
@@ -167,27 +167,22 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     }
 
     // Step 8: Get all active cleaners for the assignment dropdown
-    const availableCleaners = await db
-      .select({
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        cleanerProfile: {
-          rating: cleanerProfile.rating,
-        },
-        // Add a fake availability field for the demo
-        availability: sql<string>`
-        CASE 
-          WHEN ${cleanerProfile.isAvailable} = true THEN 'AVAILABLE'
-          ELSE 'UNAVAILABLE'
-        END
-      `.as("availability"),
-      })
-      .from(user)
-      .leftJoin(cleanerProfile, eq(user.id, cleanerProfile.userId))
-      .where(eq(user.role, "CLEANER"))
-      .orderBy(desc(cleanerProfile.rating));
+    const {
+      cleaners: availableCleanersData,
+      bookingData: assignmentBookingData,
+    } = await cleanerAssignmentService.findAvailableCleaners(bookingId);
+
+    // Transform the data to match the expected format
+    const availableCleaners = availableCleanersData.map((cleaner) => ({
+      id: cleaner.id,
+      firstName: cleaner.firstName,
+      lastName: cleaner.lastName,
+      cleanerProfile: {
+        rating: cleaner.rating,
+      },
+      availability: cleaner.availability, // This will now be AVAILABLE, LIMITED, or UNAVAILABLE
+      distance: cleaner.distance, // Include the distance information
+    }));
 
     // Assemble the final booking detail object
     const bookingDetail = {
@@ -373,8 +368,6 @@ export const actions: Actions = {
           createdAt: new Date(),
         });
       }
-
-     
 
       // Send notifications to both customer and cleaner when a cleaner is assigned or changed
       if (
