@@ -104,7 +104,7 @@
                     Visit Us
                   </h3>
                   <p class="mt-1 text-gray-600 dark:text-gray-300">
-                    4 Cedar Avenue West<br />
+                    0B Cedar Avenue West<br />
                     Fourways, 2191<br />
                     South Africa
                   </p>

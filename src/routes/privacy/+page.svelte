@@ -1118,7 +1118,7 @@
                         <tr>
                           <td class="px-4 py-3 text-sm font-medium">Address</td>
                           <td class="px-4 py-3 text-sm"
-                            >4 Cedar Avenue West<br />Fourways<br />Randburg<br
+                            >0B Cedar Avenue West<br />Fourways<br />Randburg<br
                             />2191</td
                           >
                         </tr>
@@ -1126,7 +1126,7 @@
                           <td class="px-4 py-3 text-sm font-medium"
                             >Telephone</td
                           >
-                          <td class="px-4 py-3 text-sm">078 176 7075</td>
+                          <td class="px-4 py-3 text-sm">069 391 5277</td>
                         </tr>
                         <tr>
                           <td class="px-4 py-3 text-sm font-medium">Email</td>
