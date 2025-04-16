@@ -10,11 +10,11 @@ import {
   service,
   user,
 } from "$lib/server/db/schema";
-import { sendCleanerAssignmentNotification } from "$lib/server/services/notification.service";
+import { cleanerAssignmentService } from "$lib/server/services/cleaner-assignment.service";
 import { error, fail, redirect } from "@sveltejs/kit";
 import { and, desc, eq, sql } from "drizzle-orm"; // Added sql import
 import type { Actions, PageServerLoad } from "./$types";
-import { cleanerAssignmentService } from "$lib/server/services/cleaner-assignment.service";
+import { sendCleanerAssignmentNotifications } from "$lib/server/services/notification.service";
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const bookingId = params.id;
@@ -374,32 +374,31 @@ export const actions: Actions = {
         });
       }
 
-      // Send notification email when a cleaner is assigned or changed
+     
+
+      // Send notifications to both customer and cleaner when a cleaner is assigned or changed
       if (
         cleanerId &&
         (!previousCleanerId || previousCleanerId !== cleanerId)
       ) {
-        // Send notification email to the user
         try {
-          const notificationSent =
-            await sendCleanerAssignmentNotification(bookingId);
-          console.log(
-            `Cleaner assignment notification ${notificationSent ? "sent" : "failed"} for booking ${bookingId}`,
-          );
+          const notificationResults =
+            await sendCleanerAssignmentNotifications(bookingId);
 
-          // Add a note about the notification (optional)
-          if (notificationSent) {
-            await db.insert(adminNote).values({
-              id: crypto.randomUUID(),
-              bookingId: bookingId,
-              content: "Customer notification email sent",
-              addedBy: `${locals.user.firstName} ${locals.user.lastName}`,
-              createdAt: new Date(),
-            });
-          }
-        } catch (err) {
-          console.error("Error sending cleaner assignment notification:", err);
-          // Don't fail the whole operation if just the notification fails
+          // Add a note about the notifications
+          await db.insert(adminNote).values({
+            id: crypto.randomUUID(),
+            bookingId: bookingId,
+            content: `Notifications sent: Customer (${notificationResults.customerNotified ? "Success" : "Failed"}), Cleaner (${notificationResults.cleanerNotified ? "Success" : "Failed"})`,
+            addedBy: `${locals.user.firstName} ${locals.user.lastName}`,
+            createdAt: new Date(),
+          });
+        } catch (notificationError) {
+          console.error(
+            "Error sending assignment notifications:",
+            notificationError,
+          );
+          // Don't fail the operation if just the notifications fail
         }
       }
 

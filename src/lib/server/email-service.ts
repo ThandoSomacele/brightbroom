@@ -9,6 +9,7 @@ import {
   getBookingReminderTemplate,
   getCleanerApplicationTemplate,
   getCleanerAssignmentTemplate,
+  getCleanerJobAssignmentTemplate,
   getCleanerWelcomeEmailTemplate,
   getContactFormTemplate,
   getPasswordResetConfirmationTemplate,
@@ -629,6 +630,50 @@ export async function sendCleanerApplicationEmail(
     return true;
   } catch (error) {
     console.error("Error sending cleaner application notification:", error);
+    return false;
+  }
+}
+
+/**
+ * Send job assignment notification email to cleaner
+ */
+export async function sendCleanerJobAssignmentEmail(
+  email: string,
+  bookingDetails: any,
+): Promise<boolean> {
+  try {
+    if (!resend) {
+      console.error("Resend API key not configured");
+      return false;
+    }
+
+    console.log(`Preparing job assignment email for cleaner - booking ${bookingDetails.id}`);
+
+    // Generate the assignment template for cleaner
+    const template = getCleanerJobAssignmentTemplate(
+      email,
+      bookingDetails,
+      EMAIL_CONFIG,
+    );
+
+    // Send email with Resend
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+
+    if (error) {
+      console.error("Resend API error:", error);
+      return false;
+    }
+
+    console.log("Cleaner job assignment email sent successfully:", data.id);
+    return true;
+  } catch (error) {
+    console.error("Error sending cleaner job assignment email:", error);
     return false;
   }
 }

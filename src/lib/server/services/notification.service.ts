@@ -7,7 +7,7 @@ import {
   service,
   user,
 } from "$lib/server/db/schema";
-import { sendCleanerAssignmentEmail } from "$lib/server/email-service";
+import { sendCleanerAssignmentEmail, sendCleanerJobAssignmentEmail } from "$lib/server/email-service";
 import { eq } from "drizzle-orm";
 
 /**
@@ -113,6 +113,145 @@ export async function sendCleanerAssignmentNotification(
     console.error(`Error sending cleaner assignment notification: ${error}`);
     return false;
   }
+}
+
+/**
+ * Send job assignment notification to the cleaner
+ * This notifies the cleaner that they have been assigned to a job
+ *
+ * @param bookingId The booking ID
+ * @returns Success indicator
+ */
+export async function sendCleanerJobNotification(
+  bookingId: string,
+): Promise<boolean> {
+  try {
+    // Fetch the booking to get the cleanerId
+    const bookingResults = await db
+      .select()
+      .from(booking)
+      .where(eq(booking.id, bookingId))
+      .limit(1);
+
+    if (bookingResults.length === 0 || !bookingResults[0].cleanerId) {
+      console.error(`Booking not found or no cleaner assigned: ${bookingId}`);
+      return false;
+    }
+
+    const bookingData = bookingResults[0];
+    const cleanerId = bookingData.cleanerId;
+
+    // Get full booking details with related data
+    const results = await db
+      .select({
+        booking: {
+          id: booking.id,
+          scheduledDate: booking.scheduledDate,
+          duration: booking.duration,
+          notes: booking.notes,
+          userId: booking.userId,
+        },
+        service: {
+          id: service.id,
+          name: service.name,
+          description: service.description,
+          details: service.details,
+        },
+        address: {
+          street: address.street,
+          city: address.city,
+          state: address.state,
+          zipCode: address.zipCode,
+        },
+      })
+      .from(booking)
+      .where(eq(booking.id, bookingId))
+      .innerJoin(service, eq(booking.serviceId, service.id))
+      .innerJoin(address, eq(booking.addressId, address.id))
+      .limit(1);
+
+    if (results.length === 0) {
+      console.error(`Failed to fetch booking details: ${bookingId}`);
+      return false;
+    }
+
+    const result = results[0];
+
+    // Get cleaner information - we need their email
+    const cleanerInfo = await db
+      .select({
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      })
+      .from(user)
+      .where(eq(user.id, cleanerId))
+      .limit(1);
+
+    if (cleanerInfo.length === 0) {
+      console.error(`Cleaner not found: ${cleanerId}`);
+      return false;
+    }
+
+    // Get customer information
+    const customerInfo = await db
+      .select({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+      })
+      .from(user)
+      .where(eq(user.id, result.booking.userId))
+      .limit(1);
+
+    if (customerInfo.length === 0) {
+      console.error(`Customer not found: ${result.booking.userId}`);
+      return false;
+    }
+
+    // Prepare booking data for the cleaner email
+    const emailData = {
+      id: result.booking.id,
+      scheduledDate: result.booking.scheduledDate.toISOString(),
+      service: result.service,
+      address: result.address,
+      notes: result.booking.notes,
+      duration: result.booking.duration,
+      customer: customerInfo[0],
+    };
+
+    // Send notification to the cleaner
+    return await sendCleanerJobAssignmentEmail(cleanerInfo[0].email, emailData);
+  } catch (error) {
+    console.error(`Error sending job notification to cleaner: ${error}`);
+    return false;
+  }
+}
+
+/**
+ * Send notifications to both customer and cleaner when a cleaner is assigned
+ * This should be called whenever a cleaner is assigned to a booking
+ *
+ * @param bookingId The booking ID
+ * @returns Object indicating success for both notifications
+ */
+export async function sendCleanerAssignmentNotifications(
+  bookingId: string,
+): Promise<{ customerNotified: boolean; cleanerNotified: boolean }> {
+  // Send notification to customer
+  const customerNotified = await sendCleanerAssignmentNotification(bookingId);
+
+  // Send notification to cleaner
+  const cleanerNotified = await sendCleanerJobNotification(bookingId);
+
+  // Log the results
+  console.log(`Assignment notifications for booking ${bookingId}:`, {
+    customerNotified,
+    cleanerNotified,
+  });
+
+  return { customerNotified, cleanerNotified };
 }
 
 /**

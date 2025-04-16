@@ -2091,3 +2091,303 @@ This email was sent to ${recipientEmail}.
     text,
   };
 }
+
+/**
+ * Generate an email template for notifying cleaners about a new assignment
+ */
+export function getCleanerJobAssignmentTemplate(
+  recipientEmail: string,
+  booking: {
+    id: string;
+    service: { 
+      name: string; 
+      description?: string;
+      details?: any;
+    };
+    scheduledDate: string;
+    address: { street: string; city: string; state: string; zipCode: string };
+    customer: {
+      firstName: string;
+      lastName: string;
+      phone?: string;
+    };
+    notes?: string;
+    duration?: number;
+  },
+  data: EmailTemplateData,
+): { subject: string; html: string; text: string } {
+  const bookingUrl = `${data.appUrl}/cleaner/bookings/${booking.id}`;
+  const escapedEmail = escapeHtml(recipientEmail);
+  
+  // Format date
+  const scheduledDate = new Date(booking.scheduledDate);
+  const dateString = scheduledDate.toLocaleDateString("en-ZA", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  // Format time
+  const timeString = scheduledDate.toLocaleTimeString("en-ZA", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  // Parse service details if they exist (could be a JSON string)
+  let serviceDetailsList = "";
+  if (booking.service.details) {
+    try {
+      const details = typeof booking.service.details === 'string' 
+        ? JSON.parse(booking.service.details) 
+        : booking.service.details;
+      
+      if (Array.isArray(details.tasks)) {
+        serviceDetailsList = `
+          <ul style="margin-top: 10px; padding-left: 20px;">
+            ${details.tasks.map(task => `<li>${task}</li>`).join('')}
+          </ul>
+        `;
+      }
+    } catch (e) {
+      console.error("Error parsing service details:", e);
+    }
+  }
+
+  // HTML Email template
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Cleaning Assignment</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background-color: ${data.primaryColor};
+    }
+    .header img {
+      max-height: 50px;
+    }
+    .content {
+      padding: 30px 20px;
+      background-color: #ffffff;
+    }
+    .customer-box {
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .booking-details {
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .booking-detail {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #eeeeee;
+      padding-bottom: 10px;
+    }
+    .booking-detail:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .label {
+      font-weight: bold;
+      color: #666666;
+    }
+    .footer {
+      font-size: 12px;
+      text-align: center;
+      color: #888888;
+      padding: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: ${data.primaryColor};
+      color: #ffffff !important;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+    .important-note {
+      background-color: #FFEBEE;
+      border-left: 4px solid #F44336;
+      padding: 12px;
+      margin: 20px 0;
+    }
+    @media only screen and (max-width: 480px) {
+      .email-container {
+        padding: 10px;
+      }
+      .content {
+        padding: 20px 15px;
+      }
+      .btn {
+        display: block;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1 style="color: #ffffff; margin: 0;">${data.brandName}</h1>
+    </div>
+    <div class="content">
+      <h2>New Cleaning Assignment</h2>
+      <p>Hello,</p>
+      <p>You have been assigned to a new cleaning job. Here are all the details you need to know:</p>
+      
+      <div class="customer-box">
+        <h3 style="margin-top: 0; color: #333333; font-size: 16px;">Customer Information:</h3>
+        <p><strong>Name:</strong> ${booking.customer.firstName} ${booking.customer.lastName}</p>
+        ${booking.customer.phone ? `<p><strong>Phone:</strong> ${booking.customer.phone}</p>` : ""}
+      </div>
+      
+      <div class="booking-details">
+        <h3 style="margin-top: 0; color: #333333; font-size: 16px;">Booking Details:</h3>
+        <div class="booking-detail">
+          <span class="label">Service Type:</span>
+          <span><strong>${booking.service.name}</strong></span>
+        </div>
+        
+        <div class="booking-detail">
+          <span class="label">Date:</span>
+          <span>${dateString}</span>
+        </div>
+        
+        <div class="booking-detail">
+          <span class="label">Time:</span>
+          <span>${timeString}</span>
+        </div>
+        
+        <div class="booking-detail">
+          <span class="label">Location:</span>
+          <span>${booking.address.street}, ${booking.address.city}, ${booking.address.state}, ${booking.address.zipCode}</span>
+        </div>
+        
+        ${booking.duration ? `
+        <div class="booking-detail">
+          <span class="label">Duration:</span>
+          <span>${Math.floor(booking.duration / 60)} ${Math.floor(booking.duration / 60) === 1 ? 'hour' : 'hours'}</span>
+        </div>
+        ` : ''}
+      </div>
+      
+      <div class="booking-details">
+        <h3 style="margin-top: 0; color: #333333; font-size: 16px;">Service Details:</h3>
+        ${booking.service.description ? `
+        <div class="booking-detail">
+          <span class="label">Description:</span>
+          <span>${booking.service.description}</span>
+        </div>
+        ` : ''}
+        
+        ${serviceDetailsList ? `
+        <div class="booking-detail">
+          <span class="label">Tasks to complete:</span>
+          ${serviceDetailsList}
+        </div>
+        ` : ''}
+        
+        ${booking.notes ? `
+        <div class="booking-detail">
+          <span class="label">Customer Notes:</span>
+          <span>${booking.notes}</span>
+        </div>
+        ` : ''}
+      </div>
+      
+      ${booking.notes ? `
+      <div class="important-note">
+        <p><strong>Important:</strong> Please review the customer's notes carefully as they contain specific instructions for this job.</p>
+      </div>
+      ` : ''}
+      
+      <p>You can view all the booking details and check in for this job by clicking the button below:</p>
+      
+      <div style="text-align: center;">
+        <a href="${bookingUrl}" class="btn">View Booking Details</a>
+      </div>
+      
+      <p><strong>Please confirm this assignment</strong> by logging into your account. If you have any questions or concerns about this assignment, please contact the office immediately.</p>
+      
+      <p>Thank you for your excellent service!</p>
+      
+      <p>Best regards,<br>The ${data.brandName} Team</p>
+    </div>
+    <div class="footer">
+      <p>This email was sent to ${escapedEmail}.</p>
+      <p>&copy; ${new Date().getFullYear()} ${data.brandName}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  // Plain text version
+  const text = `
+New Cleaning Assignment - ${data.brandName}
+
+Hello,
+
+You have been assigned to a new cleaning job. Here are all the details you need to know:
+
+CUSTOMER INFORMATION:
+Name: ${booking.customer.firstName} ${booking.customer.lastName}
+${booking.customer.phone ? `Phone: ${booking.customer.phone}` : ""}
+
+BOOKING DETAILS:
+Service Type: ${booking.service.name}
+Date: ${dateString}
+Time: ${timeString}
+Location: ${booking.address.street}, ${booking.address.city}, ${booking.address.state}, ${booking.address.zipCode}
+${booking.duration ? `Duration: ${Math.floor(booking.duration / 60)} ${Math.floor(booking.duration / 60) === 1 ? 'hour' : 'hours'}` : ''}
+
+SERVICE DETAILS:
+${booking.service.description ? `Description: ${booking.service.description}` : ''}
+
+${booking.notes ? `Customer Notes: ${booking.notes}` : ''}
+
+${booking.notes ? `IMPORTANT: Please review the customer's notes carefully as they contain specific instructions for this job.` : ''}
+
+You can view all the booking details and check in for this job here:
+${bookingUrl}
+
+Please confirm this assignment by logging into your account. If you have any questions or concerns about this assignment, please contact the office immediately.
+
+Thank you for your excellent service!
+
+Best regards,
+The ${data.brandName} Team
+
+This email was sent to ${recipientEmail}.
+© ${new Date().getFullYear()} ${data.brandName}. All rights reserved.
+`;
+
+  return {
+    subject: `New Cleaning Assignment - ${dateString} - ${data.brandName}`,
+    html,
+    text,
+  };
+}
