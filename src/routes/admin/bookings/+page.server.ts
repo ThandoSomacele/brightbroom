@@ -21,8 +21,9 @@ export const load: PageServerLoad = async ({ url }) => {
       id: booking.id,
       status: booking.status,
       scheduledDate: booking.scheduledDate,
-      createdAt: booking.createdAt, // Added createdAt to the selected fields
+      createdAt: booking.createdAt,
       price: booking.price,
+      cleanerId: booking.cleanerId,
       service: {
         id: service.id,
         name: service.name,

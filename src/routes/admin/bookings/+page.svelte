@@ -561,6 +561,12 @@
           </th>
           <th
             scope="col"
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+          >
+            Cleaner
+          </th>
+          <th
+            scope="col"
             class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
           >
             Actions
@@ -694,6 +700,31 @@
                   <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     No payment
                   </span>
+                {/if}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    booking.cleanerId
+                      ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                      : "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+                  }`}
+                >
+                  <svelte:component
+                    this={booking.cleanerId ? CheckCircle : AlertCircle}
+                    class="h-3.5 w-3.5 mr-1"
+                  />
+                  {booking.cleanerId ? "Assigned" : "Unassigned"}
+                </span>
+
+                {#if !booking.cleanerId && (booking.status === "CONFIRMED" || booking.status === "PENDING")}
+                  <button
+                    class="mt-1.5 px-1.5 py-0.5 bg-primary-50 text-primary-600 text-xs rounded hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-300 dark:hover:bg-primary-900/40"
+                    title="Assign Cleaner"
+                    on:click={() => viewBookingDetails(booking.id)}
+                  >
+                    Assign
+                  </button>
                 {/if}
               </td>
               <td
