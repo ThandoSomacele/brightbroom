@@ -39,19 +39,46 @@ export function getDistanceFromLatLonInKm(
   lat2: number | string | null | undefined,
   lng2: number | string | null | undefined
 ): number {
+  // Debug log to see input values
+  console.log("Distance calculation inputs:", { lat1, lng1, lat2, lng2 });
+  
   // Safe conversion to numbers with validation
   const latitude1 = safeParseFloat(lat1);
   const longitude1 = safeParseFloat(lng1);
   const latitude2 = safeParseFloat(lat2);
   const longitude2 = safeParseFloat(lng2);
   
-  // Check for invalid coordinates (zeroes may indicate missing data)
-  if (!isValidCoordinate(latitude1, longitude1) || !isValidCoordinate(latitude2, longitude2)) {
+  // Debug log parsed values
+  console.log("Parsed coordinates:", { 
+    latitude1, longitude1, latitude2, longitude2,
+    isValid1: isValidCoordinate(latitude1, longitude1),
+    isValid2: isValidCoordinate(latitude2, longitude2)
+  });
+  
+  // Check for values that are explicitly zero (which is different from missing/invalid)
+  const isExplicitZero = (val: any) => val === 0 || val === "0" || val === "0.0";
+  
+  // Modified validation: Only consider coordinate invalid if:
+  // - Both lat AND lng are zero/empty/null (could be missing data)
+  // - OR either is outside valid range
+  const isInvalid1 = 
+    ((latitude1 === 0 && longitude1 === 0) && (!isExplicitZero(lat1) || !isExplicitZero(lng1))) ||
+    !isInValidRange(latitude1, longitude1);
+    
+  const isInvalid2 = 
+    ((latitude2 === 0 && longitude2 === 0) && (!isExplicitZero(lat2) || !isExplicitZero(lng2))) ||
+    !isInValidRange(latitude2, longitude2);
+  
+  if (isInvalid1 || isInvalid2) {
     console.warn(
       "Warning: Invalid coordinates in distance calculation",
-      { lat1: latitude1, lng1: longitude1, lat2: latitude2, lng2: longitude2 }
+      { 
+        raw: { lat1, lng1, lat2, lng2 },
+        parsed: { latitude1, longitude1, latitude2, longitude2 },
+        isInvalid1, isInvalid2
+      }
     );
-    return 9999; // Return large distance for invalid coordinates to prevent matches
+    return 9999; // Return large distance for invalid coordinates
   }
   
   // Haversine formula
@@ -180,12 +207,27 @@ function safeParseFloat(value: any): number {
 }
 
 /**
- * Check if coordinates are valid (non-zero and within range)
+ * Check if coordinates are valid (not missing data)
+ * This allows explicit zeros as valid coordinates
  */
 function isValidCoordinate(lat: number, lng: number): boolean {
-  // Check for zero coordinates (likely default values)
-  if (lat === 0 && lng === 0) return false;
+  // We'll now only consider both being 0 as invalid (likely missing data)
+  // But explicit zeros could be valid coordinates near the equator/prime meridian
   
+  // Check for zero coordinates (likely default values)
+  if (lat === 0 && lng === 0) {
+    // Both are zero, likely missing data
+    return false;
+  }
+  
+  // Check if coordinates are in valid range
+  return isInValidRange(lat, lng);
+}
+
+/**
+ * Check if coordinates are within valid ranges
+ */
+function isInValidRange(lat: number, lng: number): boolean {
   // Check latitude range (-90 to 90)
   if (Math.abs(lat) > 90) return false;
   
