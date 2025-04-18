@@ -2,27 +2,15 @@
 
 // Define service areas with coordinates and radius in km
 export const SERVICE_AREAS = [
-  {
-    name: "Johannesburg",
-    center: { lat: -26.2041, lng: 28.0473 },
-    radius: 30 // km
-  },
-  {
-    name: "Pretoria",
-    center: { lat: -25.7479, lng: 28.2293 },
-    radius: 25 // km
-  },
-  {
-    name: "Sandton",
-    center: { lat: -26.1075, lng: 28.0568 },
-    radius: 20 // km
-  },
-  {
-    name: "Fourways",
-    center: { lat: -26.0274, lng: 28.0106 },
-    radius: 15 // km
-  }
-];
+    { name: "Fourways", center: {lat: -26.0274, lng: 28.0106}, radius: 15 },
+    { name: "Bryanston", center: lat: -26.0525, lng: 28.0074}, radius: 15 },
+    { name: "Randburg", center: {lat: -26.1063, lng: 27.9947}, radius: 15 },
+    { name: "Midrand", center: {lat: -25.9992, lng: 28.1182}, radius: 15 },
+    { name: "North Riding", center: {lat: -26.0469, lng: 27.951}, radius: 15 },
+    { name: "Cosmo City,Roodepoort", center: {lat: -26.0287393, lng: 27.8876044}, radius: 50 },
+    { name: "Diepsloot", center: {lat:-25.9412555, lng: 27.96671}, radius: 100 },
+    { name: "Honeydew", cneter: {lat: -26.0225, lng: 27.9475}, radius: 30 },
+  ];
 
 /**
  * Calculate the distance between two points on Earth using the Haversine formula
