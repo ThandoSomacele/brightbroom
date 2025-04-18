@@ -1,5 +1,29 @@
 // src/lib/utils/serviceAreaValidator.ts
 
+// Define service areas with coordinates and radius in km
+export const SERVICE_AREAS = [
+  {
+    name: "Johannesburg",
+    center: { lat: -26.2041, lng: 28.0473 },
+    radius: 30 // km
+  },
+  {
+    name: "Pretoria",
+    center: { lat: -25.7479, lng: 28.2293 },
+    radius: 25 // km
+  },
+  {
+    name: "Sandton",
+    center: { lat: -26.1075, lng: 28.0568 },
+    radius: 20 // km
+  },
+  {
+    name: "Fourways",
+    center: { lat: -26.0274, lng: 28.0106 },
+    radius: 15 // km
+  }
+];
+
 /**
  * Calculate the distance between two points on Earth using the Haversine formula
  * 
@@ -27,7 +51,7 @@ export function getDistanceFromLatLonInKm(
       "Warning: Invalid coordinates in distance calculation",
       { lat1: latitude1, lng1: longitude1, lat2: latitude2, lng2: longitude2 }
     );
-    return 0; // Return 0 as fallback for invalid coordinates
+    return 9999; // Return large distance for invalid coordinates to prevent matches
   }
   
   // Haversine formula
@@ -45,6 +69,90 @@ export function getDistanceFromLatLonInKm(
   
   // Round to 1 decimal place
   return Math.round(distance * 10) / 10;
+}
+
+/**
+ * Check if a location is within any of the defined service areas
+ * 
+ * @param lat Latitude of the location to check
+ * @param lng Longitude of the location to check
+ * @returns Boolean indicating if the location is within a service area
+ */
+export function isWithinServiceArea(
+  lat: number | string | null | undefined, 
+  lng: number | string | null | undefined
+): boolean {
+  const latitude = safeParseFloat(lat);
+  const longitude = safeParseFloat(lng);
+  
+  if (!isValidCoordinate(latitude, longitude)) {
+    return false;
+  }
+  
+  // Check each service area
+  for (const area of SERVICE_AREAS) {
+    const distance = getDistanceFromLatLonInKm(
+      latitude,
+      longitude,
+      area.center.lat,
+      area.center.lng
+    );
+    
+    if (distance <= area.radius) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+/**
+ * Find the closest service area to a given location
+ * 
+ * @param lat Latitude of the location
+ * @param lng Longitude of the location 
+ * @returns The closest service area with distance information or null if invalid
+ */
+export function getClosestServiceArea(
+  lat: number | string | null | undefined,
+  lng: number | string | null | undefined
+): { 
+  area: typeof SERVICE_AREAS[0], 
+  distance: number,
+  isWithin: boolean 
+} | null {
+  const latitude = safeParseFloat(lat);
+  const longitude = safeParseFloat(lng);
+  
+  if (!isValidCoordinate(latitude, longitude)) {
+    return null;
+  }
+  
+  let closestArea = null;
+  let minDistance = Infinity;
+  
+  // Find the closest service area
+  for (const area of SERVICE_AREAS) {
+    const distance = getDistanceFromLatLonInKm(
+      latitude,
+      longitude, 
+      area.center.lat,
+      area.center.lng
+    );
+    
+    if (distance < minDistance) {
+      minDistance = distance;
+      closestArea = area;
+    }
+  }
+  
+  if (!closestArea) return null;
+  
+  return {
+    area: closestArea,
+    distance: minDistance,
+    isWithin: minDistance <= closestArea.radius
+  };
 }
 
 /**
