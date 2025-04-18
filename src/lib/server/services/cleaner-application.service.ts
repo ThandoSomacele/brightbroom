@@ -9,7 +9,6 @@ import {
   type User 
 } from "$lib/server/db/schema";
 import { eq, like } from "drizzle-orm";
-import { lucia } from "$lib/server/auth";
 import { sendWelcomeEmail } from "$lib/server/email-service";
 import { generateStrongPassword } from "$lib/utils/auth-utils";
 
@@ -92,8 +91,7 @@ export const cleanerApplicationService = {
    */
   async approveApplication(applicationId: string): Promise<{ success: boolean; message: string; userId?: string }> {
     try {
-      // Start database transaction for atomicity
-      // Note: With some database providers, you might need to use a different transaction approach
+      // Get the application
       const [application] = await db.select()
         .from(cleanerApplication)
         .where(eq(cleanerApplication.id, applicationId))
@@ -107,14 +105,22 @@ export const cleanerApplicationService = {
         return { success: false, message: "Application is already approved" };
       }
       
-      // Check if an account already exists with this email
-      const existingUser = await db.select()
-        .from(user)
-        .where(eq(user.email, application.email))
-        .limit(1);
+      // Enhanced check for existing user with detailed error message
+      const existingUserCheck = await db.select({
+        id: user.id,
+        email: user.email,
+        role: user.role
+      })
+      .from(user)
+      .where(eq(user.email, application.email))
+      .limit(1);
         
-      if (existingUser.length > 0) {
-        return { success: false, message: "A user account already exists with this email" };
+      if (existingUserCheck.length > 0) {
+        const existingUser = existingUserCheck[0];
+        return { 
+          success: false, 
+          message: `A user with email ${existingUser.email} already exists (role: ${existingUser.role}). Please update the application email.`
+        };
       }
       
       // 1. Create user account
@@ -122,7 +128,9 @@ export const cleanerApplicationService = {
       const tempPassword = generateStrongPassword();
       
       // Hash password
-      const hashedPassword = await lucia.hash(tempPassword);
+      const { Argon2id } = await import('oslo/password');
+const hasher = new Argon2id();
+const hashedPassword = await hasher.hash(tempPassword);
       
       // Create user with CLEANER role
       const userId = crypto.randomUUID();

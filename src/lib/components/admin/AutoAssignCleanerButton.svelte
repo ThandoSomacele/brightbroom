@@ -20,7 +20,6 @@
     success: { cleanerId: string };
     error: { message: string };
   }>();
-  
   // Auto-assign a cleaner based on availability
   async function autoAssignCleaner() {
     if (isLoading || disabled) return;
