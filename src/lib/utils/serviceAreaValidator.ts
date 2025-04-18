@@ -1,93 +1,50 @@
 // src/lib/utils/serviceAreaValidator.ts
 
 /**
- * Service area definition with center coordinates and radius
+ * Calculate the distance between two points on Earth using the Haversine formula
+ * 
+ * @param lat1 Latitude of the first point (booking address)
+ * @param lng1 Longitude of the first point (booking address)
+ * @param lat2 Latitude of the second point (cleaner location)
+ * @param lng2 Longitude of the second point (cleaner location)
+ * @returns Distance in kilometers (rounded to 1 decimal place)
  */
-export interface ServiceArea {
-  name: string;
-  lat: number;
-  lng: number;
-  radius: number; // radius in kilometers
-}
-
-/**
- * Defined service areas for BrightBroom's launch phase
- */
-export const SERVICE_AREAS: ServiceArea[] = [
-  { name: "Fourways", lat: -26.0274, lng: 28.0106, radius: 10 },
-    { name: "Bryanston", lat: -26.0525, lng: 28.0074, radius: 10 },
-    { name: "Randburg", lat: -26.1063, lng: 27.9947, radius: 10 },
-    { name: "Midrand", lat: -25.9992, lng: 28.1182, radius: 10 },
-    // { name: "Sandhurst", lat: -26.1041, lng: 28.0425, radius: 10 },
-    // { name: "Linden", lat: -26.1146, lng: 27.9928, radius: 10 },
-    // { name: 'Sandton', lat: -26.1070, lng: 28.0567, radius: 6 },
-    { name: "North Riding", lat: -26.0469, lng: 27.951, radius: 6 },
-    // { name: 'Roodepoort', lat: -26.1625, lng: 27.8727, radius: 7 }
-    { name: "Cosmo City,Roodepoort", lat: -26.0287393, lng: 27.8876044, radius: 50 },
-    { name: "Diepsloot", lat:-25.9412555, lng: 27.96671, radius: 100 },
-    { name: "Honeydew", lat: -26.0225, lng: 27.9475, radius: 30 },
+export function getDistanceFromLatLonInKm(
+  lat1: number | string | null | undefined,
+  lng1: number | string | null | undefined,
+  lat2: number | string | null | undefined,
+  lng2: number | string | null | undefined
+): number {
+  // Safe conversion to numbers with validation
+  const latitude1 = safeParseFloat(lat1);
+  const longitude1 = safeParseFloat(lng1);
+  const latitude2 = safeParseFloat(lat2);
+  const longitude2 = safeParseFloat(lng2);
   
-];
-
-/**
- * Check if coordinates are within any of our service areas
- * @param lat Latitude
- * @param lng Longitude
- * @returns Whether the coordinates are within a service area
- */
-export function isWithinServiceArea(lat: number, lng: number): boolean {
-  // Check each service area
-  for (const area of SERVICE_AREAS) {
-    const distance = getDistanceFromLatLonInKm(lat, lng, area.lat, area.lng);
-    if (distance <= area.radius) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Calculate the closest service area to given coordinates
- * @param lat Latitude
- * @param lng Longitude
- * @returns The closest service area and distance to it (in km)
- */
-export function getClosestServiceArea(lat: number, lng: number): { area: ServiceArea, distance: number } {
-  let closestArea = SERVICE_AREAS[0];
-  let minDistance = getDistanceFromLatLonInKm(lat, lng, closestArea.lat, closestArea.lng);
-  
-  for (let i = 1; i < SERVICE_AREAS.length; i++) {
-    const area = SERVICE_AREAS[i];
-    const distance = getDistanceFromLatLonInKm(lat, lng, area.lat, area.lng);
-    
-    if (distance < minDistance) {
-      minDistance = distance;
-      closestArea = area;
-    }
+  // Check for invalid coordinates (zeroes may indicate missing data)
+  if (!isValidCoordinate(latitude1, longitude1) || !isValidCoordinate(latitude2, longitude2)) {
+    console.warn(
+      "Warning: Invalid coordinates in distance calculation",
+      { lat1: latitude1, lng1: longitude1, lat2: latitude2, lng2: longitude2 }
+    );
+    return 0; // Return 0 as fallback for invalid coordinates
   }
   
-  return { area: closestArea, distance: minDistance };
-}
-
-/**
- * Calculate distance between coordinates using the Haversine formula
- * @param lat1 First point latitude
- * @param lon1 First point longitude
- * @param lat2 Second point latitude
- * @param lon2 Second point longitude
- * @returns Distance in kilometers
- */
-export function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  // Haversine formula
   const R = 6371; // Radius of the earth in km
-  const dLat = deg2rad(lat2 - lat1);
-  const dLon = deg2rad(lon2 - lon1);
+  const dLat = deg2rad(latitude2 - latitude1);
+  const dLng = deg2rad(longitude2 - longitude1);
+  
   const a = 
     Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2); 
+    Math.cos(deg2rad(latitude1)) * Math.cos(deg2rad(latitude2)) * 
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+    
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-  const distance = R * c; // Distance in km
-  return distance;
+  const distance = R * c; // Distance in kilometers
+  
+  // Round to 1 decimal place
+  return Math.round(distance * 10) / 10;
 }
 
 /**
@@ -98,9 +55,34 @@ function deg2rad(deg: number): number {
 }
 
 /**
- * Get friendly, user-facing description of our service areas
+ * Safely parse a coordinate value to a floating point number
+ * Returns 0 if the value is invalid
  */
-export function getServiceAreaDescription(): string {
-  const areaNames = SERVICE_AREAS.map(area => area.name).join(', ');
-  return `We currently serve ${areaNames} in Gauteng. More areas coming soon!`;
+function safeParseFloat(value: any): number {
+  // Handle various input formats
+  if (value === null || value === undefined) return 0;
+  
+  if (typeof value === "string") {
+    // Replace comma with dot for regions that use comma as decimal separator
+    value = value.replace(/,/g, ".");
+  }
+  
+  const parsed = Number(value);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+/**
+ * Check if coordinates are valid (non-zero and within range)
+ */
+function isValidCoordinate(lat: number, lng: number): boolean {
+  // Check for zero coordinates (likely default values)
+  if (lat === 0 && lng === 0) return false;
+  
+  // Check latitude range (-90 to 90)
+  if (Math.abs(lat) > 90) return false;
+  
+  // Check longitude range (-180 to 180)
+  if (Math.abs(lng) > 180) return false;
+  
+  return true;
 }
