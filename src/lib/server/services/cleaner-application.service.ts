@@ -9,7 +9,6 @@ import {
   type User 
 } from "$lib/server/db/schema";
 import { eq, like } from "drizzle-orm";
-import { lucia } from "$lib/server/auth";
 import { sendWelcomeEmail } from "$lib/server/email-service";
 import { generateStrongPassword } from "$lib/utils/auth-utils";
 
@@ -129,7 +128,9 @@ export const cleanerApplicationService = {
       const tempPassword = generateStrongPassword();
       
       // Hash password
-      const hashedPassword = await lucia.hash(tempPassword);
+      const { Argon2id } = await import('oslo/password');
+const hasher = new Argon2id();
+const hashedPassword = await hasher.hash(tempPassword);
       
       // Create user with CLEANER role
       const userId = crypto.randomUUID();
