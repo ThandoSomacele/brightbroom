@@ -1,12 +1,8 @@
 <!-- src/routes/service-areas/+page.svelte -->
 <script lang="ts">
-  import ServiceAreaMap from "$lib/components/maps/ServiceAreaMap.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { SERVICE_AREAS } from "$lib/utils/serviceAreaValidator";
-  import { Check, MapPin } from "lucide-svelte";
-
-  // Environment variables
-  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  import { MapPin, Check } from "lucide-svelte";
 
   // Local state
   let selectedArea: string | null = null;
@@ -29,42 +25,17 @@
         Our Service Areas
       </h1>
       <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
-        BrightBroom currently serves select areas in Gauteng, South Africa.
+        BrightBroom currently serves these areas around Gauteng, South Africa with varied coverage radiuses.
       </p>
     </div>
 
     <!-- Service areas section -->
     <div class="mb-16">
-      <div class="mb-6 grid gap-8 lg:grid-cols-5">
-        <!-- Map visualization -->
-        <div class="lg:col-span-3">
-          <div class="rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
-            <h2
-              class="mb-4 text-xl font-semibold text-gray-900 dark:text-white"
-            >
-              Coverage Map
-            </h2>
-
-            <ServiceAreaMap
-              apiKey={googleMapsApiKey}
-              height="400px"
-              showLabels={true}
-              selectedAreaName={selectedArea}
-            />
-
-            <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
-              The colored circles represent our current service areas. Click on
-              a location in the list to highlight it on the map.
-            </p>
-          </div>
-        </div>
-
+      <div class="mb-6 lg:grid-cols-5">
         <!-- Service areas list -->
-        <div class="lg:col-span-2">
-          <div class="rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
-            <h2
-              class="mb-4 text-xl font-semibold text-gray-900 dark:text-white"
-            >
+        <div class="w-full">
+          <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+            <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
               Areas We Serve
             </h2>
 
@@ -95,9 +66,7 @@
                       {/if}
                     </div>
 
-                    <p
-                      class="mt-1 pl-8 text-sm text-gray-500 dark:text-gray-400"
-                    >
+                    <p class="mt-1 pl-8 text-sm text-gray-500 dark:text-gray-400">
                       Service radius: {area.radius} km
                     </p>
                   </button>
@@ -108,23 +77,22 @@
         </div>
       </div>
 
-      <!-- Note about expansion -->
+      <!-- Note about coverage -->
       <div class="rounded-lg bg-primary-50 p-6 dark:bg-primary-900/20">
         <h3 class="text-lg font-medium text-primary-800 dark:text-primary-300">
-          Expanding Soon
+          Extended Coverage
         </h3>
         <p class="mt-2 text-primary-700 dark:text-primary-300">
-          We're currently focused on providing exceptional service in our launch
-          areas. We plan to expand to more neighborhoods in Gauteng soon! If
-          your area isn't currently covered, please leave your email with us and
-          we'll notify you when we expand to your location.
+          We've expanded our coverage with special attention to areas like Diepsloot (100km radius) and 
+          Cosmo City/Roodepoort (50km radius). Our other service areas have a standard 15-30km radius, 
+          ensuring reliable and efficient service delivery.
         </p>
         <div class="mt-4">
           <Button
             variant="primary"
             href="/contact?subject=Service Area Request"
           >
-            Request Your Area
+            Contact Support
           </Button>
         </div>
       </div>
@@ -145,15 +113,13 @@
             aria-expanded="true"
           >
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-              Why are you only serving select areas?
+              How do I know if my address is covered?
             </h3>
           </button>
           <div class="p-4 pt-0">
             <p class="text-gray-600 dark:text-gray-300">
-              We're starting with a focused approach to ensure we can provide
-              the highest quality service. By concentrating on specific areas,
-              we can guarantee reliable scheduling, consistent cleaning quality,
-              and prompt customer support.
+              Our booking system will automatically verify if your address is within our service area during checkout. 
+              We have varying coverage radiuses based on location, with special extended coverage for areas like Diepsloot.
             </p>
           </div>
         </div>
@@ -164,16 +130,14 @@
             aria-expanded="true"
           >
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-              When will you expand to more areas?
+              What if I'm just outside your service area?
             </h3>
           </button>
           <div class="p-4 pt-0">
             <p class="text-gray-600 dark:text-gray-300">
-              We plan to expand our service areas regularly. Our expansion is
-              guided by customer demand, cleaner availability, and our
-              operational capacity. Sign up for our newsletter or leave your
-              information on our contact page to be notified when we expand to
-              your area.
+              With our expanded coverage in certain regions, most locations around Gauteng are now covered. 
+              If your address still falls outside our service areas, please contact our support team, 
+              and we'll do our best to accommodate your request.
             </p>
           </div>
         </div>
@@ -184,15 +148,14 @@
             aria-expanded="true"
           >
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-              What if I'm just outside a service area?
+              Are there different prices for locations farther from service centers?
             </h3>
           </button>
           <div class="p-4 pt-0">
             <p class="text-gray-600 dark:text-gray-300">
-              If your address is just outside our current service areas, please
-              contact us directly. In some cases, we may be able to accommodate
-              locations that are slightly outside our official boundaries,
-              depending on cleaner availability.
+              We offer the same competitive pricing throughout our service areas regardless of distance.
+              However, for locations on the outermost edges of our service areas, availability might be
+              more limited depending on cleaner schedules.
             </p>
           </div>
         </div>
