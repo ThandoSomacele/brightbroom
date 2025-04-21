@@ -10,9 +10,14 @@ export const SERVICE_AREAS = [
   { name: "Randburg", lat: -26.1063, lng: 27.9947, radius: 15 },
   { name: "Midrand", lat: -25.9992, lng: 28.1182, radius: 15 },
   { name: "North Riding", lat: -26.0469, lng: 27.951, radius: 15 },
-  { name: "Cosmo City,Roodepoort", lat: -26.0287393, lng: 27.8876044, radius: 50 },
+  {
+    name: "Cosmo City, Roodepoort",
+    lat: -26.0212639,
+    lng: 27.9289995,
+    radius: 50,
+  },
   { name: "Diepsloot", lat: -25.9412555, lng: 27.96671, radius: 100 },
-  { name: "Honeydew", lat: -26.0225, lng: 27.9475, radius: 30 }
+  { name: "Honeydew", lat: -26.0225, lng: 27.9475, radius: 30 },
 ];
 
 /**
@@ -27,7 +32,7 @@ export function getDistanceFromLatLonInKm(
   lat1: number,
   lng1: number,
   lat2: number,
-  lng2: number
+  lng2: number,
 ): number {
   const R = 6371; // Radius of the earth in km
   const dLat = deg2rad(lat2 - lat1);
@@ -69,7 +74,10 @@ export function isWithinServiceArea(lat: number, lng: number): boolean {
  * @param lng Longitude of the location
  * @returns The closest service area and distance, or null if no service area is close enough
  */
-export function getClosestServiceArea(lat: number, lng: number): {
+export function getClosestServiceArea(
+  lat: number,
+  lng: number,
+): {
   name: string;
   distance: number;
   isWithinService: boolean;
@@ -84,7 +92,7 @@ export function getClosestServiceArea(lat: number, lng: number): {
       closestArea = {
         name: area.name,
         distance: distance,
-        isWithinService: distance <= area.radius
+        isWithinService: distance <= area.radius,
       };
     }
   }
