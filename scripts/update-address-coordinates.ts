@@ -1,6 +1,6 @@
 // scripts/update-address-coordinates.ts
 import dotenv from 'dotenv';
-import { eq, or, isNull } from 'drizzle-orm';
+import { eq, or, sql } from 'drizzle-orm';
 import fetch from 'node-fetch';
 
 // Load environment variables first
@@ -20,22 +20,65 @@ if (!GOOGLE_MAPS_API_KEY) {
 }
 
 /**
- * Geocode an address to get coordinates
+ * Geocode an address to get coordinates with improved error handling
  */
 async function geocodeAddress(addressText: string): Promise<{ lat: number; lng: number } | null> {
   try {
-    const encodedAddress = encodeURIComponent(addressText);
+    // Normalize the address - remove unusual characters that might cause problems
+    const normalizedAddress = addressText
+      .replace(/^0[A-Z]\s+/, '') // Remove leading characters like "0B "
+      .trim();
+    
+    console.log(`Attempting to geocode: "${normalizedAddress}"`);
+    
+    const encodedAddress = encodeURIComponent(normalizedAddress);
     const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${GOOGLE_MAPS_API_KEY}`;
     
     const response = await fetch(url);
     const data = await response.json() as any;
     
+    console.log(`Google API response status: ${data.status}`);
+    
     if (data.status === 'OK' && data.results && data.results.length > 0) {
       const location = data.results[0].geometry.location;
+      const formattedAddress = data.results[0].formatted_address;
+      
+      console.log(`Found coordinates for: "${formattedAddress}"`);
+      
       return {
         lat: location.lat,
         lng: location.lng
       };
+    }
+    
+    // If we didn't get a result, try with just city and state
+    if (data.status !== 'OK') {
+      const parts = normalizedAddress.split(',');
+      if (parts.length >= 2) {
+        // Try with just city, state
+        const cityState = `${parts[1].trim()}, ${parts[2] ? parts[2].trim() : ''}`;
+        console.log(`Trying again with just city/state: "${cityState}"`);
+        
+        const fallbackUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityState)}&key=${GOOGLE_MAPS_API_KEY}`;
+        
+        const fallbackResponse = await fetch(fallbackUrl);
+        const fallbackData = await fallbackResponse.json() as any;
+        
+        if (fallbackData.status === 'OK' && fallbackData.results && fallbackData.results.length > 0) {
+          const location = fallbackData.results[0].geometry.location;
+          console.log(`Found approximate coordinates for city/state: "${cityState}"`);
+          
+          return {
+            lat: location.lat,
+            lng: location.lng
+          };
+        }
+      }
+    }
+    
+    console.error('Geocoding failed with status:', data.status);
+    if (data.error_message) {
+      console.error('Error message:', data.error_message);
     }
     
     return null;
@@ -49,14 +92,28 @@ async function updateAddressCoordinates() {
   console.log("Starting address coordinates update...");
 
   try {
-    // Find addresses with missing or invalid coordinates
+    // Check if lat/lng columns exist in the address table
+    try {
+      // Try to first verify if the columns exist by running a test query
+      await db.execute(sql`SELECT "lat", "lng" FROM "address" LIMIT 1`);
+      console.log("Confirmed lat/lng columns exist in address table");
+    } catch (err) {
+      console.error("Error: The lat/lng columns don't exist in the address table!");
+      console.log("Please run a migration to add these columns first:");
+      console.log("1. Update your schema.ts to add lat and lng columns to the address table");
+      console.log("2. Run 'npm run db:generate' to create a migration");
+      console.log("3. Run 'npm run db:migrate' to apply the migration");
+      process.exit(1);
+    }
+
+    // Find addresses with missing or invalid coordinates using proper SQL syntax
     const addressesToUpdate = await db
       .select()
       .from(address)
       .where(
         or(
-          isNull(address.lat),
-          isNull(address.lng),
+          sql`"lat" IS NULL`,
+          sql`"lng" IS NULL`,
           eq(address.lat, 0),
           eq(address.lng, 0)
         )
