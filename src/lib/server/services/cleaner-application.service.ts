@@ -341,12 +341,3 @@ export const cleanerApplicationService = {
     }
   },
 };
-
-// Helper function for SQL OR conditions
-function or(...conditions) {
-  return (cb) =>
-    conditions.reduce((acc, condition) => {
-      if (acc === undefined) return condition(cb);
-      return cb.or(acc, condition(cb));
-    }, undefined);
-}
