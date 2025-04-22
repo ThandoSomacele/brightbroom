@@ -7,8 +7,8 @@ import {
   service,
   user,
 } from "$lib/server/db/schema";
-import { cleanerEarningsService } from "$lib/server/services/cleaner-earnings.service";
 import { sendWelcomeEmail } from "$lib/server/email-service";
+import { cleanerEarningsService } from "$lib/server/services/cleaner-earnings.service";
 import { error, fail } from "@sveltejs/kit";
 import { and, desc, eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
@@ -81,9 +81,10 @@ export const load: PageServerLoad = async ({ params }) => {
       .where(eq(booking.cleanerId, cleanerId))
       .orderBy(desc(booking.scheduledDate))
       .limit(5);
-      
+
     // Fetch earnings data
-    const earningsData = await cleanerEarningsService.getCleanerEarningsSummary(cleanerId);
+    const earningsData =
+      await cleanerEarningsService.getCleanerEarningsSummary(cleanerId);
 
     // Combine data
     return {
@@ -142,7 +143,7 @@ export const actions: Actions = {
     }
   },
 
-  // Update specialisations
+  // Update specialisations action
   updateSpecialisations: async ({ params, request }) => {
     const cleanerId = params.id;
 
@@ -151,7 +152,7 @@ export const actions: Actions = {
     }
 
     const formData = await request.formData();
-    let specialisations: { serviceId: string; experience: number }[] = [];
+    let specialisations: { serviceId: string }[] = [];
 
     try {
       const specialisationsJson = formData.get("specialisations")?.toString();
@@ -191,7 +192,7 @@ export const actions: Actions = {
           id: crypto.randomUUID(),
           cleanerProfileId: profileId,
           serviceId: spec.serviceId,
-          experience: spec.experience,
+          experience: 0, // Default to 0 since we've removed the UI field
         }));
 
         await db.insert(cleanerSpecialisation).values(specialisationsToInsert);

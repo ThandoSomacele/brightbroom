@@ -83,18 +83,18 @@
   let selectedExperienceTypes: string[] =
     cleaner.cleanerProfile?.experienceTypes || [];
 
-  // Track specialisations
-  let selectedSpecialisations = new Map();
+  
+// Track specialisations
+let selectedSpecialisations = new Map();
 
-  // Initialize selected specialisations
-  if (cleaner.specialisations) {
-    cleaner.specialisations.forEach((spec) => {
-      selectedSpecialisations.set(spec.serviceId, {
-        selected: true,
-        experience: spec.experience || 0,
-      });
+// Initialize selected specialisations
+if (cleaner.specialisations) {
+  cleaner.specialisations.forEach((spec) => {
+    selectedSpecialisations.set(spec.serviceId, {
+      selected: true,
     });
-  }
+  });
+}
 
   // Format date function
   function formatDate(dateString: string): string {
@@ -146,58 +146,45 @@
   }
 
   // Toggle specialisations edit mode
-  function toggleSpecialisationsEdit() {
-    isSpecialisationsEditMode = !isSpecialisationsEditMode;
+function toggleSpecialisationsEdit() {
+  isSpecialisationsEditMode = !isSpecialisationsEditMode;
 
-    if (isSpecialisationsEditMode) {
-      // Reset selected specialisations
-      selectedSpecialisations = new Map();
+  if (isSpecialisationsEditMode) {
+    // Reset selected specialisations
+    selectedSpecialisations = new Map();
 
-      // Set from cleaner data
-      if (cleaner.specialisations) {
-        cleaner.specialisations.forEach((spec) => {
-          selectedSpecialisations.set(spec.serviceId, {
-            selected: true,
-            experience: spec.experience || 0,
-          });
+    // Set from cleaner data
+    if (cleaner.specialisations) {
+      cleaner.specialisations.forEach((spec) => {
+        selectedSpecialisations.set(spec.serviceId, {
+          selected: true,
+        });
+      });
+    }
+
+    // Initialize missing services
+    services.forEach((service) => {
+      if (!selectedSpecialisations.has(service.id)) {
+        selectedSpecialisations.set(service.id, {
+          selected: false,
         });
       }
-
-      // Initialize missing services
-      services.forEach((service) => {
-        if (!selectedSpecialisations.has(service.id)) {
-          selectedSpecialisations.set(service.id, {
-            selected: false,
-            experience: 0,
-          });
-        }
-      });
-    }
+    });
   }
+}
 
-  // Toggle service selection
-  function toggleServiceSelection(serviceId: string) {
-    if (selectedSpecialisations.has(serviceId)) {
-      const currentValue = selectedSpecialisations.get(serviceId);
-      selectedSpecialisations.set(serviceId, {
-        ...currentValue,
-        selected: !currentValue.selected,
-      });
-      // Force Svelte reactivity by creating a new Map with the same entries
-      selectedSpecialisations = new Map(selectedSpecialisations);
-    }
+ // Toggle service selection
+function toggleServiceSelection(serviceId) {
+  if (selectedSpecialisations.has(serviceId)) {
+    const currentValue = selectedSpecialisations.get(serviceId);
+    selectedSpecialisations.set(serviceId, {
+      ...currentValue,
+      selected: !currentValue.selected,
+    });
+    // Force Svelte reactivity by creating a new Map with the same entries
+    selectedSpecialisations = new Map(selectedSpecialisations);
   }
-
-  // Update service experience
-  function updateServiceExperience(serviceId: string, months: number) {
-    if (selectedSpecialisations.has(serviceId)) {
-      const currentValue = selectedSpecialisations.get(serviceId);
-      selectedSpecialisations.set(serviceId, {
-        ...currentValue,
-        experience: months,
-      });
-    }
-  }
+}
 
   // Convert available days to array for form submission
   function getAvailableDaysArray() {
@@ -207,18 +194,18 @@
   }
 
   // Get selected specialisations for form submission
-  function getSelectedSpecialisations() {
-    const result = [];
-    selectedSpecialisations.forEach((value, serviceId) => {
-      if (value.selected) {
-        result.push({
-          serviceId,
-          experience: parseInt(value.experience.toString()) || 0,
-        });
-      }
-    });
-    return JSON.stringify(result);
-  }
+function getSelectedSpecialisations() {
+  const result = [];
+  selectedSpecialisations.forEach((value, serviceId) => {
+    if (value.selected) {
+      result.push({
+        serviceId,
+        experience: 0, // Default to 0 since we're removing the field
+      });
+    }
+  });
+  return JSON.stringify(result);
+}
 
   // Function to handle form submission
   function toggleProfileEdit() {
@@ -1169,176 +1156,146 @@
       }}
     />
 
-    <!-- Specialisations -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-      <div class="p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-            Service Specialisations
-          </h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            on:click={toggleSpecialisationsEdit}
-          >
-            {#if isSpecialisationsEditMode}
-              <X size={16} class="mr-1" />
-              Cancel
-            {:else}
-              <PenTool size={16} class="mr-1" />
-              Edit
-            {/if}
-          </Button>
-        </div>
-
+   <!-- Service Specialisations Section -->
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+  <div class="p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+        Service Specialisations
+      </h2>
+      <Button
+        variant="ghost"
+        size="sm"
+        on:click={toggleSpecialisationsEdit}
+      >
         {#if isSpecialisationsEditMode}
-          <form
-            method="POST"
-            action="?/updateSpecialisations"
-            use:enhance={() => {
-              isLoading = true;
+          <X size={16} class="mr-1" />
+          Cancel
+        {:else}
+          <PenTool size={16} class="mr-1" />
+          Edit
+        {/if}
+      </Button>
+    </div>
 
-              return async ({ result, update }) => {
-                isLoading = false;
+    {#if isSpecialisationsEditMode}
+      <form
+        method="POST"
+        action="?/updateSpecialisations"
+        use:enhance={() => {
+          isLoading = true;
 
-                if (result.type === "success") {
-                  isSpecialisationsEditMode = false;
-                }
+          return async ({ result, update }) => {
+            isLoading = false;
 
-                await update();
+            if (result.type === "success") {
+              isSpecialisationsEditMode = false;
+            }
 
-                // Then invalidate all data to force a refresh of the page data
-                if (result.type === "success") {
-                  await invalidateAll();
-                }
-              };
-            }}
-          >
-            <div class="space-y-4">
-              {#each services as service}
-                <div
-                  class="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-                >
-                  <div class="flex items-start">
-                    <input
-                      type="checkbox"
-                      id={`service-${service.id}`}
-                      checked={selectedSpecialisations.get(service.id)
-                        ?.selected || false}
-                      on:change={() => toggleServiceSelection(service.id)}
-                      class="h-4 w-4 mt-1 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
-                    <div class="ml-3 flex-1">
-                      <label
-                        for={`service-${service.id}`}
-                        class="text-gray-900 dark:text-white font-medium"
-                      >
-                        {service.name}
-                      </label>
-                      <p class="text-sm text-gray-500 dark:text-gray-400">
-                        {service.description}
-                      </p>
+            await update();
 
-                      {#if selectedSpecialisations.get(service.id)?.selected}
-                        <div class="mt-2">
-                          <label
-                            for={`experience-${service.id}`}
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                          >
-                            Experience (months)
-                          </label>
-                          <input
-                            type="number"
-                            id={`experience-${service.id}`}
-                            value={selectedSpecialisations.get(service.id)
-                              ?.experience || 0}
-                            on:input={(e) =>
-                              updateServiceExperience(
-                                service.id,
-                                parseInt(e.target.value),
-                              )}
-                            min="0"
-                            class="w-full sm:w-1/3 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                          />
-                        </div>
-                      {/if}
-                    </div>
-                  </div>
+            // Then invalidate all data to force a refresh of the page data
+            if (result.type === "success") {
+              await invalidateAll();
+            }
+          };
+        }}
+      >
+        <div class="space-y-4">
+          {#each services as service}
+            <div
+              class="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+            >
+              <div class="flex items-start">
+                <input
+                  type="checkbox"
+                  id={`service-${service.id}`}
+                  checked={selectedSpecialisations.get(service.id)
+                    ?.selected || false}
+                  on:change={() => toggleServiceSelection(service.id)}
+                  class="h-4 w-4 mt-1 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <div class="ml-3 flex-1">
+                  <label
+                    for={`service-${service.id}`}
+                    class="text-gray-900 dark:text-white font-medium"
+                  >
+                    {service.name}
+                  </label>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    {service.description}
+                  </p>
                 </div>
-              {/each}
-
-              <input
-                type="hidden"
-                name="specialisations"
-                value={getSelectedSpecialisations()}
-              />
-
-              <div class="pt-2">
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={isLoading}
-                  class="w-full"
-                >
-                  {#if isLoading}
-                    <svg
-                      class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        class="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        stroke-width="4"
-                      ></circle>
-                      <path
-                        class="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Saving...
-                  {:else}
-                    <Save size={16} class="mr-2" />
-                    Save Specialisations
-                  {/if}
-                </Button>
               </div>
             </div>
-          </form>
-        {:else if cleaner.specialisations && cleaner.specialisations.length > 0}
-          <div class="space-y-3">
-            {#each cleaner.specialisations as specialisation}
-              <div class="flex items-start">
-                <Briefcase
-                  class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3"
-                />
-                <div>
-                  <p class="font-medium text-gray-900 dark:text-white">
-                    {services.find((s) => s.id === specialisation.serviceId)
-                      ?.name || "Unknown Service"}
-                  </p>
+          {/each}
 
-                  {#if specialisation.experience}
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                      {specialisation.experience} months experience
-                    </p>
-                  {/if}
-                </div>
-              </div>
-            {/each}
+          <input
+            type="hidden"
+            name="specialisations"
+            value={getSelectedSpecialisations()}
+          />
+
+          <div class="pt-2">
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isLoading}
+              class="w-full"
+            >
+              {#if isLoading}
+                <svg
+                  class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Saving...
+              {:else}
+                <Save size={16} class="mr-2" />
+                Save Specialisations
+              {/if}
+            </Button>
           </div>
-        {:else}
-          <p class="py-4 text-center text-gray-500 dark:text-gray-400">
-            No specialisations added yet
-          </p>
-        {/if}
+        </div>
+      </form>
+    {:else if cleaner.specialisations && cleaner.specialisations.length > 0}
+      <div class="space-y-3">
+        {#each cleaner.specialisations as specialisation}
+          <div class="flex items-start">
+            <Briefcase
+              class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3"
+            />
+            <div>
+              <p class="font-medium text-gray-900 dark:text-white">
+                {services.find((s) => s.id === specialisation.serviceId)
+                  ?.name || "Unknown Service"}
+              </p>
+            </div>
+          </div>
+        {/each}
       </div>
-    </div>
+    {:else}
+      <p class="py-4 text-center text-gray-500 dark:text-gray-400">
+        No specialisations added yet
+      </p>
+    {/if}
+  </div>
+</div>
 
     <!-- Recent Bookings -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
