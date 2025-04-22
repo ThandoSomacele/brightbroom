@@ -1,5 +1,4 @@
 // src/routes/api/admin/cleaners/[id]/profile-image/+server.ts
-import { PUBLIC_URL } from "$env/static/public";
 import { UPLOAD_DIR } from "$lib/server/constants";
 import { db } from "$lib/server/db";
 import { cleanerProfile } from "$lib/server/db/schema";
@@ -10,13 +9,6 @@ import { nanoid } from "nanoid";
 import path from "path";
 import sharp from "sharp";
 import type { RequestHandler } from "./$types";
-
-// Log environment for debugging
-console.log("Environment check:", {
-  PUBLIC_URL,
-  UPLOAD_DIR,
-  "process.env.NODE_ENV": process.env.NODE_ENV,
-});
 
 // Ensure upload directory exists
 const ensureUploadDirExists = () => {
@@ -89,20 +81,7 @@ export const POST: RequestHandler = async ({ request, params }) => {
     // Debug to see if the cleaner ID is correct
     console.log(`Looking for cleaner profile for user ID: ${cleanerId}`);
 
-    // Check if the table exists and log its structure
-    try {
-      const tableInfo = await db.query.cleanerProfile.findMany({
-        limit: 1,
-      });
-      console.log(
-        "Cleaner profile table exists, sample:",
-        tableInfo.length > 0 ? "Found records" : "No records",
-      );
-    } catch (dbErr) {
-      console.error("Error querying cleaner profile table:", dbErr);
-    }
-
-    // Update the cleaner profile in the database
+    // Check if the cleaner profile exists - FIXED QUERY SYNTAX
     const cleanerProfiles = await db
       .select()
       .from(cleanerProfile)
