@@ -4,6 +4,7 @@ import { db } from "$lib/server/db";
 import { booking, cleanerProfile, user, service, address } from "$lib/server/db/schema";
 import { eq, and, gte, lt, like, or, ne, sql } from "drizzle-orm"; 
 import { getDistanceFromLatLonInKm } from "$lib/utils/serviceAreaValidator";
+import { sendCleanerAssignmentNotification } from "./notification.service";
 
 /**
  * Service for assigning cleaners to bookings
