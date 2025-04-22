@@ -4,6 +4,8 @@ import {
   applicationNote,
   cleanerApplication,
   cleanerProfile,
+  cleanerSpecialisation,
+  service,
   user,
 } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
@@ -95,6 +97,7 @@ export const actions: Actions = {
   },
 
   // Approve application
+  // Updated approve action in src/routes/admin/applications/[id]/+page.server.ts
   approve: async ({ params, locals }) => {
     const applicationId = params.id;
     const adminUser = locals.user;
@@ -193,6 +196,46 @@ export const actions: Actions = {
           createdAt: new Date(),
           updatedAt: new Date(),
         });
+
+        // Create specializations for all services
+        try {
+          // Fetch all active services
+          const services = await db
+            .select({ id: service.id })
+            .from(service)
+            .where(eq(service.isActive, true));
+
+          // Create specializations for each service
+          if (services.length > 0) {
+            const specializations = services.map((svc) => ({
+              id: crypto.randomUUID(),
+              cleanerProfileId: profileId,
+              serviceId: svc.id,
+              experience: 0, // Default to 0 months experience
+            }));
+
+            // Insert all specializations in a single query
+            await db.insert(cleanerSpecialisation).values(specializations);
+
+            console.log(
+              `Added ${specializations.length} default service specializations for cleaner ${userId}`,
+            );
+          }
+        } catch (specializationError) {
+          console.error(
+            "Error adding default service specializations:",
+            specializationError,
+          );
+          // Continue execution even if adding specializations fails - we can fix it later
+          // Add note about the specialization error
+          await db.insert(applicationNote).values({
+            id: crypto.randomUUID(),
+            applicationId,
+            content: `WARNING: Error adding default service specializations: ${specializationError.message || "Unknown error"}. Please add them manually.`,
+            addedBy: `System`,
+            createdAt: new Date(),
+          });
+        }
 
         console.log(`Successfully created cleaner profile for user ${userId}`);
       } catch (profileError) {
