@@ -25,6 +25,8 @@
     "services:update:sort": "tsx scripts/services/update.ts --sort-order",
     "services:update:details": "tsx scripts/services/update.ts --details",
     "services:convert": "tsx scripts/services/convert.ts",
+    "update:address-coordinates": "tsx scripts/update-address-coordinates.ts",
+    "update:cleaner-coordinates": "tsx scripts/update-cleaner-coordinates.ts",
     "deploy:check": "node scripts/deploy/pre-deploy.js",
     "deploy:netlify": "node scripts/deploy/netlify.js",
     "deploy:validate-env": "node scripts/deploy/validate-env.js",

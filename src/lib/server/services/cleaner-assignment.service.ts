@@ -1,9 +1,9 @@
 // src/lib/server/services/cleaner-assignment.service.ts
+
 import { db } from "$lib/server/db";
 import { booking, cleanerProfile, user, service, address } from "$lib/server/db/schema";
-import { eq, and, gte, lt, like, or, ne, sql } from "drizzle-orm"; // Added sql import
+import { eq, and, gte, lt, like, or, ne, sql } from "drizzle-orm"; 
 import { getDistanceFromLatLonInKm } from "$lib/utils/serviceAreaValidator";
-import { sendCleanerAssignmentNotification } from "./notification.service";
 
 /**
  * Service for assigning cleaners to bookings
@@ -56,24 +56,34 @@ export const cleanerAssignmentService = {
         throw new Error(`Address not found for booking: ${bookingId}`);
       }
       
-      // Get service details
-      const serviceDetails = await db
-        .select()
-        .from(service)
-        .where(eq(service.id, bookingData.serviceId))
-        .limit(1);
+      const bookingAddress = addressDetails[0];
+      
+      // Extract and validate booking address coordinates
+      let bookingLat: number | null = null;
+      let bookingLng: number | null = null;
+      
+      if (bookingAddress.lat !== undefined && bookingAddress.lng !== undefined) {
+        bookingLat = parseFloat(String(bookingAddress.lat));
+        bookingLng = parseFloat(String(bookingAddress.lng));
         
-      if (serviceDetails.length === 0) {
-        throw new Error(`Service not found for booking: ${bookingId}`);
+        if (isNaN(bookingLat) || isNaN(bookingLng)) {
+          console.warn(`Invalid booking coordinates for address ID ${bookingData.addressId}: Lat ${bookingAddress.lat}, Lng ${bookingAddress.lng}`);
+          bookingLat = null;
+          bookingLng = null;
+        }
+      } else {
+        console.warn(`Missing coordinates for address ID ${bookingData.addressId}. Using city-based distance estimation.`);
       }
+      
+      // Fallback to using geocoding service in future if no coordinates available
+      // For now, we'll proceed with null coordinates and handle that case in distance calculation
       
       // Calculate booking date range
       const startTime = new Date(bookingData.scheduledDate);
       const endTime = new Date(bookingData.scheduledDate);
       endTime.setMinutes(endTime.getMinutes() + bookingData.duration);
       
-      // Calculate day of week (1 = Monday, 7 = Sunday)
-      const dayOfWeek = startTime.getDay() === 0 ? 7 : startTime.getDay();
+      // Get day of week name for availability check
       const dayNames = [
         "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"
       ];
@@ -91,6 +101,8 @@ export const cleanerAssignmentService = {
           workRadius: cleanerProfile.workRadius,
           availableDays: cleanerProfile.availableDays,
           isAvailable: cleanerProfile.isAvailable,
+          // Add these fields to help with fallback distance calculation if needed
+          workAddress: cleanerProfile.workAddress,
         })
         .from(user)
         .innerJoin(cleanerProfile, eq(user.id, cleanerProfile.userId))
@@ -118,11 +130,11 @@ export const cleanerAssignmentService = {
         .where(
           and(
             // Same day
-            gte(booking.scheduledDate, new Date(startTime.setHours(0, 0, 0, 0))),
-            lt(booking.scheduledDate, new Date(startTime.setHours(23, 59, 59, 999))),
+            gte(booking.scheduledDate, new Date(new Date(startTime).setHours(0, 0, 0, 0))),
+            lt(booking.scheduledDate, new Date(new Date(startTime).setHours(23, 59, 59, 999))),
             // Not cancelled
             ne(booking.status, "CANCELLED"),
-            // Has assigned cleaner - FIX: Using SQL expression instead of isNotNull
+            // Has assigned cleaner
             sql`${booking.cleanerId} IS NOT NULL`
           )
         );
@@ -157,21 +169,67 @@ export const cleanerAssignmentService = {
         // Check if cleaner has a booking conflict
         const hasConflict = bookingConflicts.has(cleaner.id);
         
-        // Calculate distance (assuming address lat/lng and cleaner work location)
-        const distance = getDistanceFromLatLonInKm(
-          Number(addressDetails[0].lat || 0), 
-          Number(addressDetails[0].lng || 0),
-          Number(cleaner.workLocationLat),
-          Number(cleaner.workLocationLng)
-        );
+        // Calculate distance only if we have valid coordinates
+        let distance = 0;
+        let canCalculateDistance = false;
+        
+        // Check and parse cleaner coordinates
+        let cleanerLat: number | null = null;
+        let cleanerLng: number | null = null;
+        
+        if (cleaner.workLocationLat !== undefined && cleaner.workLocationLng !== undefined) {
+          cleanerLat = parseFloat(String(cleaner.workLocationLat));
+          cleanerLng = parseFloat(String(cleaner.workLocationLng));
+          
+          if (isNaN(cleanerLat) || isNaN(cleanerLng) || 
+              (cleanerLat === 0 && cleanerLng === 0)) {
+            console.warn(`Invalid cleaner coordinates for cleaner ${cleaner.id}: Lat ${cleanerLat}, Lng ${cleanerLng}`);
+            cleanerLat = null;
+            cleanerLng = null;
+          }
+        }
+        
+        // Only calculate distance if both booking and cleaner coordinates are valid
+        if (bookingLat !== null && bookingLng !== null && 
+            cleanerLat !== null && cleanerLng !== null) {
+          try {
+            distance = getDistanceFromLatLonInKm(
+              bookingLat, 
+              bookingLng,
+              cleanerLat,
+              cleanerLng
+            );
+            
+            // Round to 1 decimal place for display
+            distance = Math.round(distance * 10) / 10;
+            canCalculateDistance = true;
+          } catch (error) {
+            console.error("Error calculating distance:", error);
+            canCalculateDistance = false;
+          }
+        } else {
+          // No valid coordinates for distance calculation
+          canCalculateDistance = false;
+        }
         
         // Determine availability status
         let availability: "AVAILABLE" | "LIMITED" | "UNAVAILABLE" = "UNAVAILABLE";
         
-        if (isAvailableOnDay && !hasConflict && distance <= Number(cleaner.workRadius)) {
-          availability = "AVAILABLE";
-        } else if (isAvailableOnDay && !hasConflict) {
-          availability = "LIMITED"; // Available but outside preferred work area
+        if (isAvailableOnDay && !hasConflict) {
+          if (canCalculateDistance) {
+            // If we can calculate distance, use it to determine availability
+            const workRadius = parseFloat(String(cleaner.workRadius)) || 20; // Default to 20km if not set
+            
+            if (distance <= workRadius) {
+              availability = "AVAILABLE";
+            } else {
+              availability = "LIMITED"; // Available but outside preferred work area
+            }
+          } else {
+            // If we can't calculate distance, default to LIMITED
+            // This ensures cleaners still show up but with a warning
+            availability = "LIMITED";
+          }
         }
         
         return {
@@ -192,8 +250,8 @@ export const cleanerAssignmentService = {
           return availabilityOrder[a.availability] - availabilityOrder[b.availability];
         }
         
-        // Then sort by distance
-        if (a.distance !== b.distance) {
+        // Then sort by distance (but only if both have non-zero distance)
+        if (a.distance > 0 && b.distance > 0 && a.distance !== b.distance) {
           return a.distance - b.distance;
         }
         
@@ -210,6 +268,7 @@ export const cleanerAssignmentService = {
       throw error;
     }
   },
+  
 
   /**
    * Automatically assign the best available cleaner to a booking

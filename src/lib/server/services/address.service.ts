@@ -2,6 +2,7 @@
 import { MAX_ADDRESSES } from "$lib/constants/address";
 import { db } from "$lib/server/db";
 import { address, booking } from "$lib/server/db/schema";
+import { geocodeAddress } from "$lib/utils/geocoding";
 import { and, eq, ne } from "drizzle-orm";
 
 /**
@@ -13,19 +14,16 @@ export const addressService = {
    */
   async getUserAddresses(
     userId: string,
-    includeInactive: boolean = false
+    includeInactive: boolean = false,
   ): Promise<(typeof address.$inferSelect)[]> {
     try {
-      let query = db
-        .select()
-        .from(address)
-        .where(eq(address.userId, userId));
-        
+      let query = db.select().from(address).where(eq(address.userId, userId));
+
       // Only include active addresses unless specifically requested
       if (!includeInactive) {
         query = query.where(eq(address.isActive, true));
       }
-        
+
       return await query.orderBy(address.isDefault, { direction: "desc" });
     } catch (error) {
       console.error("Error fetching user addresses:", error);
@@ -41,14 +39,11 @@ export const addressService = {
       const result = await db
         .select({ count: db.fn.count() })
         .from(address)
-        .where(and(
-          eq(address.userId, userId),
-          eq(address.isActive, true)
-        ));
-  
+        .where(and(eq(address.userId, userId), eq(address.isActive, true)));
+
       // Add safer access to the count property
-      return result && result.length > 0 && result[0].count !== undefined 
-        ? Number(result[0].count) 
+      return result && result.length > 0 && result[0].count !== undefined
+        ? Number(result[0].count)
         : 0;
     } catch (error) {
       console.error("Error counting user addresses:", error);
@@ -78,10 +73,12 @@ export const addressService = {
       let query = db
         .update(address)
         .set({ isDefault: false })
-        .where(and(
-          eq(address.userId, userId),
-          eq(address.isActive, true) // Only update active addresses
-        ));
+        .where(
+          and(
+            eq(address.userId, userId),
+            eq(address.isActive, true), // Only update active addresses
+          ),
+        );
 
       // If we have an addressId, exclude it from the update
       if (addressId) {
@@ -103,64 +100,20 @@ export const addressService = {
   /**
    * Create a new address for a user
    */
-  async createAddress(
-    userId: string,
-    addressData: {
-      street: string;
-      aptUnit?: string;
-      city: string;
-      state: string;
-      zipCode: string;
-      instructions?: string;
-      isDefault?: boolean;
-      lat?: number | null;
-      lng?: number | null;
-    },
-  ): Promise<typeof address.$inferSelect> {
-    try {
-      // Check if user has reached the address limit
-      const hasReachedLimit = await this.hasReachedAddressLimit(userId);
-      if (hasReachedLimit) {
-        throw new Error(`Maximum limit of ${MAX_ADDRESSES} addresses reached`);
+  async createAddress(userId: string, addressData: any): Promise<any> {
+    // Check if coordinates are provided
+    if (!addressData.lat || !addressData.lng) {
+      // Construct full address
+      const fullAddress = `${addressData.street}, ${addressData.city}, ${addressData.state}, ${addressData.zipCode}`;
+
+      // Geocode address
+      const coordinates = await geocodeAddress(fullAddress);
+
+      // Add coordinates to address data if geocoding succeeded
+      if (coordinates) {
+        addressData.lat = coordinates.lat;
+        addressData.lng = coordinates.lng;
       }
-  
-      // If this address will be default, update other addresses first
-      if (addressData.isDefault) {
-        await this.ensureSingleDefaultAddress(userId);
-      }
-  
-      // Create the new address
-      const addressId = crypto.randomUUID();
-      
-      // Extract lat and lng if provided, otherwise use default values
-      const { lat, lng, ...otherAddressData } = addressData;
-      
-      const [newAddress] = await db
-        .insert(address)
-        .values({
-          id: addressId,
-          userId,
-          ...otherAddressData,
-          // Add lat/lng if they exist
-          ...(lat !== undefined && { lat }),
-          ...(lng !== undefined && { lng }),
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .returning();
-  
-      return newAddress;
-    } catch (error) {
-      // Check if the error is a redirect
-      if (error && typeof error === 'object' && 
-          'status' in error && 'location' in error) {
-        // This is a redirect, not an error - rethrow it
-        throw error;
-      }
-      
-      console.error("Error creating address:", error);
-      throw error;
     }
   },
 
@@ -185,11 +138,13 @@ export const addressService = {
       const [existingAddress] = await db
         .select()
         .from(address)
-        .where(and(
-          eq(address.id, addressId), 
-          eq(address.userId, userId),
-          eq(address.isActive, true)
-        ))
+        .where(
+          and(
+            eq(address.id, addressId),
+            eq(address.userId, userId),
+            eq(address.isActive, true),
+          ),
+        )
         .limit(1);
 
       if (!existingAddress) {
@@ -241,11 +196,13 @@ export const addressService = {
       const [existingAddress] = await db
         .select()
         .from(address)
-        .where(and(
-          eq(address.id, addressId), 
-          eq(address.userId, userId),
-          eq(address.isActive, true)
-        ))
+        .where(
+          and(
+            eq(address.id, addressId),
+            eq(address.userId, userId),
+            eq(address.isActive, true),
+          ),
+        )
         .limit(1);
 
       if (!existingAddress) {
@@ -274,13 +231,10 @@ export const addressService = {
    */
   async getAddressById(
     addressId: string,
-    includeInactive: boolean = false
-  ): Promise<(typeof address.$inferSelect) | null> {
+    includeInactive: boolean = false,
+  ): Promise<typeof address.$inferSelect | null> {
     try {
-      let query = db
-        .select()
-        .from(address)
-        .where(eq(address.id, addressId));
+      let query = db.select().from(address).where(eq(address.id, addressId));
 
       // Only include active addresses unless specifically requested
       if (!includeInactive) {
@@ -308,11 +262,13 @@ export const addressService = {
       const [existingAddress] = await db
         .select()
         .from(address)
-        .where(and(
-          eq(address.id, addressId), 
-          eq(address.userId, userId),
-          eq(address.isActive, true)
-        ))
+        .where(
+          and(
+            eq(address.id, addressId),
+            eq(address.userId, userId),
+            eq(address.isActive, true),
+          ),
+        )
         .limit(1);
 
       if (!existingAddress) {
@@ -325,11 +281,13 @@ export const addressService = {
         const [otherAddress] = await db
           .select()
           .from(address)
-          .where(and(
-            eq(address.userId, userId),
-            ne(address.id, addressId),
-            eq(address.isActive, true)
-          ))
+          .where(
+            and(
+              eq(address.userId, userId),
+              ne(address.id, addressId),
+              eq(address.isActive, true),
+            ),
+          )
           .limit(1);
 
         if (otherAddress) {
@@ -340,10 +298,10 @@ export const addressService = {
       // Mark the address as inactive (soft delete)
       await db
         .update(address)
-        .set({ 
-          isActive: false, 
+        .set({
+          isActive: false,
           isDefault: false, // Ensure it's not default anymore
-          updatedAt: new Date() 
+          updatedAt: new Date(),
         })
         .where(eq(address.id, addressId));
 
@@ -370,10 +328,7 @@ export const addressService = {
       const [existingAddress] = await db
         .select()
         .from(address)
-        .where(and(
-          eq(address.id, addressId),
-          eq(address.userId, userId)
-        ))
+        .where(and(eq(address.id, addressId), eq(address.userId, userId)))
         .limit(1);
 
       if (!existingAddress) {
@@ -403,7 +358,7 @@ export const addressService = {
         error: "Failed to delete address due to a server error.",
       };
     }
-  }
+  },
 };
 
 // Export MAX_ADDRESSES for convenience
