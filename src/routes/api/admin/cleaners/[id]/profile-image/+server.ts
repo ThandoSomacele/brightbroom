@@ -1,46 +1,25 @@
 // src/routes/api/admin/cleaners/[id]/profile-image/+server.ts
-import { UPLOAD_DIR } from "$lib/server/constants";
 import { db } from "$lib/server/db";
 import { cleanerProfile } from "$lib/server/db/schema";
+import { s3 } from "$lib/server/s3"; // Import our S3 utility
 import { error, json } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
-import fs from "fs";
 import { nanoid } from "nanoid";
-import path from "path";
-import sharp from "sharp";
 import type { RequestHandler } from "./$types";
-
-// Ensure upload directory exists
-const ensureUploadDirExists = () => {
-  try {
-    if (!fs.existsSync(UPLOAD_DIR)) {
-      fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-    }
-
-    const profileImagesDir = path.join(UPLOAD_DIR, "profile-images");
-    if (!fs.existsSync(profileImagesDir)) {
-      fs.mkdirSync(profileImagesDir, { recursive: true });
-    }
-
-    return profileImagesDir;
-  } catch (err) {
-    console.error("Error creating upload directories:", err);
-    throw new Error("Failed to create upload directories");
-  }
-};
+import sharp from "sharp";
 
 /**
  * Handle profile image upload for cleaners
  */
 export const POST: RequestHandler = async ({ request, params }) => {
   const cleanerId = params.id;
-  let tempFile = null;
 
   if (!cleanerId) {
     throw error(400, "Cleaner ID is required");
   }
 
   try {
+  
     // Parse the multipart form data
     const formData = await request.formData();
     const imageFile = formData.get("profileImage");
@@ -54,42 +33,47 @@ export const POST: RequestHandler = async ({ request, params }) => {
       throw error(400, "File must be an image");
     }
 
-    // Ensure upload directory exists
-    const uploadDir = ensureUploadDirExists();
-
     // Generate a unique filename
-    const filename = `cleaner-${cleanerId}-${nanoid(8)}.jpg`;
-    const filePath = path.join(uploadDir, filename);
-
-    // Create a temporary file path for the original upload
-    const tempPath = path.join(uploadDir, `temp-${filename}`);
-    tempFile = tempPath;
-
-    // First, save the uploaded file to a temporary location to avoid memory issues
+    const filename = `profile-images/cleaner-${cleanerId}-${nanoid(8)}.jpg`;
+    
+    // Get the image buffer
     const arrayBuffer = await imageFile.arrayBuffer();
-    await fs.promises.writeFile(tempPath, Buffer.from(arrayBuffer));
-
-    // Process the image with sharp - reading directly from the temp file to avoid memory issues
-    await sharp(tempPath)
+    const buffer = Buffer.from(arrayBuffer);
+    
+    // Process the image with sharp (in memory)
+    const processedImageBuffer = await sharp(buffer)
       .resize(500, 500, { fit: "cover" })
       .jpeg({ quality: 80, progressive: true })
-      .toFile(filePath);
+      .toBuffer();
+    
+    // Upload to S3 instead of local file system
+    const fileUrl = await s3.uploadFile(
+      processedImageBuffer,
+      filename,
+      "image/jpeg"
+    );
 
-    // Calculate public URL for the image
-    const fileUrl = `/uploads/profile-images/${filename}`;
-
-    // Debug to see if the cleaner ID is correct
-    console.log(`Looking for cleaner profile for user ID: ${cleanerId}`);
-
-    // Check if the cleaner profile exists - FIXED QUERY SYNTAX
+    // Check if the cleaner profile exists
     const cleanerProfiles = await db
       .select()
       .from(cleanerProfile)
       .where(eq(cleanerProfile.userId, cleanerId));
 
-    console.log(`Found ${cleanerProfiles.length} matching cleaner profiles`);
-
     if (cleanerProfiles.length > 0) {
+      // If there's an existing image, delete it from S3
+      const existingImageUrl = cleanerProfiles[0].profileImageUrl;
+      if (existingImageUrl) {
+        const existingKey = s3.getKeyFromUrl(existingImageUrl);
+        if (existingKey) {
+          try {
+            await s3.deleteFile(existingKey);
+          } catch (deleteErr) {
+            console.error("Error deleting previous image:", deleteErr);
+            // Continue even if delete fails
+          }
+        }
+      }
+
       // Update existing profile
       await db
         .update(cleanerProfile)
@@ -103,25 +87,11 @@ export const POST: RequestHandler = async ({ request, params }) => {
       throw error(404, "Cleaner profile not found");
     }
 
-    // Clean up the temporary file
-    if (fs.existsSync(tempPath)) {
-      await fs.promises.unlink(tempPath);
-    }
-
     return json({
       success: true,
       imageUrl: fileUrl,
     });
   } catch (err) {
-    // Clean up any temporary file if there was an error
-    if (tempFile && fs.existsSync(tempFile)) {
-      try {
-        await fs.promises.unlink(tempFile);
-      } catch (cleanupErr) {
-        console.error("Error cleaning up temporary file:", cleanupErr);
-      }
-    }
-
     console.error("Error uploading profile image:", err);
     throw error(500, {
       message: err instanceof Error ? err.message : "Failed to upload image",
@@ -158,13 +128,10 @@ export const DELETE: RequestHandler = async ({ params }) => {
       return json({ success: true });
     }
 
-    // Extract filename from URL
-    const filename = path.basename(currentImageUrl);
-    const filePath = path.join(UPLOAD_DIR, "profile-images", filename);
-
-    // Check if file exists and delete it
-    if (fs.existsSync(filePath)) {
-      await fs.promises.unlink(filePath);
+    // Extract key from URL and delete from S3
+    const key = s3.getKeyFromUrl(currentImageUrl);
+    if (key) {
+      await s3.deleteFile(key);
     }
 
     // Update the database to remove the image URL
