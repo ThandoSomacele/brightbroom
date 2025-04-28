@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 import { sendBookingConfirmationEmail } from '$lib/server/email-service';
 import { addressService } from '$lib/server/services/address.service';
+import { parseDateTimeString } from '$lib/utils/date-utils';
 
 export const load: PageServerLoad = async ({ locals, cookies }) => {
   // Check if the user is logged in
@@ -78,7 +79,7 @@ export const actions: Actions = {
       const addressData = addressResult[0];
       
       // Parse the scheduled date
-      const scheduledDateObj = new Date(scheduledDate);
+      const scheduledDateObj = new Date(parseDateTimeString(scheduledDate));
       
       // Calculate duration in minutes based on the service
       const durationMinutes = serviceData.durationHours * 60;
