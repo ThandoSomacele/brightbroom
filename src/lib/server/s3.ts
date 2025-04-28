@@ -17,7 +17,7 @@ const s3Client = new S3Client({
   },
 });
 
-const BUCKET_NAME = process.env.S3_BUCKET_NAME || "brightbroom-uploads";
+const BUCKET_NAME = process.env.S3_BUCKET_NAME || "brightbroom-upload";
 
 export const s3 = {
   /**
@@ -33,7 +33,7 @@ export const s3 = {
       Key: key,
       Body: file,
       ContentType: contentType,
-      ACL: "public-read", // Make it publicly accessible
+      // ACL: "public-read", // Make it publicly accessible
     };
 
     try {
