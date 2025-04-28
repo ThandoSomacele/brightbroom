@@ -17,7 +17,8 @@ const s3Client = new S3Client({
   },
 });
 
-const BUCKET_NAME = process.env.S3_BUCKET_NAME || "brightbroom-upload";
+// Fix: Corrected the bucket name (removed the 't')
+const BUCKET_NAME = process.env.S3_BUCKET_NAME || "brighbroom-upload";
 
 export const s3 = {
   /**
@@ -33,15 +34,18 @@ export const s3 = {
       Key: key,
       Body: file,
       ContentType: contentType,
-      // ACL: "public-read", // Make it publicly accessible
+      ACL: "public-read", // Make it publicly accessible
     };
+
+    // Get region from config or environment
+    const region = process.env.AWS_S3_REGION || "af-south-1";
 
     try {
       const command = new PutObjectCommand(params);
       await s3Client.send(command);
 
-      // Return the public URL
-      return `https://${BUCKET_NAME}.s3.amazonaws.com/${key}`;
+      // Return the public URL with region in the domain
+      return `https://${BUCKET_NAME}.s3.${region}.amazonaws.com/${key}`;
     } catch (error) {
       console.error("S3 upload error:", error);
       throw new Error("Failed to upload file to S3");
