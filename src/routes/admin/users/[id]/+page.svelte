@@ -2,6 +2,7 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
+    import { parseDateTimeString } from "$lib/utils/date-utils";
   import { showSuccess, showError } from "../../+layout.svelte";
   import {
     BookOpen,
@@ -31,7 +32,7 @@
 
   // Format date function
   function formatDate(dateString: string): string {
-    const date = new Date(dateString);
+    const date = new Date(parseDateTimeString(dateString));
     return date.toLocaleDateString("en-ZA", {
       year: "numeric",
       month: "short",
@@ -41,7 +42,7 @@
 
   // Format time for recent activity
   function formatRelativeTime(dateString: string): string {
-    const date = new Date(dateString);
+    const date = new Date(parseDateTimeString(dateString));
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));

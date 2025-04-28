@@ -1,6 +1,7 @@
 <!-- src/routes/admin/bookings/+page.svelte -->
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
+    import { parseDateTimeString } from "$lib/utils/date-utils.js";
   import {
     AlertCircle,
     ArrowLeft,
@@ -32,7 +33,7 @@
 
   // Format date
   function formatDate(dateString: string): string {
-    const date = new Date(dateString);
+    const date = new Date(parseDateTimeString(dateString));
     return date.toLocaleDateString("en-ZA", {
       year: "numeric",
       month: "short",
@@ -42,7 +43,7 @@
 
   // Format time
   function formatTime(dateString: string): string {
-    const date = new Date(dateString);
+    const date = new Date(parseDateTimeString(dateString));
     return date.toLocaleTimeString("en-ZA", {
       hour: "2-digit",
       minute: "2-digit",

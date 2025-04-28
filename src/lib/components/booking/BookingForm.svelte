@@ -1,6 +1,7 @@
 <!-- src/lib/components/booking/BookingForm.svelte -->
 <script lang="ts">
   import { goto } from "$app/navigation";
+  import { formatDate, formatTime, parseDateTimeString } from "$lib/utils/date-utils";
   import ServiceDetailsModal from "$lib/components/booking/ServiceDetailsModal.svelte";
   import {
     fetchServices,
@@ -94,6 +95,10 @@
 
     try {
       // In a real app, this would be an API call
+      // When sending date to the server, ensure we format it consistently
+      // This will ensure the "09:00" time is correctly preserved
+      const formattedDateTime = `${selectedDate}T${selectedTime}:00`;
+      
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: {
@@ -102,7 +107,7 @@
         body: JSON.stringify({
           serviceId: selectedService,
           addressId: selectedAddress,
-          scheduledDate: `${selectedDate}T${selectedTime}:00`,
+          scheduledDate: formattedDateTime,
           notes: additionalNotes,
         }),
       });

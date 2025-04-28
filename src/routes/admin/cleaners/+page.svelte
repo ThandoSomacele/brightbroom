@@ -1,6 +1,7 @@
 <!-- src/routes/admin/cleaners/+page.svelte -->
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
+    import { parseDateTimeString } from "$lib/utils/date-utils.js";
   import { Download, Map, PlusCircle, Star, Users } from "lucide-svelte";
 
   export let data;
@@ -29,7 +30,7 @@
 
   // Format date function
   function formatDate(dateString: string): string {
-    const date = new Date(dateString);
+    const date = new Date(parseDateTimeString(dateString));
     return date.toLocaleDateString("en-ZA", {
       year: "numeric",
       month: "short",

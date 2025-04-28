@@ -7,6 +7,7 @@
   import ProfileImageUpload from "$lib/components/admin/ProfileImageUpload.svelte";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
+    import { parseDateTimeString } from "$lib/utils/date-utils.js";
   import {
     getClosestServiceArea,
     isWithinServiceArea,
@@ -98,7 +99,7 @@ if (cleaner.specialisations) {
 
   // Format date function
   function formatDate(dateString: string): string {
-    const date = new Date(dateString);
+    const date = new Date(parseDateTimeString(dateString));
     return date.toLocaleDateString("en-ZA", {
       year: "numeric",
       month: "short",
@@ -108,10 +109,11 @@ if (cleaner.specialisations) {
 
   // Format time function
   function formatTime(dateString: string): string {
-    const date = new Date(dateString);
+    const date = new Date(parseDateTimeString(dateString));
     return date.toLocaleTimeString("en-ZA", {
       hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
     });
   }
 

@@ -1,4 +1,5 @@
 // src/lib/server/email-templates.ts
+import { parseDateTimeString } from "$lib/utils/date-utils";
 import { escapeHtml } from "$lib/utils/strings";
 
 export interface EmailTemplateData {
@@ -305,8 +306,10 @@ export function getBookingConfirmationTemplate(
       ? booking.price.toFixed(2)
       : booking.price.toString();
 
+  // Parse without timezone conversion
+  const scheduledDate = parseDateTimeString(booking.scheduledDate);
+
   // Format date
-  const scheduledDate = new Date(booking.scheduledDate);
   const dateString = scheduledDate.toLocaleDateString("en-ZA", {
     weekday: "long",
     year: "numeric",
@@ -318,6 +321,7 @@ export function getBookingConfirmationTemplate(
   const timeString = scheduledDate.toLocaleTimeString("en-ZA", {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   });
 
   // HTML Email template
@@ -666,7 +670,7 @@ export function getBookingReminderTemplate(
   const escapedEmail = escapeHtml(recipientEmail);
 
   // Format date and time
-  const scheduledDate = new Date(booking.scheduledDate);
+  const scheduledDate = parseDateTimeString(booking.scheduledDate);
   const dateString = scheduledDate.toLocaleDateString("en-ZA", {
     weekday: "long",
     year: "numeric",
@@ -677,6 +681,7 @@ export function getBookingReminderTemplate(
   const timeString = scheduledDate.toLocaleTimeString("en-ZA", {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false, // Use 24-hour format for South Africa
   });
 
   // Calculate hours until booking
@@ -873,7 +878,6 @@ This email was sent to ${recipientEmail}.
   };
 }
 
-
 /**
  * Generate a payment receipt/invoice email template
  */
@@ -901,7 +905,7 @@ export function getPaymentReceiptTemplate(
 ): { subject: string; html: string; text: string } {
   const escapedEmail = escapeHtml(recipientEmail);
   const bookingUrl = `${data.appUrl}/profile/bookings/${paymentDetails.booking.id}`;
-  
+
   // Format dates
   const paymentDate = new Date(paymentDetails.createdAt);
   const formattedPaymentDate = paymentDate.toLocaleDateString("en-ZA", {
@@ -909,7 +913,7 @@ export function getPaymentReceiptTemplate(
     month: "long",
     day: "numeric",
   });
-  
+
   const scheduledDate = new Date(paymentDetails.booking.scheduledDate);
   const formattedScheduledDate = scheduledDate.toLocaleDateString("en-ZA", {
     weekday: "long",
@@ -917,22 +921,23 @@ export function getPaymentReceiptTemplate(
     month: "long",
     day: "numeric",
   });
-  
+
   const formattedScheduledTime = scheduledDate.toLocaleTimeString("en-ZA", {
     hour: "2-digit",
     minute: "2-digit",
   });
-  
+
   // Format amounts
-  const totalAmount = typeof paymentDetails.amount === "number" 
-    ? paymentDetails.amount 
-    : parseFloat(String(paymentDetails.amount));
-  
+  const totalAmount =
+    typeof paymentDetails.amount === "number"
+      ? paymentDetails.amount
+      : parseFloat(String(paymentDetails.amount));
+
   // Calculate VAT (if applicable)
   const vatRate = paymentDetails.vatRate || 15; // Default to 15% VAT for South Africa
   const vatAmount = totalAmount * (vatRate / 100);
   const subtotal = totalAmount - vatAmount;
-  
+
   // Format currency values
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-ZA", {
@@ -941,10 +946,10 @@ export function getPaymentReceiptTemplate(
       minimumFractionDigits: 2,
     }).format(value);
   };
-  
+
   // Generate invoice number (payment ID + timestamp)
   const invoiceNumber = `INV-${paymentDetails.id.substring(0, 8)}-${Math.floor(paymentDate.getTime() / 1000)}`;
-  
+
   // HTML Email template
   const html = `
 <!DOCTYPE html>
@@ -1116,7 +1121,7 @@ export function getPaymentReceiptTemplate(
           </div>
           
           <div style="margin-top: 15px; font-size: 0.9em; color: #666;">
-            <p>Payment Method: ${paymentDetails.paymentMethod || 'Credit Card'}</p>
+            <p>Payment Method: ${paymentDetails.paymentMethod || "Credit Card"}</p>
             <p>Payment Status: Completed</p>
           </div>
         </div>
@@ -1168,7 +1173,7 @@ Subtotal: ${formatCurrency(subtotal)}
 VAT (${vatRate}%): ${formatCurrency(vatAmount)}
 Total: ${formatCurrency(totalAmount)}
 
-Payment Method: ${paymentDetails.paymentMethod || 'Credit Card'}
+Payment Method: ${paymentDetails.paymentMethod || "Credit Card"}
 Payment Status: Completed
 
 You can view your booking details here:
@@ -1190,8 +1195,6 @@ This receipt was sent to ${recipientEmail}.
   };
 }
 
-
-
 /**
  * Generate a payment receipt/invoice email template
  */
@@ -1199,16 +1202,16 @@ export function getCleanerAssignmentTemplate(
   recipientEmail: string,
   booking: {
     id: string;
-    service: { 
-      name: string; 
+    service: {
+      name: string;
       description?: string;
       details?: any;
     };
     scheduledDate: string;
     address: { street: string; city: string; state: string; zipCode: string };
-    cleaner: { 
-      firstName: string; 
-      lastName: string; 
+    cleaner: {
+      firstName: string;
+      lastName: string;
       phone?: string;
       profileImageUrl?: string;
     };
@@ -1219,18 +1222,20 @@ export function getCleanerAssignmentTemplate(
 ): { subject: string; html: string; text: string } {
   const bookingUrl = `${data.appUrl}/profile/bookings/${booking.id}`;
   const escapedEmail = escapeHtml(recipientEmail);
-  
+
   // Extract profile image URL from the cleaner object
   const profileImageUrl = booking.cleaner.profileImageUrl;
-  
+
   // Default avatar SVG for cleaners without profile images
   const defaultAvatarSvg = `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="30" cy="30" r="30" fill="#E5E7EB"/>
     <path d="M30 15C25.0294 15 21 19.0294 21 24C21 28.9706 25.0294 33 30 33C34.9706 33 39 28.9706 39 24C39 19.0294 34.9706 15 30 15ZM30 39C22.5 39 15 42.5147 15 48V51H45V48C45 42.5147 37.5 39 30 39Z" fill="#9CA3AF"/>
   </svg>`;
-  
+
+  // Parse without timezone conversion
+  const scheduledDate = parseDateTimeString(booking.scheduledDate);
+
   // Format date
-  const scheduledDate = new Date(booking.scheduledDate);
   const dateString = scheduledDate.toLocaleDateString("en-ZA", {
     weekday: "long",
     year: "numeric",
@@ -1242,6 +1247,7 @@ export function getCleanerAssignmentTemplate(
   const timeString = scheduledDate.toLocaleTimeString("en-ZA", {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   });
 
   // Add a section for service details in the HTML template
@@ -1252,34 +1258,46 @@ export function getCleanerAssignmentTemplate(
         <span class="label">Service Type:</span>
         <span><strong>${booking.service.name}</strong></span>
       </div>
-      ${booking.service.description ? `
+      ${
+        booking.service.description
+          ? `
       <div class="booking-detail">
         <span class="label">Description:</span>
         <span>${booking.service.description}</span>
       </div>
-      ` : ''}
-      ${booking.duration ? `
+      `
+          : ""
+      }
+      ${
+        booking.duration
+          ? `
       <div class="booking-detail">
         <span class="label">Duration:</span>
-        <span>${booking.duration / 60} ${booking.duration / 60 === 1 ? 'hour' : 'hours'}</span>
+        <span>${booking.duration / 60} ${booking.duration / 60 === 1 ? "hour" : "hours"}</span>
       </div>
-      ` : ''}
-      ${booking.notes ? `
+      `
+          : ""
+      }
+      ${
+        booking.notes
+          ? `
       <div class="booking-detail">
         <span class="label">Customer Notes:</span>
         <span>${booking.notes}</span>
       </div>
-      ` : ''}
+      `
+          : ""
+      }
     </div>
   `;
-  
+
   // Same for the plain text version
   const serviceDetailsText = `
 Service Details:
 - Service Type: ${booking.service.name}
-${booking.service.description ? `- Description: ${booking.service.description}\n` : ''}
-${booking.duration ? `- Duration: ${booking.duration / 60} ${booking.duration / 60 === 1 ? 'hour' : 'hours'}\n` : ''}
-${booking.notes ? `- Customer Notes: ${booking.notes}\n` : ''}
+${booking.service.description ? `- Description: ${booking.service.description}\n` : ""}
+${booking.duration ? `- Duration: ${booking.duration / 60} ${booking.duration / 60 === 1 ? "hour" : "hours"}\n` : ""}
+${booking.notes ? `- Customer Notes: ${booking.notes}\n` : ""}
   `;
 
   // Now modify the HTML template to include the service details section
@@ -1391,9 +1409,11 @@ ${booking.notes ? `- Customer Notes: ${booking.notes}\n` : ''}
       
       <div class="cleaner-box">
         <div class="cleaner-image">
-          ${profileImageUrl 
-            ? `<img src="${profileImageUrl}" alt="${booking.cleaner.firstName}" width="60" height="60" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">`
-            : defaultAvatarSvg}
+          ${
+            profileImageUrl
+              ? `<img src="${profileImageUrl}" alt="${booking.cleaner.firstName}" width="60" height="60" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">`
+              : defaultAvatarSvg
+          }
         </div>
         <div class="cleaner-info">
           <p style="margin-top: 0; margin-bottom: 5px;"><strong>Your cleaner:</strong> ${booking.cleaner.firstName} ${booking.cleaner.lastName}</p>
@@ -1895,7 +1915,6 @@ This is an automated message - please do not reply to this email.
   };
 }
 
-
 /**
  * Generate a welcome email template specifically for cleaners
  */
@@ -2099,8 +2118,8 @@ export function getCleanerJobAssignmentTemplate(
   recipientEmail: string,
   booking: {
     id: string;
-    service: { 
-      name: string; 
+    service: {
+      name: string;
       description?: string;
       details?: any;
     };
@@ -2118,9 +2137,11 @@ export function getCleanerJobAssignmentTemplate(
 ): { subject: string; html: string; text: string } {
   const bookingUrl = `${data.appUrl}/cleaner/bookings/${booking.id}`;
   const escapedEmail = escapeHtml(recipientEmail);
-  
+
+  // Parse without timezone conversion
+  const scheduledDate = parseDateTimeString(booking.scheduledDate);
+
   // Format date
-  const scheduledDate = new Date(booking.scheduledDate);
   const dateString = scheduledDate.toLocaleDateString("en-ZA", {
     weekday: "long",
     year: "numeric",
@@ -2132,20 +2153,22 @@ export function getCleanerJobAssignmentTemplate(
   const timeString = scheduledDate.toLocaleTimeString("en-ZA", {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   });
 
   // Parse service details if they exist (could be a JSON string)
   let serviceDetailsList = "";
   if (booking.service.details) {
     try {
-      const details = typeof booking.service.details === 'string' 
-        ? JSON.parse(booking.service.details) 
-        : booking.service.details;
-      
+      const details =
+        typeof booking.service.details === "string"
+          ? JSON.parse(booking.service.details)
+          : booking.service.details;
+
       if (Array.isArray(details.tasks)) {
         serviceDetailsList = `
           <ul style="margin-top: 10px; padding-left: 20px;">
-            ${details.tasks.map(task => `<li>${task}</li>`).join('')}
+            ${details.tasks.map((task) => `<li>${task}</li>`).join("")}
           </ul>
         `;
       }
@@ -2287,43 +2310,63 @@ export function getCleanerJobAssignmentTemplate(
           <span>${booking.address.street}, ${booking.address.city}, ${booking.address.state}, ${booking.address.zipCode}</span>
         </div>
         
-        ${booking.duration ? `
+        ${
+          booking.duration
+            ? `
         <div class="booking-detail">
           <span class="label">Duration:</span>
-          <span>${Math.floor(booking.duration / 60)} ${Math.floor(booking.duration / 60) === 1 ? 'hour' : 'hours'}</span>
+          <span>${Math.floor(booking.duration / 60)} ${Math.floor(booking.duration / 60) === 1 ? "hour" : "hours"}</span>
         </div>
-        ` : ''}
+        `
+            : ""
+        }
       </div>
       
       <div class="booking-details">
         <h3 style="margin-top: 0; color: #333333; font-size: 16px;">Service Details:</h3>
-        ${booking.service.description ? `
+        ${
+          booking.service.description
+            ? `
         <div class="booking-detail">
           <span class="label">Description:</span>
           <span>${booking.service.description}</span>
         </div>
-        ` : ''}
+        `
+            : ""
+        }
         
-        ${serviceDetailsList ? `
+        ${
+          serviceDetailsList
+            ? `
         <div class="booking-detail">
           <span class="label">Tasks to complete:</span>
           ${serviceDetailsList}
         </div>
-        ` : ''}
+        `
+            : ""
+        }
         
-        ${booking.notes ? `
+        ${
+          booking.notes
+            ? `
         <div class="booking-detail">
           <span class="label">Customer Notes:</span>
           <span>${booking.notes}</span>
         </div>
-        ` : ''}
+        `
+            : ""
+        }
       </div>
       
-      ${booking.notes ? `
+      ${
+        booking.notes
+          ? `
       <div class="important-note">
         <p><strong>Important:</strong> Please review the customer's notes carefully as they contain specific instructions for this job.</p>
       </div>
-      ` : ''}
+      `
+          : ""
+      }
       
       <p>You can view all the booking details and check in for this job by clicking the button below:</p>
       
@@ -2362,14 +2405,14 @@ Service Type: ${booking.service.name}
 Date: ${dateString}
 Time: ${timeString}
 Location: ${booking.address.street}, ${booking.address.city}, ${booking.address.state}, ${booking.address.zipCode}
-${booking.duration ? `Duration: ${Math.floor(booking.duration / 60)} ${Math.floor(booking.duration / 60) === 1 ? 'hour' : 'hours'}` : ''}
+${booking.duration ? `Duration: ${Math.floor(booking.duration / 60)} ${Math.floor(booking.duration / 60) === 1 ? "hour" : "hours"}` : ""}
 
 SERVICE DETAILS:
-${booking.service.description ? `Description: ${booking.service.description}` : ''}
+${booking.service.description ? `Description: ${booking.service.description}` : ""}
 
-${booking.notes ? `Customer Notes: ${booking.notes}` : ''}
+${booking.notes ? `Customer Notes: ${booking.notes}` : ""}
 
-${booking.notes ? `IMPORTANT: Please review the customer's notes carefully as they contain specific instructions for this job.` : ''}
+${booking.notes ? `IMPORTANT: Please review the customer's notes carefully as they contain specific instructions for this job.` : ""}
 
 You can view all the booking details and check in for this job here:
 ${bookingUrl}
