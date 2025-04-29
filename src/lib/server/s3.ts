@@ -17,8 +17,8 @@ const s3Client = new S3Client({
   },
 });
 
-// Fix: Corrected the bucket name (removed the 't')
-const BUCKET_NAME = process.env.S3_BUCKET_NAME || "brighbroom-upload";
+// Use environment variable for bucket name
+const BUCKET_NAME = process.env.S3_BUCKET_NAME || "brightbroom-upload";
 
 export const s3 = {
   /**
@@ -34,7 +34,8 @@ export const s3 = {
       Key: key,
       Body: file,
       ContentType: contentType,
-      ACL: "public-read", // Make it publicly accessible
+      // Removed ACL: "public-read" as bucket doesn't support ACLs
+      // Access should be controlled via bucket policy instead
     };
 
     // Get region from config or environment
@@ -89,9 +90,9 @@ export const s3 = {
     if (!url) return null;
 
     try {
-      // Match the key pattern after the bucket name
+      // Match the key pattern after the bucket name in the URL
       const match = url.match(
-        new RegExp(`${BUCKET_NAME}.s3.amazonaws.com/(.+)`),
+        new RegExp(`${BUCKET_NAME}.s3.[a-z0-9-]+.amazonaws.com/(.+)`),
       );
       return match ? match[1] : null;
     } catch (error) {

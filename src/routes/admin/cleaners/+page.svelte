@@ -1,8 +1,8 @@
 <!-- src/routes/admin/cleaners/+page.svelte -->
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
-    import { parseDateTimeString } from "$lib/utils/date-utils.js";
-  import { Download, Map, PlusCircle, Star, Users } from "lucide-svelte";
+  import { parseDateTimeString } from "$lib/utils/date-utils.js";
+  import { Download, Map, PlusCircle, Star, User } from "lucide-svelte";
 
   export let data;
   let { cleaners, pagination, filters } = data;
@@ -273,12 +273,12 @@
                   >
                     {#if cleaner.cleanerProfile?.profileImageUrl}
                       <img
-                        src={cleaner.cleanerProfile.profileImageUrl}
+                        src={cleaner.cleanerProfile?.profileImageUrl}
                         alt="{cleaner.firstName} {cleaner.lastName}"
                         class="h-full w-full object-cover"
                       />
                     {:else}
-                      <Users
+                      <User
                         size={20}
                         class="text-gray-500 dark:text-gray-400"
                       />

@@ -3,13 +3,14 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
-  import Button from "$lib/components/ui/Button.svelte";
   import ApplicationApprovalActions from "$lib/components/admin/ApplicationApprovalActions.svelte";
   import ApplicationEditForm from "$lib/components/admin/ApplicationEditForm.svelte";
+  import Button from "$lib/components/ui/Button.svelte";
   import { isWithinServiceArea } from "$lib/utils/serviceAreaValidator";
   import {
     ArrowLeft,
     Briefcase,
+    Calendar,
     Check,
     Clipboard,
     FileText,
@@ -17,7 +18,6 @@
     MapPin,
     Phone,
     User,
-    Calendar,
     X,
   } from "lucide-svelte";
 
@@ -66,87 +66,92 @@
       return availabilityString;
     }
   }
-  
+
   // Format experience types
   function formatExperienceTypes(types: string[]): string {
     if (!types || types.length === 0) return "None specified";
-    
+
     const typeLabels = {
-      "GUEST_HOUSE": "Cleaning Guest house/Hotel/BnB",
-      "OFFICE": "Cleaning Offices",
-      "CARE_GIVING": "Care Giving"
+      GUEST_HOUSE: "Cleaning Guest house/Hotel/BnB",
+      OFFICE: "Cleaning Offices",
+      CARE_GIVING: "Care Giving",
     };
-    
-    return types.map(type => typeLabels[type] || type).join(", ");
+
+    return types.map((type) => typeLabels[type] || type).join(", ");
   }
-  
+
   // Handle edit mode
   function startEditing() {
     isEditing = true;
   }
-  
+
   // Handle save changes
   async function saveChanges(event) {
     const { updatedApplication } = event.detail;
-    
+
     isProcessing = true;
     errorMessage = null;
     successMessage = null;
-    
+
     try {
       // Send update to server
-      const response = await fetch(`/api/admin/applications/${application.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `/api/admin/applications/${application.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedApplication),
         },
-        body: JSON.stringify(updatedApplication)
-      });
-      
+      );
+
       const result = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(result.message || "Failed to update application");
       }
-      
+
       // Update succeeded
       successMessage = "Application updated successfully";
-      
+
       // Refresh the data
       await invalidateAll();
-      
+
       // Exit edit mode
       isEditing = false;
     } catch (error) {
       console.error("Error updating application:", error);
-      errorMessage = error instanceof Error ? error.message : "An error occurred";
+      errorMessage =
+        error instanceof Error ? error.message : "An error occurred";
     } finally {
       isProcessing = false;
     }
   }
-  
+
   // Handle cancel edit
   function cancelEdit() {
     isEditing = false;
   }
-  
+
   // Handle approval success
   function handleApproved(event) {
-    successMessage = "Application approved successfully! Cleaner account created.";
+    successMessage =
+      "Application approved successfully! Cleaner account created.";
     invalidateAll();
   }
-  
+
   // Handle rejection success
   function handleRejected() {
     successMessage = "Application rejected successfully.";
     invalidateAll();
   }
-  
+
   // Handle error
   function handleError(event) {
     errorMessage = event.detail.message;
   }
-  
+
   // Close alerts
   function closeAlert() {
     errorMessage = null;
@@ -173,7 +178,9 @@
 
 <!-- Alert messages -->
 {#if errorMessage}
-  <div class="mb-6 rounded-md bg-red-50 p-4 text-red-600 dark:bg-red-900/20 dark:text-red-200 border border-red-200 dark:border-red-800">
+  <div
+    class="mb-6 rounded-md bg-red-50 p-4 text-red-600 dark:bg-red-900/20 dark:text-red-200 border border-red-200 dark:border-red-800"
+  >
     <div class="flex">
       <div class="flex-shrink-0">
         <X class="h-5 w-5 text-red-400" />
@@ -191,7 +198,9 @@
 {/if}
 
 {#if successMessage}
-  <div class="mb-6 rounded-md bg-green-50 p-4 text-green-600 dark:bg-green-900/20 dark:text-green-200 border border-green-200 dark:border-green-800">
+  <div
+    class="mb-6 rounded-md bg-green-50 p-4 text-green-600 dark:bg-green-900/20 dark:text-green-200 border border-green-200 dark:border-green-800"
+  >
     <div class="flex">
       <div class="flex-shrink-0">
         <Check class="h-5 w-5 text-green-400" />
@@ -200,7 +209,10 @@
         <p class="text-sm font-medium">{successMessage}</p>
       </div>
       <div class="ml-auto pl-3">
-        <button on:click={closeAlert} class="text-green-400 hover:text-green-500">
+        <button
+          on:click={closeAlert}
+          class="text-green-400 hover:text-green-500"
+        >
           <X size={16} />
         </button>
       </div>
@@ -224,7 +236,7 @@
 
 <!-- Application approval actions -->
 <div class="mb-6">
-  <ApplicationApprovalActions 
+  <ApplicationApprovalActions
     applicationId={application.id}
     status={application.status}
     disabled={isProcessing || isEditing}
@@ -238,10 +250,10 @@
 <!-- Application edit form (shown when editing) -->
 {#if isEditing}
   <div class="bg-white p-6 rounded-lg shadow-md dark:bg-gray-800 mb-6">
-    <ApplicationEditForm 
-      application={application}
+    <ApplicationEditForm
+      {application}
       isEditing={true}
-      isProcessing={isProcessing}
+      {isProcessing}
       on:save={saveChanges}
       on:cancel={cancelEdit}
     />
@@ -253,6 +265,34 @@
     <div class="lg:col-span-2 space-y-6">
       <!-- Personal information card -->
       <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+        <div class="flex items-center mb-4">
+          <div
+            class="h-20 w-20 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 mr-4"
+          >
+            {#if application.profileImageUrl}
+              <img
+                src={application.profileImageUrl}
+                alt="Profile"
+                class="h-full w-full object-cover"
+              />
+            {:else}
+              <div class="flex items-center justify-center h-full w-full">
+                <User size={24} class="text-gray-400" />
+              </div>
+            {/if}
+          </div>
+
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              {application.firstName}
+              {application.lastName}
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              {application.email}
+            </p>
+          </div>
+        </div>
+
         <h2
           class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center"
         >
@@ -266,10 +306,11 @@
               Full Name
             </p>
             <p class="text-gray-900 dark:text-white">
-              {application.firstName} {application.lastName}
+              {application.firstName}
+              {application.lastName}
             </p>
           </div>
-          
+
           <div>
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
               Email
@@ -278,7 +319,7 @@
               {application.email}
             </p>
           </div>
-          
+
           <div>
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
               Phone
@@ -287,13 +328,15 @@
               {application.phone || "Not provided"}
             </p>
           </div>
-          
+
           <div>
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
               ID Type/Number
             </p>
             <p class="text-gray-900 dark:text-white">
-              {application.idType === "SOUTH_AFRICAN_ID" ? "South African ID" : application.idType}: {application.idNumber || "Not provided"}
+              {application.idType === "SOUTH_AFRICAN_ID"
+                ? "South African ID"
+                : application.idType}: {application.idNumber || "Not provided"}
             </p>
           </div>
         </div>
@@ -343,7 +386,7 @@
               </div>
               <div class="text-gray-900 dark:text-white">
                 {parseFloat(application.latitude).toFixed(5)}, {parseFloat(
-                  application.longitude
+                  application.longitude,
                 ).toFixed(5)}
               </div>
             </div>
@@ -424,9 +467,11 @@
               {/if}
             </div>
           </div>
-          
+
           <!-- Additional work info -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"
+          >
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Own Transport
@@ -435,7 +480,7 @@
                 {application.ownTransport ? "Yes" : "No"}
               </p>
             </div>
-            
+
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                 WhatsApp
@@ -444,7 +489,7 @@
                 {application.whatsApp ? "Yes" : "No"}
               </p>
             </div>
-            
+
             <div>
               <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Pet Compatibility
@@ -478,7 +523,7 @@
                 </p>
               </div>
             {/if}
-            
+
             {#if application.bio}
               <div>
                 <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -502,7 +547,7 @@
                     >
                       <FileText size={16} class="text-gray-500" />
                       <span class="text-sm text-gray-900 dark:text-white"
-                        >{document}</span
+                        >{document.split("/").pop()}</span
                       >
                       <a
                         href={document}
@@ -514,7 +559,7 @@
                 </div>
               </div>
             {/if}
-            
+
             {#if application.notes}
               <div>
                 <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -602,8 +647,8 @@
                   </h3>
                   <div class="mt-2 text-sm text-green-700 dark:text-green-200">
                     <p>
-                      This application has been approved and a cleaner account has
-                      been created.
+                      This application has been approved and a cleaner account
+                      has been created.
                     </p>
                   </div>
                   <div class="mt-4">
@@ -621,7 +666,9 @@
                   <X class="h-5 w-5 text-red-400" />
                 </div>
                 <div class="ml-3">
-                  <h3 class="text-sm font-medium text-red-800 dark:text-red-300">
+                  <h3
+                    class="text-sm font-medium text-red-800 dark:text-red-300"
+                  >
                     Application Rejected
                   </h3>
                   <div class="mt-2 text-sm text-red-700 dark:text-red-200">
@@ -640,7 +687,9 @@
       <!-- Notes History Card -->
       {#if notes && notes.length > 0}
         <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-          <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+          <h2
+            class="mb-4 text-lg font-semibold text-gray-900 dark:text-white flex items-center"
+          >
             <Calendar class="mr-2 text-primary" size={18} />
             Notes History
           </h2>

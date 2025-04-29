@@ -45,7 +45,7 @@ export const POST: RequestHandler = async ({ request, params }) => {
       .jpeg({ quality: 80, progressive: true })
       .toBuffer();
     
-    // Upload to S3 instead of local file system
+    // Upload to S3
     const fileUrl = await s3.uploadFile(
       processedImageBuffer,
       filename,

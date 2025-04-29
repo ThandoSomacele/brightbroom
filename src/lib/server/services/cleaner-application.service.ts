@@ -156,6 +156,8 @@ export const cleanerApplicationService = {
           passwordHash: hashedPassword,
           phone: application.phone,
           role: "CLEANER",
+          taxNumber: application.taxNumber || null,
+          bankAccount: application.bankAccount || null,
           isActive: true,
           createdAt: new Date(),
           updatedAt: new Date(),
