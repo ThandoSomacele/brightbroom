@@ -68,7 +68,10 @@
   let availabilityDays: string[] = [];
   try {
     if (editableApplication?.availability) {
-      availabilityDays = JSON.parse(editableApplication.availability);
+      // Parse the JSON and normalize case
+      const parsedDays = JSON.parse(editableApplication.availability);
+      // Convert each day to uppercase to match the expected format
+      availabilityDays = parsedDays.map((day) => day.toUpperCase());
     }
   } catch (e) {
     console.error("Error parsing availability:", e);
