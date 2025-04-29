@@ -6,8 +6,8 @@ import {
   service,
   user,
 } from "$lib/server/db/schema";
-import { error, redirect } from "@sveltejs/kit";
-import { and, desc, eq, ilike, inArray, like, or, sql } from "drizzle-orm";
+import { redirect } from "@sveltejs/kit";
+import { desc, eq, inArray, like, or, sql } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ url, locals }) => {
@@ -24,7 +24,6 @@ export const load: PageServerLoad = async ({ url, locals }) => {
   const page = parseInt(url.searchParams.get("page") || "1");
   const limit = 10; // Number of items per page
   const offset = (page - 1) * limit;
-  
 
   try {
     // Get all services for the specialisation filter dropdown
@@ -47,10 +46,12 @@ export const load: PageServerLoad = async ({ url, locals }) => {
         isActive: user.isActive, // Ensure we select the isActive field
         cleanerProfile: {
           id: cleanerProfile.id,
+          profileImageUrl: cleanerProfile.profileImageUrl,
           rating: cleanerProfile.rating,
           isAvailable: cleanerProfile.isAvailable,
           workRadius: cleanerProfile.workRadius,
           bio: cleanerProfile.bio,
+
           petCompatibility: cleanerProfile.petCompatibility,
         },
         // We'll fetch specialisations separately
