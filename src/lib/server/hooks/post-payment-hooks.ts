@@ -216,63 +216,62 @@ export const postPaymentHooks = {
    * @param bookingId The booking ID
    * @param paymentStatus Optional payment status to override database check
    */
-  async runAll(bookingId: string, paymentStatus = "COMPLETED"): Promise<void> {
-    try {
-      console.log(
-        `[POST-PAYMENT HOOKS] Running all post-payment hooks for booking ${bookingId} with payment status ${paymentStatus}`,
-      );
+  // async runAll(bookingId: string, paymentStatus = "COMPLETED"): Promise<void> {
+  //   try {
+  //     console.log(
+  //       `[POST-PAYMENT HOOKS] Running all post-payment hooks for booking ${bookingId} with payment status ${paymentStatus}`,
+  //     );
 
-      // Get booking status first to check if it's cancelled
-      const bookingData = await db
-        .select({ status: booking.status })
-        .from(booking)
-        .where(eq(booking.id, bookingId))
-        .limit(1);
+  //     // Get booking status first to check if it's cancelled
+  //     const bookingData = await db
+  //       .select({ status: booking.status })
+  //       .from(booking)
+  //       .where(eq(booking.id, bookingId))
+  //       .limit(1);
 
-      if (bookingData.length === 0) {
-        console.log(
-          `[POST-PAYMENT HOOKS] Booking not found for post-payment hooks: ${bookingId}`,
-        );
-        return;
-      }
+  //     if (bookingData.length === 0) {
+  //       console.log(
+  //         `[POST-PAYMENT HOOKS] Booking not found for post-payment hooks: ${bookingId}`,
+  //       );
+  //       return;
+  //     }
 
-      // Skip all hooks if the booking is cancelled
-      if (bookingData[0].status === "CANCELLED") {
-        console.log(
-          `[POST-PAYMENT HOOKS] Skipping post-payment hooks for cancelled booking: ${bookingId}`,
-        );
-        return;
-      }
+  //     // Skip all hooks if the booking is cancelled
+  //     if (bookingData[0].status === "CANCELLED") {
+  //       console.log(
+  //         `[POST-PAYMENT HOOKS] Skipping post-payment hooks for cancelled booking: ${bookingId}`,
+  //       );
+  //       return;
+  //     }
 
-      // Run the hooks in sequence
-      console.log(
-        `[POST-PAYMENT HOOKS] Running hooks sequence for booking ${bookingId}`,
-      );
+  //     // Run the hooks in sequence
+  //     console.log(
+  //       `[POST-PAYMENT HOOKS] Running hooks sequence for booking ${bookingId}`,
+  //     );
 
-      // 1. Send confirmation email with the explicit payment status
-      console.log(
-        `[POST-PAYMENT HOOKS] Executing step 1: Send confirmation email`,
-      );
-      await this.sendConfirmationEmail(bookingId, paymentStatus);
+  //     // 1. Send confirmation email with the explicit payment status
+  //     console.log(
+  //       `[POST-PAYMENT HOOKS] Executing step 1: Send confirmation email`,
+  //     );
+  //     await this.sendConfirmationEmail(bookingId, paymentStatus);
 
-      // 2. Attempt cleaner assignment
-      console.log(
-        `[POST-PAYMENT HOOKS] Executing step 2: Attempt cleaner assignment`,
-      );
-      await this.attemptCleanerAssignment(bookingId);
+  //     // 2. Attempt cleaner assignment
+  //     console.log(
+  //       `[POST-PAYMENT HOOKS] Executing step 2: Attempt cleaner assignment`,
+  //     );
+  //     await this.attemptCleanerAssignment(bookingId);
 
-      console.log(
-        `[POST-PAYMENT HOOKS] All hooks completed for booking ${bookingId}`,
-      );
-    } catch (error) {
-      console.error(
-        `[POST-PAYMENT HOOKS] Error running post-payment hooks for booking ${bookingId}:`,
-        error,
-      );
-    }
-  },
+  //     console.log(
+  //       `[POST-PAYMENT HOOKS] All hooks completed for booking ${bookingId}`,
+  //     );
+  //   } catch (error) {
+  //     console.error(
+  //       `[POST-PAYMENT HOOKS] Error running post-payment hooks for booking ${bookingId}:`,
+  //       error,
+  //     );
+  //   }
+  // },
 
-  // src/lib/server/hooks/post-payment-hooks.ts
   // Add this method to the postPaymentHooks object
 
   /**
