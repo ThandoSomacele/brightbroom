@@ -512,67 +512,100 @@
             Additional Information
           </h2>
 
-          <div class="space-y-4">
-            {#if application.referralSource}
-              <div>
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Referral Source
-                </p>
-                <p class="text-gray-900 dark:text-white">
-                  {application.referralSource}
-                </p>
-              </div>
-            {/if}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <!-- Tax & Banking Details -->
+            <div>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Tax Number
+              </p>
+              <p class="text-gray-900 dark:text-white">
+                {application.taxNumber || "Not provided"}
+              </p>
+            </div>
 
-            {#if application.bio}
-              <div>
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Bio
-                </p>
-                <p class="text-gray-900 dark:text-white">
-                  {application.bio}
-                </p>
-              </div>
-            {/if}
-
-            {#if application.documents && application.documents.length > 0}
-              <div>
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Documents
-                </p>
-                <div class="mt-2 space-y-2">
-                  {#each application.documents as document}
-                    <div
-                      class="flex items-center gap-2 rounded-md border border-gray-200 p-2 dark:border-gray-700"
-                    >
-                      <FileText size={16} class="text-gray-500" />
-                      <span class="text-sm text-gray-900 dark:text-white"
-                        >{document.split("/").pop()}</span
-                      >
-                      <a
-                        href={document}
-                        target="_blank"
-                        class="ml-auto text-primary hover:underline">View</a
-                      >
-                    </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Bank Account Details
+              </p>
+              {#if application.bankAccount}
+                <div class="mt-1 p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
+                  {#each application.bankAccount.split("\n") as line}
+                    <p class="text-gray-900 dark:text-white">{line}</p>
                   {/each}
                 </div>
-              </div>
-            {/if}
-
-            {#if application.notes}
-              <div>
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Notes
-                </p>
-                <div class="mt-1 p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
-                  <p class="text-gray-900 dark:text-white">
-                    {application.notes}
-                  </p>
-                </div>
-              </div>
-            {/if}
+              {:else}
+                <p class="text-gray-900 dark:text-white">Not provided</p>
+              {/if}
+            </div>
           </div>
+
+          <!-- Other existing fields like referralSource and bio -->
+          {#if application.referralSource}
+            <div class="mb-4">
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Referral Source
+              </p>
+              <p class="text-gray-900 dark:text-white">
+                {application.referralSource}
+              </p>
+            </div>
+          {/if}
+
+          {#if application.bio}
+            <div class="mb-4">
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Bio
+              </p>
+              <p class="text-gray-900 dark:text-white">
+                {application.bio}
+              </p>
+            </div>
+          {/if}
+
+          <!-- Documents with better formatting -->
+          {#if application.documents && application.documents.length > 0}
+            <div class="mb-4">
+              <p
+                class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
+              >
+                Documents ({application.documents.length})
+              </p>
+              <div class="grid grid-cols-1 gap-2">
+                {#each application.documents as document}
+                  <div
+                    class="flex items-center gap-2 rounded-md border border-gray-200 p-2 dark:border-gray-700 bg-gray-50 dark:bg-gray-700"
+                  >
+                    <FileText size={16} class="text-primary flex-shrink-0" />
+                    <span
+                      class="text-sm text-gray-900 dark:text-white truncate flex-grow"
+                    >
+                      {document.split("/").pop()}
+                    </span>
+                    <a
+                      href={document}
+                      target="_blank"
+                      class="flex-shrink-0 text-primary hover:text-primary-600 hover:underline px-2 py-1"
+                    >
+                      View
+                    </a>
+                  </div>
+                {/each}
+              </div>
+            </div>
+          {/if}
+
+          {#if application.notes}
+            <div>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Notes
+              </p>
+              <div class="mt-1 p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
+                <p class="text-gray-900 dark:text-white">
+                  {application.notes}
+                </p>
+              </div>
+            </div>
+          {/if}
         </div>
       {/if}
     </div>
