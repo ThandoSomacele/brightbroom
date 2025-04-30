@@ -2184,7 +2184,7 @@ export function getCleanerJobAssignmentTemplate(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>New Cleaning Assignment</title>
+  <title>A Cleaning Job Has Been Assigned to You ✨🧹</title>
   <style>
     body, html {
       margin: 0;
@@ -2375,6 +2375,8 @@ export function getCleanerJobAssignmentTemplate(
       </div>
       
       <p><strong>Please confirm this assignment</strong> by logging into your account. If you have any questions or concerns about this assignment, please contact the office immediately.</p>
+
+      <p>For help please WhatsApp our support team with booking details on this number <a herf="https://wa.me/0693915277">0693915277</a></p>
       
       <p>Thank you for your excellent service!</p>
       
