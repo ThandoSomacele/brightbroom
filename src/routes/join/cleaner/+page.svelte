@@ -150,14 +150,19 @@
       return true;
     }
   }
+  const siteUrl = import.meta.env.VITE_SITE_URL || "https://brightbroom.com";
+  const ogImageUrl = `${siteUrl}/images/join-cleaning-team-og.jpg`;
 </script>
 
 <svelte:head>
-  <title>Join Our Team | BrightBroom</title>
+  <title>Join Our Cleaner Team | BrightBroom</title>
+  <meta property="og:title" content="Join Our Cleaner Team | BrightBroom" />
   <meta
     name="description"
     content="Join the BrightBroom team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
   />
+  <meta property="og:image" content={ogImageUrl} />
+  <meta name="twitter:image" content={ogImageUrl} />
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900">

@@ -17,7 +17,30 @@
   function closeMenu() {
     isMenuOpen = false;
   }
+
+  const siteUrl = import.meta.env.VITE_SITE_URL || "https://brightbroom.com";
+  const ogImageUrl = `${siteUrl}/images/brightbroom-og-image.png`;
 </script>
+
+<svelte:head>
+  <!-- Basic meta tags -->
+  <title>BrightBroom | On-demand Cleaning Services</title>
+  <meta name="description" content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean." />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={$page.url.href} />
+  <meta property="og:title" content="BrightBroom | On-demand Cleaning Services" />
+  <meta property="og:description" content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean." />
+  <meta property="og:image" content={ogImageUrl} />
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content={$page.url.href} />
+  <meta name="twitter:title" content="BrightBroom | On-demand Cleaning Services" />
+  <meta name="twitter:description" content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean." />
+  <meta name="twitter:image" content={ogImageUrl} />
+</svelte:head>
 
 <!-- Global loading indicator for page navigation -->
 <LoadingIndicator />
