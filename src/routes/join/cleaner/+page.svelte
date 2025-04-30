@@ -155,12 +155,11 @@
 </script>
 
 <svelte:head>
-  <title>Join Our Cleaner Team | BrightBroom</title>
+  <title>Join Our Cleaner Team | BrightBroom</title><meta
+  name="description"
+  content="Join the BrightBroom team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
+/>
   <meta property="og:title" content="Join Our Cleaner Team | BrightBroom" />
-  <meta
-    name="description"
-    content="Join the BrightBroom team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
-  />
   <meta property="og:image" content={ogImageUrl} />
   <meta name="twitter:image" content={ogImageUrl} />
 </svelte:head>
@@ -182,8 +181,245 @@
     </div>
   </div>
 
-  <!-- Benefits Section (unchanged) -->
-  <!-- ... -->
+  <!-- Benefits Section -->
+  <section class="py-12 bg-gray-50 dark:bg-gray-800">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+      <h2
+        class="text-2xl font-bold text-gray-900 dark:text-white text-center mb-12"
+      >
+        Why Join BrightBroom?
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Benefit 1 -->
+        <div
+          class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center"
+        >
+          <div
+            class="w-16 h-16 mx-auto bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mb-4"
+          >
+            <Clock size={24} />
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            Flexible Schedule
+          </h3>
+          <p class="text-gray-600 dark:text-gray-300">
+            Work when it suits you. Set your own availability and work hours
+            that fit your lifestyle.
+          </p>
+        </div>
+
+        <!-- Benefit 2 -->
+        <div
+          class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center"
+        >
+          <div
+            class="w-16 h-16 mx-auto bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mb-4"
+          >
+            <Wallet size={24} />
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            Competitive Pay
+          </h3>
+          <p class="text-gray-600 dark:text-gray-300">
+            Earn competitive rates plus tips. Get paid weekly with transparent
+            payment processing.
+          </p>
+        </div>
+
+        <!-- Benefit 3 -->
+        <div
+          class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center"
+        >
+          <div
+            class="w-16 h-16 mx-auto bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mb-4"
+          >
+            <Zap size={24} />
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            Career Growth
+          </h3>
+          <p class="text-gray-600 dark:text-gray-300">
+            Access training opportunities, build your reputation, and grow your
+            client base with our platform.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Requirements Section -->
+  <div class="bg-gray-100 py-16 dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+      <div class="mx-auto max-w-3xl">
+        <h2
+          class="mb-8 text-center text-3xl font-bold text-gray-900 dark:text-white"
+        >
+          Requirements to Join
+        </h2>
+
+        <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-700">
+          <ul class="space-y-4">
+            <li class="flex">
+              <div
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+              >
+                <span class="text-sm font-semibold">1</span>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300">
+                South African ID or Passport document
+              </p>
+            </li>
+            <li class="flex">
+              <div
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+              >
+                <span class="text-sm font-semibold">2</span>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300">
+                At least 6 months of professional cleaning experience
+              </p>
+            </li>
+            <li class="flex">
+              <div
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+              >
+                <span class="text-sm font-semibold">3</span>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300">
+                Reliable transportation to get to job locations
+              </p>
+            </li>
+            <li class="flex">
+              <div
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+              >
+                <span class="text-sm font-semibold">4</span>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300">
+                Smartphone with internet connection to use our app
+              </p>
+            </li>
+            <li class="flex">
+              <div
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+              >
+                <span class="text-sm font-semibold">5</span>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300">
+                Good with people and have a positive attitude
+              </p>
+            </li>
+            <li class="flex">
+              <div
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+              >
+                <span class="text-sm font-semibold">6</span>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300">
+                Background check clearance (we'll handle this process)
+              </p>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Testimonials Section -->
+  <div class="py-16">
+    <div class="container mx-auto px-4">
+      <h2
+        class="mb-12 text-center text-3xl font-bold text-gray-900 dark:text-white"
+      >
+        What Our Cleaners Say
+      </h2>
+
+      <div class="grid gap-8 md:grid-cols-3">
+        <!-- Testimonial 1 -->
+        <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+          <div class="mb-4 flex">
+            <div
+              class="mr-4 h-12 w-12 overflow-hidden rounded-full bg-gray-200"
+            >
+              <div
+                class="flex h-full w-full items-center justify-center bg-primary-100 text-primary"
+              >
+                <span class="text-xl font-bold">N</span>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-medium text-gray-900 dark:text-white">
+                Nomsa M.
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Cleaner since 2022
+              </p>
+            </div>
+          </div>
+          <p class="text-gray-600 dark:text-gray-300">
+            "Working with BrightBroom has completely changed my life. I can now
+            manage my own schedule and earn a good income while still having
+            time for my family."
+          </p>
+        </div>
+
+        <!-- Testimonial 2 -->
+        <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+          <div class="mb-4 flex">
+            <div
+              class="mr-4 h-12 w-12 overflow-hidden rounded-full bg-gray-200"
+            >
+              <div
+                class="flex h-full w-full items-center justify-center bg-primary-100 text-primary"
+              >
+                <span class="text-xl font-bold">S</span>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-medium text-gray-900 dark:text-white">
+                Simon P.
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Cleaner since 2021
+              </p>
+            </div>
+          </div>
+          <p class="text-gray-600 dark:text-gray-300">
+            "The app is so easy to use, and I get paid quickly after each job.
+            The support team is always there when I need help with anything."
+          </p>
+        </div>
+
+        <!-- Testimonial 3 -->
+        <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+          <div class="mb-4 flex">
+            <div
+              class="mr-4 h-12 w-12 overflow-hidden rounded-full bg-gray-200"
+            >
+              <div
+                class="flex h-full w-full items-center justify-center bg-primary-100 text-primary"
+              >
+                <span class="text-xl font-bold">T</span>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-medium text-gray-900 dark:text-white">
+                Thandi K.
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Cleaner since 2023
+              </p>
+            </div>
+          </div>
+          <p class="text-gray-600 dark:text-gray-300">
+            "I was worried about finding consistent work, but with BrightBroom I
+            now have regular work. It's been a great experience."
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Application Form Section -->
   <div id="apply" class="bg-gray-100 py-16 dark:bg-gray-800">
