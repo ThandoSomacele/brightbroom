@@ -62,9 +62,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     currentDate = addDays(currentDate, 1);
   }
 
-  // Generate all possible time slots from 7 AM to 5 PM
+  // Generate all possible time slots from 8 AM to 12 PM
   const allTimeSlots = [];
-  for (let hour = 7; hour <= 12; hour++) {
+  for (let hour = 8; hour <= 12; hour++) {
     const date = setHours(setMinutes(new Date(), 0), hour);
     allTimeSlots.push({
       time: format(date, "HH:mm"),
