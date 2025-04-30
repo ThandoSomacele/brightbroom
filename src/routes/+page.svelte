@@ -131,7 +131,7 @@
         <p class="mb-4 text-gray-600 dark:text-gray-300">
           A thorough cleaning service that reaches every corner and detail.
         </p>
-        <p class="mb-6 text-2xl font-bold text-primary">R550</p>
+        <p class="mb-6 text-2xl font-bold text-primary">R500</p>
         <Button variant="outline" href="/services" class="w-full">
           Learn More
         </Button>
