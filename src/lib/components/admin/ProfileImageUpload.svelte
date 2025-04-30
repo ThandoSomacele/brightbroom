@@ -194,7 +194,8 @@
   
   <!-- Upload controls -->
   <div class="flex flex-col items-center justify-center space-y-3">
-    {#if imageFile && !currentImageUrl}
+    {#if imageFile}
+      <!-- Show upload button whenever a new file is selected, regardless of currentImageUrl -->
       <Button
         variant="primary"
         size="sm"
