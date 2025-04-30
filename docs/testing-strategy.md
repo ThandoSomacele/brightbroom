@@ -155,8 +155,8 @@ vi.mock("$app/navigation", () => ({
 
 vi.mock("$lib/server/booking", () => ({
   getAvailableServices: vi.fn().mockResolvedValue([
-    { id: "1", name: "Regular Cleaning", price: 350, duration: 2 },
-    { id: "2", name: "Extended Cleaning", price: 550, duration: 4 },
+    { id: "1", name: "Regular Cleaning", price: 350, duration: 6 },
+    { id: "2", name: "Extended Cleaning", price: 500, duration: 10 },
   ]),
 }));
 

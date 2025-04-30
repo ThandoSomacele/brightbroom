@@ -265,12 +265,12 @@ async function seedServices(db: any) {
       let durationHours = 6;
 
       if (type === "extended") {
-        basePrice = 550;
+        basePrice = 500;
         durationHours = 10;
       } else if (category === "commercial") {
         basePrice = 450;
       } else if (serviceName.includes("Laundry")) {
-        basePrice = 450;
+        basePrice = 400;
         durationHours = 8;
       }
 
