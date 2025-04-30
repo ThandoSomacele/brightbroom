@@ -19,7 +19,7 @@
   }
 
   const siteUrl = import.meta.env.VITE_SITE_URL || "https://brightbroom.com";
-  const ogImageUrl = `${siteUrl}/images/brightbroom-og-image.png`;
+  const ogImageUrl = `${siteUrl}/images/brightbroom-og-image.jpg`;
 </script>
 
 <svelte:head>
