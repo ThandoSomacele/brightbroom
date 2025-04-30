@@ -1,12 +1,14 @@
 <!-- src/routes/join/cleaner/+page.svelte -->
 <script lang="ts">
   import { enhance } from "$app/forms";
+  import { page } from "$app/stores";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import {
     getClosestServiceArea,
     isWithinServiceArea,
   } from "$lib/utils/serviceAreaValidator";
+    import { Clock, Wallet, Zap } from "lucide-svelte";
 
   // Environment variables
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -155,12 +157,29 @@
 </script>
 
 <svelte:head>
-  <title>Join Our Cleaner Team | BrightBroom</title><meta
-  name="description"
-  content="Join the BrightBroom team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
-/>
+  <title>Join Our Cleaner Team | BrightBroom</title>
+  <meta
+    name="description"
+    content="Join the BrightBroom team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
+  />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={$page.url.href} />
   <meta property="og:title" content="Join Our Cleaner Team | BrightBroom" />
+  <meta
+    property="og:description"
+    content="Join the BrightBroom team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
+  />
   <meta property="og:image" content={ogImageUrl} />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Join Our Cleaner Team | BrightBroom" />
+  <meta
+    name="twitter:description"
+    content="Join the BrightBroom team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
+  />
   <meta name="twitter:image" content={ogImageUrl} />
 </svelte:head>
 
