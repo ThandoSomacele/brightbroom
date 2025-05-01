@@ -2,6 +2,7 @@
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
   import heroImage from "$lib/image-assets/hero.webp";
+  import { Building, Home, HousePlus } from "lucide-svelte";
 
   // Get user data from loader
   export let data;
@@ -77,21 +78,8 @@
       <div
         class="rounded-lg bg-white p-6 shadow-md transition-transform hover:-translate-y-1 dark:bg-gray-800"
       >
-        <div class="mb-4 text-center text-primary">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="mx-auto h-12 w-12"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-            />
-          </svg>
+        <div class="mb-4 text-primary">
+          <Home class="h-12 w-12" />
         </div>
         <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
           Regular Cleaning
@@ -99,7 +87,6 @@
         <p class="mb-4 text-gray-600 dark:text-gray-300">
           Perfect for maintaining a clean and tidy home on a regular basis.
         </p>
-        <p class="mb-6 text-2xl font-bold text-primary">R350</p>
         <Button variant="outline" href="/services" class="w-full">
           Learn More
         </Button>
@@ -109,29 +96,16 @@
       <div
         class="rounded-lg bg-white p-6 shadow-md transition-transform hover:-translate-y-1 dark:bg-gray-800"
       >
-        <div class="mb-4 text-center text-primary">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="mx-auto h-12 w-12"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-            />
-          </svg>
+        <div class="mb-4 text-primary">
+          <HousePlus class="h-12 w-12" />
         </div>
+
         <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
           Extended Cleaning
         </h3>
         <p class="mb-4 text-gray-600 dark:text-gray-300">
           A thorough cleaning service that reaches every corner and detail.
         </p>
-        <p class="mb-6 text-2xl font-bold text-primary">R500</p>
         <Button variant="outline" href="/services" class="w-full">
           Learn More
         </Button>
@@ -141,21 +115,8 @@
       <div
         class="rounded-lg bg-white p-6 shadow-md transition-transform hover:-translate-y-1 dark:bg-gray-800"
       >
-        <div class="mb-4 text-center text-primary">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="mx-auto h-12 w-12"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-            />
-          </svg>
+        <div class="mb-4 text-primary">
+          <Building class="h-12 w-12" />
         </div>
         <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
           Office Cleaning
@@ -163,7 +124,6 @@
         <p class="mb-4 text-gray-600 dark:text-gray-300">
           Professional cleaning for your office space or commercial property.
         </p>
-        <p class="mb-6 text-2xl font-bold text-primary">R450</p>
         <Button variant="outline" href="/services" class="w-full">
           Learn More
         </Button>

@@ -1,45 +1,43 @@
 <!-- src/lib/components/services/ServiceDetailsModal.svelte -->
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
-  import { X, CheckCircle } from "lucide-svelte";
-  import { 
-    formatCurrency, 
+  import {
     formatDuration,
     generateDefaultServiceDetails,
-    type Service, 
-    type ServiceDetails 
+    type Service,
   } from "$lib/services";
-  
+  import { CheckCircle, X } from "lucide-svelte";
+  import { createEventDispatcher } from "svelte";
+
   // Props
-  export let service: Partial<Service> & { 
-    name: string; 
+  export let service: Partial<Service> & {
+    name: string;
     basePrice: number;
     durationHours: number;
   };
-  
+
   const dispatch = createEventDispatcher();
-  
+
   // Ensure service details are available, fallback to generated defaults
-  $: details = service.details 
-    ? (typeof service.details === 'string' 
-        ? JSON.parse(service.details) 
-        : service.details)
-    : service.type 
-        ? generateDefaultServiceDetails(service.name, service.type)
-        : generateDefaultServiceDetails(service.name, 'regular');
-  
+  $: details = service.details
+    ? typeof service.details === "string"
+      ? JSON.parse(service.details)
+      : service.details
+    : service.type
+      ? generateDefaultServiceDetails(service.name, service.type)
+      : generateDefaultServiceDetails(service.name, "regular");
+
   // Close modal
   function close() {
-    dispatch('close');
+    dispatch("close");
   }
 
   // Handle escape key and clicking outside
   function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
+    if (event.key === "Escape") {
       close();
     }
   }
-  
+
   function handleBackdropClick(event: MouseEvent) {
     if (event.target === event.currentTarget) {
       close();
@@ -49,21 +47,26 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div 
+<div
   class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
   on:click={handleBackdropClick}
   on:keydown={handleKeydown}
   role="presentation"
 >
-  <div 
+  <div
     class="max-h-[90vh] w-full max-w-3xl overflow-auto rounded-lg bg-white shadow-xl dark:bg-gray-800"
     role="dialog"
     aria-modal="true"
     aria-labelledby="service-details-title"
   >
     <!-- Modal header -->
-    <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-      <h2 id="service-details-title" class="text-xl font-semibold text-gray-900 dark:text-white">
+    <div
+      class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700"
+    >
+      <h2
+        id="service-details-title"
+        class="text-xl font-semibold text-gray-900 dark:text-white"
+      >
         {service.name} Details
       </h2>
       <button
@@ -75,21 +78,21 @@
         <X size={20} />
       </button>
     </div>
-    
+
     <!-- Modal content -->
     <div class="p-6">
       <!-- Service overview -->
       <div class="mb-6">
         <p class="text-gray-700 dark:text-gray-300">{service.description}</p>
-        
-        <div class="mt-4 grid grid-cols-2 gap-4">
-          <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
+
+        <div class="mt-4 grid grid-cols-1 gap-4">
+          <!-- <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
             <p class="text-sm text-gray-500 dark:text-gray-400">Price</p>
             <p class="text-2xl font-bold text-primary">
               {formatCurrency(service.basePrice)}
             </p>
-          </div>
-          
+          </div> -->
+
           <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
             <p class="text-sm text-gray-500 dark:text-gray-400">Duration</p>
             <p class="text-2xl font-bold text-gray-800 dark:text-gray-200">
@@ -98,21 +101,28 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Service details -->
       {#if details && details.items && details.items.length > 0}
         <div class="space-y-6">
           {#each details.items as item}
             <div class="rounded-lg border border-gray-200 dark:border-gray-700">
               <div class="bg-gray-50 px-4 py-3 dark:bg-gray-700">
-                <h3 class="font-medium text-gray-800 dark:text-white">{item.area}</h3>
+                <h3 class="font-medium text-gray-800 dark:text-white">
+                  {item.area}
+                </h3>
               </div>
               <div class="p-4">
                 <ul class="space-y-2">
                   {#each item.details as detail}
                     <li class="flex items-start">
-                      <CheckCircle size={16} class="mr-2 mt-1 flex-shrink-0 text-primary" />
-                      <span class="text-gray-700 dark:text-gray-300">{detail}</span>
+                      <CheckCircle
+                        size={16}
+                        class="mr-2 mt-1 flex-shrink-0 text-primary"
+                      />
+                      <span class="text-gray-700 dark:text-gray-300"
+                        >{detail}</span
+                      >
                     </li>
                   {/each}
                 </ul>
@@ -127,17 +137,22 @@
           </p>
         </div>
       {/if}
-      
+
       <!-- Disclaimer -->
-      <div class="mt-6 rounded-lg bg-gray-50 p-4 text-sm text-gray-600 dark:bg-gray-700/50 dark:text-gray-300">
+      <div
+        class="mt-6 rounded-lg bg-gray-50 p-4 text-sm text-gray-600 dark:bg-gray-700/50 dark:text-gray-300"
+      >
         <p>
-          <strong>Please note:</strong> Prices include VAT. Actual duration may vary slightly depending on the specific requirements of your space.
+          <strong>Please note:</strong> Prices include VAT. Actual duration may vary
+          slightly depending on the specific requirements of your space.
         </p>
       </div>
     </div>
-    
+
     <!-- Modal footer -->
-    <div class="flex justify-end border-t border-gray-200 px-6 py-4 dark:border-gray-700">
+    <div
+      class="flex justify-end border-t border-gray-200 px-6 py-4 dark:border-gray-700"
+    >
       <button
         type="button"
         class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"

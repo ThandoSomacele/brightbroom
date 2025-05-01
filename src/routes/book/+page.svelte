@@ -1,9 +1,16 @@
 <!-- src/routes/book/+page.svelte -->
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import Button from "$lib/components/ui/Button.svelte";
   import ServiceDetailsModal from "$lib/components/booking/ServiceDetailsModal.svelte";
-  import { ArrowRight, Home, Info } from "lucide-svelte";
+  import Button from "$lib/components/ui/Button.svelte";
+  import {
+    ArrowRight,
+    Building,
+    Home,
+    HousePlus,
+    Info,
+    WashingMachine,
+  } from "lucide-svelte";
 
   // Get data from the server load function
   export let data;
@@ -14,7 +21,7 @@
 
   // Add loading state
   let isLoading = false;
-  
+
   // Modal state
   let showDetailsModal = false;
   let selectedServiceForDetails = null;
@@ -23,7 +30,7 @@
   function selectService(id: string) {
     selectedService = id;
   }
-  
+
   // Show service details modal
   function showServiceDetails(service) {
     selectedServiceForDetails = service;
@@ -32,24 +39,24 @@
 
   // Continue to next step
   async function continueToNext() {
-  if (selectedService) {
-    // Show loading state
-    isLoading = true;
+    if (selectedService) {
+      // Show loading state
+      isLoading = true;
 
-    try {
-      // Store selection in localStorage to persist through navigation
-      localStorage.setItem("booking_service", selectedService);
+      try {
+        // Store selection in localStorage to persist through navigation
+        localStorage.setItem("booking_service", selectedService);
 
-      // Navigate to address selection with serviceId as a query parameter
-      await goto(`/book/address?serviceId=${selectedService}`);
-    } catch (error) {
-      console.error("Navigation error:", error);
-    } finally {
-      // Reset loading state
-      isLoading = false;
+        // Navigate to address selection with serviceId as a query parameter
+        await goto(`/book/address?serviceId=${selectedService}`);
+      } catch (error) {
+        console.error("Navigation error:", error);
+      } finally {
+        // Reset loading state
+        isLoading = false;
+      }
     }
   }
-}
 </script>
 
 <svelte:head>
@@ -155,10 +162,19 @@
               <div
                 class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/30"
               >
-                <Home size={24} />
+                <svelte:component
+                  this={service.name.includes("Office")
+                    ? Building
+                    : service.name.includes("Extended")
+                      ? HousePlus
+                      : service.name.includes("Laundry")
+                        ? WashingMachine
+                        : Home}
+                  size={24}
+                />
               </div>
-              
-              <button 
+
+              <button
                 class="text-primary hover:text-primary-600 dark:text-primary-400"
                 on:click|stopPropagation={() => showServiceDetails(service)}
                 aria-label="View service details"
@@ -249,8 +265,8 @@
 
 <!-- Service details modal -->
 {#if showDetailsModal && selectedServiceForDetails}
-  <ServiceDetailsModal 
-    service={selectedServiceForDetails} 
-    on:close={() => showDetailsModal = false} 
+  <ServiceDetailsModal
+    service={selectedServiceForDetails}
+    on:close={() => (showDetailsModal = false)}
   />
 {/if}
