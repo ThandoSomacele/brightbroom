@@ -8,7 +8,7 @@
     getClosestServiceArea,
     isWithinServiceArea,
   } from "$lib/utils/serviceAreaValidator";
-    import { Clock, Wallet, Zap } from "lucide-svelte";
+  import { Clock, Wallet, Zap } from "lucide-svelte";
 
   // Environment variables
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -346,7 +346,7 @@
   </div>
 
   <!-- Testimonials Section -->
-  <div class="py-16">
+  <!-- <div class="py-16">
     <div class="container mx-auto px-4">
       <h2
         class="mb-12 text-center text-3xl font-bold text-gray-900 dark:text-white"
@@ -355,7 +355,7 @@
       </h2>
 
       <div class="grid gap-8 md:grid-cols-3">
-        <!-- Testimonial 1 -->
+        Testimonial 1
         <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
           <div class="mb-4 flex">
             <div
@@ -383,7 +383,7 @@
           </p>
         </div>
 
-        <!-- Testimonial 2 -->
+        Testimonial 2
         <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
           <div class="mb-4 flex">
             <div
@@ -410,7 +410,7 @@
           </p>
         </div>
 
-        <!-- Testimonial 3 -->
+        Testimonial 3
         <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
           <div class="mb-4 flex">
             <div
@@ -438,7 +438,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </div> -->
 
   <!-- Application Form Section -->
   <div id="apply" class="bg-gray-100 py-16 dark:bg-gray-800">

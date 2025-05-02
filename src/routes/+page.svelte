@@ -219,7 +219,7 @@
 </section>
 
 <!-- Testimonials section -->
-<section class="bg-gray-50 py-16 dark:bg-gray-900">
+<!-- <section class="bg-gray-50 py-16 dark:bg-gray-900">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="mb-12 text-center">
       <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
@@ -231,7 +231,7 @@
     </div>
 
     <div class="grid gap-8 md:grid-cols-3">
-      <!-- Testimonial 1 -->
+      Testimonial 1
       <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
         <div class="mb-4 flex text-yellow-400">
           <svg
@@ -292,13 +292,13 @@
         </p>
         <div class="flex items-center">
           <div class="font-medium text-gray-900 dark:text-white">Sarah M.</div>
-          <!-- <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
+          <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
             Cape Town
-          </div> -->
+          </div>
         </div>
       </div>
 
-      <!-- Testimonial 2 -->
+      Testimonial 2
       <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
         <div class="mb-4 flex text-yellow-400">
           <svg
@@ -359,13 +359,13 @@
         </p>
         <div class="flex items-center">
           <div class="font-medium text-gray-900 dark:text-white">John D.</div>
-          <!-- <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
+          <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
             Johannesburg
-          </div> -->
+          </div>
         </div>
       </div>
 
-      <!-- Testimonial 3 -->
+      Testimonial 3
       <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
         <div class="mb-4 flex text-yellow-400">
           <svg
@@ -426,14 +426,14 @@
         </p>
         <div class="flex items-center">
           <div class="font-medium text-gray-900 dark:text-white">Emma L.</div>
-          <!-- <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
+          <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
             Durban
-          </div> -->
+          </div>
         </div>
       </div>
     </div>
   </div>
-</section>
+</section> -->
 
 <!-- CTA section -->
 <section class="bg-primary py-16">

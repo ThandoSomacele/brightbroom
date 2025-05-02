@@ -2376,7 +2376,7 @@ export function getCleanerJobAssignmentTemplate(
       
       <p><strong>Please confirm this assignment</strong> by logging into your account. If you have any questions or concerns about this assignment, please contact the office immediately.</p>
 
-      <p>For help please WhatsApp our support team with booking details on this number <a herf="https://wa.me/0693915277">0693915277</a></p>
+      <p>For help please WhatsApp our support team with booking details on this number <a href="https://wa.me/0693915277">0693915277</a></p>
       
       <p>Thank you for your excellent service!</p>
       

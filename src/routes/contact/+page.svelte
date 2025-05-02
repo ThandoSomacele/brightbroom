@@ -2,7 +2,13 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
-  import { ExternalLink, Mail, MapPin, Users } from "lucide-svelte";
+  import {
+    ExternalLink,
+    Mail,
+    MapPin,
+    MessageSquare,
+    Users,
+  } from "lucide-svelte";
 
   // Form state
   let isSubmitting = false;
@@ -73,24 +79,26 @@
               </div>
 
               <!-- Phone -->
-              <!-- <div class="flex">
-                <div class="mr-4 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/20">
-                  <Phone size={20} />
+              <div class="flex">
+                <div
+                  class="mr-4 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/20"
+                >
+                  <MessageSquare size={20} />
                 </div>
                 <div>
                   <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                    Call Us
+                    WhatsApp Us
                   </h3>
                   <p class="mt-1 text-gray-600 dark:text-gray-300">
-                    <a href="tel:+27123456789" class="hover:underline">
-                      +27 12 345 6789
+                    <a href="https://wa.me/0693915277" class="hover:underline">
+                      +27 69 391 1577
                     </a>
                   </p>
                   <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Monday-Friday: 8am - 6pm
                   </p>
                 </div>
-              </div> -->
+              </div>
 
               <!-- Office -->
               <div class="flex">
