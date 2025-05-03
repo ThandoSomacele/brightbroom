@@ -1,6 +1,6 @@
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
-  import { page } from "$app/state";
+  import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
   import heroImage from "$lib/image-assets/hero.webp";
   import { Building, Home, HousePlus } from "lucide-svelte";
