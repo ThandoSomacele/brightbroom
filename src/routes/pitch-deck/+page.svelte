@@ -725,7 +725,7 @@
                     class="mb-4 flex flex-col items-center text-center md:flex-row md:items-start md:text-left"
                   >
                     <div
-                      class="mr-0 mb-4 h-20 w-20 overflow-hidden rounded-full md:mr-4 md:mb-0"
+                      class="mr-0 mb-4 h-32 w-32 overflow-hidden rounded-full md:mr-4 md:mb-0"
                     >
                       <!-- Image with fallback to first letter if image fails to load -->
                       <img
@@ -768,7 +768,9 @@
                       </div>
                     </div>
                   </div>
-                  <p class="mt-4 text-gray-700 dark:text-gray-300">
+                  <p
+                    class="mt-4 text-gray-700 dark:text-gray-300 text-center md:text-left"
+                  >
                     {member.bio}
                   </p>
                 </div>
