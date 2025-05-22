@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BrightBroom Invoice - Honey Makola</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.6;
+        color: #1f2937;
+        background-color: #f9fafb;
+        padding: 20px;
+      }
+
+      .invoice-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .invoice-header {
+        background: linear-gradient(135deg, #20c3af 0%, #1a9e8f 100%);
+        color: white;
+        padding: 40px;
+        text-align: center;
+      }
+
+      .logo {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 8px;
+      }
+
+      .tagline {
+        opacity: 0.9;
+        font-size: 1.1rem;
+      }
+
+      .invoice-content {
+        padding: 40px;
+      }
+
+      .invoice-title {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+
+      .invoice-number {
+        color: #20c3af;
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 8px;
+      }
+
+      .invoice-date {
+        color: #6b7280;
+        font-size: 1rem;
+      }
+
+      .details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        margin-bottom: 40px;
+      }
+
+      .detail-section h3 {
+        color: #1f2937;
+        font-size: 1.2rem;
+        margin-bottom: 16px;
+        border-bottom: 2px solid #20c3af;
+        padding-bottom: 8px;
+      }
+
+      .detail-item {
+        margin-bottom: 12px;
+      }
+
+      .detail-label {
+        font-weight: 600;
+        color: #374151;
+        display: inline-block;
+        min-width: 100px;
+      }
+
+      .detail-value {
+        color: #1f2937;
+      }
+
+      .service-details {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 30px;
+        border-left: 4px solid #20c3af;
+      }
+
+      .service-name {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #1f2937;
+        margin-bottom: 8px;
+      }
+
+      .service-date-time {
+        color: #6b7280;
+        font-size: 1rem;
+        margin-bottom: 16px;
+      }
+
+      .cleaner-info {
+        background: #fef3f2;
+        border-radius: 8px;
+        padding: 16px;
+        border-left: 4px solid #c2511f;
+      }
+
+      .cleaner-label {
+        font-weight: 600;
+        color: #c2511f;
+        margin-bottom: 4px;
+      }
+
+      .cleaner-name {
+        font-size: 1.1rem;
+        color: #1f2937;
+      }
+
+      .payment-summary {
+        background: #f0fdfa;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 30px;
+        border: 2px solid #20c3af;
+      }
+
+      .payment-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #1f2937;
+        margin-bottom: 16px;
+      }
+
+      .payment-details {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .payment-amount {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #20c3af;
+      }
+
+      .payment-method {
+        background: #20c3af;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .footer {
+        text-align: center;
+        padding: 30px 40px;
+        background: #f8fafc;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      .footer-text {
+        color: #6b7280;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+      }
+
+      .contact-info {
+        color: #20c3af;
+        font-weight: 600;
+      }
+
+      @media print {
+        body {
+          background: white;
+          padding: 0;
+        }
+
+        .invoice-container {
+          box-shadow: none;
+          border-radius: 0;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .details-grid {
+          grid-template-columns: 1fr;
+          gap: 24px;
+        }
+
+        .payment-details {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 16px;
+        }
+
+        .invoice-content {
+          padding: 24px;
+        }
+
+        .invoice-header {
+          padding: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="invoice-container">
+      <!-- Header -->
+      <div class="invoice-header">
+        <div class="logo">BrightBroom</div>
+        <div class="tagline">Professional Cleaning Services</div>
+      </div>
+
+      <!-- Content -->
+      <div class="invoice-content">
+        <!-- Invoice Title -->
+        <div class="invoice-title">
+          <div class="invoice-number">INVOICE #BB-2025-002</div>
+          <div class="invoice-date">Generated: 19 May 2025</div>
+        </div>
+
+        <!-- Customer and Booking Details -->
+        <div class="details-grid">
+          <div class="detail-section">
+            <h3>Customer Information</h3>
+            <div class="detail-item">
+              <span class="detail-label">Name:</span>
+              <span class="detail-value">Honey Makola</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Email:</span>
+              <span class="detail-value">hnoyane4@gmail.com</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Address:</span>
+              <span class="detail-value">
+                Castellet Country Estate<br />
+                Syringa Ave, Broadacres AH<br />
+                Sandton, 2055
+              </span>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h3>Booking Information</h3>
+            <div class="detail-item">
+              <span class="detail-label">Booking ID:</span>
+              <span class="detail-value">BB-2025-MAY-002</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Status:</span>
+              <span class="detail-value">Confirmed</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Created:</span>
+              <span class="detail-value">19 May 2025</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Method:</span>
+              <span class="detail-value">Manual Booking</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Service Details -->
+        <div class="service-details">
+          <div class="service-name">
+            Regular Cleaning with Laundry & Ironing
+          </div>
+          <div class="service-date-time">
+            <strong>Date:</strong> Monday, 19 May 2025 at 08:00<br />
+            <strong>Duration:</strong> Approximately 3-4 hours
+          </div>
+          <div class="cleaner-info">
+            <div class="cleaner-label">Assigned Cleaner</div>
+            <div class="cleaner-name">Priviledge Nkomo</div>
+          </div>
+        </div>
+
+        <!-- Payment Summary -->
+        <div class="payment-summary">
+          <div class="payment-title">Payment Summary</div>
+          <div class="payment-details">
+            <div>
+              <div style="color: #6b7280; margin-bottom: 4px">Total Amount</div>
+              <div class="payment-amount">R400.00</div>
+            </div>
+            <div class="payment-method">CASH</div>
+          </div>
+        </div>
+
+        <!-- Service Description -->
+        <div
+          style="
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+          "
+        >
+          <h4 style="color: #1f2937; margin-bottom: 12px; font-size: 1.1rem">
+            Service Includes:
+          </h4>
+          <ul style="color: #6b7280; padding-left: 20px">
+            <li>Complete house cleaning (all rooms, bathrooms, kitchen)</li>
+            <li>Washing and ironing of laundry</li>
+            <li>Dusting and vacuuming all areas</li>
+            <li>Mopping floors and cleaning surfaces</li>
+            <li>Basic organizing and tidying</li>
+          </ul>
+        </div>
+
+        <!-- Important Notes -->
+        <div
+          style="
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            background: #fffbeb;
+          "
+        >
+          <h4 style="color: #92400e; margin-bottom: 8px">Important Notes:</h4>
+          <p style="color: #78350f; font-size: 0.9rem; line-height: 1.5">
+            This invoice was generated manually due to a technical issue during
+            the online booking process. Your booking has been confirmed and all
+            details have been recorded in our system.
+          </p>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <div class="footer-text">Thank you for choosing BrightBroom!</div>
+        <div class="footer-text">For any queries, please contact us:</div>
+        <div class="contact-info">info@brightbroom.com | +27 11 123 4567</div>
+      </div>
+    </div>
+  </body>
+</html>
