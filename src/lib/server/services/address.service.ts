@@ -3,7 +3,7 @@ import { MAX_ADDRESSES } from "$lib/constants/address";
 import { db } from "$lib/server/db";
 import { address, booking } from "$lib/server/db/schema";
 import { geocodeAddress } from "$lib/utils/geocoding";
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 
 /**
  * Service for managing user addresses
@@ -21,7 +21,7 @@ export const addressService = {
 
       // Only include active addresses unless specifically requested
       if (!includeInactive) {
-        query = query.where(eq(address.isActive, true));
+        query = query.where(and(eq(address.userId, userId), eq(address.isActive, true)));
       }
 
       return await query.orderBy(address.isDefault, { direction: "desc" });
@@ -37,11 +37,11 @@ export const addressService = {
   async countUserAddresses(userId: string): Promise<number> {
     try {
       const result = await db
-        .select({ count: db.fn.count() })
+        .select({ count: sql<number>`count(*)` })
         .from(address)
         .where(and(eq(address.userId, userId), eq(address.isActive, true)));
 
-      // Add safer access to the count property
+      // Safely access the count
       return result && result.length > 0 && result[0].count !== undefined
         ? Number(result[0].count)
         : 0;
@@ -82,7 +82,11 @@ export const addressService = {
 
       // If we have an addressId, exclude it from the update
       if (addressId) {
-        query = query.where(ne(address.id, addressId));
+        query = query.where(and(
+          eq(address.userId, userId),
+          eq(address.isActive, true),
+          ne(address.id, addressId)
+        ));
       }
 
       // Execute the update
@@ -100,20 +104,64 @@ export const addressService = {
   /**
    * Create a new address for a user
    */
-  async createAddress(userId: string, addressData: any): Promise<any> {
-    // Check if coordinates are provided
-    if (!addressData.lat || !addressData.lng) {
-      // Construct full address
-      const fullAddress = `${addressData.street}, ${addressData.city}, ${addressData.state}, ${addressData.zipCode}`;
-
-      // Geocode address
-      const coordinates = await geocodeAddress(fullAddress);
-
-      // Add coordinates to address data if geocoding succeeded
-      if (coordinates) {
-        addressData.lat = coordinates.lat;
-        addressData.lng = coordinates.lng;
+  async createAddress(userId: string, addressData: {
+    street: string;
+    aptUnit?: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    instructions?: string;
+    isDefault?: boolean;
+  }): Promise<typeof address.$inferSelect> {
+    try {
+      // Check if user has reached address limit
+      const hasReachedLimit = await this.hasReachedAddressLimit(userId);
+      if (hasReachedLimit) {
+        throw new Error(`You have reached the maximum limit of ${MAX_ADDRESSES} addresses`);
       }
+
+      // If setting as default, update other addresses first
+      if (addressData.isDefault) {
+        await this.ensureSingleDefaultAddress(userId);
+      }
+
+      // Check if coordinates are provided
+      let coordinates = null;
+      if (!addressData.lat || !addressData.lng) {
+        // Construct full address
+        const fullAddress = `${addressData.street}, ${addressData.city}, ${addressData.state}, ${addressData.zipCode}`;
+
+        // Try to geocode address (if geocoding service is available)
+        try {
+          coordinates = await geocodeAddress?.(fullAddress);
+        } catch (geocodeError) {
+          console.warn("Geocoding failed, proceeding without coordinates:", geocodeError);
+        }
+      }
+
+      // Create new address
+      const newAddressId = crypto.randomUUID();
+      const [newAddress] = await db.insert(address).values({
+        id: newAddressId,
+        userId,
+        street: addressData.street,
+        aptUnit: addressData.aptUnit || null,
+        city: addressData.city,
+        state: addressData.state,
+        zipCode: addressData.zipCode,
+        lat: coordinates?.lat ? coordinates.lat.toString() : null,
+        lng: coordinates?.lng ? coordinates.lng.toString() : null,
+        instructions: addressData.instructions || null,
+        isDefault: addressData.isDefault || false,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+
+      return newAddress;
+    } catch (error) {
+      console.error("Error creating address:", error);
+      throw error;
     }
   },
 
@@ -238,7 +286,7 @@ export const addressService = {
 
       // Only include active addresses unless specifically requested
       if (!includeInactive) {
-        query = query.where(eq(address.isActive, true));
+        query = query.where(and(eq(address.id, addressId), eq(address.isActive, true)));
       }
 
       const [result] = await query.limit(1);
