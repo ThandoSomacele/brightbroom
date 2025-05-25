@@ -60,6 +60,7 @@
     role="dialog"
     aria-modal="true"
     aria-labelledby="delete-modal-title"
+    tabindex="-1"
   >
     <div
       class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"
