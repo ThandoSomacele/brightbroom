@@ -1,12 +1,13 @@
 <!-- src/lib/components/maps/GoogleMapsAutocomplete.svelte -->
 <script lang="ts">
-  import { Loader2, MapPin, X } from "lucide-svelte";
+  import { AlertCircle, Loader2, MapPin, X } from "lucide-svelte";
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
 
   // Props
   export let apiKey: string;
   export let label = "Address";
-  export let placeholder = "Enter your address";
+  export let placeholder =
+    "Enter your address, estate, or complex name, estate, or complex name";
   export let required = false;
   export let value = "";
   export let error = "";
@@ -23,6 +24,8 @@
     zipCode: string;
     lat: number;
     lng: number;
+    placeType: string;
+    placeName: string;
   } = {
     formatted: "",
     street: "",
@@ -32,19 +35,17 @@
     zipCode: "",
     lat: 0,
     lng: 0,
+    placeType: "",
+    placeName: "",
   };
 
-  // Service area boundaries (approximate coordinates)
+  // Service area boundaries
   const serviceAreas = [
-    { name: "Fourways", lat: -26.0274, lng: 28.0106, radius: 10 },
-    { name: "Bryanston", lat: -26.0525, lng: 28.0074, radius: 10 },
-    { name: "Randburg", lat: -26.1063, lng: 27.9947, radius: 10 },
-    { name: "Midrand", lat: -25.9992, lng: 28.1182, radius: 10 },
-    // { name: "Sandhurst", lat: -26.1041, lng: 28.0425, radius: 10 },
-    // { name: "Linden", lat: -26.1146, lng: 27.9928, radius: 10 },
-    // { name: 'Sandton', lat: -26.1070, lng: 28.0567, radius: 6 },
-    { name: "North Riding", lat: -26.0469, lng: 27.951, radius: 6 },
-    // { name: 'Roodepoort', lat: -26.1625, lng: 27.8727, radius: 7 }
+    { name: "Fourways", lat: -26.0274, lng: 28.0106, radius: 15 },
+    { name: "Bryanston", lat: -26.0525, lng: 28.0074, radius: 15 },
+    { name: "Randburg", lat: -26.1063, lng: 27.9947, radius: 15 },
+    { name: "Midrand", lat: -25.9992, lng: 28.1182, radius: 15 },
+    { name: "North Riding", lat: -26.0469, lng: 27.951, radius: 15 },
     {
       name: "Cosmo City, Roodepoort",
       lat: -26.0212639,
@@ -82,10 +83,11 @@
       zipCode: "",
       lat: 0,
       lng: 0,
+      placeType: "",
+      placeName: "",
     };
     isClearButtonVisible = false;
 
-    // Focus the input after clearing
     if (inputElement) {
       inputElement.focus();
     }
@@ -93,7 +95,6 @@
 
   // Check if an address is within service areas
   function isWithinServiceArea(lat: number, lng: number): boolean {
-    // Calculate distance to each service area center point
     for (const area of serviceAreas) {
       const distance = getDistanceFromLatLonInKm(lat, lng, area.lat, area.lng);
       if (distance <= area.radius) {
@@ -103,14 +104,14 @@
     return false;
   }
 
-  // Calculate distance between coordinates using the Haversine formula
+  // Calculate distance using Haversine formula
   function getDistanceFromLatLonInKm(
     lat1: number,
     lon1: number,
     lat2: number,
     lon2: number,
   ): number {
-    const R = 6371; // Radius of the earth in km
+    const R = 6371;
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
     const a =
@@ -120,12 +121,25 @@
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // Distance in km
+    const distance = R * c;
     return distance;
   }
 
   function deg2rad(deg: number): number {
     return deg * (Math.PI / 180);
+  }
+
+  // Determine the type of place selected
+  function getPlaceType(place: google.maps.places.PlaceResult): string {
+    const types = place.types || [];
+
+    if (types.includes("establishment")) return "establishment";
+    if (types.includes("point_of_interest")) return "point_of_interest";
+    if (types.includes("sublocality")) return "sublocality";
+    if (types.includes("neighborhood")) return "neighborhood";
+    if (types.includes("premise")) return "premise";
+
+    return "address";
   }
 
   // Extract address components from Google Places result
@@ -162,8 +176,25 @@
       }
     }
 
-    // Construct street address
-    const street = street_number ? `${street_number} ${route}` : route;
+    // Determine place type and name
+    const placeType = getPlaceType(place);
+    const placeName = place.name || "";
+
+    // Construct street address - handle different place types
+    let street = "";
+    if (placeType === "address" || placeType === "premise") {
+      // Traditional address
+      street = street_number ? `${street_number} ${route}` : route;
+    } else if (
+      placeType === "establishment" ||
+      placeType === "point_of_interest"
+    ) {
+      // For estates/complexes, use the place name and/or route
+      street = placeName || route || sublocality;
+    } else {
+      // Fallback
+      street = route || sublocality || placeName;
+    }
 
     // Determine city (prefer locality, fallback to sublocality)
     const city = locality || sublocality;
@@ -177,6 +208,8 @@
       zipCode: postal_code,
       lat: place.geometry?.location?.lat() || 0,
       lng: place.geometry?.location?.lng() || 0,
+      placeType,
+      placeName,
     };
   }
 
@@ -191,25 +224,40 @@
       return;
     }
 
-    // Initialize the autocomplete with restrictions to South Africa
-    autocomplete = new google.maps.places.Autocomplete(inputElement, {
-      componentRestrictions: { country: "za" },
-      fields: ["address_components", "formatted_address", "geometry"],
-      types: ["address"],
-    });
+    try {
+      // Initialize the autocomplete with geocode type (includes addresses, establishments, and points of interest)
+      autocomplete = new google.maps.places.Autocomplete(inputElement, {
+        componentRestrictions: { country: "za" },
+        fields: [
+          "address_components",
+          "formatted_address",
+          "geometry",
+          "name",
+          "types",
+        ],
+        types: ["geocode"], // This includes addresses, establishments, and points of interest
+      });
 
-    // Bias results toward Gauteng area
-    const gautengBounds = new google.maps.LatLngBounds(
-      new google.maps.LatLng(-26.5, 27.5), // SW corner
-      new google.maps.LatLng(-25.5, 28.5), // NE corner
-    );
-    autocomplete.setBounds(gautengBounds);
+      // Bias results toward Gauteng area
+      const gautengBounds = new google.maps.LatLngBounds(
+        new google.maps.LatLng(-26.5, 27.5), // SW corner
+        new google.maps.LatLng(-25.5, 28.5), // NE corner
+      );
+      autocomplete.setBounds(gautengBounds);
 
-    // Add the place_changed event listener
-    autocomplete.addListener("place_changed", handlePlaceSelect);
+      // Add the place_changed event listener
+      autocomplete.addListener("place_changed", handlePlaceSelect);
 
-    isGoogleMapsLoaded = true;
-    isScriptLoading = false;
+      isGoogleMapsLoaded = true;
+      isScriptLoading = false;
+      console.log(
+        "Google Maps Autocomplete initialized successfully (Legacy API)",
+      );
+    } catch (initError) {
+      console.error("Error initializing autocomplete:", initError);
+      scriptError = true;
+      isScriptLoading = false;
+    }
   }
 
   // Handle when a place is selected
@@ -222,7 +270,7 @@
       const place = autocomplete.getPlace();
 
       if (!place.geometry) {
-        error = "Please select an address from the dropdown";
+        error = "Please select an address or location from the dropdown";
         isLoading = false;
         return;
       }
@@ -233,7 +281,7 @@
 
       // Check if address is within our service areas
       if (!isWithinServiceArea(lat, lng)) {
-        error = "Address is outside our current service areas";
+        error = "Location is outside our current service areas";
         dispatch("outOfServiceArea", {
           address: place.formatted_address || "",
         });
@@ -248,15 +296,23 @@
       const addressData = extractAddressComponents(place);
       selectedAddress = addressData;
 
-      // Set input value to formatted address
-      value = addressData.formatted;
+      // Set input value - use place name for estates/complexes, formatted address otherwise
+      if (
+        addressData.placeType === "establishment" ||
+        addressData.placeType === "point_of_interest"
+      ) {
+        value = addressData.placeName || addressData.formatted;
+      } else {
+        value = addressData.formatted;
+      }
+
       isClearButtonVisible = true;
 
       // Dispatch the select event with the address data
       dispatch("select", { address: addressData });
     } catch (err) {
       console.error("Error selecting place:", err);
-      error = "Error processing the selected address";
+      error = "Error processing the selected location";
     } finally {
       isLoading = false;
     }
@@ -265,7 +321,6 @@
   // Load Google Maps script
   function loadGoogleMapsScript() {
     if (window.google && window.google.maps && window.google.maps.places) {
-      // Script already loaded
       isScriptLoading = false;
       isGoogleMapsLoaded = true;
       initAutocomplete();
@@ -274,14 +329,19 @@
 
     isScriptLoading = true;
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
     script.async = true;
     script.defer = true;
 
     script.onload = () => {
-      isScriptLoading = false;
-      isGoogleMapsLoaded = true;
-      initAutocomplete();
+      setTimeout(() => {
+        if (window.google && window.google.maps && window.google.maps.places) {
+          initAutocomplete();
+        } else {
+          scriptError = true;
+          isScriptLoading = false;
+        }
+      }, 100);
     };
 
     script.onerror = () => {
@@ -307,20 +367,20 @@
       zipCode: "",
       lat: 0,
       lng: 0,
+      placeType: "",
+      placeName: "",
     };
   }
 
   onMount(() => {
     loadGoogleMapsScript();
 
-    // Focus input if autoFocus is true
     if (autoFocus && inputElement) {
       inputElement.focus();
     }
   });
 
   onDestroy(() => {
-    // Clean up event listeners if needed
     if (autocomplete) {
       google.maps.event.clearInstanceListeners(autocomplete);
     }
@@ -393,8 +453,23 @@
 
     <!-- Script error -->
     {#if scriptError}
-      <div class="mt-1 text-xs text-red-500 dark:text-red-400">
-        Failed to load Google Maps. Please try refreshing the page.
+      <div
+        class="mt-1 rounded-md bg-yellow-50 p-2 text-xs dark:bg-yellow-900/20"
+      >
+        <div class="flex items-start">
+          <AlertCircle
+            class="mr-1 h-4 w-4 flex-shrink-0 text-yellow-600 dark:text-yellow-400"
+          />
+          <div>
+            <p class="text-yellow-800 dark:text-yellow-200">
+              Google Maps failed to load. This is often caused by ad blockers.
+            </p>
+            <p class="mt-1 text-yellow-700 dark:text-yellow-300">
+              Try: Disable ad blocker, refresh page, or manually Enter your
+              address, estate, or complex name details.
+            </p>
+          </div>
+        </div>
       </div>
     {/if}
 
@@ -402,6 +477,21 @@
     {#if error}
       <div class="mt-1 text-xs text-red-500 dark:text-red-400">
         {error}
+      </div>
+    {/if}
+
+    <!-- Place type indicator -->
+    {#if selectedAddress.placeType && selectedAddress.placeType !== "address"}
+      <div class="mt-1 text-xs text-primary dark:text-primary-400">
+        {#if selectedAddress.placeType === "establishment"}
+          📍 Estate/Complex selected
+        {:else if selectedAddress.placeType === "point_of_interest"}
+          🏢 Point of interest selected
+        {:else if selectedAddress.placeType === "sublocality"}
+          🏘️ Area selected
+        {:else}
+          📍 Location selected
+        {/if}
       </div>
     {/if}
   </div>

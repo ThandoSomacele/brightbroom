@@ -11,8 +11,8 @@
   } from "$lib/utils/serviceAreaValidator";
   import { AlertTriangle, ArrowLeft, MapPin } from "lucide-svelte";
 
-   // Environment variables
-   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  // Environment variables
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   // Get data from the server load function
   export let data;
@@ -189,7 +189,7 @@
           <GoogleMapsAutocomplete
             apiKey={googleMapsApiKey}
             label="Address"
-            placeholder="Enter your address"
+            placeholder="Enter your address, estate, or complex name"
             required
             error={addressError}
             bind:selectedAddress
