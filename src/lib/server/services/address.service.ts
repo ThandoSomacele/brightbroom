@@ -17,14 +17,20 @@ export const addressService = {
     includeInactive: boolean = false,
   ): Promise<(typeof address.$inferSelect)[]> {
     try {
-      let query = db.select().from(address).where(eq(address.userId, userId));
-
-      // Only include active addresses unless specifically requested
+      // Build the where conditions properly
+      const whereConditions = [eq(address.userId, userId)];
+      
       if (!includeInactive) {
-        query = query.where(and(eq(address.userId, userId), eq(address.isActive, true)));
+        whereConditions.push(eq(address.isActive, true));
       }
 
-      return await query.orderBy(address.isDefault, { direction: "desc" });
+      const query = db
+        .select()
+        .from(address)
+        .where(and(...whereConditions))
+        .orderBy(address.isDefault, { direction: "desc" });
+
+      return await query;
     } catch (error) {
       console.error("Error fetching user addresses:", error);
       return [];
@@ -70,27 +76,21 @@ export const addressService = {
   ): Promise<void> {
     try {
       // Build the query to update all addresses except the one being set as default
-      let query = db
-        .update(address)
-        .set({ isDefault: false })
-        .where(
-          and(
-            eq(address.userId, userId),
-            eq(address.isActive, true), // Only update active addresses
-          ),
-        );
+      let whereConditions = [
+        eq(address.userId, userId),
+        eq(address.isActive, true), // Only update active addresses
+      ];
 
       // If we have an addressId, exclude it from the update
       if (addressId) {
-        query = query.where(and(
-          eq(address.userId, userId),
-          eq(address.isActive, true),
-          ne(address.id, addressId)
-        ));
+        whereConditions.push(ne(address.id, addressId));
       }
 
       // Execute the update
-      await query;
+      await db
+        .update(address)
+        .set({ isDefault: false })
+        .where(and(...whereConditions));
 
       console.log(
         `Updated default status for user ${userId}, new default: ${addressId || "none"}`,
@@ -282,14 +282,18 @@ export const addressService = {
     includeInactive: boolean = false,
   ): Promise<typeof address.$inferSelect | null> {
     try {
-      let query = db.select().from(address).where(eq(address.id, addressId));
-
-      // Only include active addresses unless specifically requested
+      const whereConditions = [eq(address.id, addressId)];
+      
       if (!includeInactive) {
-        query = query.where(and(eq(address.id, addressId), eq(address.isActive, true)));
+        whereConditions.push(eq(address.isActive, true));
       }
 
-      const [result] = await query.limit(1);
+      const [result] = await db
+        .select()
+        .from(address)
+        .where(and(...whereConditions))
+        .limit(1);
+        
       return result || null;
     } catch (error) {
       console.error("Error getting address by ID:", error);

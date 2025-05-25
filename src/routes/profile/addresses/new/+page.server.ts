@@ -1,12 +1,9 @@
 // src/routes/profile/addresses/new/+page.server.ts
-import { db } from "$lib/server/db";
-import { address } from "$lib/server/db/schema";
 import {
   addressService,
   MAX_ADDRESSES,
 } from "$lib/server/services/address.service";
 import { fail, redirect } from "@sveltejs/kit";
-import { eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals, url }) => {
@@ -19,13 +16,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   const redirectTo = url.searchParams.get("redirectTo") || "/profile/addresses";
 
   try {
-    // Get current addresses and check limit
-    const addresses = await db
-      .select()
-      .from(address)
-      .where(eq(address.userId, locals.user.id));
-
-    const hasReachedLimit = addresses.length >= MAX_ADDRESSES;
+    // Get current ACTIVE addresses using the address service
+    const addresses = await addressService.getUserAddresses(locals.user.id);
+    const hasReachedLimit = await addressService.hasReachedAddressLimit(locals.user.id);
 
     // If limit is reached, redirect with error message
     if (hasReachedLimit) {
@@ -36,7 +29,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       redirectTo,
       addresses,
       maxAddresses: MAX_ADDRESSES,
-      hasReachedLimit: addresses.length >= MAX_ADDRESSES,
+      hasReachedLimit,
       remainingAddresses: Math.max(0, MAX_ADDRESSES - addresses.length),
     };
   } catch (err) {
