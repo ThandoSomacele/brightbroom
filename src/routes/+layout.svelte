@@ -13,7 +13,7 @@
   function toggleMenu() {
     isMenuOpen = !isMenuOpen;
   }
-  
+
   function closeMenu() {
     isMenuOpen = false;
   }
@@ -22,8 +22,10 @@
 <svelte:head>
   <!-- Basic meta tags -->
   <title>BrightBroom | On-demand Cleaning Services</title>
-  <meta name="description" content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean." />
-  
+  <meta
+    name="description"
+    content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean."
+  />
 </svelte:head>
 
 <!-- Global loading indicator for page navigation -->
@@ -58,12 +60,17 @@
           >About</a
         >
         <a
+          href="/magazine"
+          class="px-3 py-2 text-gray-700 hover:text-primary dark:text-gray-200"
+          >Magazine</a
+        >
+        <a
           href="/contact"
           class="px-3 py-2 text-gray-700 hover:text-primary dark:text-gray-200"
           >Contact</a
         >
         {#if user && user.role === "ADMIN"}
-        <a
+          <a
             href="/admin/dashboard"
             class="px-3 py-2 font-medium text-primary hover:text-primary-600 dark:text-primary-400"
             >Admin</a
@@ -165,6 +172,13 @@
           >About</a
         >
         <a
+          href="/magazine"
+          on:click={closeMenu}
+          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
+          >Magazine</a
+        >
+
+        <a
           href="/contact"
           on:click={closeMenu}
           class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
@@ -193,7 +207,7 @@
               >Your Profile</a
             >
             {#if user.role === "ADMIN"}
-            <a
+              <a
                 href="/admin/dashboard"
                 on:click={closeMenu}
                 class="block px-3 py-2 font-medium text-primary hover:bg-gray-50 hover:text-primary-600 dark:text-primary-400 dark:hover:bg-gray-700"
@@ -201,8 +215,8 @@
               >
             {/if}
             <!-- Fixed Logout Form: Remove onClick handler from button and add onSubmit to form -->
-            <form 
-              action="/auth/logout" 
+            <form
+              action="/auth/logout"
               method="POST"
               on:submit={() => {
                 // Close menu after submission is initiated
