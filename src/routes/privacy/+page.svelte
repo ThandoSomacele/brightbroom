@@ -189,7 +189,7 @@
                   <p>
                     1.6 This Policy applies to all external parties with whom we
                     interact, including but not limited to individual clients /
-                    tenants, representatives of client organizations, visitors
+                    tenants, representatives of client organisations, visitors
                     to our offices, and other users of our services ("you").
                     Defined terms used in this Policy are explained in Annexure
                     A.
@@ -601,7 +601,7 @@
                       6.1.5 To any relevant third-party acquirer(s), in the
                       event that we sell or transfer all or any portion of our
                       business or assets (including, but not limited to, in the
-                      event of a reorganization, dissolution or liquidation);
+                      event of a reorganisation, dissolution or liquidation);
                       and
                     </p>
                   </div>

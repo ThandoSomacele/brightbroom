@@ -43,21 +43,23 @@ npm run services:update-db:prod
 Replace old service data references with the new services module:
 
 - **Old way:**
+
 ```typescript
-import { parseServiceDetailsFromCSV } from '$lib/utils/service-details';
+import { parseServiceDetailsFromCSV } from "$lib/utils/service-details";
 // or
-import { loadServiceData } from '$lib/utils/service-data';
+import { loadServiceData } from "$lib/utils/service-data";
 ```
 
 - **New way:**
+
 ```typescript
-import { 
-  loadServices, 
-  services, 
+import {
+  loadServices,
+  services,
   parseServiceDetails,
   formatCurrency,
   // ...other exports
-} from '$lib/services';
+} from "$lib/services";
 ```
 
 ### 5. Use New Components
@@ -95,7 +97,7 @@ The following files are now obsolete and can be removed:
 - **Improved Caching**: Services are cached in Svelte stores for better performance
 - **Reusable Components**: Standard components for displaying services
 - **Structured Data Format**: JSON format is easier to work with than CSV
-- **Better Organization**: Clear separation of concerns in the codebase
+- **Better Organisation**: Clear separation of concerns in the codebase
 
 ## Troubleshooting
 

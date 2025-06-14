@@ -22,7 +22,7 @@
 
 - **TypeScript**: Use strict mode, proper typing for all variables and functions
 - **Imports**: Use `$lib/` aliased imports, group imports (Svelte, external, internal)
-- **Component Organization**: Feature-based folder structure following SvelteKit conventions
+- **Component Organisation**: Feature-based folder structure following SvelteKit conventions
 - **Naming**: Use PascalCase for components, camelCase for variables/functions
 - **Error Handling**: Use typed errors from `$lib/utils/errors.ts`
 - **Testing**: 80% coverage goal, use Vitest for unit/component tests

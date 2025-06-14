@@ -49,7 +49,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
   // Add dates for the next 4 weeks
   for (let i = 0; i < 28; i++) {
-    // Skip weekends (for this demo - you could customize this)
+    // Skip weekends (for this demo - you could customise this)
     if (!isWeekend(currentDate)) {
       availableDates.push({
         date: format(currentDate, "yyyy-MM-dd"),

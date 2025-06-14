@@ -2,23 +2,23 @@
 <script lang="ts">
   /**
    * Honeypot Anti-Spam Component
-   * 
+   *
    * This creates invisible form fields that only bots will fill out.
    * If any of these fields have values, we know it's a bot submission.
-   * 
+   *
    * The fields use common names that bots often target like "email", "website", etc.
    * but are hidden from real users with CSS.
    */
 
-  // Optional: Allow customization of field names for different forms
+  // Optional: Allow customisation of field names for different forms
   export let fieldPrefix: string = "trap";
-  
+
   // Generate unique field names for this form instance
   const fields = [
-    `${fieldPrefix}_email`,      // Bots love email fields
-    `${fieldPrefix}_website`,    // Common bot target
-    `${fieldPrefix}_phone`,      // Another common target
-    `${fieldPrefix}_company`     // Business forms often get this
+    `${fieldPrefix}_email`, // Bots love email fields
+    `${fieldPrefix}_website`, // Common bot target
+    `${fieldPrefix}_phone`, // Another common target
+    `${fieldPrefix}_company`, // Business forms often get this
   ];
 </script>
 
@@ -33,7 +33,10 @@
   5. aria-hidden="true" - Hides from screen readers
 -->
 
-<div class="honeypot-container" style="position: absolute; left: -9999px; opacity: 0; pointer-events: none; height: 0; overflow: hidden;">
+<div
+  class="honeypot-container"
+  style="position: absolute; left: -9999px; opacity: 0; pointer-events: none; height: 0; overflow: hidden;"
+>
   <!-- Email honeypot - most common bot target -->
   <label for={fields[0]} style="display: none;">Email (leave blank)</label>
   <input
@@ -87,11 +90,7 @@
   />
 
   <!-- Time-based honeypot - tracks form fill time -->
-  <input
-    type="hidden"
-    name="form_start_time"
-    value={Date.now().toString()}
-  />
+  <input type="hidden" name="form_start_time" value={Date.now().toString()} />
 </div>
 
 <style>

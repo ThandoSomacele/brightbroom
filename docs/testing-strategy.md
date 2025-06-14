@@ -422,7 +422,7 @@ Performance testing will ensure the application meets responsiveness requirement
 
 1. **Lighthouse Scores**: Maintain good performance, accessibility, SEO, and best practices scores
 2. **Load Testing**: Simulate concurrent users for booking and payment processes
-3. **API Response Times**: Monitor and optimize slow endpoints
+3. **API Response Times**: Monitor and optimise slow endpoints
 
 ## Testing Tools Integration
 

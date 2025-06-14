@@ -9,12 +9,14 @@ A well-defined deployment strategy is essential for ensuring reliable and effici
 The development environment is used by developers for local development and testing.
 
 **Configuration**:
+
 - Local development server
 - SQLite database for simplicity
 - Mock PayFast integration
 - Feature flags enabled for testing new features
 
 **Setup**:
+
 ```bash
 # Local development setup
 npm install
@@ -31,12 +33,14 @@ The staging environment mimics the production environment and is used for testin
 **Hosting**: Vercel
 
 **Configuration**:
+
 - Connected to the `main` branch
 - PostgreSQL database on Neon (staging instance)
 - PayFast sandbox environment
 - Complete monitoring and logging
 
 **Deployment Process**:
+
 - Automatic deployment on changes to the `main` branch
 - Preview deployments for pull requests
 - End-to-end tests run against staging environment
@@ -48,12 +52,14 @@ The production environment is the live application used by customers.
 **Hosting**: Vercel
 
 **Configuration**:
+
 - Connected to the `production` branch
 - PostgreSQL database on Neon (production instance)
 - Live PayFast integration
 - Full monitoring, logging, and alerting
 
 **Deployment Process**:
+
 - Controlled deployments from the `main` branch to the `production` branch
 - Scheduled deployments during low-traffic periods
 - Rollback capability for critical issues
@@ -79,8 +85,8 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "18"
+          cache: "npm"
       - run: npm ci
       - run: npm run lint
       - run: npm run check
@@ -102,8 +108,8 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "18"
+          cache: "npm"
       - run: npm ci
       - run: npm run migrate:test
       - run: npm run test:integration
@@ -115,8 +121,8 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "18"
+          cache: "npm"
       - run: npm ci
       - name: Install Playwright
         run: npx playwright install --with-deps
@@ -151,7 +157,7 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           scope: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-args: '--prod'
+          vercel-args: "--prod"
 ```
 
 ## Database Migration Strategy
@@ -163,6 +169,7 @@ Database migrations are managed using Prisma Migrate:
 3. **Production**: Apply migrations manually after review
 
 **Migration Commands**:
+
 ```bash
 # Generate a new migration
 npx prisma migrate dev --name add_feature_x
@@ -172,6 +179,7 @@ npx prisma migrate deploy
 ```
 
 **Best Practices**:
+
 - Always review migrations before applying in production
 - Back up the database before applying migrations
 - Test migrations in a staging environment first
@@ -186,6 +194,7 @@ Environment variables are managed securely:
 3. **Secrets Management**: Sensitive credentials stored in Vercel secrets
 
 **Example Configuration**:
+
 ```
 # Database
 DATABASE_URL=postgresql://...
@@ -221,6 +230,7 @@ VITE_API_URL=https://brightbroom.app/api
 4. **PII Protection**: Redaction of sensitive information
 
 **Implementation**:
+
 ```typescript
 // src/lib/server/logger.ts
 import { createLogger } from 'winston';
@@ -232,16 +242,17 @@ export const logger = createLogger({
 });
 
 // Usage
-logger.info('Booking created', { 
-  bookingId: booking.id, 
-  userId: user.id, 
-  serviceId: booking.serviceId 
+logger.info('Booking created', {
+  bookingId: booking.id,
+  userId: user.id,
+  serviceId: booking.serviceId
 });
 ```
 
 ## Backup Strategy
 
 1. **Database Backups**:
+
    - Daily automated backups with Neon
    - Weekly full backups stored in separate storage
    - 30-day retention period
@@ -266,7 +277,7 @@ The application is designed to scale horizontally:
 
 1. **Database Scaling**: Upgrade Neon database tiers as needed
 2. **Caching Layer**: Implement Redis caching for frequently accessed data
-3. **Resource Optimization**: Regular performance profiling and optimization
+3. **Resource Optimisation**: Regular performance profiling and optimisation
 
 ## Disaster Recovery
 
@@ -282,6 +293,7 @@ The application is designed to scale horizontally:
 
 1. **HTTPS Everywhere**: All traffic encrypted with TLS
 2. **Headers Security**:
+
    - Content Security Policy
    - Strict Transport Security
    - XSS Protection
@@ -295,6 +307,7 @@ The application is designed to scale horizontally:
 ## Compliance
 
 1. **GDPR Compliance**:
+
    - Data retention policies
    - Right to be forgotten implementation
    - Privacy policy

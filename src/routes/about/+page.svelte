@@ -42,7 +42,7 @@
   //   {
   //     name: "Sarah Johnson",
   //     role: "Founder & CEO",
-  //     bio: "Sarah founded BrightBroom with a vision to revolutionize the cleaning industry through technology and exceptional service.",
+  //     bio: "Sarah founded BrightBroom with a vision to revolutionise the cleaning industry through technology and exceptional service.",
   //     image: "/images/team/sarah.jpg", // You would add these images to your static folder
   //   },
   //   {
@@ -80,7 +80,7 @@
       <p
         class="mx-auto mt-4 max-w-2xl text-lg text-gray-600 dark:text-gray-300"
       >
-        Revolutionizing the cleaning industry with technology, transparency, and
+        Revolutionising the cleaning industry with technology, transparency, and
         exceptional service.
       </p>
     </div>
@@ -100,7 +100,7 @@
             BrightBroom began in 2020 when our founder, Sarah Johnson,
             experienced firsthand the challenges of finding reliable,
             transparent cleaning services. After struggling with inconsistent
-            quality, hidden fees, and poor scheduling options, she recognized an
+            quality, hidden fees, and poor scheduling options, she recognised an
             opportunity to transform the industry.
           </p>
           <p>

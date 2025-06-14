@@ -10,7 +10,7 @@ The admin dashboard is designed with the following key principles:
 - **Comprehensive Management**: All aspects of the platform can be managed
 - **Data Visualization**: Key metrics displayed with charts and graphs
 - **Responsive Design**: Fully functional on both desktop and mobile devices
-- **Efficient Workflows**: Optimized for common administration tasks
+- **Efficient Workflows**: Optimised for common administration tasks
 
 ## Core Features
 
@@ -19,6 +19,7 @@ The admin dashboard is designed with the following key principles:
 The main dashboard provides an at-a-glance overview of the platform's status:
 
 - **Key Metrics**:
+
   - Total bookings (daily, weekly, monthly)
   - Revenue (daily, weekly, monthly)
   - Active cleaners
@@ -26,6 +27,7 @@ The main dashboard provides an at-a-glance overview of the platform's status:
   - Pending bookings requiring attention
 
 - **Charts and Graphs**:
+
   - Booking volume trends
   - Revenue trends
   - Service type distribution
@@ -52,10 +54,10 @@ The main dashboard provides an at-a-glance overview of the platform's status:
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-  <MetricCard 
-    title="Total Bookings" 
+  <MetricCard
+    title="Total Bookings"
     value={metrics.totalBookings}
-    trend={metrics.bookingTrend} 
+    trend={metrics.bookingTrend}
     icon={BarChart}
   />
   <!-- More metric cards -->
@@ -80,42 +82,42 @@ The main dashboard provides an at-a-glance overview of the platform's status:
 
 ```typescript
 // src/routes/admin/dashboard/+page.server.ts
-import type { PageServerLoad } from './$types';
-import { prisma } from '$lib/server/prisma';
-import { error, redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from "./$types";
+import { prisma } from "$lib/server/prisma";
+import { error, redirect } from "@sveltejs/kit";
 
 export const load: PageServerLoad = async ({ locals }) => {
   const session = await locals.auth.validate();
-  
+
   if (!session) {
-    throw redirect(302, '/auth/login');
+    throw redirect(302, "/auth/login");
   }
-  
-  if (session.user.role !== 'ADMIN') {
-    throw error(403, 'Unauthorized');
+
+  if (session.user.role !== "ADMIN") {
+    throw error(403, "Unauthorized");
   }
-  
+
   // Get metrics data
   const totalBookings = await prisma.booking.count();
   const totalRevenue = await prisma.payment.aggregate({
-    _sum: { amount: true }
+    _sum: { amount: true },
   });
   const activeCleaners = await prisma.user.count({
-    where: { role: 'CLEANER' }
+    where: { role: "CLEANER" },
   });
   const pendingBookings = await prisma.booking.count({
-    where: { status: 'PENDING' }
+    where: { status: "PENDING" },
   });
-  
+
   // Get booking trends data
   const bookingTrends = await getBookingTrends();
-  
+
   // Get revenue trends data
   const revenueTrends = await getRevenueTrends();
-  
+
   // Get recent activity
   const recentActivity = await getRecentActivity();
-  
+
   return {
     metrics: {
       totalBookings,
@@ -126,7 +128,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     },
     bookingTrends,
     revenueTrends,
-    recentActivity
+    recentActivity,
   };
 };
 
@@ -167,24 +169,24 @@ The booking management section allows administrators to:
 
   export let data;
   let { bookings, cleaners } = data;
-  
+
   let filteredBookings = bookings;
   let selectedBooking = null;
   let showModal = false;
-  
+
   function handleFilter(filterParams) {
     // Apply filters to bookings
   }
-  
+
   function viewBookingDetails(booking) {
     selectedBooking = booking;
     showModal = true;
   }
-  
+
   function assignCleaner(bookingId, cleanerId) {
     // API call to assign cleaner
   }
-  
+
   function updateBookingStatus(bookingId, status) {
     // API call to update status
   }
@@ -195,18 +197,18 @@ The booking management section allows administrators to:
   <BookingFilter onFilter={handleFilter} />
 </div>
 
-<BookingTable 
-  bookings={filteredBookings} 
+<BookingTable
+  bookings={filteredBookings}
   onViewDetails={viewBookingDetails}
   onAssignCleaner={assignCleaner}
   onUpdateStatus={updateBookingStatus}
 />
 
 {#if showModal && selectedBooking}
-  <BookingModal 
-    booking={selectedBooking} 
+  <BookingModal
+    booking={selectedBooking}
     cleaners={cleaners}
-    onClose={() => showModal = false} 
+    onClose={() => showModal = false}
     onAssignCleaner={assignCleaner}
     onUpdateStatus={updateBookingStatus}
   />
@@ -235,24 +237,24 @@ The cleaner management section allows administrators to:
 
   export let data;
   let { cleaners } = data;
-  
+
   let showAddForm = false;
   let selectedCleaner = null;
   let showModal = false;
-  
+
   function addCleaner(cleanerData) {
     // API call to add cleaner
   }
-  
+
   function viewCleanerDetails(cleaner) {
     selectedCleaner = cleaner;
     showModal = true;
   }
-  
+
   function updateCleaner(id, cleanerData) {
     // API call to update cleaner
   }
-  
+
   function deactivateCleaner(id) {
     // API call to deactivate cleaner
   }
@@ -260,7 +262,7 @@ The cleaner management section allows administrators to:
 
 <div class="mb-6 flex justify-between items-center">
   <h2 class="text-2xl font-bold">Cleaner Management</h2>
-  <button 
+  <button
     class="bg-primary hover:bg-primary-600 text-white px-4 py-2 rounded-md"
     on:click={() => showAddForm = true}
   >
@@ -268,22 +270,22 @@ The cleaner management section allows administrators to:
   </button>
 </div>
 
-<CleanerTable 
-  cleaners={cleaners} 
+<CleanerTable
+  cleaners={cleaners}
   onViewDetails={viewCleanerDetails}
   onDeactivate={deactivateCleaner}
 />
 
 {#if showAddForm}
-  <CleanerForm 
+  <CleanerForm
     onSubmit={addCleaner}
     onCancel={() => showAddForm = false}
   />
 {/if}
 
 {#if showModal && selectedCleaner}
-  <CleanerModal 
-    cleaner={selectedCleaner} 
+  <CleanerModal
+    cleaner={selectedCleaner}
     onClose={() => showModal = false}
     onUpdate={updateCleaner}
     onDeactivate={deactivateCleaner}
@@ -313,20 +315,20 @@ The user management section allows administrators to:
 
   export let data;
   let { users } = data;
-  
+
   let filteredUsers = users;
   let selectedUser = null;
   let showModal = false;
-  
+
   function handleSearch(searchParams) {
     // Filter users based on search
   }
-  
+
   function viewUserDetails(user) {
     selectedUser = user;
     showModal = true;
   }
-  
+
   function updateUser(id, userData) {
     // API call to update user
   }
@@ -337,14 +339,14 @@ The user management section allows administrators to:
   <UserSearch onSearch={handleSearch} />
 </div>
 
-<UserTable 
-  users={filteredUsers} 
+<UserTable
+  users={filteredUsers}
   onViewDetails={viewUserDetails}
 />
 
 {#if showModal && selectedUser}
-  <UserModal 
-    user={selectedUser} 
+  <UserModal
+    user={selectedUser}
     onClose={() => showModal = false}
     onUpdate={updateUser}
   />
@@ -372,20 +374,20 @@ The service management section allows administrators to:
 
   export let data;
   let { services } = data;
-  
+
   let showAddForm = false;
   let selectedService = null;
   let showModal = false;
-  
+
   function addService(serviceData) {
     // API call to add service
   }
-  
+
   function viewServiceDetails(service) {
     selectedService = service;
     showModal = true;
   }
-  
+
   function updateService(id, serviceData) {
     // API call to update service
   }
@@ -393,7 +395,7 @@ The service management section allows administrators to:
 
 <div class="mb-6 flex justify-between items-center">
   <h2 class="text-2xl font-bold">Service Management</h2>
-  <button 
+  <button
     class="bg-primary hover:bg-primary-600 text-white px-4 py-2 rounded-md"
     on:click={() => showAddForm = true}
   >
@@ -401,21 +403,21 @@ The service management section allows administrators to:
   </button>
 </div>
 
-<ServiceTable 
-  services={services} 
+<ServiceTable
+  services={services}
   onViewDetails={viewServiceDetails}
 />
 
 {#if showAddForm}
-  <ServiceForm 
+  <ServiceForm
     onSubmit={addService}
     onCancel={() => showAddForm = false}
   />
 {/if}
 
 {#if showModal && selectedService}
-  <ServiceModal 
-    service={selectedService} 
+  <ServiceModal
+    service={selectedService}
     onClose={() => showModal = false}
     onUpdate={updateService}
   />
@@ -442,11 +444,11 @@ The reports section provides detailed analytics and data exports:
   import DownloadButton from '$lib/components/ui/DownloadButton.svelte';
 
   export let data;
-  
+
   let reportType = 'financial';
   let dateRange = { start: '', end: '' };
   let reportData = null;
-  
+
   async function generateReport() {
     // API call to generate report based on criteria
     const response = await fetch('/api/admin/reports', {
@@ -459,10 +461,10 @@ The reports section provides detailed analytics and data exports:
         dateRange
       })
     });
-    
+
     reportData = await response.json();
   }
-  
+
   function downloadReport(format) {
     // Handle report download in specified format
   }
@@ -474,26 +476,26 @@ The reports section provides detailed analytics and data exports:
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
   <div class="lg:col-span-1 bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-    <ReportGenerator 
+    <ReportGenerator
       onGenerate={generateReport}
       bind:reportType
       bind:dateRange
     />
-    
+
     {#if reportData}
       <div class="mt-4">
-        <DownloadButton 
+        <DownloadButton
           onDownload={() => downloadReport('csv')}
           format="CSV"
         />
-        <DownloadButton 
+        <DownloadButton
           onDownload={() => downloadReport('pdf')}
           format="PDF"
         />
       </div>
     {/if}
   </div>
-  
+
   <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
     {#if reportData}
       <ReportChart data={reportData} type={reportType} />
@@ -514,19 +516,19 @@ The admin dashboard uses a consistent layout with side navigation:
 <!-- src/routes/admin/+layout.svelte -->
 <script lang="ts">
   import { page } from '$app/stores';
-  import { 
-    Home, 
-    Calendar, 
-    Users, 
-    User, 
-    Settings, 
-    BarChart, 
-    Menu, 
+  import {
+    Home,
+    Calendar,
+    Users,
+    User,
+    Settings,
+    BarChart,
+    Menu,
     X
   } from 'lucide-svelte';
-  
+
   let showMobileMenu = false;
-  
+
   const navItems = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
     { label: 'Bookings', href: '/admin/bookings', icon: Calendar },
@@ -535,7 +537,7 @@ The admin dashboard uses a consistent layout with side navigation:
     { label: 'Services', href: '/admin/services', icon: Settings },
     { label: 'Reports', href: '/admin/reports', icon: BarChart },
   ];
-  
+
   function isActive(href: string) {
     return $page.url.pathname === href;
   }
@@ -556,27 +558,27 @@ The admin dashboard uses a consistent layout with side navigation:
       {/if}
     </button>
   </div>
-  
+
   <div class="flex">
     <!-- Sidebar navigation -->
     <aside class={`
       bg-white dark:bg-gray-800 shadow
-      ${showMobileMenu ? 'block' : 'hidden'} 
+      ${showMobileMenu ? 'block' : 'hidden'}
       lg:block lg:w-64 lg:fixed lg:inset-y-0 overflow-y-auto
     `}>
       <div class="p-4 hidden lg:flex items-center">
         <img src="/logo.svg" alt="BrightBroom" class="h-8 w-auto" />
         <span class="ml-2 font-semibold text-gray-900 dark:text-white">Admin Dashboard</span>
       </div>
-      
+
       <nav class="mt-4 px-2 space-y-1">
         {#each navItems as item}
-          <a 
+          <a
             href={item.href}
             class={`
               flex items-center px-4 py-2 rounded-md text-sm font-medium
-              ${isActive(item.href) 
-                ? 'bg-primary-500 text-white' 
+              ${isActive(item.href)
+                ? 'bg-primary-500 text-white'
                 : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}
             `}
           >
@@ -586,7 +588,7 @@ The admin dashboard uses a consistent layout with side navigation:
         {/each}
       </nav>
     </aside>
-    
+
     <!-- Main content -->
     <main class="lg:ml-64 flex-1">
       <div class="max-w-7xl mx-auto px-4 py-6">
@@ -603,22 +605,22 @@ The admin dashboard is protected with proper authentication and authorization:
 
 ```typescript
 // src/routes/admin/+layout.server.ts
-import type { LayoutServerLoad } from './$types';
-import { redirect } from '@sveltejs/kit';
+import type { LayoutServerLoad } from "./$types";
+import { redirect } from "@sveltejs/kit";
 
 export const load: LayoutServerLoad = async ({ locals }) => {
   const session = await locals.auth.validate();
-  
+
   if (!session) {
-    throw redirect(302, '/auth/login');
+    throw redirect(302, "/auth/login");
   }
-  
-  if (session.user.role !== 'ADMIN') {
-    throw redirect(302, '/');
+
+  if (session.user.role !== "ADMIN") {
+    throw redirect(302, "/");
   }
-  
+
   return {
-    user: session.user
+    user: session.user,
   };
 };
 ```
@@ -629,56 +631,56 @@ The admin dashboard requires various API endpoints for data management:
 
 ```typescript
 // src/routes/api/admin/users/+server.ts
-import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { prisma } from '$lib/server/prisma';
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { prisma } from "$lib/server/prisma";
 
 export const GET: RequestHandler = async ({ url, locals }) => {
   const session = await locals.auth.validate();
-  
-  if (!session || session.user.role !== 'ADMIN') {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+
+  if (!session || session.user.role !== "ADMIN") {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   }
-  
-  const search = url.searchParams.get('search') || '';
-  const page = parseInt(url.searchParams.get('page') || '1');
-  const limit = parseInt(url.searchParams.get('limit') || '10');
+
+  const search = url.searchParams.get("search") || "";
+  const page = parseInt(url.searchParams.get("page") || "1");
+  const limit = parseInt(url.searchParams.get("limit") || "10");
   const skip = (page - 1) * limit;
-  
+
   const users = await prisma.user.findMany({
     where: {
       OR: [
-        { email: { contains: search, mode: 'insensitive' } },
-        { firstName: { contains: search, mode: 'insensitive' } },
-        { lastName: { contains: search, mode: 'insensitive' } }
-      ]
+        { email: { contains: search, mode: "insensitive" } },
+        { firstName: { contains: search, mode: "insensitive" } },
+        { lastName: { contains: search, mode: "insensitive" } },
+      ],
     },
     skip,
     take: limit,
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: "desc" },
   });
-  
+
   const total = await prisma.user.count({
     where: {
       OR: [
-        { email: { contains: search, mode: 'insensitive' } },
-        { firstName: { contains: search, mode: 'insensitive' } },
-        { lastName: { contains: search, mode: 'insensitive' } }
-      ]
-    }
+        { email: { contains: search, mode: "insensitive" } },
+        { firstName: { contains: search, mode: "insensitive" } },
+        { lastName: { contains: search, mode: "insensitive" } },
+      ],
+    },
   });
-  
+
   return json({
     users,
     pagination: {
       total,
       pages: Math.ceil(total / limit),
       page,
-      limit
-    }
+      limit,
+    },
   });
 };
 ```

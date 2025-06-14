@@ -48,7 +48,7 @@ BrightBroom is an on-demand cleaning service application that enables users to b
 
 ## Documentation Structure
 
-This architecture documentation is divided into multiple files to improve maintainability and organization:
+This architecture documentation is divided into multiple files to improve maintainability and organisation:
 
 1. **[Architecture Overview](architecture-overview.md)** (this file)
 2. **[Project Structure](project-structure.md)**
