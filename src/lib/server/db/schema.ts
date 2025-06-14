@@ -6,6 +6,7 @@ import {
   json,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
 } from "drizzle-orm/pg-core";
@@ -78,6 +79,49 @@ export const EXPERIENCE_TYPES = {
 } as const;
 
 // Define tables
+export const account = pgTable(
+  "account",
+  {
+    userId: text("userId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    provider: text("provider").notNull(),
+    providerAccountId: text("providerAccountId").notNull(),
+    refresh_token: text("refresh_token"),
+    access_token: text("access_token"),
+    expires_at: integer("expires_at"),
+    token_type: text("token_type"),
+    scope: text("scope"),
+    id_token: text("id_token"),
+    session_state: text("session_state"),
+  },
+  (account) => ({
+    compoundKey: primaryKey(account.provider, account.providerAccountId),
+  }),
+);
+
+export const verificationToken = pgTable(
+  "verificationToken",
+  {
+    identifier: text("identifier").notNull(),
+    token: text("token").notNull(),
+    expires: timestamp("expires", { mode: "date" }).notNull(),
+  },
+  (vt) => ({
+    compoundKey: primaryKey(vt.identifier, vt.token),
+  }),
+);
+
+// Auth.js session table (separate from your existing session table)
+export const authSession = pgTable("authSession", {
+  sessionToken: text("sessionToken").notNull().primaryKey(),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  expires: timestamp("expires", { mode: "date" }).notNull(),
+});
+
 export const user = pgTable("user", {
   id: text("id").primaryKey().notNull(),
   email: text("email").notNull().unique(),
@@ -368,6 +412,15 @@ export const cleanerPayoutSummary = pgTable("cleaner_payout_summary", {
 });
 
 // Define types
+export type Account = typeof account.$inferSelect;
+export type NewAccount = typeof account.$inferInsert;
+
+export type VerificationToken = typeof verificationToken.$inferSelect;
+export type NewVerificationToken = typeof verificationToken.$inferInsert;
+
+export type AuthSession = typeof authSession.$inferSelect;
+export type NewAuthSession = typeof authSession.$inferInsert;
+
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
 
