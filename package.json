@@ -48,6 +48,7 @@
     "@sveltejs/adapter-netlify": "^5.0.0",
     "@sveltejs/kit": "^2.20.2",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@tailwindcss/typography": "^0.5.16",
     "@testing-library/svelte": "^5.2.7",
     "@types/mime-types": "^2.1.4",
     "@types/sharp": "^0.31.1",
@@ -60,9 +61,11 @@
     "drizzle-orm": "^0.40.0",
     "eslint": "^9.22.0",
     "eslint-plugin-svelte": "^3.0.3",
+    "gray-matter": "^4.0.3",
     "jsdom": "^26.0.0",
     "lucia": "^3.2.2",
     "lucide-svelte": "^0.479.0",
+    "marked": "^15.0.12",
     "mime-types": "^2.1.35",
     "nanoid": "^5.0.5",
     "node-fetch": "^3.3.2",
@@ -91,5 +94,8 @@
   },
   "svelte-check": {
     "detailed": true
+  },
+  "devDependencies": {
+    "@types/marked": "^5.0.2"
   }
 }
