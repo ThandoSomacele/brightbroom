@@ -2,8 +2,8 @@
 title: "7 Clever Organisation Hacks for Small Apartments in Fourways"
 description: "Transform your compact Fourways apartment into an organised oasis with these space-saving storage solutions and decluttering tips from cleaning professionals."
 author:
-  name: "Sarah Mbeki"
-  bio: "Home organisation expert and BrightBroom cleaning specialist"
+  name: "Thando Somacele"
+  bio: "BrightBroom cleaning manager"
   avatar: 
 publishedAt: "2025-06-10"
 featuredImage: "/images/articles/small-apartment-fourways.jpg"
