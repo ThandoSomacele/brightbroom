@@ -2,6 +2,8 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
+  import HoneypotField from "$lib/components/forms/HoneypotField.svelte";
+  
   import {
     ExternalLink,
     Mail,
@@ -214,6 +216,7 @@
                   };
                 }}
               >
+              <HoneypotField fieldPrefix="contact" />
                 <!-- Name Fields (2 columns) -->
                 <div class="mb-6 grid gap-4 md:grid-cols-2">
                   <div>
