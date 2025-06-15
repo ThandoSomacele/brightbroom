@@ -4,11 +4,11 @@ description: "Transform your compact Fourways apartment into an organised oasis 
 author:
   name: "Thando Somacele"
   bio: "BrightBroom cleaning manager"
-  avatar: 
+  avatar:
 publishedAt: "2025-06-10"
-featuredImage: "/images/articles/small-apartment-fourways.jpg"
+featuredImage: "/images/articles/7-clever-organisation-hacks/small-apartment-fourways.webp"
 imageAlt: "Modern organised apartment interior in Fourways with clever storage solutions"
-category: "small-spaces"
+category: "7-clever-organisation-hacks"
 serviceAreas: ["fourways", "bryanston", "randburg"]
 tags:
   [
@@ -36,7 +36,7 @@ ctas:
     href: "/book"
     type: "primary"
     position: "inline"
-  - text: "Get Your Organised Space Professionally Cleaned"
+  - text: "Let's Clean Your Organised Space"
     href: "/book"
     type: "primary"
     position: "end"
@@ -58,6 +58,8 @@ Small apartments present unique challenges, especially in popular areas like Fou
 
 ## 1. Maximise Vertical Storage Space
 
+<img alt=" Image" src="/images/articles/7-clever-organisation-hacks/g-1.webp" style="height: 500px; border-radius:10px; width:100%; object-fit:cover">
+
 One of the biggest mistakes small apartment dwellers make is thinking horizontally instead of vertically. Your walls are valuable real estate!
 
 ### Wall-Mounted Solutions
@@ -73,6 +75,8 @@ Choose tall, narrow furniture pieces rather than wide, low ones. A tall bookshel
 
 ## 2. Invest in Multi-Functional Furniture
 
+<img alt=" Image" src="/images/articles/7-clever-organisation-hacks/g-2.webp" style="height: 500px; border-radius:10px; width:100%; object-fit:cover; object-position: center 70%;">
+
 Every piece of furniture in a small apartment should serve multiple purposes.
 
 ### Smart Furniture Choices
@@ -87,6 +91,8 @@ Every piece of furniture in a small apartment should serve multiple purposes.
 Transform existing furniture by adding storage baskets underneath tables or installing curtain rods inside cabinets for hanging cleaning supplies.
 
 ## 3. Master the Art of Decluttering
+
+<img alt="Master the Art of Decluttering Image" src="/images/articles/7-clever-organisation-hacks/g-3.webp" style="height: 500px; border-radius:10px; width:100%; object-fit:cover; object-position: center 70%;">
 
 Before organising, you need to reduce the amount of stuff competing for space in your apartment.
 
@@ -106,6 +112,8 @@ Before organising, you need to reduce the amount of stuff competing for space in
 
 ## 4. Create Designated Zones
 
+<img alt="Create Designated Zones Image" src="/images/articles/7-clever-organisation-hacks/g-4.webp" style="height: 500px; border-radius:10px; width:100%; object-fit:cover;">
+
 Even in a studio apartment, you can create distinct areas for different activities.
 
 ### Zone Examples
@@ -120,6 +128,8 @@ Even in a studio apartment, you can create distinct areas for different activiti
 Use furniture placement, room dividers, or different lighting to create the illusion of separate rooms within your small space.
 
 ## 5. Optimise Kitchen Storage
+
+<img alt="Optimise Kitchen Storage Image" src="/images/articles/7-clever-organisation-hacks/g-5.webp" style="height: 500px; border-radius:10px; width:100%; object-fit:cover; object-position: center 40%;">
 
 Kitchens are often the most challenging areas to keep organised in small apartments.
 
@@ -136,6 +146,8 @@ Keep counters clear by storing appliances you don't use daily. A clean counter m
 
 ## 6. Bathroom Space Optimisation
 
+<img alt="Bathroom Space Optimisation Image" src="/images/articles/7-clever-organisation-hacks/g-6.webp" style="height: 500px; border-radius:10px; width:100%; object-fit:cover;">
+
 Bathrooms in Fourways apartments are typically quite compact, making organisation crucial.
 
 ### Storage Solutions
@@ -150,6 +162,8 @@ Bathrooms in Fourways apartments are typically quite compact, making organisatio
 Keep a minimal set of cleaning supplies in the bathroom for quick touch-ups. Store larger supplies in a designated cleaning closet or under the kitchen sink.
 
 ## 7. Maintain Your Organised Space
+
+<img alt="Maintain Your Organised Space Image" src="/images/articles/7-clever-organisation-hacks/g-7.webp" style="height: 500px; border-radius:10px; width:100%; object-fit:cover;">
 
 Organisation is only effective if you can maintain it long-term.
 
