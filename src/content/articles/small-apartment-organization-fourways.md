@@ -1,13 +1,13 @@
 ---
-title: "7 Clever Organisation Hacks for Small Apartments in Fourways"
-description: "Transform your compact Fourways apartment into an organised oasis with these space-saving storage solutions and decluttering tips from cleaning professionals."
+title: "7 Clever Organisation Hacks for Small Apartments"
+description: "Transform your compact apartment into an organised oasis with these space-saving storage solutions and decluttering tips from cleaning professionals."
 author:
   name: "Thando Somacele"
   bio: "BrightBroom cleaning manager"
   avatar:
 publishedAt: "2025-06-10"
 featuredImage: "/images/articles/7-clever-organisation-hacks/small-apartment-fourways.webp"
-imageAlt: "Modern organised apartment interior in Fourways with clever storage solutions"
+imageAlt: "Modern organised apartment interior with clever storage solutions"
 category: "7-clever-organisation-hacks"
 serviceAreas: ["fourways", "bryanston", "randburg"]
 tags:
@@ -27,6 +27,7 @@ seo:
     [
       "apartment organisation",
       "Fourways",
+      "North Riding",
       "small space storage",
       "decluttering tips",
       "apartment cleaning",
