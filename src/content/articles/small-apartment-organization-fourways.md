@@ -58,7 +58,7 @@ Small apartments present unique challenges, especially in popular areas like Fou
 
 ## 1. Maximise Vertical Storage Space
 
-<img alt=" Image" src="/images/articles/7-clever-organisation-hacks/g-1.webp" style="height: 500px; border-radius:10px; width:100%; object-fit:cover">
+<img class="article-img--option-1" alt="Maximise Vertical Storage Space Image" src="/images/articles/7-clever-organisation-hacks/g-1.webp" style="object-fit:cover">
 
 One of the biggest mistakes small apartment dwellers make is thinking horizontally instead of vertically. Your walls are valuable real estate!
 
@@ -75,7 +75,7 @@ Choose tall, narrow furniture pieces rather than wide, low ones. A tall bookshel
 
 ## 2. Invest in Multi-Functional Furniture
 
-<img alt=" Image" src="/images/articles/7-clever-organisation-hacks/g-2.webp" style="height: 500px; border-radius:10px; width:100%; object-fit:cover; object-position: center 70%;">
+<img class="article-img--option-1" alt="Invest in Multi-Functional Furniture Image" src="/images/articles/7-clever-organisation-hacks/g-2.webp" style="object-position: center 70%;">
 
 Every piece of furniture in a small apartment should serve multiple purposes.
 
@@ -92,7 +92,7 @@ Transform existing furniture by adding storage baskets underneath tables or inst
 
 ## 3. Master the Art of Decluttering
 
-<img alt="Master the Art of Decluttering Image" src="/images/articles/7-clever-organisation-hacks/g-3.webp" style="height: 500px; border-radius:10px; width:100%; object-fit:cover; object-position: center 70%;">
+<img class="article-img--option-1" alt="Master the Art of Decluttering Image" src="/images/articles/7-clever-organisation-hacks/g-3.webp" style="object-position: center 70%;">
 
 Before organising, you need to reduce the amount of stuff competing for space in your apartment.
 
@@ -112,7 +112,7 @@ Before organising, you need to reduce the amount of stuff competing for space in
 
 ## 4. Create Designated Zones
 
-<img alt="Create Designated Zones Image" src="/images/articles/7-clever-organisation-hacks/g-4.webp" style="height: 500px; border-radius:10px; width:100%; object-fit:cover;">
+<img class="article-img--option-1" alt="Create Designated Zones Image" src="/images/articles/7-clever-organisation-hacks/g-4.webp">
 
 Even in a studio apartment, you can create distinct areas for different activities.
 
@@ -129,7 +129,7 @@ Use furniture placement, room dividers, or different lighting to create the illu
 
 ## 5. Optimise Kitchen Storage
 
-<img alt="Optimise Kitchen Storage Image" src="/images/articles/7-clever-organisation-hacks/g-5.webp" style="height: 500px; border-radius:10px; width:100%; object-fit:cover; object-position: center 40%;">
+<img class="article-img--option-1" alt="Optimise Kitchen Storage Image" src="/images/articles/7-clever-organisation-hacks/g-5.webp" style="object-position: center 40%;">
 
 Kitchens are often the most challenging areas to keep organised in small apartments.
 
@@ -146,7 +146,7 @@ Keep counters clear by storing appliances you don't use daily. A clean counter m
 
 ## 6. Bathroom Space Optimisation
 
-<img alt="Bathroom Space Optimisation Image" src="/images/articles/7-clever-organisation-hacks/g-6.webp" style="height: 500px; border-radius:10px; width:100%; object-fit:cover;">
+<img class="article-img--option-1" alt="Bathroom Space Optimisation Image" src="/images/articles/7-clever-organisation-hacks/g-6.webp">
 
 Bathrooms in Fourways apartments are typically quite compact, making organisation crucial.
 
@@ -163,7 +163,7 @@ Keep a minimal set of cleaning supplies in the bathroom for quick touch-ups. Sto
 
 ## 7. Maintain Your Organised Space
 
-<img alt="Maintain Your Organised Space Image" src="/images/articles/7-clever-organisation-hacks/g-7.webp" style="height: 500px; border-radius:10px; width:100%; object-fit:cover;">
+<img class="article-img--option-1" alt="Maintain Your Organised Space Image" src="/images/articles/7-clever-organisation-hacks/g-7.webp">
 
 Organisation is only effective if you can maintain it long-term.
 
