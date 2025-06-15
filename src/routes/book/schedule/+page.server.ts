@@ -14,11 +14,6 @@ import { eq } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals, url }) => {
-  // Check if the user is logged in
-  if (!locals.user) {
-    throw redirect(302, "/auth/login?redirectTo=/book/schedule");
-  }
-
   // Get the service ID from query parameters
   const serviceId = url.searchParams.get("serviceId");
 
@@ -92,5 +87,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     availableDates,
     timeSlots,
     selectedService,
+    user: locals.user, // Include user info (will be null for guests)
+    isGuest: !locals.user // Flag to indicate if user is a guest
   };
 };

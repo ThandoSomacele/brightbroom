@@ -62,43 +62,92 @@
           BrightBroom connects you with professional cleaners for your home or
           office. Book online in minutes and get your space sparkling clean.
         </p>
-
-        <div
-          class="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0"
-        >
-          {#if user}
-            <Button variant="primary" size="lg" href="/book">
-              Book a Cleaning
-            </Button>
-            <Button variant="outline" size="lg" href="/profile">
-              View Your Profile
-            </Button>
-          {:else}
-            <Button variant="primary" size="lg" href="/auth/register">
-              Sign Up Now
-            </Button>
-            <Button variant="outline" size="lg" href="/services">
-              View Services
-            </Button>
-          {/if}
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <Button href="/book" variant="primary" size="lg">Book Now</Button>
+          <Button href="/services" variant="outline" size="lg">
+            View Services
+          </Button>
         </div>
       </div>
-
-      <div class="flex items-center justify-center">
+      <div class="relative">
         <img
           src={heroImage}
-          alt="Professional cleaning service"
-          class="rounded-lg shadow-md object-cover w-full h-auto md:h-full lg:h-96"
+          alt="Clean modern home interior"
+          class="h-full w-full rounded-lg object-cover shadow-lg"
         />
+        <div
+          class="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/10 to-transparent"
+        ></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Services section -->
+<!-- Features section -->
 <section class="bg-gray-50 py-16 dark:bg-gray-900">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="mb-12 text-center">
+    <div class="text-center">
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+        Why choose BrightBroom?
+      </h2>
+      <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
+        Professional cleaning made simple and convenient
+      </p>
+    </div>
+
+    <div class="mt-12 grid gap-8 md:grid-cols-3">
+      <div class="text-center">
+        <div
+          class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30"
+        >
+          <Home size={32} class="text-primary" />
+        </div>
+        <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
+          Trusted Professionals
+        </h3>
+        <p class="text-gray-600 dark:text-gray-300">
+          All our cleaners are thoroughly vetted, insured, and trained to
+          deliver exceptional service.
+        </p>
+      </div>
+
+      <div class="text-center">
+        <div
+          class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30"
+        >
+          <HousePlus size={32} class="text-primary" />
+        </div>
+        <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
+          Flexible Scheduling
+        </h3>
+        <p class="text-gray-600 dark:text-gray-300">
+          Book your cleaning service at a time that works for you. Same-day and
+          recurring bookings available.
+        </p>
+      </div>
+
+      <div class="text-center">
+        <div
+          class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30"
+        >
+          <Building size={32} class="text-primary" />
+        </div>
+        <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
+          Satisfaction Guaranteed
+        </h3>
+        <p class="text-gray-600 dark:text-gray-300">
+          We stand behind our work. If you're not happy with the service, we'll
+          make it right.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Our Services section -->
+<section class="bg-white py-16 dark:bg-gray-800">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="text-center">
       <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
         Our Services
       </h2>
@@ -107,386 +156,97 @@
       </p>
     </div>
 
-    <div class="grid gap-8 md:grid-cols-3">
+    <div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       <!-- Regular Cleaning -->
       <div
-        class="rounded-lg bg-white p-6 shadow-md transition-transform hover:-translate-y-1 dark:bg-gray-800"
+        class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700 hover:shadow-md transition-shadow"
       >
-        <div class="mb-4 text-primary">
-          <Home class="h-12 w-12" />
+        <div class="mb-4">
+          <Home size={40} class="text-primary" />
         </div>
         <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
           Regular Cleaning
         </h3>
         <p class="mb-4 text-gray-600 dark:text-gray-300">
-          Perfect for maintaining a clean and tidy home on a regular basis.
+          Complete home cleaning including all rooms, bathrooms, and kitchen.
         </p>
-        <Button variant="outline" href="/services" class="w-full">
-          Learn More
+        <Button href="/book" variant="outline" size="sm" class="w-full">
+          Book Now
         </Button>
       </div>
 
       <!-- Extended Cleaning -->
       <div
-        class="rounded-lg bg-white p-6 shadow-md transition-transform hover:-translate-y-1 dark:bg-gray-800"
+        class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700 hover:shadow-md transition-shadow"
       >
-        <div class="mb-4 text-primary">
-          <HousePlus class="h-12 w-12" />
+        <div class="mb-4">
+          <HousePlus size={40} class="text-primary" />
         </div>
-
         <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
           Extended Cleaning
         </h3>
         <p class="mb-4 text-gray-600 dark:text-gray-300">
-          A thorough cleaning service that reaches every corner and detail.
+          Deep clean including inside ovens, fridges, and detailed attention to
+          all areas.
         </p>
-        <Button variant="outline" href="/services" class="w-full">
-          Learn More
+        <Button href="/book" variant="outline" size="sm" class="w-full">
+          Book Now
+        </Button>
+      </div>
+
+      <!-- Laundry & Ironing -->
+      <div
+        class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700 hover:shadow-md transition-shadow"
+      >
+        <div class="mb-4">
+          <Home size={40} class="text-primary" />
+        </div>
+        <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
+          Laundry & Ironing
+        </h3>
+        <p class="mb-4 text-gray-600 dark:text-gray-300">
+          Regular cleaning plus washing, drying, and ironing your clothes.
+        </p>
+        <Button href="/book" variant="outline" size="sm" class="w-full">
+          Book Now
         </Button>
       </div>
 
       <!-- Office Cleaning -->
       <div
-        class="rounded-lg bg-white p-6 shadow-md transition-transform hover:-translate-y-1 dark:bg-gray-800"
+        class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700 hover:shadow-md transition-shadow"
       >
-        <div class="mb-4 text-primary">
-          <Building class="h-12 w-12" />
+        <div class="mb-4">
+          <Building size={40} class="text-primary" />
         </div>
         <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
           Office Cleaning
         </h3>
         <p class="mb-4 text-gray-600 dark:text-gray-300">
-          Professional cleaning for your office space or commercial property.
+          Professional office and commercial space cleaning services.
         </p>
-        <Button variant="outline" href="/services" class="w-full">
-          Learn More
+        <Button href="/book" variant="outline" size="sm" class="w-full">
+          Book Now
         </Button>
       </div>
     </div>
-
-    <div class="mt-12 text-center">
-      <Button variant="primary" href="/services">View All Services</Button>
-    </div>
   </div>
 </section>
-
-<!-- How it works section -->
-<section class="bg-white py-16 dark:bg-gray-800">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="mb-12 text-center">
-      <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
-        How It Works
-      </h2>
-      <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
-        Book a cleaning in just a few simple steps
-      </p>
-    </div>
-
-    <div class="grid gap-8 md:grid-cols-4">
-      <!-- Step 1 -->
-      <div class="text-center">
-        <div
-          class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-primary"
-        >
-          <span class="text-2xl font-bold">1</span>
-        </div>
-        <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-white">
-          Choose a Service
-        </h3>
-        <p class="text-gray-600 dark:text-gray-300">
-          Select the type of cleaning service that meets your needs.
-        </p>
-      </div>
-
-      <!-- Step 2 -->
-      <div class="text-center">
-        <div
-          class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-primary"
-        >
-          <span class="text-2xl font-bold">2</span>
-        </div>
-        <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-white">
-          Set a Date & Time
-        </h3>
-        <p class="text-gray-600 dark:text-gray-300">
-          Choose when you'd like our professionals to clean your space.
-        </p>
-      </div>
-
-      <!-- Step 3 -->
-      <div class="text-center">
-        <div
-          class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-primary"
-        >
-          <span class="text-2xl font-bold">3</span>
-        </div>
-        <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-white">
-          Confirm & Pay
-        </h3>
-        <p class="text-gray-600 dark:text-gray-300">
-          Review your booking details and make a secure payment.
-        </p>
-      </div>
-
-      <!-- Step 4 -->
-      <div class="text-center">
-        <div
-          class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-primary"
-        >
-          <span class="text-2xl font-bold">4</span>
-        </div>
-        <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-white">
-          Enjoy a Clean Space
-        </h3>
-        <p class="text-gray-600 dark:text-gray-300">
-          Relax while our professionals make your space sparkle.
-        </p>
-      </div>
-    </div>
-
-    <div class="mt-12 text-center">
-      <Button variant="primary" href={user ? "/book" : "/auth/register"}>
-        {user ? "Book Now" : "Get Started"}
-      </Button>
-    </div>
-  </div>
-</section>
-
-<!-- Testimonials section -->
-<!-- <section class="bg-gray-50 py-16 dark:bg-gray-900">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="mb-12 text-center">
-      <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
-        What Our Customers Say
-      </h2>
-      <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
-        Hear from people who've experienced our services
-      </p>
-    </div>
-
-    <div class="grid gap-8 md:grid-cols-3">
-      Testimonial 1
-      <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-        <div class="mb-4 flex text-yellow-400">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-        </div>
-        <p class="mb-4 text-gray-600 dark:text-gray-300">
-          "BrightBroom exceeded my expectations! The cleaners were professional,
-          thorough, and paid attention to every detail. My home has never looked
-          better."
-        </p>
-        <div class="flex items-center">
-          <div class="font-medium text-gray-900 dark:text-white">Sarah M.</div>
-          <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
-            Cape Town
-          </div>
-        </div>
-      </div>
-
-      Testimonial 2
-      <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-        <div class="mb-4 flex text-yellow-400">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-        </div>
-        <p class="mb-4 text-gray-600 dark:text-gray-300">
-          "I love how easy it is to book a cleaning. The app is user-friendly
-          and the cleaners are always on time and do an amazing job. Highly
-          recommend!"
-        </p>
-        <div class="flex items-center">
-          <div class="font-medium text-gray-900 dark:text-white">John D.</div>
-          <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
-            Johannesburg
-          </div>
-        </div>
-      </div>
-
-      Testimonial 3
-      <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-        <div class="mb-4 flex text-yellow-400">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-        </div>
-        <p class="mb-4 text-gray-600 dark:text-gray-300">
-          "As a busy business owner, BrightBroom has been a lifesaver for our
-          office. The team is reliable, efficient, and our office has never been
-          cleaner. Worth every penny!"
-        </p>
-        <div class="flex items-center">
-          <div class="font-medium text-gray-900 dark:text-white">Emma L.</div>
-          <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
-            Durban
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section> -->
 
 <!-- CTA section -->
 <section class="bg-primary py-16">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="text-center">
       <h2 class="text-3xl font-bold text-white">
-        Ready for a sparkling clean space?
+        Ready to get your space cleaned?
       </h2>
-      <p class="mt-4 text-lg text-white/80">
-        Join thousands of happy customers who've discovered the BrightBroom
-        difference.
+      <p class="mt-4 text-lg text-primary-100">
+        Book your cleaning service in just a few clicks. Professional cleaners,
+        competitive prices.
       </p>
       <div class="mt-8">
-        <Button
-          variant="secondary"
-          size="lg"
-          href={user ? "/book" : "/auth/register"}
-        >
-          {user ? "Book a Cleaning" : "Get Started Today"}
+        <Button href="/book" variant="secondary" size="lg">
+          Book Cleaning Now
         </Button>
       </div>
     </div>

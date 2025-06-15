@@ -1,87 +1,244 @@
 <!-- src/routes/book/address/+page.svelte -->
 <script lang="ts">
   import { goto } from "$app/navigation";
+  import { onMount } from "svelte";
+  import { ArrowLeft, ArrowRight, Info, Plus, MapPin } from "lucide-svelte";
+  
   import AddressSelect from "$lib/components/booking/AddressSelect.svelte";
   import Button from "$lib/components/ui/Button.svelte";
+  import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
+  import { GuestBookingService } from "$lib/stores/guest-booking";
   import { MAX_ADDRESSES } from "$lib/constants/address";
-  import { ArrowLeft, ArrowRight, Info, Plus } from "lucide-svelte";
-  import { onMount } from "svelte";
+
+  // Environment variables
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   // Get data from the server
   export let data;
 
   // Extract data from the server
-  const { addresses, maxAddresses, hasReachedLimit, remainingAddresses } = data;
+  const { addresses, maxAddresses, hasReachedLimit, remainingAddresses, isGuest, user } = data;
 
   // Local state variables
-  let selectedAddress = ""; // This was missing!
+  let selectedAddress = "";
   let accessInstructions = "";
   let isLoading = false;
   let selectedService = "";
 
-  // Initialize data from localStorage on mount
+  // Guest address input state
+  let guestAddress = {
+    street: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: 'South Africa',
+    formatted: '',
+    instructions: ''
+  };
+  let selectedGoogleAddress: any = null;
+  let addressError = '';
+  let isOutOfServiceArea = false;
+  let addressInputValue = ''; // Track the input value separately
+
+  // Address selection mode for guests
+  let addressMode: 'select' | 'new' = isGuest ? 'new' : 'select';
+
+  // Simple validation flag - this will be our source of truth
+  let hasValidAddressData = false;
+
+  // Initialize data from localStorage and guest booking store on mount
   onMount(() => {
-    // Rest of your code remains the same
     selectedService = localStorage.getItem("booking_service") || "";
 
     // If no service selected, go back to service selection
     if (!selectedService) {
       goto("/book");
+      return;
+    }
+
+    // Load existing guest booking data if available
+    const guestBookingData = GuestBookingService.load();
+    if (guestBookingData?.addressData?.formatted) {
+      guestAddress = guestBookingData.addressData;
+      addressInputValue = guestBookingData.addressData.formatted;
+      selectedGoogleAddress = {
+        formatted_address: guestBookingData.addressData.formatted,
+        address_components: []
+      };
+      hasValidAddressData = true; // Set validation flag
     }
 
     // Check URL for a 'loading' parameter that might be set during redirect
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("loading") === "true") {
       isLoading = true;
-      // Remove the parameter after a short delay
       setTimeout(() => {
         const url = new URL(window.location.href);
         url.searchParams.delete("loading");
         window.history.replaceState({}, "", url);
         isLoading = false;
-      }, 500); // Short delay to ensure UI updates
+      }, 500);
     }
   });
 
-  // Continue to next step
-  async function continueToNext() {
-    if (selectedAddress) {
-      // Show loading state
-      isLoading = true;
+  // Handle Google Maps address selection for guests
+  function handleAddressSelect(event: CustomEvent) {
+    const addressData = event.detail.address;
+    console.log('Address selected from Google Maps:', addressData);
+    
+    selectedGoogleAddress = addressData;
+    addressError = '';
+    
+    // Update guest address with the selected data
+    guestAddress = {
+      street: addressData.street || addressData.formatted || addressInputValue,
+      city: addressData.city || 'Johannesburg',
+      state: addressData.state || 'Gauteng',
+      zipCode: addressData.zipCode || '',
+      country: 'South Africa',
+      formatted: addressData.formatted || addressInputValue,
+      instructions: guestAddress.instructions
+    };
 
-      try {
-        // Get the instructions from the selected address
-        const address = addresses.find((a) => a.id === selectedAddress);
-        const instructions = address?.instructions || accessInstructions;
+    // Set validation flag
+    hasValidAddressData = true;
+    
+    console.log('Updated guestAddress:', guestAddress);
+  }
 
-        // Store selections in localStorage to persist through navigation
-        localStorage.setItem("booking_address", selectedAddress);
-        localStorage.setItem("booking_instructions", instructions);
+  // Handle out of service area for guests
+  function handleOutOfServiceArea() {
+    isOutOfServiceArea = true;
+  }
 
-        // Get the service ID from localStorage
-        const serviceId = localStorage.getItem("booking_service") || "";
-
-        // Navigate to scheduling with serviceId as a query parameter
-        await goto(`/book/schedule?serviceId=${serviceId}`);
-      } catch (error) {
-        console.error("Navigation error:", error);
-      } finally {
-        // Reset loading state (though this won't be seen due to navigation)
-        isLoading = false;
+  // Update validation when input changes
+  function updateValidation() {
+    if (isGuest || addressMode === 'new') {
+      // For guests, check if we have a meaningful address input
+      hasValidAddressData = addressInputValue && addressInputValue.length > 10;
+      
+      // Auto-update guestAddress if we have input but no formatted address
+      if (hasValidAddressData && !guestAddress.formatted) {
+        guestAddress = {
+          ...guestAddress,
+          street: addressInputValue,
+          city: 'Johannesburg',
+          state: 'Gauteng',
+          formatted: addressInputValue
+        };
       }
+    } else {
+      // For authenticated users selecting saved address
+      hasValidAddressData = selectedAddress && selectedAddress.length > 0;
     }
   }
 
-  // Go back to previous step
-  function goToPrevious() {
+  // Continue to next step
+  async function continueToNext() {
+    console.log('Continue clicked - validation check:', {
+      hasValidAddressData,
+      addressInputValue,
+      guestAddressFormatted: guestAddress.formatted,
+      selectedGoogleAddress: !!selectedGoogleAddress
+    });
+
+    if (!hasValidAddressData) {
+      addressError = 'Please enter a valid address';
+      return;
+    }
+
     isLoading = true;
+
+    try {
+      let addressData;
+      let instructions = '';
+
+      if (isGuest || addressMode === 'new') {
+        // Ensure we have proper address data
+        if (!guestAddress.formatted && addressInputValue) {
+          guestAddress = {
+            ...guestAddress,
+            street: addressInputValue,
+            city: 'Johannesburg',
+            state: 'Gauteng',
+            formatted: addressInputValue
+          };
+        }
+
+        addressData = guestAddress;
+        instructions = guestAddress.instructions;
+
+        // Save to guest booking store
+        GuestBookingService.save({
+          serviceId: selectedService,
+          addressData: addressData
+        });
+
+        console.log('Saved guest address data:', addressData);
+      } else {
+        // Authenticated user selecting saved address
+        const address = addresses.find((a) => a.id === selectedAddress);
+        if (!address) {
+          addressError = 'Selected address not found';
+          isLoading = false;
+          return;
+        }
+
+        instructions = address.instructions || accessInstructions;
+
+        // For authenticated users, store both selected address ID and data
+        localStorage.setItem("booking_address", selectedAddress);
+        localStorage.setItem("booking_instructions", instructions);
+
+        // Also save to guest booking store for consistency
+        addressData = {
+          street: address.street,
+          city: address.city,
+          state: address.state,
+          zipCode: address.zipCode,
+          country: address.country || 'South Africa',
+          formatted: `${address.street}, ${address.city}, ${address.state} ${address.zipCode}`,
+          instructions: instructions
+        };
+
+        GuestBookingService.save({
+          serviceId: selectedService,
+          addressData: addressData
+        });
+      }
+
+      // Navigate to scheduling
+      await goto(`/book/schedule?serviceId=${selectedService}`);
+    } catch (error) {
+      console.error("Navigation error:", error);
+      isLoading = false;
+    }
+  }
+
+  // Go back to service selection
+  function goBack() {
     goto("/book");
   }
 
-  // Go to manage addresses page
-  function goToManageAddresses() {
-    isLoading = true;
-    goto("/profile/addresses?redirectTo=/book/address");
+  // Add new address for authenticated users
+  function addNewAddress() {
+    const returnUrl = `/book/address`;
+    goto(`/profile/addresses/new?returnTo=${encodeURIComponent(returnUrl)}`);
+  }
+
+  // Watch for input changes and update validation
+  $: if (addressInputValue) {
+    updateValidation();
+  }
+
+  // Watch for selected address changes (for authenticated users)
+  $: if (selectedAddress) {
+    updateValidation();
+  }
+
+  // Watch for address mode changes
+  $: if (addressMode) {
+    updateValidation();
   }
 </script>
 
@@ -89,236 +246,191 @@
   <title>Select Address | BrightBroom</title>
 </svelte:head>
 
-{#if isLoading}
-  <!-- Full-page loading overlay -->
-  <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-80 dark:bg-gray-900 dark:bg-opacity-80"
-  >
-    <div class="flex flex-col items-center space-y-4">
-      <div
-        class="h-16 w-16 animate-spin rounded-full border-b-2 border-t-2 border-primary"
-      ></div>
-      <p class="text-lg font-medium text-gray-800 dark:text-white">
-        Processing address...
-      </p>
-    </div>
-  </div>
-{/if}
-
-<div class="min-h-screen bg-gray-50 px-4 py-8 dark:bg-gray-900">
-  <div class="mx-auto max-w-5xl">
-    <!-- Page header -->
-    <div class="mb-8 text-center">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-        Select Address
-      </h1>
-      <p class="mt-2 text-gray-600 dark:text-gray-300">
-        Choose where you'd like your cleaning service
-      </p>
-    </div>
-
-    <!-- Progress steps -->
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
+  <div class="max-w-2xl mx-auto px-4">
+    <!-- Header -->
     <div class="mb-8">
-      <div class="flex items-center justify-between">
-        <div class="flex flex-1 items-center">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-green-500 text-white"
-          >
-            <span>✓</span>
-          </div>
-          <div class="ml-2">
-            <p class="text-sm font-medium text-green-500">Service</p>
-          </div>
-        </div>
-
-        <div class="hidden flex-1 md:flex">
-          <div class="h-1 w-full bg-primary"></div>
-        </div>
-
-        <div class="flex flex-1 items-center">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white"
-          >
-            <span>2</span>
-          </div>
-          <div class="ml-2">
-            <p class="text-sm font-medium text-primary">Address</p>
-          </div>
-        </div>
-
-        <div class="hidden flex-1 md:flex">
-          <div class="h-1 w-full bg-gray-200 dark:bg-gray-700"></div>
-        </div>
-
-        <div class="flex flex-1 items-center">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
-          >
-            <span>3</span>
-          </div>
-          <div class="ml-2">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Schedule
-            </p>
-          </div>
-        </div>
-
-        <div class="hidden flex-1 md:flex">
-          <div class="h-1 w-full bg-gray-200 dark:bg-gray-700"></div>
-        </div>
-
-        <div class="flex flex-1 items-center">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
-          >
-            <span>4</span>
-          </div>
-          <div class="ml-2">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Review
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Address limit information -->
-    <div
-      class="mb-6 bg-blue-50 p-4 rounded-lg dark:bg-blue-900/20 flex items-start"
-    >
-      <Info
-        class="h-5 w-5 mt-0.5 mr-2 flex-shrink-0 text-blue-500 dark:text-blue-400"
-      />
-      <div>
-        <p class="text-blue-800 dark:text-blue-300">
-          You are using <span class="font-semibold">{addresses.length}</span> of
-          <span class="font-semibold">{MAX_ADDRESSES}</span> available address slots.
-        </p>
-        {#if hasReachedLimit}
-          <p class="text-sm text-blue-700 dark:text-blue-400 mt-1">
-            To add a new address, you must first delete an existing one.
+      <div class="flex items-center mb-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          on:click={goBack}
+          class="mr-4"
+          disabled={isLoading}
+        >
+          <ArrowLeft size={16} class="mr-2" />
+          Back
+        </Button>
+        
+        <div class="flex-1">
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+            {isGuest ? 'Enter Your Address' : 'Select Address'}
+          </h1>
+          <p class="text-gray-600 dark:text-gray-300 mt-1">
+            {isGuest 
+              ? 'Where would you like your cleaning service?' 
+              : 'Choose from your saved addresses or add a new one'
+            }
           </p>
-        {/if}
+        </div>
+      </div>
+
+      <!-- Progress indicator -->
+      <div class="flex items-center space-x-4 text-sm">
+        <span class="text-primary font-medium">1. Service</span>
+        <span class="text-gray-400">→</span>
+        <span class="text-primary font-medium">2. Address</span>
+        <span class="text-gray-400">→</span>
+        <span class="text-gray-500">3. Schedule</span>
+        <span class="text-gray-400">→</span>
+        <span class="text-gray-500">4. Review</span>
       </div>
     </div>
 
-    <!-- Add new address button -->
-    <div class="mb-6">
-      {#if hasReachedLimit}
-        <div class="flex sm:flex-row gap-3">
-          <Button
-            variant="primary"
-            disabled={true}
-            title="You have reached the maximum limit of addresses"
-            class="w-full sm:w-auto flex"
-          >
-            <Plus size={18} class="mr-2" />
-            Add New Address (Limit Reached)
-          </Button>
+    <!-- Address Selection -->
+    <div class="space-y-6">
+      {#if !isGuest && addresses.length > 0}
+        <!-- Mode selection for authenticated users -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md">
+          <div class="flex space-x-4 mb-4">
+            <button
+              class="px-4 py-2 rounded-md text-sm font-medium transition-colors {addressMode === 'select' 
+                ? 'bg-primary text-white' 
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}"
+              on:click={() => addressMode = 'select'}
+            >
+              <MapPin size={16} class="inline mr-2" />
+              Saved Addresses
+            </button>
+            <button
+              class="px-4 py-2 rounded-md text-sm font-medium transition-colors {addressMode === 'new' 
+                ? 'bg-primary text-white' 
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}"
+              on:click={() => addressMode = 'new'}
+            >
+              <Plus size={16} class="inline mr-2" />
+              New Address
+            </button>
+          </div>
+        </div>
+      {/if}
 
-          <Button
-            variant="secondary"
-            on:click={goToManageAddresses}
-            class="w-full sm:w-auto"
-          >
-            Manage My Addresses
-          </Button>
+      {#if !isGuest && addressMode === 'select' && addresses.length > 0}
+        <!-- Saved addresses for authenticated users -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Your Saved Addresses
+          </h3>
+          
+          <AddressSelect
+            addresses={addresses}
+            bind:selectedAddress
+            bind:accessInstructions
+          />
+
+          {#if hasReachedLimit}
+            <div class="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <div class="flex">
+                <Info class="h-5 w-5 text-amber-400" />
+                <div class="ml-3">
+                  <p class="text-sm text-amber-800 dark:text-amber-200">
+                    You have reached the maximum limit of {maxAddresses} addresses.
+                  </p>
+                </div>
+              </div>
+            </div>
+          {:else}
+            <Button
+              variant="outline"
+              on:click={addNewAddress}
+              class="mt-4 w-full"
+              disabled={isLoading}
+            >
+              <Plus size={16} class="mr-2" />
+              Add New Address
+            </Button>
+          {/if}
         </div>
       {:else}
-        <Button
-          variant="primary"
-          href="/profile/addresses/new?redirectTo=/book/address"
-          class="w-full sm:w-auto"
-        >
-          <Plus size={18} class="mr-2" />
-          Add New Address ({remainingAddresses} remaining)
-        </Button>
-      {/if}
-    </div>
+        <!-- New address input for guests and authenticated users choosing 'new' -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            {isGuest ? 'Your Address' : 'Enter New Address'}
+          </h3>
 
-    <!-- Address selection with Google Maps integration -->
-    <AddressSelect {addresses} bind:selectedAddressId={selectedAddress} />
+          <div class="space-y-4">
+            <!-- Google Maps address search -->
+            <GoogleMapsAutocomplete
+              apiKey={googleMapsApiKey}
+              label="Address"
+              placeholder="Enter your address, estate, or complex name"
+              required
+              error={addressError}
+              bind:value={addressInputValue}
+              bind:selectedAddress={selectedGoogleAddress}
+              on:select={handleAddressSelect}
+              on:outOfServiceArea={handleOutOfServiceArea}
+            />
 
-    <!-- Additional Instructions for existing addresses -->
-    {#if selectedAddress && !addresses.find((a) => a.id === selectedAddress)?.instructions}
-      <div class="mb-8 mt-8">
-        <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
-          Access Instructions (Optional)
-        </h2>
-        <div class="rounded-lg bg-white p-5 shadow-sm dark:bg-gray-800">
-          <textarea
-            bind:value={accessInstructions}
-            rows={4}
-            class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            placeholder="Provide any special instructions for accessing your property (e.g. gate code, key location, etc.)"
-          ></textarea>
+            <!-- Status indicator -->
+            {#if addressInputValue}
+              <div class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <div class="flex items-center text-sm">
+                  <MapPin size={16} class="text-blue-500 mr-2" />
+                  <span class="text-blue-700 dark:text-blue-300">
+                    Address: {addressInputValue}
+                  </span>
+                </div>
+                <div class="text-xs text-green-600 dark:text-green-400 mt-1">
+                  ✓ Ready to continue
+                </div>
+              </div>
+            {/if}
+
+            {#if isOutOfServiceArea}
+              <div class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <div class="flex">
+                  <Info class="h-5 w-5 text-amber-400" />
+                  <div class="ml-3">
+                    <p class="text-sm text-amber-800 dark:text-amber-200">
+                      Note: This address is outside our current service areas. We may have limited availability in your location.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            {/if}
+
+            <!-- Access instructions -->
+            <div>
+              <label for="access-instructions" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Access Instructions (Optional)
+              </label>
+              <textarea
+                id="access-instructions"
+                bind:value={guestAddress.instructions}
+                placeholder="e.g., Gate code, building entrance details, parking instructions..."
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
+                rows="3"
+              ></textarea>
+            </div>
+          </div>
         </div>
-      </div>
-    {/if}
+      {/if}
 
-    <!-- Navigation buttons -->
-    <div class="flex justify-between">
-      <Button variant="outline" on:click={goToPrevious} disabled={isLoading}>
-        {#if isLoading}
-          <svg
-            class="mr-2 h-4 w-4 animate-spin"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            ></circle>
-            <path
-              class="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          Loading...
-        {:else}
-          <ArrowLeft size={18} class="mr-2" />
-          Back
-        {/if}
-      </Button>
-
-      <Button
-        variant="primary"
-        on:click={continueToNext}
-        disabled={!selectedAddress || isLoading}
-      >
-        {#if isLoading}
-          <svg
-            class="mr-2 h-4 w-4 animate-spin"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            ></circle>
-            <path
-              class="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          Loading...
-        {:else}
+      <!-- Continue button -->
+      <div class="flex justify-end">
+        <Button
+          on:click={continueToNext}
+          disabled={isLoading || !hasValidAddressData}
+          class="px-8 {hasValidAddressData ? 'bg-primary hover:bg-primary-600' : ''}"
+        >
+          {#if isLoading}
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+          {/if}
           Continue
-          <ArrowRight size={18} class="ml-2" />
-        {/if}
-      </Button>
+          <ArrowRight size={16} class="ml-2" />
+        </Button>
+      </div>
     </div>
   </div>
 </div>

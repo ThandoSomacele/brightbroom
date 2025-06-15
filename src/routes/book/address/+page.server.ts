@@ -1,35 +1,48 @@
 // src/routes/book/address/+page.server.ts
-import { MAX_ADDRESSES } from '$lib/constants/address';
 import { db } from '$lib/server/db';
 import { address } from '$lib/server/db/schema';
-import { addressService } from '$lib/server/services/address.service'; // Import the service
-import { redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
+import { addressService } from '$lib/server/services/address.service';
+import { MAX_ADDRESSES } from '$lib/constants/address';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  // Check if the user is logged in
+  // For guest users, return minimal data
   if (!locals.user) {
-    throw redirect(302, '/auth/login?redirectTo=/book/address');
-  }
-  
-  try {
-    // Use the address service to get only active addresses
-    const addresses = await addressService.getUserAddresses(locals.user.id);
-    
     return {
-      addresses,
-      maxAddresses: MAX_ADDRESSES,
-      hasReachedLimit: addresses.length >= MAX_ADDRESSES,
-      remainingAddresses: Math.max(0, MAX_ADDRESSES - addresses.length)
-    };
-  } catch (err) {
-    console.error('Error loading addresses:', err);
-    return {
+      isGuest: true,
       addresses: [],
       maxAddresses: MAX_ADDRESSES,
       hasReachedLimit: false,
-      remainingAddresses: MAX_ADDRESSES
+      remainingAddresses: MAX_ADDRESSES,
+      user: null
+    };
+  }
+
+  // For authenticated users, load their saved addresses
+  try {
+    const addresses = await addressService.getUserAddresses(locals.user.id);
+    const hasReachedLimit = addresses.length >= MAX_ADDRESSES;
+    const remainingAddresses = Math.max(0, MAX_ADDRESSES - addresses.length);
+
+    return {
+      isGuest: false,
+      addresses,
+      maxAddresses: MAX_ADDRESSES,
+      hasReachedLimit,
+      remainingAddresses,
+      user: locals.user
+    };
+  } catch (error) {
+    console.error('Error loading user addresses:', error);
+    // Return guest-like data if there's an error
+    return {
+      isGuest: false,
+      addresses: [],
+      maxAddresses: MAX_ADDRESSES,
+      hasReachedLimit: false,
+      remainingAddresses: MAX_ADDRESSES,
+      user: locals.user
     };
   }
 };

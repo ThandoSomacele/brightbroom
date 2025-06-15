@@ -8,6 +8,8 @@
   let bookingId = $page.url.searchParams.get('bookingId');
   let isLoading = true;
   let error = '';
+  let isGuest = false;
+  let bookingDetails: any = null;
   
   // Initialize PayFast redirect
   onMount(async () => {
@@ -32,12 +34,27 @@
       // Handle any HTTP errors
       if (!response.ok) {
         const errorData = await response.json();
+        
+        // Handle authentication errors for guest users
+        if (response.status === 401) {
+          // This shouldn't happen with the updated API, but handle gracefully
+          error = 'Session expired. Please try booking again.';
+          isLoading = false;
+          return;
+        }
+        
         throw new Error(errorData.error || 'Payment initialization failed');
       }
       
-      // Get the PayFast redirect URL
+      // Get the PayFast redirect URL and booking details
       const data = await response.json();
-      const { redirectUrl } = data;
+      const { redirectUrl, bookingDetails: details } = data;
+      
+      if (details) {
+        bookingDetails = details;
+        isGuest = details.isGuestBooking;
+        console.log(`Processing payment for ${isGuest ? 'guest' : 'authenticated'} user:`, details.userEmail);
+      }
       
       if (!redirectUrl) {
         throw new Error('No redirect URL received from payment processor');
@@ -45,8 +62,10 @@
       
       console.log('Redirecting to payment gateway...');
       
-      // Redirect to PayFast
-      window.location.href = redirectUrl;
+      // Small delay to ensure user sees the loading state
+      setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, 1000);
     } catch (error) {
       console.error('Payment error:', error);
       isLoading = false;
@@ -55,6 +74,10 @@
         : 'Failed to initialize payment. Please try again later.';
     }
   });
+
+  function goBack() {
+    goto('/book/review');
+  }
 </script>
 
 <svelte:head>
@@ -68,37 +91,54 @@
         <div class="mb-6">
           <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto"></div>
         </div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Processing Payment</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          Processing Payment
+        </h1>
         <p class="text-gray-600 dark:text-gray-300 mb-4">
-          Please wait while we connect to our payment gateway...
+          Please wait while we connect to our secure payment gateway...
         </p>
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-          You will be redirected automatically in a few moments.
+        
+        {#if bookingDetails}
+          <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-left">
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">
+              <span class="font-medium">Booking for:</span> {bookingDetails.userFirstName} {bookingDetails.userLastName}
+            </p>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">
+              <span class="font-medium">Amount:</span> R{parseFloat(bookingDetails.price).toFixed(2)}
+            </p>
+            {#if isGuest}
+              <p class="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                ✓ Account will be created after successful payment
+              </p>
+            {/if}
+          </div>
+        {/if}
+        
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-4">
+          You will be redirected automatically in a few moments...
         </p>
       </div>
     {:else if error}
       <div class="text-center">
-        <div class="text-red-500 mb-4 dark:text-red-400">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+        <div class="mb-6">
+          <div class="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto">
+            <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
         </div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Payment Error</h1>
-        <p class="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
-        <div class="flex flex-col space-y-3">
-          <button
-            on:click={() => window.location.reload()}
-            class="w-full px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          >
-            Try Again
-          </button>
-          <button
-            on:click={() => goto('/profile/bookings')}
-            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-          >
-            View My Bookings
-          </button>
-        </div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          Payment Error
+        </h1>
+        <p class="text-gray-600 dark:text-gray-300 mb-6">
+          {error}
+        </p>
+        <button
+          on:click={goBack}
+          class="bg-primary hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
+        >
+          Try Again
+        </button>
       </div>
     {/if}
   </div>
