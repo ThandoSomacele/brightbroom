@@ -8,28 +8,36 @@ import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  // Check if the user is logged in
-  if (!locals.user) {
-    throw redirect(302, '/auth/login?redirectTo=/book/address');
+  // For authenticated users, load their saved addresses
+  if (locals.user) {
+    try {
+      const addresses = await addressService.getUserAddresses(locals.user.id);
+      
+      return {
+        addresses,
+        maxAddresses: MAX_ADDRESSES,
+        hasReachedLimit: addresses.length >= MAX_ADDRESSES,
+        remainingAddresses: Math.max(0, MAX_ADDRESSES - addresses.length),
+        isAuthenticated: true
+      };
+    } catch (err) {
+      console.error('Error loading addresses:', err);
+      return {
+        addresses: [],
+        maxAddresses: MAX_ADDRESSES,
+        hasReachedLimit: false,
+        remainingAddresses: MAX_ADDRESSES,
+        isAuthenticated: true
+      };
+    }
   }
   
-  try {
-    // Use the address service to get only active addresses
-    const addresses = await addressService.getUserAddresses(locals.user.id);
-    
-    return {
-      addresses,
-      maxAddresses: MAX_ADDRESSES,
-      hasReachedLimit: addresses.length >= MAX_ADDRESSES,
-      remainingAddresses: Math.max(0, MAX_ADDRESSES - addresses.length)
-    };
-  } catch (err) {
-    console.error('Error loading addresses:', err);
-    return {
-      addresses: [],
-      maxAddresses: MAX_ADDRESSES,
-      hasReachedLimit: false,
-      remainingAddresses: MAX_ADDRESSES
-    };
-  }
+  // For guest users, return empty state - they'll enter address manually
+  return {
+    addresses: [],
+    maxAddresses: MAX_ADDRESSES,
+    hasReachedLimit: false,
+    remainingAddresses: MAX_ADDRESSES,
+    isAuthenticated: false
+  };
 };

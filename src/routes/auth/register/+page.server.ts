@@ -45,6 +45,7 @@ export const actions: Actions = {
     const phone = formData.get("phone")?.toString();
     const password = formData.get("password")?.toString();
     const terms = formData.get("terms")?.toString();
+    const redirectTo = formData.get("redirectTo")?.toString() || "/profile";
 
     console.log("Registration attempt:", { firstName, lastName, email });
 
@@ -140,6 +141,6 @@ export const actions: Actions = {
     
     // After successful registration and session creation, redirect
     // This matches the pattern in login.server.ts
-    throw redirect(302, "/profile");
+    throw redirect(302, redirectTo);
   },
 };

@@ -150,6 +150,8 @@
     let street_number = "";
     let route = "";
     let sublocality = "";
+    let sublocality_level_1 = "";
+    let sublocality_level_2 = "";
     let locality = "";
     let administrative_area_level_1 = "";
     let postal_code = "";
@@ -162,6 +164,10 @@
         street_number = component.long_name;
       } else if (types.includes("route")) {
         route = component.long_name;
+      } else if (types.includes("sublocality_level_1")) {
+        sublocality_level_1 = component.long_name;
+      } else if (types.includes("sublocality_level_2")) {
+        sublocality_level_2 = component.long_name;
       } else if (
         types.includes("sublocality") ||
         types.includes("sublocality_level_1")
@@ -190,22 +196,23 @@
       placeType === "point_of_interest"
     ) {
       // For estates/complexes, use the place name and/or route
-      street = placeName || route || sublocality;
+      // If no route, use sublocality as fallback for South African estates
+      street = placeName || route || sublocality_level_1 || sublocality_level_2 || sublocality;
     } else {
-      // Fallback
-      street = route || sublocality || placeName;
+      // Fallback - try multiple sources for South African addresses
+      street = route || sublocality_level_1 || sublocality_level_2 || sublocality || placeName;
     }
 
     // Determine city (prefer locality, fallback to sublocality)
-    const city = locality || sublocality;
+    const city = locality || sublocality || sublocality_level_1;
 
     return {
       formatted: place.formatted_address || "",
-      street,
+      street: street || "", // Ensure street is never undefined
       aptUnit: "",
-      city,
-      state: administrative_area_level_1,
-      zipCode: postal_code,
+      city: city || "", // Ensure city is never undefined
+      state: administrative_area_level_1 || "", // Ensure state is never undefined
+      zipCode: postal_code || "", // Ensure zipCode is never undefined
       lat: place.geometry?.location?.lat() || 0,
       lng: place.geometry?.location?.lng() || 0,
       placeType,

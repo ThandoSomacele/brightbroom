@@ -14,7 +14,7 @@
 
   // Get data from the server load function
   export let data;
-  const { services } = data;
+  const { services, user, isAuthenticated } = data;
 
   // Track selected service
   let selectedService = "";

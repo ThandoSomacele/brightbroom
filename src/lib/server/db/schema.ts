@@ -152,12 +152,8 @@ export const service = pgTable("service", {
 
 export const booking = pgTable("booking", {
   id: text("id").primaryKey().notNull(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id),
-  addressId: text("address_id")
-    .notNull()
-    .references(() => address.id),
+  userId: text("user_id").references(() => user.id), // Now nullable for guest bookings
+  addressId: text("address_id").references(() => address.id), // Now nullable for guest bookings
   serviceId: text("service_id")
     .notNull()
     .references(() => service.id),
@@ -167,6 +163,13 @@ export const booking = pgTable("booking", {
   duration: integer("duration").notNull(), // Duration in minutes
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   notes: text("notes"),
+  
+  // Guest booking fields
+  guestName: text("guest_name"), // Guest's full name
+  guestEmail: text("guest_email"), // Guest's email address
+  guestPhone: text("guest_phone"), // Guest's phone number
+  guestAddress: json("guest_address"), // Guest's address as JSON object
+  
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });

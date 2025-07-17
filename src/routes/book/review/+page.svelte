@@ -14,7 +14,7 @@
 
   // Get data from the server load function
   export let data;
-  const { user, addresses, services } = data;
+  const { user, addresses, services, isAuthenticated, guestBookingData } = data;
 
   // Handle form result
   export let form;
@@ -25,6 +25,12 @@
   let selectedDate = "";
   let selectedTime = "";
   let notes = "";
+  
+  // Guest user data
+  let guestAddress = null;
+  let guestName = "";
+  let guestEmail = "";
+  let guestPhone = "";
 
   // Track loading state
   let isLoading = false;
@@ -42,17 +48,44 @@
   onMount(() => {
     // Get selections from localStorage
     selectedService = localStorage.getItem("booking_service") || "";
-    selectedAddress = localStorage.getItem("booking_address") || "";
     selectedDate = localStorage.getItem("booking_date") || "";
     selectedTime = localStorage.getItem("booking_time") || "";
     notes = localStorage.getItem("booking_instructions") || "";
+    
+    if (isAuthenticated) {
+      // Authenticated user - get address ID
+      selectedAddress = localStorage.getItem("booking_address") || "";
+    } else {
+      // Guest user - get guest address data from localStorage
+      const guestAddressData = localStorage.getItem("booking_guest_address");
+      if (guestAddressData) {
+        try {
+          guestAddress = JSON.parse(guestAddressData);
+        } catch (e) {
+          console.error("Error parsing guest address:", e);
+        }
+      }
+      
+      // Also check server-side guest booking data
+      if (guestBookingData) {
+        if (guestBookingData.guestAddress) {
+          guestAddress = guestBookingData.guestAddress;
+        }
+        guestName = guestBookingData.guestName || "";
+        guestEmail = guestBookingData.guestEmail || "";
+        guestPhone = guestBookingData.guestPhone || "";
+      }
+    }
 
+    // Validation based on user type
+    const hasValidAddressData = isAuthenticated ? selectedAddress : guestAddress;
+    
     // If required information is missing, redirect back
     if (
       !selectedService ||
-      !selectedAddress ||
       !selectedDate ||
-      !selectedTime
+      !selectedTime ||
+      !hasValidAddressData
     ) {
       goto("/book");
     }
@@ -91,11 +124,17 @@
 
   // Handle form submission
   function handleSubmit() {
+    // For authenticated users, check selectedAddress
+    // For guest users, check guestAddress and contact info
+    const hasValidAddress = isAuthenticated ? selectedAddress : guestAddress;
+    const hasValidGuestInfo = isAuthenticated || (guestName && guestEmail && guestPhone);
+    
     if (
       !selectedService ||
-      !selectedAddress ||
+      !hasValidAddress ||
       !selectedDate ||
-      !selectedTime
+      !selectedTime ||
+      !hasValidGuestInfo
     ) {
       return;
     }
@@ -115,7 +154,13 @@
       localStorage.removeItem("booking_instructions");
 
       // Navigate to payment page
-      goto(`/payment/process?bookingId=${result.bookingId}`);
+      if (result.isGuest) {
+        // Guest users go to payment gate first
+        goto(`/book/payment?bookingId=${result.bookingId}`);
+      } else {
+        // Authenticated users go directly to payment processing
+        goto(`/payment/process?bookingId=${result.bookingId}`);
+      }
     }
   }
 </script>
@@ -278,6 +323,7 @@
           </div>
 
           {#if addressDetails}
+            <!-- Authenticated user address -->
             <div class="flex items-start">
               <MapPin
                 size={20}
@@ -293,6 +339,26 @@
                   />
                   {addressDetails.city}, {addressDetails.state}
                   {addressDetails.zipCode}
+                </p>
+              </div>
+            </div>
+          {:else if guestAddress}
+            <!-- Guest user address -->
+            <div class="flex items-start">
+              <MapPin
+                size={20}
+                class="mr-3 mt-0.5 flex-shrink-0 text-primary"
+              />
+              <div>
+                <p class="font-medium text-gray-900 dark:text-white">
+                  Location
+                </p>
+                <p class="text-gray-600 dark:text-gray-300">
+                  {guestAddress.street}
+                  {#if guestAddress.aptUnit}, {guestAddress.aptUnit}{/if}<br
+                  />
+                  {guestAddress.city}, {guestAddress.state}
+                  {guestAddress.zipCode}
                 </p>
               </div>
             </div>
@@ -316,6 +382,59 @@
         </h2>
 
         <p class="text-gray-700 dark:text-gray-300">{notes}</p>
+      </div>
+    {/if}
+
+    <!-- Guest Contact Information -->
+    {#if !isAuthenticated}
+      <div class="mb-8 rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+        <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+          Your Contact Information
+        </h2>
+        
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <label for="guestName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Full Name *
+            </label>
+            <input
+              type="text"
+              id="guestName"
+              bind:value={guestName}
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              placeholder="Enter your full name"
+            />
+          </div>
+          
+          <div>
+            <label for="guestEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Email Address *
+            </label>
+            <input
+              type="email"
+              id="guestEmail"
+              bind:value={guestEmail}
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              placeholder="Enter your email address"
+            />
+          </div>
+          
+          <div class="md:col-span-2">
+            <label for="guestPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Phone Number *
+            </label>
+            <input
+              type="tel"
+              id="guestPhone"
+              bind:value={guestPhone}
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              placeholder="Enter your phone number"
+            />
+          </div>
+        </div>
       </div>
     {/if}
 
@@ -349,6 +468,18 @@
       action="?/createBooking"
       use:enhance={({ formData }) => {
         isLoading = true;
+        
+        // Debug what we're sending
+        console.log('Submitting booking with data:', {
+          selectedService,
+          scheduledDateTime,
+          notes,
+          guestName,
+          guestEmail,
+          guestPhone,
+          guestAddress,
+          isAuthenticated
+        });
 
         return async ({ result, update }) => {
           isLoading = false;
@@ -356,6 +487,7 @@
           if (result.type === "success" && result.data.success) {
             handleBookingSuccess(result.data);
           } else {
+            console.log('Booking failed:', result);
             await update();
           }
         };
@@ -363,9 +495,19 @@
     >
       <!-- Hidden fields to carry booking data -->
       <input type="hidden" name="serviceId" value={selectedService} />
-      <input type="hidden" name="addressId" value={selectedAddress} />
       <input type="hidden" name="scheduledDate" value={scheduledDateTime} />
       <input type="hidden" name="notes" value={notes} />
+      
+      {#if isAuthenticated}
+        <!-- Authenticated user fields -->
+        <input type="hidden" name="addressId" value={selectedAddress} />
+      {:else}
+        <!-- Guest user fields -->
+        <input type="hidden" name="guestName" value={guestName} />
+        <input type="hidden" name="guestEmail" value={guestEmail} />
+        <input type="hidden" name="guestPhone" value={guestPhone} />
+        <input type="hidden" name="guestAddress" value={JSON.stringify(guestAddress || {})} />
+      {/if}
 
       <!-- Navigation buttons -->
       <div class="flex justify-between">
@@ -379,9 +521,10 @@
           variant="primary"
           disabled={isLoading ||
             !selectedService ||
-            !selectedAddress ||
+            (isAuthenticated ? !selectedAddress : !guestAddress) ||
             !selectedDate ||
-            !selectedTime}
+            !selectedTime ||
+            (!isAuthenticated && (!guestName || !guestEmail || !guestPhone))}
         >
           {#if isLoading}
             <svg

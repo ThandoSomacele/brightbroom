@@ -4,20 +4,52 @@
   import AddressSelect from "$lib/components/booking/AddressSelect.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { MAX_ADDRESSES } from "$lib/constants/address";
-  import { ArrowLeft, ArrowRight, Info, Plus } from "lucide-svelte";
+  import { AlertCircle, ArrowLeft, ArrowRight, Info, Plus } from "lucide-svelte";
   import { onMount } from "svelte";
+  import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
 
   // Get data from the server
   export let data;
 
   // Extract data from the server
-  const { addresses, maxAddresses, hasReachedLimit, remainingAddresses } = data;
+  const { addresses, maxAddresses, hasReachedLimit, remainingAddresses, isAuthenticated } = data;
 
   // Local state variables
   let selectedAddress = ""; // This was missing!
   let accessInstructions = "";
   let isLoading = false;
   let selectedService = "";
+  let addressValidationError = "";
+  
+  // Google Maps API key
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  // Guest address form fields
+  let guestAddress = {
+    street: '',
+    aptUnit: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    instructions: '',
+    lat: 0,
+    lng: 0
+  };
+  let useGuestAddress = !isAuthenticated;
+  
+  // Google Places selected address
+  let selectedGoogleAddress = {
+    formatted: "",
+    street: "",
+    aptUnit: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    lat: 0,
+    lng: 0,
+    placeType: "",
+    placeName: "",
+  };
 
   // Initialize data from localStorage on mount
   onMount(() => {
@@ -43,32 +75,112 @@
     }
   });
 
+  // Handle Google Places selection
+  function handleGooglePlacesSelect(event) {
+    const { address } = event.detail;
+    
+    // Clear any previous validation errors
+    addressValidationError = "";
+    
+    // For South African estates/complexes, if street is empty, use formatted address or place name
+    let streetValue = address.street || '';
+    if (!streetValue && address.formatted) {
+      // Extract the first part of the formatted address as street
+      const addressParts = address.formatted.split(',');
+      streetValue = addressParts[0]?.trim() || '';
+    }
+    if (!streetValue && address.placeName) {
+      streetValue = address.placeName;
+    }
+    
+    // Update guest address with Google Places data
+    guestAddress = {
+      street: streetValue,
+      aptUnit: address.aptUnit || guestAddress.aptUnit || '', // Keep existing aptUnit if not in places data
+      city: address.city || '',
+      state: address.state || '',
+      zipCode: address.zipCode || '',
+      instructions: guestAddress.instructions || '', // Keep existing instructions
+      lat: address.lat || 0,
+      lng: address.lng || 0
+    };
+    
+    selectedGoogleAddress = address;
+  }
+
+  // Validate guest address
+  function isGuestAddressValid() {
+    // For South African addresses, we need at least:
+    // - Some form of address identifier (street OR formatted address)
+    // - City (locality or sublocality)
+    // - State (province)
+    // - ZIP code (postal code)
+    const hasAddressIdentifier = guestAddress.street || selectedGoogleAddress.formatted;
+    const hasRequiredFields = guestAddress.city && guestAddress.state && guestAddress.zipCode;
+    const isValid = hasAddressIdentifier && hasRequiredFields;
+    
+    return isValid;
+  }
+
+
   // Continue to next step
   async function continueToNext() {
-    if (selectedAddress) {
-      // Show loading state
-      isLoading = true;
+    // Clear previous errors
+    addressValidationError = "";
+    
+    // Validate based on user type
+    if (isAuthenticated && !selectedAddress) {
+      addressValidationError = "Please select an address from your saved addresses.";
+      return; // Need to select an address for authenticated users
+    }
+    
+    if (!isAuthenticated && !isGuestAddressValid()) {
+      // Provide specific error messages
+      if (!selectedGoogleAddress.formatted) {
+        addressValidationError = "Please select an address from the Google Maps suggestions.";
+      } else if (!guestAddress.city) {
+        addressValidationError = "Address is missing city information. Please select a different address.";
+      } else if (!guestAddress.state) {
+        addressValidationError = "Address is missing province/state information. Please select a different address.";
+      } else if (!guestAddress.zipCode) {
+        addressValidationError = "Address is missing postal code. Please select a different address.";
+      } else {
+        addressValidationError = "Please complete the address information.";
+      }
+      return; // Need to fill in guest address
+    }
 
-      try {
-        // Get the instructions from the selected address
+    // Show loading state
+    isLoading = true;
+
+    try {
+      if (isAuthenticated) {
+        // Authenticated user - use selected address
         const address = addresses.find((a) => a.id === selectedAddress);
         const instructions = address?.instructions || accessInstructions;
 
-        // Store selections in localStorage to persist through navigation
         localStorage.setItem("booking_address", selectedAddress);
         localStorage.setItem("booking_instructions", instructions);
-
-        // Get the service ID from localStorage
-        const serviceId = localStorage.getItem("booking_service") || "";
-
-        // Navigate to scheduling with serviceId as a query parameter
-        await goto(`/book/schedule?serviceId=${serviceId}`);
-      } catch (error) {
-        console.error("Navigation error:", error);
-      } finally {
-        // Reset loading state (though this won't be seen due to navigation)
-        isLoading = false;
+      } else {
+        // Guest user - store guest address
+        localStorage.setItem("booking_guest_address", JSON.stringify(guestAddress));
       }
+
+      // Get the service ID from localStorage
+      const serviceId = localStorage.getItem("booking_service") || "";
+
+      if (!serviceId) {
+        await goto("/book");
+        return;
+      }
+
+      // Navigate to scheduling with serviceId as a query parameter
+      await goto(`/book/schedule?serviceId=${serviceId}`);
+    } catch (error) {
+      console.error("Navigation error:", error);
+    } finally {
+      // Reset loading state (though this won't be seen due to navigation)
+      isLoading = false;
     }
   }
 
@@ -236,8 +348,90 @@
       {/if}
     </div>
 
-    <!-- Address selection with Google Maps integration -->
-    <AddressSelect {addresses} bind:selectedAddressId={selectedAddress} />
+    <!-- Guest Address Form -->
+    {#if !isAuthenticated}
+      <div class="mb-8 rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+        <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+          Enter Your Address
+        </h2>
+        
+        <div class="space-y-4">
+          <!-- Google Places Autocomplete -->
+          <div>
+            <GoogleMapsAutocomplete
+              apiKey={googleMapsApiKey}
+              label="Address"
+              placeholder="Enter your address, estate, or complex name"
+              required={true}
+              bind:selectedAddress={selectedGoogleAddress}
+              on:select={handleGooglePlacesSelect}
+            />
+          </div>
+          
+          <!-- Manual fields for unit/apartment and instructions -->
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label for="aptUnit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Apartment/Unit (Optional)
+              </label>
+              <input
+                type="text"
+                id="aptUnit"
+                bind:value={guestAddress.aptUnit}
+                placeholder="Apt 4B, Unit 12, etc."
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+            </div>
+            <div>
+              <label for="instructions" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Access Instructions (Optional)
+              </label>
+              <input
+                type="text"
+                id="instructions"
+                bind:value={guestAddress.instructions}
+                placeholder="Gate code, parking instructions, etc."
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+            </div>
+          </div>
+          
+          <!-- Display selected address summary -->
+          {#if selectedGoogleAddress.formatted}
+            <div class="p-3 bg-green-50 border border-green-200 rounded-lg dark:bg-green-900/20 dark:border-green-800">
+              <div class="flex items-center">
+                <Info class="w-4 h-4 text-green-600 mr-2" />
+                <span class="text-sm font-medium text-green-800 dark:text-green-200">Selected Address:</span>
+              </div>
+              <p class="text-sm text-green-700 dark:text-green-300 mt-1">
+                {selectedGoogleAddress.formatted}
+                {#if guestAddress.aptUnit}
+                  , {guestAddress.aptUnit}
+                {/if}
+              </p>
+            </div>
+          {/if}
+          
+          <!-- Address validation error -->
+          {#if addressValidationError}
+            <div class="p-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800">
+              <div class="flex items-center">
+                <AlertCircle class="w-4 h-4 text-red-600 mr-2" />
+                <span class="text-sm font-medium text-red-800 dark:text-red-200">Address Error:</span>
+              </div>
+              <p class="text-sm text-red-700 dark:text-red-300 mt-1">
+                {addressValidationError}
+              </p>
+            </div>
+          {/if}
+        </div>
+      </div>
+    {/if}
+
+    <!-- Address selection with Google Maps integration for authenticated users -->
+    {#if isAuthenticated}
+      <AddressSelect {addresses} bind:selectedAddressId={selectedAddress} />
+    {/if}
 
     <!-- Additional Instructions for existing addresses -->
     {#if selectedAddress && !addresses.find((a) => a.id === selectedAddress)?.instructions}
@@ -290,7 +484,7 @@
       <Button
         variant="primary"
         on:click={continueToNext}
-        disabled={!selectedAddress || isLoading}
+        disabled={isLoading || (isAuthenticated && !selectedAddress) || (!isAuthenticated && !isGuestAddressValid())}
       >
         {#if isLoading}
           <svg
