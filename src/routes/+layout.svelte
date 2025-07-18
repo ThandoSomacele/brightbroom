@@ -95,8 +95,8 @@
             <Button variant="ghost" type="submit">Sign out</Button>
           </form>
         {:else}
-          <Button variant="outline" href="/auth/login">Sign in</Button>
-          <Button variant="primary" href="/auth/register">Sign up</Button>
+          <Button variant="outline" href="/auth/login">Login</Button>
+          <Button variant="secondary" href="/book">Book Cleaner</Button>
         {/if}
       </div>
 
@@ -237,13 +237,13 @@
               href="/auth/login"
               on:click={closeMenu}
               class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
-              >Sign in</a
+              >Login</a
             >
             <a
-              href="/auth/register"
+              href="/book"
               on:click={closeMenu}
-              class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
-              >Sign up</a
+              class="block px-3 py-2 text-white bg-secondary hover:bg-secondary-600 hover:text-white dark:bg-secondary dark:hover:bg-secondary-600 rounded-md"
+              >Book Cleaner</a
             >
           </div>
         {/if}

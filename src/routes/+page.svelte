@@ -74,8 +74,8 @@
               View Your Profile
             </Button>
           {:else}
-            <Button variant="primary" size="lg" href="/auth/register">
-              Sign Up Now
+            <Button variant="secondary" size="lg" href="/book">
+              Book Cleaner
             </Button>
             <Button variant="outline" size="lg" href="/services">
               View Services
