@@ -12,7 +12,7 @@ This document outlines the current progress and tactical next steps to complete 
 - [x] Configure Tailwind CSS with BrightBroom theme
 - [x] Set up database schema and ORM (Drizzle)
 - [x] Configure authentication for SvelteKit
-- [x] Set up basic folder structure and organization
+- [x] Set up basic folder structure and organisation
 - [x] Implement theme support (light/dark mode)
 - [x] Password Reset: Create a forgot password flow
 - [x] Email Verification: Add email verification for new accounts
@@ -116,10 +116,10 @@ This document outlines the current progress and tactical next steps to complete 
 - [ ] Create integration tests for critical flows
 - [ ] Set up end-to-end testing with Playwright
 
-#### 4.2 Performance Optimization
+#### 4.2 Performance Optimisation
 
 - [x] Implement code splitting
-- [x] Optimize image loading and processing
+- [x] Optimise image loading and processing
 - [x] Set up caching strategies
 - [x] Audit and improve performance
 
@@ -133,7 +133,7 @@ This document outlines the current progress and tactical next steps to complete 
 #### 4.4 Responsive Design
 
 - [x] Test and refine mobile layouts
-- [x] Optimize for tablet devices
+- [x] Optimise for tablet devices
 - [x] Ensure consistent experience across devices
 - [x] Implement responsive behavior for complex components
 
@@ -165,16 +165,19 @@ This document outlines the current progress and tactical next steps to complete 
 We've made significant progress in establishing the core functionality of BrightBroom:
 
 1. **Authentication System**
+
    - Complete registration and login flows
    - Session management
    - Role-based access control
 
 2. **User Profile Management**
+
    - Profile dashboard with upcoming bookings
    - Profile editing
    - Address management (add, edit, delete)
 
 3. **Booking System**
+
    - Multi-step booking flow
    - Service selection
    - Address selection
@@ -184,12 +187,14 @@ We've made significant progress in establishing the core functionality of Bright
    - Booking cancellation
 
 4. **Payment Integration**
+
    - PayFast payment gateway integration
    - Payment processing
    - Payment confirmation
    - Receipt generation
 
 5. **Database and Data Layer**
+
    - Data models with Drizzle ORM
    - API endpoints for data operations
    - Form validation with Zod
@@ -201,15 +206,17 @@ We've made significant progress in establishing the core functionality of Bright
 
 ## Technical Debt to Address
 
-1. **Code Organization**
+1. **Code Organisation**
+
    - ✅ Refactor form handling for consistency
    - ✅ Improve error handling across the application
    - Add more comprehensive comments
 
 2. **Performance**
+
    - ✅ Implement proper loading states
    - ✅ Add client-side form validation
-   - ✅ Optimize database queries
+   - ✅ Optimise database queries
 
 3. **Security**
    - ✅ Add CSRF protection
@@ -219,12 +226,14 @@ We've made significant progress in establishing the core functionality of Bright
 ## Long-Term Considerations
 
 1. **Feature Expansion**
+
    - Recurring bookings
    - Cleaner ratings and reviews
    - Loyalty program
    - Referral system
 
 2. **Mobile Application**
+
    - Consider developing a mobile app
    - Progressive Web App features
 
@@ -238,17 +247,20 @@ We've made significant progress in establishing the core functionality of Bright
 ### Must-Have Features for MVP (✅ All Completed)
 
 1. **User Authentication**
+
    - ✅ Registration with email verification
    - ✅ Login, logout, password reset
    - ✅ Basic profile management
 
 2. **Booking Essentials**
+
    - ✅ Service selection
    - ✅ Address management
    - ✅ Date and time selection
    - ✅ Booking confirmation
 
 3. **Payment Processing**
+
    - ✅ PayFast integration
    - ✅ Payment confirmation
    - ✅ Basic receipt generation
@@ -261,11 +273,13 @@ We've made significant progress in establishing the core functionality of Bright
 ### Nice-to-Have Features (Partially Implemented)
 
 1. **Enhanced User Experience**
+
    - ✅ Saved preferences
    - ✅ Booking history
    - ⏳ Service ratings and reviews
 
 2. **Advanced Booking Features**
+
    - ⏳ Recurring bookings
    - ✅ Rescheduling options
    - ✅ Special requests handling
@@ -280,43 +294,48 @@ We've made significant progress in establishing the core functionality of Bright
 Areas to monitor for potential technical debt:
 
 1. **Type Safety**
+
    - Ensure comprehensive TypeScript coverage
    - Avoid `any` types and use proper interfaces
 
 2. **Test Coverage**
+
    - Maintain adequate test coverage for core functionality
    - Avoid pushing untested code to production
 
 3. **Documentation**
+
    - Keep architecture documentation updated
    - Document complex business logic
    - Maintain code comments for non-obvious implementations
 
 4. **Dependency Management**
    - Regularly update dependencies
-   - Minimize unnecessary dependencies
+   - Minimise unnecessary dependencies
    - Monitor for security vulnerabilities
 
 ## Risk Assessment and Mitigation
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|------------|------------|
-| Payment integration complexity | High | Medium | Start with simplified flow, thorough testing, fallback mechanisms |
-| Performance issues with complex booking logic | Medium | Medium | Early performance testing, optimization, caching |
-| User adoption challenges | High | Medium | Usability testing, simplified MVP flow, customer feedback |
-| Security vulnerabilities | High | Low | Regular security audits, following best practices, penetration testing |
-| Database scalability | Medium | Low | Proper indexing, query optimization, monitoring |
+| Risk                                          | Impact | Probability | Mitigation                                                             |
+| --------------------------------------------- | ------ | ----------- | ---------------------------------------------------------------------- |
+| Payment integration complexity                | High   | Medium      | Start with simplified flow, thorough testing, fallback mechanisms      |
+| Performance issues with complex booking logic | Medium | Medium      | Early performance testing, optimisation, caching                       |
+| User adoption challenges                      | High   | Medium      | Usability testing, simplified MVP flow, customer feedback              |
+| Security vulnerabilities                      | High   | Low         | Regular security audits, following best practices, penetration testing |
+| Database scalability                          | Medium | Low         | Proper indexing, query optimisation, monitoring                        |
 
 ## Success Metrics
 
 Key metrics to track for measuring success:
 
 1. **User Engagement**
+
    - User registration rate
    - Booking completion rate
    - Return customer percentage
 
 2. **Technical Performance**
+
    - Page load times
    - API response times
    - Error rates
@@ -331,11 +350,13 @@ Key metrics to track for measuring success:
 ### Git Workflow
 
 1. **Branch Naming Convention**
+
    - Feature branches: `feature/feature-name`
    - Bug fixes: `fix/bug-description`
    - Releases: `release/version-number`
 
 2. **Commit Message Standards**
+
    - Use conventional commits format
    - Include ticket/issue reference when applicable
 
@@ -348,11 +369,13 @@ Key metrics to track for measuring success:
 ### Code Standards
 
 1. **Formatting and Linting**
+
    - Use Prettier for formatting
    - Follow ESLint rules
    - Run linting as part of CI/CD
 
 2. **Component Structure**
+
    - One component per file
    - Use TypeScript for props definition
    - Follow accessibility best practices
@@ -367,22 +390,26 @@ Key metrics to track for measuring success:
 The following items represent significant progress made recently:
 
 1. **UI Improvements**
+
    - ✅ Added loading indicators across the application
    - ✅ Implemented optimistic UI updates in admin interfaces
    - ✅ Improved button styling consistency
    - ✅ Enhanced form validation feedback
 
 2. **Booking Experience**
+
    - ✅ Added detailed service descriptions from CSV files
    - ✅ Implemented service details modal
    - ✅ Enhanced confirmation and review steps
 
 3. **Admin Dashboard**
+
    - ✅ Added real-time updates for bookings
    - ✅ Implemented notification system
    - ✅ Enhanced data caching for better performance
 
 4. **Authentication Flow**
+
    - ✅ Fixed registration redirect issues
    - ✅ Enhanced password reset flow
    - ✅ Improved security with rate limiting

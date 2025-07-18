@@ -7,6 +7,72 @@
 <svelte:head>
   <title>Services | BrightBroom</title>
   <meta name="description" content="BrightBroom offers a range of professional cleaning services for homes and offices." />
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Professional Cleaning Services | BrightBroom" />
+  <meta property="og:description" content="BrightBroom offers a range of professional cleaning services for homes and offices." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://brightbroom.com/services" />
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Professional Cleaning Services | BrightBroom" />
+  <meta name="twitter:description" content="BrightBroom offers a range of professional cleaning services for homes and offices." />
+  
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": "Professional Cleaning Services",
+      "provider": {
+        "@type": "LocalBusiness",
+        "name": "BrightBroom",
+        "url": "https://brightbroom.com"
+      },
+      "serviceType": "Cleaning Service",
+      "description": "BrightBroom offers a range of professional cleaning services for homes and offices.",
+      "areaServed": [
+        "Johannesburg",
+        "Cape Town", 
+        "Durban",
+        "Pretoria"
+      ],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Cleaning Services",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Regular Cleaning",
+              "description": "Perfect for maintaining a clean and tidy home on a regular basis.",
+              "serviceType": "Residential Cleaning"
+            }
+          },
+          {
+            "@type": "Offer", 
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Extended Cleaning",
+              "description": "A thorough cleaning service that reaches every corner and detail.",
+              "serviceType": "Deep Cleaning"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service", 
+              "name": "Office Cleaning",
+              "description": "Professional cleaning for your office space or commercial property.",
+              "serviceType": "Commercial Cleaning"
+            }
+          }
+        ]
+      }
+    }
+  </script>
 </svelte:head>
 
 <div class="bg-gray-50 py-16 dark:bg-gray-900">

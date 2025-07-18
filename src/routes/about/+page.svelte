@@ -42,7 +42,7 @@
   //   {
   //     name: "Sarah Johnson",
   //     role: "Founder & CEO",
-  //     bio: "Sarah founded BrightBroom with a vision to revolutionize the cleaning industry through technology and exceptional service.",
+  //     bio: "Sarah founded BrightBroom with a vision to revolutionise the cleaning industry through technology and exceptional service.",
   //     image: "/images/team/sarah.jpg", // You would add these images to your static folder
   //   },
   //   {
@@ -66,6 +66,69 @@
     name="description"
     content="Learn about BrightBroom, our mission, values, and the team behind our professional cleaning services."
   />
+
+  <!-- Open Graph -->
+  <meta
+    property="og:title"
+    content="About BrightBroom | Professional Cleaning Services"
+  />
+  <meta
+    property="og:description"
+    content="Learn about BrightBroom, our mission, values, and the team behind our professional cleaning services."
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://brightbroom.com/about" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary" />
+  <meta
+    name="twitter:title"
+    content="About BrightBroom | Professional Cleaning Services"
+  />
+  <meta
+    name="twitter:description"
+    content="Learn about BrightBroom, our mission, values, and the team behind our professional cleaning services."
+  />
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organisation",
+      "name": "BrightBroom",
+      "url": "https://brightbroom.com",
+      "logo": "https://brightbroom.com/images/brightbroom-logo.png",
+      "description": "BrightBroom is a professional cleaning service company that provides on-demand cleaning solutions for homes and offices.",
+      "foundingDate": "2023",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "123 Main Street",
+        "addressLocality": "Johannesburg",
+        "addressRegion": "Gauteng",
+        "postalCode": "2000",
+        "addressCountry": "ZA"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+27-11-123-4567",
+        "contactType": "Customer Service",
+        "areaServed": "ZA",
+        "availableLanguage": "English"
+      },
+      "sameAs": [
+        "https://www.facebook.com/brightbroom",
+        "https://www.instagram.com/brightbroom",
+        "https://twitter.com/brightbroom"
+      ],
+      "knowsAbout": [
+        "House Cleaning",
+        "Office Cleaning",
+        "Deep Cleaning",
+        "Regular Cleaning",
+        "Commercial Cleaning"
+      ]
+    }
+  </script>
 </svelte:head>
 
 <!-- Hero Section -->
@@ -80,7 +143,7 @@
       <p
         class="mx-auto mt-4 max-w-2xl text-lg text-gray-600 dark:text-gray-300"
       >
-        Revolutionizing the cleaning industry with technology, transparency, and
+        Revolutionising the cleaning industry with technology, transparency, and
         exceptional service.
       </p>
     </div>
@@ -100,7 +163,7 @@
             BrightBroom began in 2020 when our founder, Sarah Johnson,
             experienced firsthand the challenges of finding reliable,
             transparent cleaning services. After struggling with inconsistent
-            quality, hidden fees, and poor scheduling options, she recognized an
+            quality, hidden fees, and poor scheduling options, she recognised an
             opportunity to transform the industry.
           </p>
           <p>
@@ -232,7 +295,7 @@
         <div
           class="mt-8 flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-x-4 sm:space-y-0"
         >
-          <Button variant="primary" href="/book">Book Now</Button>
+          <Button variant="secondary" href="/book">Book Now</Button>
           <Button variant="outline" href="/contact">Contact Us</Button>
         </div>
       </div>

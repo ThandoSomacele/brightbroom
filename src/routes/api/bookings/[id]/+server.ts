@@ -29,6 +29,10 @@ export const GET: RequestHandler = async ({ params, locals }) => {
       notes: booking.notes,
       createdAt: booking.createdAt,
       userId: booking.userId,
+      guestName: booking.guestName,
+      guestEmail: booking.guestEmail,
+      guestPhone: booking.guestPhone,
+      guestAddress: booking.guestAddress,
       service: {
         id: service.id,
         name: service.name,
@@ -55,7 +59,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
     })
     .from(booking)
     .innerJoin(service, eq(booking.serviceId, service.id))
-    .innerJoin(address, eq(booking.addressId, address.id))
+    .leftJoin(address, eq(booking.addressId, address.id)) // Changed to leftJoin for guest bookings
     .leftJoin(payment, eq(booking.id, payment.bookingId))
     .leftJoin(user, booking.cleanerId ? eq(booking.cleanerId, user.id) : undefined)
     .where(eq(booking.id, bookingId))
@@ -84,6 +88,10 @@ export const GET: RequestHandler = async ({ params, locals }) => {
           notes: booking.notes,
           createdAt: booking.createdAt,
           userId: booking.userId,
+          guestName: booking.guestName,
+          guestEmail: booking.guestEmail,
+          guestPhone: booking.guestPhone,
+          guestAddress: booking.guestAddress,
           service: {
             id: service.id,
             name: service.name,
@@ -110,7 +118,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
         })
         .from(booking)
         .innerJoin(service, eq(booking.serviceId, service.id))
-        .innerJoin(address, eq(booking.addressId, address.id))
+        .leftJoin(address, eq(booking.addressId, address.id)) // Changed to leftJoin for guest bookings
         .leftJoin(payment, eq(booking.id, payment.bookingId))
         .leftJoin(user, booking.cleanerId ? eq(booking.cleanerId, user.id) : undefined)
         .where(eq(booking.id, paymentData.bookingId))

@@ -6,7 +6,7 @@
     type Service,
   } from "$lib/services";
   import { CheckCircle, X } from "lucide-svelte";
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
 
   // Props
   export let service: Partial<Service> & {
@@ -17,6 +17,10 @@
 
   const dispatch = createEventDispatcher();
 
+  // Focus trap variables
+  let modalElement: HTMLDivElement;
+  let previouslyFocusedElement: HTMLElement | null = null;
+
   // Ensure service details are available, fallback to generated defaults
   $: details = service.details
     ? typeof service.details === "string"
@@ -25,6 +29,55 @@
     : service.type
       ? generateDefaultServiceDetails(service.name, service.type)
       : generateDefaultServiceDetails(service.name, "regular");
+
+  // Focus trap implementation
+  onMount(() => {
+    // Store the previously focused element
+    previouslyFocusedElement = document.activeElement as HTMLElement;
+    
+    // Focus the first focusable element in the modal
+    const focusableElements = modalElement.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    
+    if (focusableElements.length > 0) {
+      (focusableElements[0] as HTMLElement).focus();
+    }
+
+    // Return cleanup function
+    return () => {
+      // Restore focus to the previously focused element
+      if (previouslyFocusedElement) {
+        previouslyFocusedElement.focus();
+      }
+    };
+  });
+
+  // Handle tab key for focus trapping
+  function handleTabKey(event: KeyboardEvent) {
+    if (event.key !== 'Tab') return;
+
+    const focusableElements = modalElement.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    
+    const firstFocusableElement = focusableElements[0] as HTMLElement;
+    const lastFocusableElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+    if (event.shiftKey) {
+      // Shift + Tab
+      if (document.activeElement === firstFocusableElement) {
+        lastFocusableElement.focus();
+        event.preventDefault();
+      }
+    } else {
+      // Tab
+      if (document.activeElement === lastFocusableElement) {
+        firstFocusableElement.focus();
+        event.preventDefault();
+      }
+    }
+  }
 
   // Close modal
   function close() {
@@ -36,6 +89,7 @@
     if (event.key === "Escape") {
       close();
     }
+    handleTabKey(event);
   }
 
   function handleBackdropClick(event: MouseEvent) {
@@ -54,6 +108,7 @@
   role="presentation"
 >
   <div
+    bind:this={modalElement}
     class="max-h-[90vh] w-full max-w-3xl overflow-auto rounded-lg bg-white shadow-xl dark:bg-gray-800"
     role="dialog"
     aria-modal="true"

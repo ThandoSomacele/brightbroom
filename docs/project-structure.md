@@ -1,6 +1,6 @@
 # Project Structure
 
-## Directory Organization
+## Directory Organisation
 
 ```
 brightbroom/
@@ -78,9 +78,9 @@ brightbroom/
 └── README.md
 ```
 
-## Organizational Principles
+## Organisational Principles
 
-### Component Organization
+### Component Organisation
 
 - **UI Components**: Generic, reusable UI elements like buttons, inputs, and cards
 - **Layout Components**: Page layouts, headers, footers, and navigation elements
@@ -93,9 +93,10 @@ brightbroom/
 - **Svelte Stores**: Used for shared state across components or routes
 - **Server Data**: Loaded through SvelteKit's `load` functions
 
-### Typical File Organization
+### Typical File Organisation
 
 #### Component Structure
+
 ```
 ComponentName/
 ├── ComponentName.svelte (main component)
@@ -106,6 +107,7 @@ ComponentName/
 ```
 
 #### Route Structure
+
 ```
 route-name/
 ├── +page.svelte (client component)

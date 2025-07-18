@@ -2,6 +2,8 @@
 import { db } from "$lib/server/db";
 import { cleanerApplication } from "$lib/server/db/schema";
 import { sendCleanerApplicationEmail } from "$lib/server/email-service";
+import { checkRateLimit } from "$lib/server/rate-limiter";
+import { validateHoneypot, logBotDetection } from "$lib/server/honeypot-validator";
 import { fail } from "@sveltejs/kit";
 import { z } from "zod";
 import type { Actions } from "./$types";
@@ -51,13 +53,13 @@ const joinApplicationSchema = z.object({
 });
 
 export const actions: Actions = {
-  default: async ({ request }) => {
+  default: async ({ request, getClientAddress }) => {
     const formData = await request.formData();
 
     // Extract all form fields
     const firstName = formData.get("firstName")?.toString();
     const lastName = formData.get("lastName")?.toString();
-    const email = formData.get("email")?.toString();
+    const email = formData.get("email")?.toString()?.toLowerCase();
     const phone = formData.get("phone")?.toString();
 
     // Get detailed address information from Google Places
@@ -73,160 +75,245 @@ export const actions: Actions = {
       : null;
     const formattedAddress =
       street || city || state
-        ? `${street}, ${city}, ${state} ${zipCode}`.trim()
+        ? `${street ? street + ", " : ""}${city}${state ? ", " + state : ""}${
+            zipCode ? " " + zipCode : ""
+          }`
         : "";
 
-    // Get all selected experience types
-    const experienceTypes = formData
-      .getAll("experienceTypes")
-      .map((item) => item.toString());
+    // Work radius with fallback
+    const workRadius = formData.get("workRadius")
+      ? parseFloat(formData.get("workRadius")?.toString() || "20")
+      : 20;
 
-    const availability = formData
-      .getAll("availability")
-      .map((item) => item.toString());
-    const ownTransport = formData.get("ownTransport")?.toString() === "yes";
-    const whatsApp = formData.get("whatsApp")?.toString() === "yes";
+    // Experience types - handle multiple selections
+    const experienceTypes = formData.getAll("experienceTypes") as string[];
+
+    // Availability - handle multiple days
+    const availability = formData.getAll("availability") as string[];
+
+    const ownTransport = formData.get("ownTransport") === "yes";
+    const whatsApp = formData.get("whatsApp") === "yes";
+
+    // Additional details
     const idType = formData.get("idType")?.toString();
     const idNumber = formData.get("idNumber")?.toString();
-    const hearAboutUs = formData.get("hearAboutUs")?.toString();
-    const terms = formData.get("terms")?.toString();
-    
-    // Optional fields that can enhance the profile later
-    const bio = formData.get("bio")?.toString() || "";
-    const taxNumber = formData.get("taxNumber")?.toString() || "";
-    const bankAccount = formData.get("bankAccount")?.toString() || "";
+    const taxNumber = formData.get("taxNumber")?.toString() || null;
+    const bankAccount = formData.get("bankAccount")?.toString() || null;
+    const bio = formData.get("bio")?.toString() || null;
     const petCompatibility = formData.get("petCompatibility")?.toString() || "NONE";
+    const hearAboutUs = formData.get("hearAboutUs")?.toString();
+    const terms = formData.get("terms");
 
-    // Default work radius (20km)
-    const workRadius = 20;
+    // Helper function to create form data object for returns
+    const createFormDataObject = () => ({
+      firstName,
+      lastName,
+      email,
+      phone,
+      street,
+      city,
+      state,
+      zipCode,
+      latitude,
+      longitude,
+      formattedAddress,
+      workRadius,
+      experienceTypes,
+      availability,
+      ownTransport: ownTransport ? "yes" : "no",
+      whatsApp: whatsApp ? "yes" : "no",
+      idType,
+      idNumber,
+      taxNumber,
+      bankAccount,
+      bio,
+      petCompatibility,
+      hearAboutUs,
+      terms
+    });
 
     try {
-      // Validate form data with Zod
+      // Validate form data first
       joinApplicationSchema.parse({
         firstName,
         lastName,
         email,
         phone,
+        street,
         city,
+        state,
+        zipCode,
+        latitude,
+        longitude,
+        formattedAddress,
+        workRadius,
         experienceTypes,
         availability,
-        ownTransport: ownTransport ? "yes" : "no",
-        whatsApp: whatsApp ? "yes" : "no",
+        ownTransport: ownTransport ? "yes" : undefined,
+        whatsApp: whatsApp ? "yes" : undefined,
         idType,
         idNumber,
+        taxNumber,
+        bankAccount,
+        bio,
+        petCompatibility,
         hearAboutUs,
         terms,
       });
 
-      // Generate a unique ID for the application
-      const applicationId = crypto.randomUUID();
-
-      // Store the application in the database with inactive status
-      try {
-        console.log(
-          "Inserting application into database with ID:",
-          applicationId,
-        );
-
-        await db.insert(cleanerApplication).values({
-          id: applicationId,
-          firstName,
-          lastName,
+      // Honeypot validation - check for bot submissions
+      const honeypotResult = validateHoneypot(formData, "cleaner");
+      
+      if (honeypotResult.isBot) {
+        const clientIP = getClientAddress();
+        logBotDetection(honeypotResult, clientIP, "cleaner_application", {
           email,
-          phone,
+          name: `${firstName} ${lastName}`,
           city,
-          formattedAddress,
-          latitude,
-          longitude,
-          experienceTypes,
-          availability: JSON.stringify(availability),
-          ownTransport,
-          whatsApp,
-          idType: idType || null,
-          idNumber: idNumber || null,
-          referralSource: hearAboutUs,
-          // Additional fields for easier profile creation later
-          bio,
-          taxNumber,
-          bankAccount,
-          petCompatibility,
-          workRadius, // Default 20km work radius
-          documents: [],
-          status: "PENDING",
-          isActive: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          reason: honeypotResult.reason
         });
 
-        console.log("Successfully inserted application into database");
-
-        // Send email notification to recruitment team
-        const emailResult = await sendCleanerApplicationEmail({
-          id: applicationId,
-          firstName,
-          lastName,
-          email,
-          phone,
-          city: formattedAddress || city,
-          experienceTypes,
-          availability: JSON.stringify(availability),
-          ownTransport,
-          whatsApp,
-          createdAt: new Date(),
-        });
-
-        console.log("Email notification result:", emailResult);
-
-        // Return success
-        return {
-          success: true,
-          message:
-            "Your application has been submitted successfully! Our team will review it and get back to you soon.",
-        };
-      } catch (error) {
-        console.error("Database error:", error);
-        return fail(500, {
-          error:
-            "There was a problem submitting your application. Please try again later.",
-          data: {
-            firstName,
-            lastName,
-            email,
-            phone,
-            city,
-            experienceTypes,
-            availability,
-            ownTransport: ownTransport ? "yes" : "no",
-            whatsApp: whatsApp ? "yes" : "no",
-            idType,
-            idNumber,
-            hearAboutUs,
-          },
+        // Return a generic error to avoid revealing anti-spam measures
+        return fail(400, {
+          error: "Please try submitting the application again.",
+          data: createFormDataObject()
         });
       }
+
+      // Rate limiting checks AFTER validation and honeypot - cleaner applications are more sensitive
+      const clientIP = getClientAddress();
+
+      // Check IP-based rate limit (2 applications per hour per IP)
+      const ipRateLimit = checkRateLimit('cleanerApplication', clientIP);
+      
+      if (!ipRateLimit.allowed) {
+        console.log(`Cleaner application rate limit exceeded for IP: ${clientIP}`);
+        return fail(429, {
+          error: `Too many cleaner applications from this location. Please try again after ${ipRateLimit.resetTime?.toLocaleTimeString('en-ZA', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          })}.`,
+          data: createFormDataObject()
+        });
+      }
+
+      // Check email-based rate limit (1 application per 24 hours per email)
+      const emailRateLimit = checkRateLimit('cleanerApplication', email!);
+      
+      if (!emailRateLimit.allowed) {
+        console.log(`Cleaner application rate limit exceeded for email: ${email}`);
+        return fail(429, {
+          error: `An application has already been submitted with this email address. Please try again after ${emailRateLimit.resetTime?.toLocaleTimeString('en-ZA', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            day: '2-digit',
+            month: 'short'
+          })}.`,
+          data: createFormDataObject()
+        });
+      }
+
+      // Check if this email has already applied (additional database check)
+      const existingApplication = await db
+        .select()
+        .from(cleanerApplication)
+        .where(eq(cleanerApplication.email, email!))
+        .limit(1);
+
+      if (existingApplication.length > 0) {
+        console.log(`Duplicate cleaner application attempt for email: ${email}`);
+        return fail(400, {
+          error: "An application with this email address already exists. Please contact us if you need to update your application.",
+          data: createFormDataObject()
+        });
+      }
+
+      // Create the cleaner application record
+      const applicationId = crypto.randomUUID();
+      const applicationData = {
+        id: applicationId,
+        firstName: firstName!,
+        lastName: lastName!,
+        email: email!,
+        phone: phone!,
+        street,
+        city: city!,
+        state: state || "Gauteng", // Default for South Africa
+        zipCode,
+        latitude: latitude || 0,
+        longitude: longitude || 0,
+        formattedAddress,
+        workRadius,
+        experienceTypes: JSON.stringify(experienceTypes),
+        availability: JSON.stringify(availability),
+        ownTransport,
+        whatsApp,
+        idType: idType!,
+        idNumber: idNumber!,
+        taxNumber,
+        bankAccount,
+        bio,
+        petCompatibility: petCompatibility as "LOW" | "MEDIUM" | "HIGH" | "NONE",
+        hearAboutUs,
+        status: "PENDING" as const,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      await db.insert(cleanerApplication).values(applicationData);
+
+      // Log the successful application
+      console.log("Cleaner application submitted:", {
+        id: applicationId,
+        email,
+        name: `${firstName} ${lastName}`,
+        city,
+        ip: clientIP,
+        timestamp: new Date().toISOString()
+      });
+
+      // Send email notification to admin
+      try {
+        const emailSent = await sendCleanerApplicationEmail({
+          ...applicationData,
+          experience: experienceTypes.join(", "), // Convert array to string for email
+        });
+
+        if (!emailSent) {
+          console.error("Failed to send cleaner application email notification");
+          // Continue with success - don't fail the application submission
+        }
+      } catch (emailError) {
+        console.error("Error sending cleaner application email:", emailError);
+        // Continue with success - don't fail the application submission
+      }
+
+      // Return success
+      return {
+        success: true,
+        message: "Your cleaner application has been submitted successfully! We'll review it and get back to you within 2-3 business days.",
+        applicationId
+      };
+
     } catch (error) {
       // Handle validation errors
       if (error instanceof z.ZodError) {
         const errors = error.flatten().fieldErrors;
         const firstError = Object.values(errors)[0]?.[0] || "Invalid form data";
-        console.error("Validation error:", firstError);
+        console.log(`Cleaner application validation error: ${firstError}`);
 
         return fail(400, {
           error: firstError,
-          data: {
-            firstName,
-            lastName,
-            email,
-            phone,
-            city,
-            experienceTypes,
-            availability,
-            ownTransport: ownTransport ? "yes" : "no",
-            whatsApp: whatsApp ? "yes" : "no",
-            idType,
-            idNumber,
-            hearAboutUs,
-          },
+          data: createFormDataObject()
+        });
+      }
+
+      // Handle database errors
+      if (error instanceof Error && error.message.includes('duplicate key')) {
+        console.log(`Cleaner application database duplicate error for email: ${email}`);
+        return fail(400, {
+          error: "An application with this email address already exists.",
+          data: createFormDataObject()
         });
       }
 
@@ -234,20 +321,7 @@ export const actions: Actions = {
       console.error("Unexpected error in cleaner application:", error);
       return fail(500, {
         error: "Something went wrong. Please try again later.",
-        data: {
-          firstName,
-          lastName,
-          email,
-          phone,
-          city,
-          experienceTypes,
-          availability,
-          ownTransport: ownTransport ? "yes" : "no",
-          whatsApp: whatsApp ? "yes" : "no",
-          idType,
-          idNumber,
-          hearAboutUs,
-        },
+        data: createFormDataObject()
       });
     }
   },

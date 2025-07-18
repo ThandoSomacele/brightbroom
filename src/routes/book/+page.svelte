@@ -8,13 +8,12 @@
     Building,
     Home,
     HousePlus,
-    Info,
     WashingMachine,
   } from "lucide-svelte";
 
   // Get data from the server load function
   export let data;
-  const { services } = data;
+  const { services, user, isAuthenticated } = data;
 
   // Track selected service
   let selectedService = "";
@@ -154,9 +153,10 @@
                   : "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
               }`}
             on:click={() => selectService(service.id)}
-            on:keydown={(e) => e.key === "Enter" && selectService(service.id)}
+            on:keydown={(e) => (e.key === "Enter" || e.key === " ") && selectService(service.id)}
             role="button"
             tabindex="0"
+            aria-label="Select {service.name} service - {service.description}"
           >
             <div class="flex justify-between items-start">
               <div
@@ -175,11 +175,16 @@
               </div>
 
               <button
-                class="text-primary hover:text-primary-600 dark:text-primary-400"
+                type="button"
                 on:click|stopPropagation={() => showServiceDetails(service)}
+                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-primary-50 hover:bg-primary-100 hover:text-primary-700 rounded-md transition-colors dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40"
                 aria-label="View service details"
               >
-                <Info size={20} />
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                View Details
               </button>
             </div>
 

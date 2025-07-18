@@ -3,31 +3,58 @@
   import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
   import LoadingIndicator from "$lib/components/ui/LoadingIndicator.svelte";
+  import ErrorBoundary from "$lib/components/ErrorBoundary.svelte";
+  import { performanceMonitor } from "$lib/utils/performance";
+  import { onMount } from "svelte";
   import "../app.css";
 
   // Access user data from the page store
   $: user = $page.data.user;
+  
+  // Get site URL for canonical URLs
+  const siteUrl = import.meta.env.VITE_SITE_URL || "https://brightbroom.com";
+  $: canonicalUrl = `${siteUrl}${$page.url.pathname}`;
 
   let isMenuOpen = false;
 
   function toggleMenu() {
     isMenuOpen = !isMenuOpen;
   }
-  
+
   function closeMenu() {
     isMenuOpen = false;
   }
+
+  // Initialize performance monitoring
+  onMount(() => {
+    // Report performance metrics after page is fully loaded
+    setTimeout(() => {
+      performanceMonitor.reportMetrics();
+    }, 2000);
+  });
 </script>
 
 <svelte:head>
   <!-- Basic meta tags -->
   <title>BrightBroom | On-demand Cleaning Services</title>
-  <meta name="description" content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean." />
-  
+  <meta
+    name="description"
+    content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean."
+  />
+  <!-- Canonical URL -->
+  <link rel="canonical" href={canonicalUrl} />
 </svelte:head>
 
 <!-- Global loading indicator for page navigation -->
 <LoadingIndicator />
+
+<!-- Skip link for accessibility -->
+<a 
+  href="#main-content" 
+  class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-primary text-white p-3 z-50 focus:z-50"
+>
+  Skip to main content
+</a>
 
 <!-- Header with navigation -->
 <header class="bg-white shadow dark:bg-gray-800">
@@ -35,7 +62,7 @@
     <div class="flex h-16 items-center justify-between">
       <!-- Logo and site name -->
       <div class="flex flex-shrink-0 items-center">
-        <a href="/" class="flex items-center">
+        <a href="/" class="flex items-center" aria-label="BrightBroom home page">
           <span class="text-2xl font-bold text-primary">BrightBroom</span>
         </a>
       </div>
@@ -58,12 +85,17 @@
           >About</a
         >
         <a
+          href="/magazine"
+          class="px-3 py-2 text-gray-700 hover:text-primary dark:text-gray-200"
+          >Magazine</a
+        >
+        <a
           href="/contact"
           class="px-3 py-2 text-gray-700 hover:text-primary dark:text-gray-200"
           >Contact</a
         >
         {#if user && user.role === "ADMIN"}
-        <a
+          <a
             href="/admin/dashboard"
             class="px-3 py-2 font-medium text-primary hover:text-primary-600 dark:text-primary-400"
             >Admin</a
@@ -88,8 +120,8 @@
             <Button variant="ghost" type="submit">Sign out</Button>
           </form>
         {:else}
-          <Button variant="outline" href="/auth/login">Sign in</Button>
-          <Button variant="primary" href="/auth/register">Sign up</Button>
+          <Button variant="outline" href="/auth/login">Login</Button>
+          <Button variant="secondary" href="/book">Book Now</Button>
         {/if}
       </div>
 
@@ -165,6 +197,13 @@
           >About</a
         >
         <a
+          href="/magazine"
+          on:click={closeMenu}
+          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
+          >Magazine</a
+        >
+
+        <a
           href="/contact"
           on:click={closeMenu}
           class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
@@ -193,7 +232,7 @@
               >Your Profile</a
             >
             {#if user.role === "ADMIN"}
-            <a
+              <a
                 href="/admin/dashboard"
                 on:click={closeMenu}
                 class="block px-3 py-2 font-medium text-primary hover:bg-gray-50 hover:text-primary-600 dark:text-primary-400 dark:hover:bg-gray-700"
@@ -201,8 +240,8 @@
               >
             {/if}
             <!-- Fixed Logout Form: Remove onClick handler from button and add onSubmit to form -->
-            <form 
-              action="/auth/logout" 
+            <form
+              action="/auth/logout"
               method="POST"
               on:submit={() => {
                 // Close menu after submission is initiated
@@ -223,13 +262,13 @@
               href="/auth/login"
               on:click={closeMenu}
               class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
-              >Sign in</a
+              >Login</a
             >
             <a
-              href="/auth/register"
+              href="/book"
               on:click={closeMenu}
-              class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
-              >Sign up</a
+              class="block px-3 py-2 text-white bg-secondary hover:bg-secondary-600 hover:text-white dark:bg-secondary dark:hover:bg-secondary-600 rounded-md"
+              >Book Now</a
             >
           </div>
         {/if}
@@ -239,9 +278,11 @@
 </header>
 
 <!-- Page content -->
-<main>
-  <slot />
-</main>
+<ErrorBoundary>
+  <main id="main-content">
+    <slot />
+  </main>
+</ErrorBoundary>
 
 <!-- Footer -->
 <footer class="bg-gray-50 py-8 dark:bg-gray-900">

@@ -14,10 +14,8 @@ import { eq } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals, url }) => {
-  // Check if the user is logged in
-  if (!locals.user) {
-    throw redirect(302, "/auth/login?redirectTo=/book/schedule");
-  }
+  // Allow both authenticated and guest users to access scheduling
+  // Authentication will be handled at payment step
 
   // Get the service ID from query parameters
   const serviceId = url.searchParams.get("serviceId");
@@ -49,7 +47,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
   // Add dates for the next 4 weeks
   for (let i = 0; i < 28; i++) {
-    // Skip weekends (for this demo - you could customize this)
+    // Skip weekends (for this demo - you could customise this)
     if (!isWeekend(currentDate)) {
       availableDates.push({
         date: format(currentDate, "yyyy-MM-dd"),

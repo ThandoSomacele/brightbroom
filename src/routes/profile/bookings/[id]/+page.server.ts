@@ -33,6 +33,10 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         price: booking.price,
         notes: booking.notes,
         createdAt: booking.createdAt,
+        guestName: booking.guestName,
+        guestEmail: booking.guestEmail,
+        guestPhone: booking.guestPhone,
+        guestAddress: booking.guestAddress,
         service: {
           id: service.id,
           name: service.name,
@@ -61,7 +65,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       })
       .from(booking)
       .innerJoin(service, eq(booking.serviceId, service.id))
-      .innerJoin(address, eq(booking.addressId, address.id))
+      .leftJoin(address, eq(booking.addressId, address.id)) // Changed to leftJoin for guest bookings
       .leftJoin(payment, eq(booking.id, payment.bookingId))
       .leftJoin(
         user,

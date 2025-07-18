@@ -42,8 +42,24 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 
     const bookingData = bookingResult[0];
 
-    // Verify the booking belongs to the logged-in user
-    if (bookingData.userId !== locals.user.id) {
+    // Handle guest booking ownership transfer
+    if (bookingData.userId === null) {
+      // This is a guest booking - transfer ownership to the logged-in user
+      console.log(`Transferring guest booking ${bookingId} to user ${locals.user.id}`);
+      
+      await db.update(booking)
+        .set({ 
+          userId: locals.user.id,
+          updatedAt: new Date()
+        })
+        .where(eq(booking.id, bookingId));
+      
+      console.log(`Guest booking ${bookingId} successfully transferred to user ${locals.user.id}`);
+      
+      // Update the booking data for the rest of the process
+      bookingData.userId = locals.user.id;
+    } else if (bookingData.userId !== locals.user.id) {
+      // This is a booking belonging to another user
       console.error(`Unauthorized access to booking: ${bookingId}`);
       return json({ error: 'Unauthorized access to booking' }, { status: 403 });
     }

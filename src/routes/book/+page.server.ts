@@ -6,10 +6,8 @@ import { eq } from 'drizzle-orm'; // Add this import
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  // Check if the user is logged in
-  if (!locals.user) {
-    throw redirect(302, '/auth/login?redirectTo=/book');
-  }
+  // Allow both authenticated and guest users to access service selection
+  // Authentication will be handled at payment step
   
   try {
     // Simply select all services without adding the where clause
@@ -29,12 +27,16 @@ export const load: PageServerLoad = async ({ locals }) => {
     });
     
     return {
-      services: sortedServices
+      services: sortedServices,
+      user: locals.user,
+      isAuthenticated: !!locals.user
     };
   } catch (err) {
     console.error('Error loading services:', err);
     return {
-      services: []
+      services: [],
+      user: locals.user,
+      isAuthenticated: !!locals.user
     };
   }
 };

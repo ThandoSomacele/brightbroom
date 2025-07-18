@@ -2,8 +2,10 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { page } from "$app/stores";
+  import HoneypotField from "$lib/components/forms/HoneypotField.svelte";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
+
   import {
     getClosestServiceArea,
     isWithinServiceArea,
@@ -571,6 +573,8 @@
                 };
               }}
             >
+              <HoneypotField fieldPrefix="cleaner" />
+
               <!-- Step 1: Personal Information -->
               {#if step === 1}
                 <div class="space-y-6">

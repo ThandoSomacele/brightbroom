@@ -34,7 +34,7 @@ export async function sendTestEmail(
       "<h1>This is a test email</h1><p>Your email integration is working!</p>";
     let text = "This is a test email. Your email integration is working!";
 
-    // Customize based on the type
+    // Customise based on the type
     switch (type) {
       case "welcome":
         subject = "Welcome to BrightBroom - TEST";

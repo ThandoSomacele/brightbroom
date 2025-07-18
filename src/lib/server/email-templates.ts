@@ -1693,7 +1693,7 @@ export function getCleanerApplicationTemplate(
     createdAt: Date | string;
   },
   data: EmailTemplateData,
-): { subject: string; html: string; text: string } {
+): { subject: string; html: string; text: string; replyTo: string } {
   // Format the application date
   const appDate = new Date(application.createdAt);
   const dateString = appDate.toLocaleDateString("en-ZA", {
@@ -1716,6 +1716,7 @@ export function getCleanerApplicationTemplate(
   // Admin dashboard URL
   const adminUrl = `${data.appUrl}/admin/applications`;
   const applicationUrl = `${data.appUrl}/admin/applications/${application.id}`;
+  const escapedEmail = escapeHtml(application.email);
 
   // HTML Email template
   const html = `
@@ -1912,6 +1913,7 @@ This is an automated message - please do not reply to this email.
     subject: `New Cleaner Application: ${application.firstName} ${application.lastName}`,
     html,
     text,
+    replyTo: escapedEmail,
   };
 }
 

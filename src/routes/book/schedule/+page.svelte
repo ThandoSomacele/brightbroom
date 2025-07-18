@@ -37,8 +37,11 @@
     selectedAddress = localStorage.getItem("booking_address") || "";
     accessInstructions = localStorage.getItem("booking_instructions") || "";
     
+    // Check for guest address if no regular address is found
+    const guestAddress = localStorage.getItem("booking_guest_address");
+    
     // If required information is missing, redirect back
-    if (!selectedService || !selectedAddress) {
+    if (!selectedService || (!selectedAddress && !guestAddress)) {
       goto("/book");
     }
     

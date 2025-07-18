@@ -30,6 +30,7 @@ The solution consists of several components:
 ### 2. Add Environment Variables
 
 1. Create or update your `.env` file with your Google Maps API key:
+
    ```
    VITE_GOOGLE_MAPS_API_KEY="your_google_maps_api_key"
    ```
@@ -66,14 +67,15 @@ The service areas are defined in `serviceAreaValidator.ts`. You can modify the c
 
 ```typescript
 export const SERVICE_AREAS: ServiceArea[] = [
-  { name: 'Fourways', lat: -26.0274, lng: 28.0106, radius: 5 },
+  { name: "Fourways", lat: -26.0274, lng: 28.0106, radius: 5 },
   // { name: 'Sandton', lat: -26.1070, lng: 28.0567, radius: 6 },
-  { name: 'North Riding', lat: -26.0469, lng: 27.9510, radius: 4 },
+  { name: "North Riding", lat: -26.0469, lng: 27.951, radius: 4 },
   // { name: 'Roodepoort', lat: -26.1625, lng: 27.8727, radius: 7 }
 ];
 ```
 
 Each area has:
+
 - `name`: Display name for the area
 - `lat`/`lng`: Center coordinates (latitude/longitude)
 - `radius`: Distance in kilometers from the center that's considered "in service area"
@@ -94,15 +96,22 @@ When a user selects an address from Google Places, the system:
 We use the Haversine formula to calculate the distance between coordinates:
 
 ```typescript
-function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+function getDistanceFromLatLonInKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
   const R = 6371; // Radius of the earth in km
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2); 
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) *
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distance = R * c; // Distance in km
   return distance;
 }
@@ -117,7 +126,7 @@ An address is considered within a service area if its distance to at least one s
 3. It further biases results toward the Gauteng region for better suggestions
 4. When an address is selected, it's validated against service areas
 
-### Optimizations
+### Optimisations
 
 1. The Google Maps script is loaded only when needed
 2. Service area validation is fast and can handle many coordinates
