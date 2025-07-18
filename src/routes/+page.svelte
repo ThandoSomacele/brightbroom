@@ -146,15 +146,15 @@
           class="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0"
         >
           {#if user}
-            <Button variant="primary" size="lg" href="/book">
-              Book a Cleaning
+            <Button variant="secondary" size="lg" href="/book">
+              Book Now
             </Button>
             <Button variant="outline" size="lg" href="/profile">
               View Your Profile
             </Button>
           {:else}
             <Button variant="secondary" size="lg" href="/book">
-              Book Cleaner
+              Book Now
             </Button>
             <Button variant="outline" size="lg" href="/services">
               View Services
@@ -325,8 +325,8 @@
     </div>
 
     <div class="mt-12 text-center">
-      <Button variant="primary" href="/book">
-        {user ? "Book Now" : "Book Cleaner"}
+      <Button variant="secondary" href="/book">
+        Book Now
       </Button>
     </div>
   </div>
@@ -557,12 +557,12 @@
         Ready for a sparkling clean space?
       </h2>
       <p class="mt-4 text-lg text-white/80">
-        Join thousands of happy customers who've discovered the BrightBroom
+        Join happy customers who've discovered the BrightBroom
         difference.
       </p>
       <div class="mt-8">
         <Button variant="secondary" size="lg" href="/book">
-          {user ? "Book a Cleaning" : "Book Cleaner"}
+          Book Now
         </Button>
       </div>
     </div>

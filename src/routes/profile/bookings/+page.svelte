@@ -215,10 +215,10 @@
               You haven't booked any cleanings yet. Book your first cleaning now!
             </p>
             <Button 
-              variant="primary" 
+              variant="secondary" 
               href="/book"
             >
-              Book a Cleaning
+              Book Now
             </Button>
           {/if}
         </div>

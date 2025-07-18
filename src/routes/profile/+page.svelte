@@ -99,9 +99,9 @@
           <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">Quick Actions</h2>
           
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Button variant="primary" href="/book" class="flex h-auto flex-col items-center justify-center p-6">
+            <Button variant="secondary" href="/book" class="flex h-auto flex-col items-center justify-center p-6">
               <Calendar size={32} class="mb-3" />
-              <span class="text-lg font-medium">Book a Cleaning</span>
+              <span class="text-lg font-medium">Book Now</span>
               <span class="mt-1 text-sm text-white/80">Schedule your next service</span>
             </Button>
             
@@ -169,8 +169,8 @@
           {:else}
             <div class="rounded-lg border border-dashed border-gray-300 p-6 text-center dark:border-gray-700">
               <p class="text-gray-500 dark:text-gray-400">You don't have any upcoming bookings.</p>
-              <Button variant="primary" href="/book" class="mt-4">
-                Book a Cleaning
+              <Button variant="secondary" href="/book" class="mt-4">
+                Book Now
               </Button>
             </div>
           {/if}

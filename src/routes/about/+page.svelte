@@ -295,7 +295,7 @@
         <div
           class="mt-8 flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-x-4 sm:space-y-0"
         >
-          <Button variant="primary" href="/book">Book Now</Button>
+          <Button variant="secondary" href="/book">Book Now</Button>
           <Button variant="outline" href="/contact">Contact Us</Button>
         </div>
       </div>

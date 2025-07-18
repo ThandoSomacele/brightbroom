@@ -86,7 +86,7 @@
   </p> -->
 
   {#if showBookButton}
-    <Button variant="primary" href={`/book?service=${id}`} class="w-full">
+    <Button variant="secondary" href={`/book?service=${id}`} class="w-full">
       Book Now
     </Button>
   {/if}
