@@ -245,8 +245,8 @@
     </div>
 
     <div class="mt-12 text-center">
-      <Button variant="primary" href={user ? "/book" : "/auth/register"}>
-        {user ? "Book Now" : "Get Started"}
+      <Button variant="primary" href="/book">
+        {user ? "Book Now" : "Book Cleaner"}
       </Button>
     </div>
   </div>
@@ -484,9 +484,9 @@
         <Button
           variant="secondary"
           size="lg"
-          href={user ? "/book" : "/auth/register"}
+          href="/book"
         >
-          {user ? "Book a Cleaning" : "Get Started Today"}
+          {user ? "Book a Cleaning" : "Book Cleaner"}
         </Button>
       </div>
     </div>
