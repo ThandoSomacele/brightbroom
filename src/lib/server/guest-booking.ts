@@ -17,6 +17,7 @@ export interface GuestBookingData {
   // Guest address info
   guestAddress?: {
     street: string;
+    streetNumber?: string;
     aptUnit?: string;
     city: string;
     state: string;

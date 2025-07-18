@@ -213,9 +213,12 @@ export const actions: Actions = {
         } : 
         {
           street: guestAddress!.street,
+          streetNumber: guestAddress!.streetNumber || '',
+          aptUnit: guestAddress!.aptUnit || '',
           city: guestAddress!.city,
           state: guestAddress!.state,
-          zipCode: guestAddress!.zipCode
+          zipCode: guestAddress!.zipCode,
+          instructions: guestAddress!.instructions || ''
         };
       
       const bookingDataForEmail = {

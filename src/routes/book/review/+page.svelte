@@ -357,6 +357,7 @@
                 </p>
                 <p class="text-gray-600 dark:text-gray-300">
                   {guestAddress.street}
+                  {#if guestAddress.streetNumber}, {guestAddress.streetNumber}{/if}
                   {#if guestAddress.aptUnit}, {guestAddress.aptUnit}{/if}<br
                   />
                   {guestAddress.city}, {guestAddress.state}
