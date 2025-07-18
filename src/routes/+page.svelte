@@ -137,7 +137,7 @@
         >
           Professional cleaning services on your schedule
         </h1>
-        <p class="mb-8 text-lg text-gray-600 dark:text-gray-300">
+        <p class="mb-8 text-lg text-gray-700 dark:text-gray-200">
           BrightBroom connects you with professional cleaners for your home or
           office. Book online in minutes and get your space sparkling clean.
         </p>
@@ -168,6 +168,7 @@
           src={heroImage}
           alt="Professional cleaner organising a modern living room with cleaning supplies, showcasing BrightBroom's quality service"
           class="rounded-lg shadow-md object-cover w-full h-auto md:h-full lg:h-96"
+          loading="lazy"
         />
       </div>
     </div>
@@ -181,7 +182,7 @@
       <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
         Our Services
       </h2>
-      <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
+      <p class="mt-4 text-lg text-gray-700 dark:text-gray-200">
         Choose the perfect cleaning package for your needs
       </p>
     </div>
@@ -197,7 +198,7 @@
         <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
           Regular Cleaning
         </h3>
-        <p class="mb-4 text-gray-600 dark:text-gray-300">
+        <p class="mb-4 text-gray-700 dark:text-gray-200">
           Perfect for maintaining a clean and tidy home on a regular basis.
         </p>
         <Button variant="outline" href="/services" class="w-full">
@@ -216,7 +217,7 @@
         <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
           Extended Cleaning
         </h3>
-        <p class="mb-4 text-gray-600 dark:text-gray-300">
+        <p class="mb-4 text-gray-700 dark:text-gray-200">
           A thorough cleaning service that reaches every corner and detail.
         </p>
         <Button variant="outline" href="/services" class="w-full">
@@ -234,7 +235,7 @@
         <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
           Office Cleaning
         </h3>
-        <p class="mb-4 text-gray-600 dark:text-gray-300">
+        <p class="mb-4 text-gray-700 dark:text-gray-200">
           Professional cleaning for your office space or commercial property.
         </p>
         <Button variant="outline" href="/services" class="w-full">
@@ -256,7 +257,7 @@
       <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
         How It Works
       </h2>
-      <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
+      <p class="mt-4 text-lg text-gray-700 dark:text-gray-200">
         Book a cleaning in just a few simple steps
       </p>
     </div>
@@ -272,7 +273,7 @@
         <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-white">
           Choose a Service
         </h3>
-        <p class="text-gray-600 dark:text-gray-300">
+        <p class="text-gray-700 dark:text-gray-200">
           Select the type of cleaning service that meets your needs.
         </p>
       </div>
@@ -287,7 +288,7 @@
         <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-white">
           Set a Date & Time
         </h3>
-        <p class="text-gray-600 dark:text-gray-300">
+        <p class="text-gray-700 dark:text-gray-200">
           Choose when you'd like our professionals to clean your space.
         </p>
       </div>
@@ -302,7 +303,7 @@
         <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-white">
           Confirm & Pay
         </h3>
-        <p class="text-gray-600 dark:text-gray-300">
+        <p class="text-gray-700 dark:text-gray-200">
           Review your booking details and make a secure payment.
         </p>
       </div>
@@ -317,7 +318,7 @@
         <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-white">
           Enjoy a Clean Space
         </h3>
-        <p class="text-gray-600 dark:text-gray-300">
+        <p class="text-gray-700 dark:text-gray-200">
           Relax while our professionals make your space sparkle.
         </p>
       </div>
@@ -338,7 +339,7 @@
       <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
         What Our Customers Say
       </h2>
-      <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
+      <p class="mt-4 text-lg text-gray-700 dark:text-gray-200">
         Hear from people who've experienced our services
       </p>
     </div>
@@ -398,7 +399,7 @@
             />
           </svg>
         </div>
-        <p class="mb-4 text-gray-600 dark:text-gray-300">
+        <p class="mb-4 text-gray-700 dark:text-gray-200">
           "BrightBroom exceeded my expectations! The cleaners were professional,
           thorough, and paid attention to every detail. My home has never looked
           better."
@@ -465,7 +466,7 @@
             />
           </svg>
         </div>
-        <p class="mb-4 text-gray-600 dark:text-gray-300">
+        <p class="mb-4 text-gray-700 dark:text-gray-200">
           "I love how easy it is to book a cleaning. The app is user-friendly
           and the cleaners are always on time and do an amazing job. Highly
           recommend!"
@@ -532,7 +533,7 @@
             />
           </svg>
         </div>
-        <p class="mb-4 text-gray-600 dark:text-gray-300">
+        <p class="mb-4 text-gray-700 dark:text-gray-200">
           "As a busy business owner, BrightBroom has been a lifesaver for our
           office. The team is reliable, efficient, and our office has never been
           cleaner. Worth every penny!"

@@ -1,0 +1,57 @@
+# Pre-commit hooks configuration for code quality
+# Install with: npm install --save-dev pre-commit husky lint-staged
+# Setup with: npx husky install
+
+repos:
+  - repo: local
+    hooks:
+      # TypeScript type checking
+      - id: typescript-check
+        name: TypeScript Check
+        entry: npm run check
+        language: system
+        files: \.(ts|js|svelte)$
+        pass_filenames: false
+
+      # ESLint for code quality
+      - id: eslint
+        name: ESLint
+        entry: npx eslint --fix
+        language: system
+        files: \.(ts|js|svelte)$
+        args: [--max-warnings=0]
+
+      # Prettier for code formatting
+      - id: prettier
+        name: Prettier
+        entry: npx prettier --write
+        language: system
+        files: \.(ts|js|svelte|json|md|css|html)$
+
+      # Prevent committing common secrets
+      - id: detect-secrets
+        name: Detect Secrets
+        entry: bash -c 'if grep -r "password\|secret\|key\|token" --include="*.ts" --include="*.js" --include="*.svelte" src/ | grep -v "// @ts-ignore" | grep -v "console.log"; then echo "Potential secrets detected!"; exit 1; fi'
+        language: system
+        pass_filenames: false
+
+      # Check for TODO/FIXME comments
+      - id: check-todos
+        name: Check TODOs
+        entry: bash -c 'if grep -r "TODO\|FIXME\|XXX" --include="*.ts" --include="*.js" --include="*.svelte" src/ && echo "Found TODO/FIXME comments - please address before committing"; then exit 1; fi'
+        language: system
+        pass_filenames: false
+
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: ['--fix=lf']

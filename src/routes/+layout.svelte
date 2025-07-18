@@ -3,6 +3,9 @@
   import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
   import LoadingIndicator from "$lib/components/ui/LoadingIndicator.svelte";
+  import ErrorBoundary from "$lib/components/ErrorBoundary.svelte";
+  import { performanceMonitor } from "$lib/utils/performance";
+  import { onMount } from "svelte";
   import "../app.css";
 
   // Access user data from the page store
@@ -21,6 +24,14 @@
   function closeMenu() {
     isMenuOpen = false;
   }
+
+  // Initialize performance monitoring
+  onMount(() => {
+    // Report performance metrics after page is fully loaded
+    setTimeout(() => {
+      performanceMonitor.reportMetrics();
+    }, 2000);
+  });
 </script>
 
 <svelte:head>
@@ -267,9 +278,11 @@
 </header>
 
 <!-- Page content -->
-<main id="main-content">
-  <slot />
-</main>
+<ErrorBoundary>
+  <main id="main-content">
+    <slot />
+  </main>
+</ErrorBoundary>
 
 <!-- Footer -->
 <footer class="bg-gray-50 py-8 dark:bg-gray-900">
