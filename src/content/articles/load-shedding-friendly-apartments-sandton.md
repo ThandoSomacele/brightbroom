@@ -330,3 +330,7 @@ Finding the perfect load shedding-friendly apartment in Sandton, Fourways, or No
 The key is to balance your budget with your lifestyle needs, prioritizing the features that matter most to your daily routine. Whether you're looking for a fully equipped apartment with building-wide backup systems or planning to upgrade your current space with portable solutions, the investment in load shedding-friendly living pays dividends in comfort, convenience, and peace of mind.
 
 **Ready to maintain your load shedding-friendly apartment?** Professional cleaning services can help you keep your backup systems, gas appliances, and living spaces in optimal condition, ensuring your apartment remains a comfortable haven regardless of power grid challenges.
+
+---
+
+*Disclaimer: Some images used in this article are representative depictions and may not be true reflections of the specific named places, apartments, or developments mentioned. Images are used to illustrate concepts and design ideas discussed in the content.*

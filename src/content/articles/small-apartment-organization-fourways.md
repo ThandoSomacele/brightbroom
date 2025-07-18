@@ -185,3 +185,7 @@ Creating an organised small apartment in Fourways is entirely achievable with th
 The key is to be realistic about your lifestyle and choose organisation solutions that you'll actually maintain. With these seven strategies, your small apartment can become a peaceful, functional haven that you're proud to call home.
 
 **Ready to take your organised space to the next level?** Consider professional cleaning services to maintain your hard work and keep your newly organised apartment spotless. After all, an organised space deserves to be beautifully clean too.
+
+---
+
+*Disclaimer: Some images used in this article are representative depictions and may not be true reflections of the specific named places, apartments, or developments mentioned. Images are used to illustrate concepts and design ideas discussed in the content.*
