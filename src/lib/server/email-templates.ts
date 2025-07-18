@@ -1,6 +1,6 @@
 // src/lib/server/email-templates.ts
 import { parseDateTimeString } from "$lib/utils/date-utils";
-import { escapeHtml } from "$lib/utils/strings";
+import { escapeHtml, getBookingReference } from "$lib/utils/strings";
 
 export interface EmailTemplateData {
   appUrl: string;
@@ -420,6 +420,10 @@ export function getBookingConfirmationTemplate(
       
       <div class="booking-details">
         <div class="booking-detail">
+          <span class="label">Booking Reference:</span>
+          <span style="font-family: monospace; font-weight: bold;">#${getBookingReference(booking.id)}</span>
+        </div>
+        <div class="booking-detail">
           <span class="label">Service:</span>
           <span>${booking.service.name}</span>
         </div>
@@ -470,6 +474,7 @@ Hello,
 Thank you for booking with ${data.brandName}! Your cleaning service has been confirmed.
 
 Booking Details:
+Booking Reference: #${getBookingReference(booking.id)}
 Service: ${booking.service.name}
 Date: ${dateString}
 Time: ${timeString}
@@ -849,6 +854,7 @@ YOUR CLEANING SERVICE IS SCHEDULED IN APPROXIMATELY ${hoursUntil} HOURS.
 This is a friendly reminder about your upcoming cleaning service with ${data.brandName}.
 
 Booking Details:
+Booking Reference: #${getBookingReference(booking.id)}
 Service: ${booking.service.name}
 Date: ${dateString}
 Time: ${timeString}

@@ -44,7 +44,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     .innerJoin(address, eq(booking.addressId, address.id))
     .leftJoin(payment, eq(booking.id, payment.bookingId))
     .where(eq(booking.userId, locals.user.id))
-    .orderBy(desc(booking.scheduledDate));
+    .orderBy(desc(booking.createdAt));
     
     return {
       bookings

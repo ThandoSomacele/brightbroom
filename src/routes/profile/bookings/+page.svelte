@@ -2,6 +2,7 @@
 <script lang="ts">
   import Button from '$lib/components/ui/Button.svelte';
   import { Calendar, MapPin, Clock, CreditCard } from 'lucide-svelte';
+  import { getBookingReference } from '$lib/utils/strings';
   
   // Get data from the server load function
   export let data;
@@ -57,6 +58,7 @@
     const bookingDate = new Date(dateString);
     return bookingDate < now;
   }
+  
 </script>
 
 <svelte:head>
@@ -128,6 +130,12 @@
                       Past date
                     </span>
                   {/if}
+                </div>
+                
+                <div class="mb-2">
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Booking #{getBookingReference(booking.id)} • Created: {formatDate(booking.createdAt)}
+                  </p>
                 </div>
                 
                 <h2 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">

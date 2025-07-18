@@ -4,12 +4,20 @@
   import { goto } from '$app/navigation';
   import { enhance } from '$app/forms';
   import type { PageData } from './$types';
+  import type { ActionData } from './$types';
   
   export let data: PageData;
+  export let form: ActionData;
   
   let showLoginForm = false;
   let showSignupForm = false;
   let isSubmitting = false;
+  
+  // Show login form if there's a login error
+  $: if (form?.error) {
+    showLoginForm = true;
+    showSignupForm = false;
+  }
   
   // Removed continueAsGuest function - users must login or signup
   
@@ -72,7 +80,7 @@
         <div class="border-t pt-3 mt-3">
           <div class="flex justify-between text-lg font-semibold">
             <span>Total:</span>
-            <span class="text-green-600">R{data.bookingData.servicePrice}</span>
+            <span class="text-primary">R{data.bookingData.servicePrice}</span>
           </div>
         </div>
       </div>
@@ -88,28 +96,28 @@
     {#if !showLoginForm && !showSignupForm}
       <div class="space-y-4">
         <!-- Login -->
-        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors">
+        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-300 transition-colors">
           <h3 class="font-semibold text-lg mb-2">Login to Your Account</h3>
           <p class="text-gray-600 mb-4">
             Access your saved addresses and booking history by logging in.
           </p>
           <button
             on:click={showLogin}
-            class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+            class="w-full bg-primary-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-primary-600 transition-colors"
           >
             Login
           </button>
         </div>
         
         <!-- Signup -->
-        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
+        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-secondary-300 transition-colors">
           <h3 class="font-semibold text-lg mb-2">Create an Account</h3>
           <p class="text-gray-600 mb-4">
             Save your details for faster future bookings and track your cleaning history.
           </p>
           <button
             on:click={showSignup}
-            class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+            class="w-full bg-secondary-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-secondary-600 transition-colors"
           >
             Create Account
           </button>
@@ -146,6 +154,19 @@
         >
           <input type="hidden" name="redirectTo" value={data.bookingId ? `/payment/process?bookingId=${data.bookingId}` : '/payment/process'} />
           
+          <!-- Error message display -->
+          {#if form?.error}
+            <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div class="flex items-center">
+                <svg class="w-4 h-4 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="text-sm font-medium text-red-800">Login Error:</span>
+              </div>
+              <p class="text-sm text-red-700 mt-1">{form.error}</p>
+            </div>
+          {/if}
+          
           <div class="space-y-4">
             <div>
               <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
@@ -156,6 +177,7 @@
                 id="email"
                 name="email"
                 required
+                value={form?.email || ''}
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
@@ -176,7 +198,7 @@
             <button
               type="submit"
               disabled={isSubmitting}
-              class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
+              class="w-full bg-primary-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-primary-600 transition-colors disabled:opacity-50"
             >
               {isSubmitting ? 'Logging in...' : 'Login & Continue to Payment'}
             </button>
@@ -225,7 +247,7 @@
                   id="firstName"
                   name="firstName"
                   required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
               </div>
               <div>
@@ -237,7 +259,7 @@
                   id="lastName"
                   name="lastName"
                   required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
               </div>
             </div>
@@ -251,7 +273,7 @@
                 id="signup-email"
                 name="email"
                 required
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
               />
             </div>
             
@@ -263,7 +285,7 @@
                 type="tel"
                 id="phone"
                 name="phone"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
               />
             </div>
             
@@ -277,7 +299,7 @@
                 name="password"
                 required
                 minlength="8"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
               />
             </div>
             
@@ -287,7 +309,7 @@
                 id="terms"
                 name="terms"
                 required
-                class="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                class="h-4 w-4 text-secondary border-gray-300 rounded focus:ring-secondary"
               />
               <label for="terms" class="ml-2 block text-sm text-gray-700">
                 I agree to the Terms of Service and Privacy Policy
@@ -297,7 +319,7 @@
             <button
               type="submit"
               disabled={isSubmitting}
-              class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50"
+              class="w-full bg-secondary-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-secondary-600 transition-colors disabled:opacity-50"
             >
               {isSubmitting ? 'Creating Account...' : 'Create Account & Continue to Payment'}
             </button>

@@ -2,17 +2,23 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import AddressSelect from "$lib/components/booking/AddressSelect.svelte";
+  import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { MAX_ADDRESSES } from "$lib/constants/address";
   import { AlertCircle, ArrowLeft, ArrowRight, Plus } from "lucide-svelte";
   import { onMount } from "svelte";
-  import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
 
   // Get data from the server
   export let data;
 
   // Extract data from the server
-  const { addresses, maxAddresses, hasReachedLimit, remainingAddresses, isAuthenticated } = data;
+  const {
+    addresses,
+    maxAddresses,
+    hasReachedLimit,
+    remainingAddresses,
+    isAuthenticated,
+  } = data;
 
   // Local state variables
   let selectedAddress = ""; // This was missing!
@@ -20,24 +26,24 @@
   let isLoading = false;
   let selectedService = "";
   let addressValidationError = "";
-  
+
   // Google Maps API key
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   // Guest address form fields
   let guestAddress = {
-    street: '',
-    streetNumber: '',
-    aptUnit: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    instructions: '',
+    street: "",
+    streetNumber: "",
+    aptUnit: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    instructions: "",
     lat: 0,
-    lng: 0
+    lng: 0,
   };
   let useGuestAddress = !isAuthenticated;
-  
+
   // Google Places selected address
   let selectedGoogleAddress = {
     formatted: "",
@@ -79,34 +85,34 @@
   // Handle Google Places selection
   function handleGooglePlacesSelect(event) {
     const { address } = event.detail;
-    
+
     // Clear any previous validation errors
     addressValidationError = "";
-    
+
     // For South African estates/complexes, if street is empty, use formatted address or place name
-    let streetValue = address.street || '';
+    let streetValue = address.street || "";
     if (!streetValue && address.formatted) {
       // Extract the first part of the formatted address as street
-      const addressParts = address.formatted.split(',');
-      streetValue = addressParts[0]?.trim() || '';
+      const addressParts = address.formatted.split(",");
+      streetValue = addressParts[0]?.trim() || "";
     }
     if (!streetValue && address.placeName) {
       streetValue = address.placeName;
     }
-    
+
     // Update guest address with Google Places data
     guestAddress = {
       street: streetValue,
-      streetNumber: guestAddress.streetNumber || '', // Keep existing streetNumber
-      aptUnit: address.aptUnit || guestAddress.aptUnit || '', // Keep existing aptUnit if not in places data
-      city: address.city || '',
-      state: address.state || '',
-      zipCode: address.zipCode || '',
-      instructions: guestAddress.instructions || '', // Keep existing instructions
+      streetNumber: guestAddress.streetNumber || "", // Keep existing streetNumber
+      aptUnit: address.aptUnit || guestAddress.aptUnit || "", // Keep existing aptUnit if not in places data
+      city: address.city || "",
+      state: address.state || "",
+      zipCode: address.zipCode || "",
+      instructions: guestAddress.instructions || "", // Keep existing instructions
       lat: address.lat || 0,
-      lng: address.lng || 0
+      lng: address.lng || 0,
     };
-    
+
     selectedGoogleAddress = address;
   }
 
@@ -117,50 +123,75 @@
     // - City (locality or sublocality)
     // - State (province)
     // - ZIP code (postal code)
-    const hasAddressIdentifier = guestAddress.street || selectedGoogleAddress.formatted;
-    const hasRequiredFields = guestAddress.city && guestAddress.state && guestAddress.zipCode;
-    
+    const hasAddressIdentifier =
+      guestAddress.street || selectedGoogleAddress.formatted;
+    const hasRequiredFields =
+      guestAddress.city && guestAddress.state && guestAddress.zipCode;
+
     // Additional validation for estates and complexes
-    const isEstateOrComplex = selectedGoogleAddress.placeType === 'establishment' || selectedGoogleAddress.placeType === 'point_of_interest';
-    
+    const isEstateOrComplex =
+      selectedGoogleAddress.placeType === "establishment" ||
+      selectedGoogleAddress.placeType === "point_of_interest";
+
     if (isEstateOrComplex) {
       // For estates/complexes, also require street number and unit
-      const hasStreetNumber = guestAddress.streetNumber && guestAddress.streetNumber.trim() !== '';
-      const hasUnitNumber = guestAddress.aptUnit && guestAddress.aptUnit.trim() !== '';
-      return hasAddressIdentifier && hasRequiredFields && hasStreetNumber && hasUnitNumber;
+      const hasStreetNumber =
+        guestAddress.streetNumber && guestAddress.streetNumber.trim() !== "";
+      const hasUnitNumber =
+        guestAddress.aptUnit && guestAddress.aptUnit.trim() !== "";
+      return (
+        hasAddressIdentifier &&
+        hasRequiredFields &&
+        hasStreetNumber &&
+        hasUnitNumber
+      );
     }
-    
+
     return hasAddressIdentifier && hasRequiredFields;
   }
-
 
   // Continue to next step
   async function continueToNext() {
     // Clear previous errors
     addressValidationError = "";
-    
+
     // Validate based on user type
     if (isAuthenticated && !selectedAddress) {
-      addressValidationError = "Please select an address from your saved addresses.";
+      addressValidationError =
+        "Please select an address from your saved addresses.";
       return; // Need to select an address for authenticated users
     }
-    
+
     if (!isAuthenticated && !isGuestAddressValid()) {
       // Provide specific error messages
-      const isEstateOrComplex = selectedGoogleAddress.placeType === 'establishment' || selectedGoogleAddress.placeType === 'point_of_interest';
-      
+      const isEstateOrComplex =
+        selectedGoogleAddress.placeType === "establishment" ||
+        selectedGoogleAddress.placeType === "point_of_interest";
+
       if (!selectedGoogleAddress.formatted) {
-        addressValidationError = "Please select an address from the Google Maps suggestions.";
+        addressValidationError =
+          "Please select an address from the Google Maps suggestions.";
       } else if (!guestAddress.city) {
-        addressValidationError = "Address is missing city information. Please select a different address.";
+        addressValidationError =
+          "Address is missing city information. Please select a different address.";
       } else if (!guestAddress.state) {
-        addressValidationError = "Address is missing province/state information. Please select a different address.";
+        addressValidationError =
+          "Address is missing province/state information. Please select a different address.";
       } else if (!guestAddress.zipCode) {
-        addressValidationError = "Address is missing postal code. Please select a different address.";
-      } else if (isEstateOrComplex && (!guestAddress.streetNumber || guestAddress.streetNumber.trim() === '')) {
-        addressValidationError = "Please provide the street number or specific address within the estate/complex.";
-      } else if (isEstateOrComplex && (!guestAddress.aptUnit || guestAddress.aptUnit.trim() === '')) {
-        addressValidationError = "Please provide your apartment or unit number for the complex/estate.";
+        addressValidationError =
+          "Address is missing postal code. Please select a different address.";
+      } else if (
+        isEstateOrComplex &&
+        (!guestAddress.streetNumber || guestAddress.streetNumber.trim() === "")
+      ) {
+        addressValidationError =
+          "Please provide the street number or specific address within the estate/complex.";
+      } else if (
+        isEstateOrComplex &&
+        (!guestAddress.aptUnit || guestAddress.aptUnit.trim() === "")
+      ) {
+        addressValidationError =
+          "Please provide your apartment or unit number for the complex/estate.";
       } else {
         addressValidationError = "Please complete the address information.";
       }
@@ -180,7 +211,10 @@
         localStorage.setItem("booking_instructions", instructions);
       } else {
         // Guest user - store guest address
-        localStorage.setItem("booking_guest_address", JSON.stringify(guestAddress));
+        localStorage.setItem(
+          "booking_guest_address",
+          JSON.stringify(guestAddress),
+        );
       }
 
       // Get the service ID from localStorage
@@ -319,9 +353,24 @@
         type="button"
         class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-primary-50 hover:bg-primary-100 hover:text-primary-700 rounded-md transition-colors dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40 mr-2 flex-shrink-0"
       >
-        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+        <svg
+          class="w-3 h-3"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+          />
         </svg>
         View Details
       </button>
@@ -378,7 +427,7 @@
         <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
           Enter Your Address
         </h2>
-        
+
         <div class="space-y-4">
           <!-- Google Places Autocomplete -->
           <div>
@@ -391,13 +440,16 @@
               on:select={handleGooglePlacesSelect}
             />
           </div>
-          
+
           <!-- Additional address details -->
           <div class="space-y-4">
             <!-- Street Number/Address Line 2 (for estates/complexes) -->
-            {#if selectedGoogleAddress.placeType === 'establishment' || selectedGoogleAddress.placeType === 'point_of_interest'}
+            {#if selectedGoogleAddress.placeType === "establishment" || selectedGoogleAddress.placeType === "point_of_interest"}
               <div>
-                <label for="streetNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label
+                  for="streetNumber"
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
                   Street Number/Address Line 2
                   <span class="text-red-500">*</span>
                 </label>
@@ -410,7 +462,8 @@
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  Please provide the street number or specific address within {selectedGoogleAddress.placeName || 'the estate/complex'}
+                  Please provide the street number or specific address within {selectedGoogleAddress.placeName ||
+                    "the estate/complex"}
                 </p>
               </div>
             {/if}
@@ -418,12 +471,15 @@
             <!-- Unit/Apartment -->
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label for="aptUnit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {#if selectedGoogleAddress.placeType === 'establishment' || selectedGoogleAddress.placeType === 'point_of_interest'}
-                    Apartment/Unit Number
+                <label
+                  for="aptUnit"
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  {#if selectedGoogleAddress.placeType === "establishment" || selectedGoogleAddress.placeType === "point_of_interest"}
+                    Apartment, and Unit Number
                     <span class="text-red-500">*</span>
                   {:else}
-                    Apartment/Unit (Optional)
+                    Apartment, and Unit (Optional)
                   {/if}
                 </label>
                 <input
@@ -431,17 +487,22 @@
                   id="aptUnit"
                   bind:value={guestAddress.aptUnit}
                   placeholder="Apt 4B, Unit 12, etc."
-                  required={selectedGoogleAddress.placeType === 'establishment' || selectedGoogleAddress.placeType === 'point_of_interest'}
+                  required={selectedGoogleAddress.placeType ===
+                    "establishment" ||
+                    selectedGoogleAddress.placeType === "point_of_interest"}
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
-                {#if selectedGoogleAddress.placeType === 'establishment' || selectedGoogleAddress.placeType === 'point_of_interest'}
+                {#if selectedGoogleAddress.placeType === "establishment" || selectedGoogleAddress.placeType === "point_of_interest"}
                   <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     Required for complexes and estates
                   </p>
                 {/if}
               </div>
               <div>
-                <label for="instructions" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label
+                  for="instructions"
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
                   Access Instructions (Optional)
                 </label>
                 <input
@@ -454,41 +515,18 @@
               </div>
             </div>
           </div>
-          
-          <!-- Display selected address summary -->
-          {#if selectedGoogleAddress.formatted}
-            <div class="p-3 bg-green-50 border border-green-200 rounded-lg dark:bg-green-900/20 dark:border-green-800">
-              <div class="flex items-center">
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-primary-50 hover:bg-primary-100 hover:text-primary-700 rounded-md transition-colors dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40 mr-2"
-                >
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                  </svg>
-                  View Details
-                </button>
-                <span class="text-sm font-medium text-green-800 dark:text-green-200">Selected Address:</span>
-              </div>
-              <p class="text-sm text-green-700 dark:text-green-300 mt-1">
-                {selectedGoogleAddress.formatted}
-                {#if guestAddress.streetNumber}
-                  , {guestAddress.streetNumber}
-                {/if}
-                {#if guestAddress.aptUnit}
-                  , {guestAddress.aptUnit}
-                {/if}
-              </p>
-            </div>
-          {/if}
-          
+
+
           <!-- Address validation error -->
           {#if addressValidationError}
-            <div class="p-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800">
+            <div
+              class="p-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800"
+            >
               <div class="flex items-center">
                 <AlertCircle class="w-4 h-4 text-red-600 mr-2" />
-                <span class="text-sm font-medium text-red-800 dark:text-red-200">Address Error:</span>
+                <span class="text-sm font-medium text-red-800 dark:text-red-200"
+                  >Address Error:</span
+                >
               </div>
               <p class="text-sm text-red-700 dark:text-red-300 mt-1">
                 {addressValidationError}
@@ -555,7 +593,9 @@
       <Button
         variant="primary"
         on:click={continueToNext}
-        disabled={isLoading || (isAuthenticated && !selectedAddress) || (!isAuthenticated && !isGuestAddressValid())}
+        disabled={isLoading ||
+          (isAuthenticated && !selectedAddress) ||
+          (!isAuthenticated && !isGuestAddressValid())}
       >
         {#if isLoading}
           <svg
