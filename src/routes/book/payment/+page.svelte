@@ -140,15 +140,17 @@
         
         <form
           method="POST"
-          action="/auth/login?/login"
+          action="?/login"
           use:enhance={() => {
             isSubmitting = true;
-            return ({ result }) => {
+            return ({ result, update }) => {
               isSubmitting = false;
               if (result.type === 'redirect') {
-                const redirectUrl = data.bookingId ? `/payment/process?bookingId=${data.bookingId}` : '/payment/process';
-                goto(redirectUrl);
+                // Let SvelteKit handle the redirect
+                return;
               }
+              // Update the form to show validation errors
+              update();
             };
           }}
         >
