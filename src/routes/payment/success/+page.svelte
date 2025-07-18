@@ -156,7 +156,7 @@
           <div class="flex justify-between">
             <span class="text-gray-600 dark:text-gray-400">Location:</span>
             <span class="font-medium text-gray-900 dark:text-white">
-              {booking.address.street}
+              {booking.address ? booking.address.street : booking.guestAddress.street}
             </span>
           </div>
           

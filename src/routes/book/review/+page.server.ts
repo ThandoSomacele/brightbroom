@@ -87,20 +87,8 @@ export const actions: Actions = {
     // Authenticated user booking data
     const addressId = formData.get('addressId')?.toString();
     
-    console.log('Booking creation attempt with data:', {
-      serviceId,
-      scheduledDate,
-      notes,
-      guestName,
-      guestEmail,
-      guestPhone,
-      guestAddressData,
-      addressId,
-      isAuthenticated: !!locals.user
-    });
     
     if (!serviceId || !scheduledDate) {
-      console.log('Missing required booking information:', { serviceId, scheduledDate });
       return { success: false, error: 'Missing required booking information' };
     }
     
@@ -119,14 +107,12 @@ export const actions: Actions = {
     
     try {
       // Validate service exists
-      console.log('Looking for service with ID:', serviceId);
       const serviceResult = await db.select()
         .from(service)
         .where(eq(service.id, serviceId))
         .limit(1);
       
       if (serviceResult.length === 0) {
-        console.log('Service not found, available services:', await db.select().from(service));
         return { success: false, error: 'Selected service not found' };
       }
       
@@ -150,9 +136,7 @@ export const actions: Actions = {
       } else {
         // Guest user - parse and validate guest address
         try {
-          console.log('Attempting to parse guest address data:', guestAddressData);
           guestAddress = JSON.parse(guestAddressData!);
-          console.log('Parsed guest address:', guestAddress);
           
           // Check if guest address is null or missing required fields
           if (!guestAddress) {
@@ -162,23 +146,15 @@ export const actions: Actions = {
           // For South African addresses, validate required fields
           // Street can be empty for estates/complexes as long as we have other identifying info
           if (!guestAddress.city || !guestAddress.state || !guestAddress.zipCode) {
-            console.log('Guest address missing required fields:', { 
-              city: guestAddress.city, 
-              state: guestAddress.state, 
-              zipCode: guestAddress.zipCode 
-            });
             return { success: false, error: 'Complete address information is required (city, province, and postal code)' };
           }
         } catch (error) {
-          console.log('Error parsing guest address:', error);
           return { success: false, error: 'Invalid address format' };
         }
       }
       
       // Parse the scheduled date
-      console.log('Parsing scheduled date:', scheduledDate);
       const scheduledDateObj = new Date(parseDateTimeString(scheduledDate));
-      console.log('Parsed scheduled date:', scheduledDateObj);
       
       // Calculate duration in minutes based on the service
       const durationMinutes = serviceData.durationHours * 60;
@@ -207,9 +183,7 @@ export const actions: Actions = {
       };
       
       // Insert the booking into the database
-      console.log('About to insert booking with data:', bookingData);
       const [newBooking] = await db.insert(booking).values(bookingData).returning();
-      console.log('Booking inserted successfully:', newBooking.id);
       
       console.log(`Created new booking: ${newBooking.id} for ${locals.user ? 'user: ' + locals.user.id : 'guest: ' + guestEmail}`);
       
@@ -274,12 +248,6 @@ export const actions: Actions = {
       };
     } catch (err) {
       console.error('Error creating booking:', err);
-      console.error('Full error details:', {
-        message: err.message,
-        stack: err.stack,
-        name: err.name,
-        cause: err.cause
-      });
       return { 
         success: false, 
         error: 'Failed to create booking. Please try again.' 

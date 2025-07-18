@@ -196,8 +196,8 @@
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">Location</p>
                   <p class="text-sm text-gray-600 dark:text-gray-300">
-                    {booking.address.street}<br>
-                    {booking.address.city}, {booking.address.state} {booking.address.zipCode}
+                    {booking.address ? booking.address.street : booking.guestAddress.street}<br>
+                    {booking.address ? `${booking.address.city}, ${booking.address.state} ${booking.address.zipCode}` : `${booking.guestAddress.city}, ${booking.guestAddress.state} ${booking.guestAddress.zipCode}`}
                   </p>
                 </div>
               </div>

@@ -130,6 +130,31 @@ export const actions: Actions = {
         });
       }
 
+      // Handle database unique constraint violations
+      if (error && typeof error === 'object' && 'code' in error) {
+        if (error.code === '23505') { // PostgreSQL unique constraint violation
+          const errorMessage = error.message || '';
+          if (errorMessage.includes('email')) {
+            return fail(400, {
+              error: "An account with this email already exists",
+              firstName,
+              lastName,
+              email,
+              phone,
+            });
+          }
+          if (errorMessage.includes('phone')) {
+            return fail(400, {
+              error: "An account with this phone number already exists",
+              firstName,
+              lastName,
+              email,
+              phone,
+            });
+          }
+        }
+      }
+
       return fail(500, {
         error: "Failed to create account. Please try again.",
         firstName,

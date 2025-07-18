@@ -40,6 +40,7 @@
   $: addressDetails = addresses.find((a) => a.id === selectedAddress);
   $: scheduledDateTime =
     selectedDate && selectedTime ? `${selectedDate}T${selectedTime}` : "";
+    
 
   // Initialize data from localStorage on mount
   import { onMount } from "svelte";
@@ -77,6 +78,7 @@
       }
     }
 
+    
     // Validation based on user type
     const hasValidAddressData = isAuthenticated ? selectedAddress : guestAddress;
     
@@ -469,17 +471,6 @@
       use:enhance={({ formData }) => {
         isLoading = true;
         
-        // Debug what we're sending
-        console.log('Submitting booking with data:', {
-          selectedService,
-          scheduledDateTime,
-          notes,
-          guestName,
-          guestEmail,
-          guestPhone,
-          guestAddress,
-          isAuthenticated
-        });
 
         return async ({ result, update }) => {
           isLoading = false;
@@ -487,7 +478,6 @@
           if (result.type === "success" && result.data.success) {
             handleBookingSuccess(result.data);
           } else {
-            console.log('Booking failed:', result);
             await update();
           }
         };

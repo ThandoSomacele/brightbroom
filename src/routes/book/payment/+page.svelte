@@ -11,11 +11,7 @@
   let showSignupForm = false;
   let isSubmitting = false;
   
-  // Guest checkout options
-  function continueAsGuest() {
-    const redirectUrl = data.bookingId ? `/payment/process?bookingId=${data.bookingId}` : '/payment/process';
-    goto(redirectUrl);
-  }
+  // Removed continueAsGuest function - users must login or signup
   
   function showLogin() {
     showLoginForm = true;
@@ -40,7 +36,7 @@
 <div class="container mx-auto px-4 py-8 max-w-2xl">
   <div class="mb-8">
     <h1 class="text-3xl font-bold text-gray-900 mb-2">Complete Your Booking</h1>
-    <p class="text-gray-600">Choose how you'd like to proceed with your payment</p>
+    <p class="text-gray-600">Please login or create an account to complete your booking</p>
   </div>
   
   <!-- Booking Summary -->
@@ -91,20 +87,6 @@
     
     {#if !showLoginForm && !showSignupForm}
       <div class="space-y-4">
-        <!-- Continue as Guest -->
-        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
-          <h3 class="font-semibold text-lg mb-2">Continue as Guest</h3>
-          <p class="text-gray-600 mb-4">
-            Complete your booking quickly without creating an account. You'll receive confirmation via email.
-          </p>
-          <button
-            on:click={continueAsGuest}
-            class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          >
-            Continue as Guest
-          </button>
-        </div>
-        
         <!-- Login -->
         <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors">
           <h3 class="font-semibold text-lg mb-2">Login to Your Account</h3>
