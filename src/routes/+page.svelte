@@ -46,6 +46,85 @@
     content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean."
   />
   <meta name="twitter:image" content={ogImageUrl} />
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "BrightBroom",
+      "image": "{ogImageUrl}",
+      "description": "Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean.",
+      "@id": "https://brightbroom.com",
+      "url": "https://brightbroom.com",
+      "telephone": "+27-11-123-4567",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "123 Main Street",
+        "addressLocality": "Johannesburg",
+        "addressRegion": "Gauteng",
+        "postalCode": "2000",
+        "addressCountry": "ZA"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": -26.2041,
+        "longitude": 28.0473
+      },
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday"
+        ],
+        "opens": "07:00",
+        "closes": "19:00"
+      },
+      "sameAs": [
+        "https://www.facebook.com/brightbroom",
+        "https://www.instagram.com/brightbroom",
+        "https://twitter.com/brightbroom"
+      ],
+      "areaServed": ["Johannesburg", "Cape Town", "Durban", "Pretoria"],
+      "priceRange": "$$",
+      "serviceType": "Cleaning Service",
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Cleaning Services",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Regular Cleaning",
+              "description": "Perfect for maintaining a clean and tidy home on a regular basis."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Extended Cleaning",
+              "description": "A thorough cleaning service that reaches every corner and detail."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Office Cleaning",
+              "description": "Professional cleaning for your office space or commercial property."
+            }
+          }
+        ]
+      }
+    }
+  </script>
 </svelte:head>
 
 <!-- Hero section -->
@@ -87,7 +166,7 @@
       <div class="flex items-center justify-center">
         <img
           src={heroImage}
-          alt="Professional cleaning service"
+          alt="Professional cleaner organising a modern living room with cleaning supplies, showcasing BrightBroom's quality service"
           class="rounded-lg shadow-md object-cover w-full h-auto md:h-full lg:h-96"
         />
       </div>
@@ -481,11 +560,7 @@
         difference.
       </p>
       <div class="mt-8">
-        <Button
-          variant="secondary"
-          size="lg"
-          href="/book"
-        >
+        <Button variant="secondary" size="lg" href="/book">
           {user ? "Book a Cleaning" : "Book Cleaner"}
         </Button>
       </div>

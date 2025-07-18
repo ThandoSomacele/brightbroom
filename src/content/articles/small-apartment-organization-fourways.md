@@ -43,7 +43,7 @@ ctas:
     position: "end"
 ---
 
-Living in a small apartment in Fourways doesn't mean you have to sacrifice style or functionality. With the right organisation strategies, even the most compact spaces can feel spacious, tidy, and welcoming. As professional cleaners who work in apartments across the Fourways area daily, we've discovered the most effective tricks for maximizing space and maintaining order.
+Living in a small apartment in Fourways doesn't mean you have to sacrifice style or functionality. With the right organisation strategies, even the most compact spaces can feel spacious, tidy, and welcoming. As professional cleaners who work in apartments across the Fourways area daily, we've discovered the most effective tricks for maximising space and maintaining order.
 
 ## Why Organisation Matters in Small Spaces
 

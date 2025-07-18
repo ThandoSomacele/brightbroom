@@ -30,6 +30,17 @@
     name="description"
     content="Get in touch with BrightBroom cleaning services for questions, support, or to join our team of professional cleaners."
   />
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Contact Us | BrightBroom" />
+  <meta property="og:description" content="Get in touch with BrightBroom cleaning services for questions, support, or to join our team of professional cleaners." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://brightbroom.com/contact" />
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Contact Us | BrightBroom" />
+  <meta name="twitter:description" content="Get in touch with BrightBroom cleaning services for questions, support, or to join our team of professional cleaners." />
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 py-12 dark:bg-gray-900">

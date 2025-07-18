@@ -98,6 +98,7 @@
         fill="none"
         viewBox="0 0 24 24"
         data-testid="loading-spinner"
+        aria-label="Loading, please wait"
       >
         <circle
           class="opacity-25"
@@ -132,6 +133,7 @@
         fill="none"
         viewBox="0 0 24 24"
         data-testid="loading-spinner"
+        aria-label="Loading, please wait"
       >
         <circle
           class="opacity-25"

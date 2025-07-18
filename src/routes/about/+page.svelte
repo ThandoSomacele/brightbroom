@@ -66,6 +66,69 @@
     name="description"
     content="Learn about BrightBroom, our mission, values, and the team behind our professional cleaning services."
   />
+
+  <!-- Open Graph -->
+  <meta
+    property="og:title"
+    content="About BrightBroom | Professional Cleaning Services"
+  />
+  <meta
+    property="og:description"
+    content="Learn about BrightBroom, our mission, values, and the team behind our professional cleaning services."
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://brightbroom.com/about" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary" />
+  <meta
+    name="twitter:title"
+    content="About BrightBroom | Professional Cleaning Services"
+  />
+  <meta
+    name="twitter:description"
+    content="Learn about BrightBroom, our mission, values, and the team behind our professional cleaning services."
+  />
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organisation",
+      "name": "BrightBroom",
+      "url": "https://brightbroom.com",
+      "logo": "https://brightbroom.com/images/brightbroom-logo.png",
+      "description": "BrightBroom is a professional cleaning service company that provides on-demand cleaning solutions for homes and offices.",
+      "foundingDate": "2023",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "123 Main Street",
+        "addressLocality": "Johannesburg",
+        "addressRegion": "Gauteng",
+        "postalCode": "2000",
+        "addressCountry": "ZA"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+27-11-123-4567",
+        "contactType": "Customer Service",
+        "areaServed": "ZA",
+        "availableLanguage": "English"
+      },
+      "sameAs": [
+        "https://www.facebook.com/brightbroom",
+        "https://www.instagram.com/brightbroom",
+        "https://twitter.com/brightbroom"
+      ],
+      "knowsAbout": [
+        "House Cleaning",
+        "Office Cleaning",
+        "Deep Cleaning",
+        "Regular Cleaning",
+        "Commercial Cleaning"
+      ]
+    }
+  </script>
 </svelte:head>
 
 <!-- Hero Section -->

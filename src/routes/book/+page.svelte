@@ -154,9 +154,10 @@
                   : "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
               }`}
             on:click={() => selectService(service.id)}
-            on:keydown={(e) => e.key === "Enter" && selectService(service.id)}
+            on:keydown={(e) => (e.key === "Enter" || e.key === " ") && selectService(service.id)}
             role="button"
             tabindex="0"
+            aria-label="Select {service.name} service - {service.description}"
           >
             <div class="flex justify-between items-start">
               <div

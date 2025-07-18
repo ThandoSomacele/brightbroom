@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and internal routes
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /api/
+Disallow: /cleaner/
+Disallow: /profile/
+Disallow: /book/
+Disallow: /payment/
+
+# Allow public pages
+Allow: /
+Allow: /services
+Allow: /about
+Allow: /contact
+Allow: /magazine
+Allow: /privacy
+Allow: /terms
+Allow: /join
+
+# Sitemap location
+Sitemap: https://brightbroom.com/sitemap.xml

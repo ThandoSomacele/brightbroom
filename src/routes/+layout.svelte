@@ -7,6 +7,10 @@
 
   // Access user data from the page store
   $: user = $page.data.user;
+  
+  // Get site URL for canonical URLs
+  const siteUrl = import.meta.env.VITE_SITE_URL || "https://brightbroom.com";
+  $: canonicalUrl = `${siteUrl}${$page.url.pathname}`;
 
   let isMenuOpen = false;
 
@@ -26,10 +30,20 @@
     name="description"
     content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean."
   />
+  <!-- Canonical URL -->
+  <link rel="canonical" href={canonicalUrl} />
 </svelte:head>
 
 <!-- Global loading indicator for page navigation -->
 <LoadingIndicator />
+
+<!-- Skip link for accessibility -->
+<a 
+  href="#main-content" 
+  class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-primary text-white p-3 z-50 focus:z-50"
+>
+  Skip to main content
+</a>
 
 <!-- Header with navigation -->
 <header class="bg-white shadow dark:bg-gray-800">
@@ -37,7 +51,7 @@
     <div class="flex h-16 items-center justify-between">
       <!-- Logo and site name -->
       <div class="flex flex-shrink-0 items-center">
-        <a href="/" class="flex items-center">
+        <a href="/" class="flex items-center" aria-label="BrightBroom home page">
           <span class="text-2xl font-bold text-primary">BrightBroom</span>
         </a>
       </div>
@@ -253,7 +267,7 @@
 </header>
 
 <!-- Page content -->
-<main>
+<main id="main-content">
   <slot />
 </main>
 
