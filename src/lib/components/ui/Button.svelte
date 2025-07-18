@@ -14,9 +14,17 @@
   let customClass = "";
   export { customClass as class };
   
-  // Track if this specific href is being navigated to
-  $: isNavigatingToHref = $navigating && href && $navigating.to?.url.pathname === href;
+  // Track if this specific button was clicked
+  let wasClicked = false;
+  
+  // Track if this specific href is being navigated to AND this button was clicked
+  $: isNavigatingToHref = $navigating && href && $navigating.to?.url.pathname === href && wasClicked;
   $: isLoading = loading || isNavigatingToHref;
+  
+  // Reset clicked state when navigation completes
+  $: if (!$navigating) {
+    wasClicked = false;
+  }
   
   const baseStyles =
     "inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
@@ -60,6 +68,7 @@
     if (event.metaKey || event.ctrlKey || event.shiftKey) return;
     
     event.preventDefault();
+    wasClicked = true;
     goto(href);
   }
   
