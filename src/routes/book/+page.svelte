@@ -180,7 +180,7 @@
       {#if services && services.length > 0}
         {#each services as service}
           <div
-            class={`cursor-pointer rounded-lg border-2 p-6 transition-all hover:shadow-md
+            class={`cursor-pointer rounded-lg border-2 p-6 transition-all hover:shadow-md flex flex-col h-full
               ${
                 selectedService === service.id
                   ? "border-primary bg-primary-50 dark:border-primary-600 dark:bg-primary-900/20"
@@ -227,11 +227,11 @@
             >
               {service.name}
             </h3>
-            <p class="mb-4 text-sm text-gray-600 dark:text-gray-300">
+            <p class="mb-4 text-sm text-gray-600 dark:text-gray-300 flex-grow">
               {service.description}
             </p>
 
-            <div class="flex items-end justify-between">
+            <div class="flex items-end justify-between mt-auto">
               <div>
                 <p class="text-sm text-gray-600 dark:text-gray-400">
                   Starting at
@@ -243,7 +243,7 @@
                 </p>
               </div>
 
-              <div>
+              <div class="text-right">
                 <p class="text-sm text-gray-600 dark:text-gray-400">Duration</p>
                 <p class="text-lg font-medium text-gray-800 dark:text-gray-200">
                   {service.durationHours}
