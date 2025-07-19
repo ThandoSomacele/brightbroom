@@ -1,6 +1,7 @@
 <!-- src/routes/book/+page.svelte -->
 <script lang="ts">
   import { goto } from "$app/navigation";
+  import { page } from "$app/stores";
   import ServiceDetailsModal from "$lib/components/booking/ServiceDetailsModal.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import {
@@ -14,6 +15,9 @@
   // Get data from the server load function
   export let data;
   const { services, user, isAuthenticated } = data;
+
+  const siteUrl = import.meta.env.VITE_SITE_URL || "https://brightbroom.com";
+  const ogImageUrl = `${siteUrl}/images/brightbroom-og-image.jpg`;
 
   // Track selected service
   let selectedService = "";
@@ -60,6 +64,36 @@
 
 <svelte:head>
   <title>Book a Cleaning | BrightBroom</title>
+  <meta
+    name="description"
+    content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean."
+  />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={$page.url.href} />
+  <meta
+    property="og:title"
+    content="BrightBroom | On-demand Cleaning Services"
+  />
+  <meta
+    property="og:description"
+    content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean."
+  />
+  <meta property="og:image" content={ogImageUrl} />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content={$page.url.href} />
+  <meta
+    name="twitter:title"
+    content="BrightBroom | On-demand Cleaning Services"
+  />
+  <meta
+    name="twitter:description"
+    content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean."
+  />
+  <meta name="twitter:image" content={ogImageUrl} />
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 px-4 py-8 dark:bg-gray-900">
