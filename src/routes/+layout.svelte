@@ -25,8 +25,24 @@
     isMenuOpen = false;
   }
 
-  // Initialize performance monitoring
+  // Initialize performance monitoring and GTM
   onMount(() => {
+    // Initialize Google Tag Manager
+    if (typeof window !== 'undefined') {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        'gtm.start': new Date().getTime(),
+        event: 'gtm.js'
+      });
+      
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-WSXMSVZT';
+      
+      const firstScript = document.getElementsByTagName('script')[0];
+      firstScript.parentNode.insertBefore(script, firstScript);
+    }
+
     // Report performance metrics after page is fully loaded
     setTimeout(() => {
       performanceMonitor.reportMetrics();
@@ -44,6 +60,11 @@
   <!-- Canonical URL -->
   <link rel="canonical" href={canonicalUrl} />
 </svelte:head>
+
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WSXMSVZT"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
 
 <!-- Global loading indicator for page navigation -->
 <LoadingIndicator />
