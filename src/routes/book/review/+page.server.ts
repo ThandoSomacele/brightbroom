@@ -47,9 +47,6 @@ export const load: PageServerLoad = async ({ locals, ...event }) => {
 export const actions: Actions = {
   storeGuestData: async ({ request, ...event }) => {
     const formData = await request.formData();
-    const guestName = formData.get('guestName')?.toString();
-    const guestEmail = formData.get('guestEmail')?.toString();
-    const guestPhone = formData.get('guestPhone')?.toString();
     const guestAddressData = formData.get('guestAddress')?.toString();
     
     let guestAddress = null;
@@ -63,9 +60,6 @@ export const actions: Actions = {
     
     // Store guest data in session
     storeGuestBookingData(event, {
-      guestName,
-      guestEmail,
-      guestPhone,
       guestAddress
     });
     
@@ -78,10 +72,7 @@ export const actions: Actions = {
     const scheduledDate = formData.get('scheduledDate')?.toString();
     const notes = formData.get('notes')?.toString();
     
-    // Guest booking data
-    const guestName = formData.get('guestName')?.toString();
-    const guestEmail = formData.get('guestEmail')?.toString();
-    const guestPhone = formData.get('guestPhone')?.toString();
+    // Guest booking data (contact info will be obtained during authentication)
     const guestAddressData = formData.get('guestAddress')?.toString();
     
     // Authenticated user booking data
@@ -173,10 +164,7 @@ export const actions: Actions = {
         duration: durationMinutes,
         price: serviceData.basePrice,
         notes: notes || null,
-        // Guest booking fields - will be updated during payment authentication
-        guestName: locals.user ? null : (guestName || null),
-        guestEmail: locals.user ? null : (guestEmail || null),
-        guestPhone: locals.user ? null : (guestPhone || null),
+        // Guest booking fields - only address data (contact info obtained during authentication)
         guestAddress: locals.user ? null : guestAddress,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -185,7 +173,7 @@ export const actions: Actions = {
       // Insert the booking into the database
       const [newBooking] = await db.insert(booking).values(bookingData).returning();
       
-      console.log(`Created new booking: ${newBooking.id} for ${locals.user ? 'user: ' + locals.user.id : 'guest: ' + (guestEmail || 'unknown')}`);
+      console.log(`Created new booking: ${newBooking.id} for ${locals.user ? 'user: ' + locals.user.id : 'guest (contact info to be collected during authentication)'}`);
       
       // Store guest booking data in session for potential future use
       if (!locals.user) {
@@ -196,9 +184,6 @@ export const actions: Actions = {
           scheduledDate,
           duration: durationMinutes,
           notes: notes || undefined,
-          guestName: guestName || undefined,
-          guestEmail: guestEmail || undefined,
-          guestPhone: guestPhone || undefined,
           guestAddress
         });
       }
@@ -239,8 +224,7 @@ export const actions: Actions = {
         success: true,
         bookingId: newBooking.id,
         message: 'Booking created successfully',
-        isGuest: !locals.user,
-        guestEmail: locals.user ? null : guestEmail
+        isGuest: !locals.user
       };
     } catch (err) {
       console.error('Error creating booking:', err);

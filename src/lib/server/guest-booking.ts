@@ -9,12 +9,7 @@ export interface GuestBookingData {
   duration: number;
   notes?: string;
   
-  // Guest contact info
-  guestName?: string;
-  guestEmail?: string;
-  guestPhone?: string;
-  
-  // Guest address info
+  // Guest address info (contact info obtained during authentication)
   guestAddress?: {
     street: string;
     streetNumber?: string;
@@ -84,10 +79,6 @@ export function isGuestBookingDataComplete(data: Partial<GuestBookingData>): boo
   return !!(
     data.serviceId &&
     data.scheduledDate &&
-    data.guestName &&
-    data.guestEmail &&
-    data.guestPhone &&
-    data.guestAddress?.street &&
     data.guestAddress?.city &&
     data.guestAddress?.state &&
     data.guestAddress?.zipCode
@@ -104,10 +95,7 @@ export function validateGuestBookingData(data: any): data is GuestBookingData {
   if (!data.serviceId || typeof data.serviceId !== 'string') return false;
   if (!data.scheduledDate || typeof data.scheduledDate !== 'string') return false;
   
-  // Optional guest info validation
-  if (data.guestName && typeof data.guestName !== 'string') return false;
-  if (data.guestEmail && typeof data.guestEmail !== 'string') return false;
-  if (data.guestPhone && typeof data.guestPhone !== 'string') return false;
+  // Guest contact info is no longer stored (obtained during authentication)
   
   // Optional address validation
   if (data.guestAddress) {
