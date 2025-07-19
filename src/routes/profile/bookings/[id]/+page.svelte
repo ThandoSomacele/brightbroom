@@ -3,6 +3,7 @@
   import Button from '$lib/components/ui/Button.svelte';
   import { Calendar, MapPin, Clock, CreditCard, Briefcase, User, MessageSquare } from 'lucide-svelte';
   import { notFound, forbidden } from '$lib/utils/errors';
+  import { getBookingReference } from '$lib/utils/strings';
 
   
   // Get data from the server load function
@@ -47,6 +48,7 @@
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
     }
   }
+  
   
   // Is the booking in the past?
   function isPastBooking(dateString: string): boolean {
@@ -154,6 +156,20 @@
     <!-- Booking details card -->
     <div class="mb-6 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
       <h2 class="mb-6 text-xl font-semibold text-gray-900 dark:text-white">Booking Information</h2>
+      
+      <!-- Booking ID and Created Date -->
+      <div class="mb-6 rounded-lg bg-gray-50 p-4 dark:bg-gray-700/30">
+        <div class="grid gap-3 sm:grid-cols-2">
+          <div>
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Booking Reference:</span>
+            <p class="text-lg font-mono font-semibold text-gray-900 dark:text-white">#{getBookingReference(booking.id)}</p>
+          </div>
+          <div>
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Created:</span>
+            <p class="text-sm text-gray-700 dark:text-gray-200">{formatDate(booking.createdAt)}</p>
+          </div>
+        </div>
+      </div>
       
       <div class="grid gap-6 md:grid-cols-2">
         <!-- Left column -->

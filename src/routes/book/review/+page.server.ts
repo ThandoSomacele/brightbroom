@@ -47,9 +47,6 @@ export const load: PageServerLoad = async ({ locals, ...event }) => {
 export const actions: Actions = {
   storeGuestData: async ({ request, ...event }) => {
     const formData = await request.formData();
-    const guestName = formData.get('guestName')?.toString();
-    const guestEmail = formData.get('guestEmail')?.toString();
-    const guestPhone = formData.get('guestPhone')?.toString();
     const guestAddressData = formData.get('guestAddress')?.toString();
     
     let guestAddress = null;
@@ -63,9 +60,6 @@ export const actions: Actions = {
     
     // Store guest data in session
     storeGuestBookingData(event, {
-      guestName,
-      guestEmail,
-      guestPhone,
       guestAddress
     });
     
@@ -78,10 +72,7 @@ export const actions: Actions = {
     const scheduledDate = formData.get('scheduledDate')?.toString();
     const notes = formData.get('notes')?.toString();
     
-    // Guest booking data
-    const guestName = formData.get('guestName')?.toString();
-    const guestEmail = formData.get('guestEmail')?.toString();
-    const guestPhone = formData.get('guestPhone')?.toString();
+    // Guest booking data (contact info will be obtained during authentication)
     const guestAddressData = formData.get('guestAddress')?.toString();
     
     // Authenticated user booking data
@@ -99,9 +90,9 @@ export const actions: Actions = {
         return { success: false, error: 'Address selection is required' };
       }
     } else {
-      // Guest user - require guest information
-      if (!guestName || !guestEmail || !guestPhone || !guestAddressData) {
-        return { success: false, error: 'Guest contact information and address are required' };
+      // Guest user - only require address data (contact info will be collected during authentication)
+      if (!guestAddressData) {
+        return { success: false, error: 'Address information is required' };
       }
     }
     
@@ -173,10 +164,7 @@ export const actions: Actions = {
         duration: durationMinutes,
         price: serviceData.basePrice,
         notes: notes || null,
-        // Guest booking fields
-        guestName: locals.user ? null : guestName,
-        guestEmail: locals.user ? null : guestEmail,
-        guestPhone: locals.user ? null : guestPhone,
+        // Guest booking fields - only address data (contact info obtained during authentication)
         guestAddress: locals.user ? null : guestAddress,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -185,7 +173,7 @@ export const actions: Actions = {
       // Insert the booking into the database
       const [newBooking] = await db.insert(booking).values(bookingData).returning();
       
-      console.log(`Created new booking: ${newBooking.id} for ${locals.user ? 'user: ' + locals.user.id : 'guest: ' + guestEmail}`);
+      console.log(`Created new booking: ${newBooking.id} for ${locals.user ? 'user: ' + locals.user.id : 'guest (contact info to be collected during authentication)'}`);
       
       // Store guest booking data in session for potential future use
       if (!locals.user) {
@@ -196,55 +184,47 @@ export const actions: Actions = {
           scheduledDate,
           duration: durationMinutes,
           notes: notes || undefined,
-          guestName,
-          guestEmail,
-          guestPhone,
           guestAddress
         });
       }
       
-      // Prepare booking data for email
-      const emailAddress = locals.user ? 
-        {
+      // Send booking confirmation email only for authenticated users
+      // Guest users will receive confirmation after authentication during payment
+      if (locals.user) {
+        const emailAddress = {
           street: addressData!.street,
           city: addressData!.city,
           state: addressData!.state,
           zipCode: addressData!.zipCode
-        } : 
-        {
-          street: guestAddress!.street,
-          city: guestAddress!.city,
-          state: guestAddress!.state,
-          zipCode: guestAddress!.zipCode
         };
-      
-      const bookingDataForEmail = {
-        id: newBooking.id,
-        service: {
-          name: serviceData.name,
-          description: serviceData.description
-        },
-        scheduledDate: scheduledDateObj.toISOString(),
-        price: newBooking.price,
-        address: emailAddress
-      };
-      
-      // Send booking confirmation email
-      const recipientEmail = locals.user ? locals.user.email : guestEmail!;
-      sendBookingConfirmationEmail(recipientEmail, bookingDataForEmail)
-        .then(success => {
-          console.log(`Booking confirmation email ${success ? 'sent' : 'failed to send'} to ${recipientEmail}`);
-        })
-        .catch(err => {
-          console.error('Error sending booking confirmation email:', err);
-        });
+        
+        const bookingDataForEmail = {
+          id: newBooking.id,
+          service: {
+            name: serviceData.name,
+            description: serviceData.description
+          },
+          scheduledDate: scheduledDateObj.toISOString(),
+          price: newBooking.price,
+          address: emailAddress
+        };
+        
+        sendBookingConfirmationEmail(locals.user.email, bookingDataForEmail)
+          .then(success => {
+            console.log(`Booking confirmation email ${success ? 'sent' : 'failed to send'} to ${locals.user!.email}`);
+          })
+          .catch(err => {
+            console.error('Error sending booking confirmation email:', err);
+          });
+      } else {
+        console.log(`Created guest booking: ${newBooking.id}, confirmation email will be sent after authentication`);
+      }
       
       return { 
         success: true,
         bookingId: newBooking.id,
         message: 'Booking created successfully',
-        isGuest: !locals.user,
-        guestEmail: locals.user ? null : guestEmail
+        isGuest: !locals.user
       };
     } catch (err) {
       console.error('Error creating booking:', err);

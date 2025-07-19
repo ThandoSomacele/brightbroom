@@ -1,7 +1,7 @@
 <!-- src/routes/auth/login/+page.svelte -->
 <script lang="ts">
   import { enhance } from "$app/forms";
-  import { goto } from "$app/navigation";
+  import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
   import { Eye, EyeOff, Loader2 } from "lucide-svelte";
@@ -134,6 +134,11 @@
           return async ({ result, update }) => {
             if (result.type === "redirect") {
               isAuthenticating = true;
+
+              // Invalidate all data to refresh user state in navigation
+              await invalidateAll();
+
+              // Short delay to ensure UI updates before redirect
               setTimeout(() => {
                 goto(result.location, { replaceState: true });
               }, 100);

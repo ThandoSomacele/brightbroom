@@ -28,9 +28,6 @@
   
   // Guest user data
   let guestAddress = null;
-  let guestName = "";
-  let guestEmail = "";
-  let guestPhone = "";
 
   // Track loading state
   let isLoading = false;
@@ -72,9 +69,7 @@
         if (guestBookingData.guestAddress) {
           guestAddress = guestBookingData.guestAddress;
         }
-        guestName = guestBookingData.guestName || "";
-        guestEmail = guestBookingData.guestEmail || "";
-        guestPhone = guestBookingData.guestPhone || "";
+        // Guest contact info is no longer stored (obtained during authentication)
       }
     }
 
@@ -127,16 +122,14 @@
   // Handle form submission
   function handleSubmit() {
     // For authenticated users, check selectedAddress
-    // For guest users, check guestAddress and contact info
+    // For guest users, check guestAddress only (contact info will be collected at payment)
     const hasValidAddress = isAuthenticated ? selectedAddress : guestAddress;
-    const hasValidGuestInfo = isAuthenticated || (guestName && guestEmail && guestPhone);
     
     if (
       !selectedService ||
       !hasValidAddress ||
       !selectedDate ||
-      !selectedTime ||
-      !hasValidGuestInfo
+      !selectedTime
     ) {
       return;
     }
@@ -357,6 +350,7 @@
                 </p>
                 <p class="text-gray-600 dark:text-gray-300">
                   {guestAddress.street}
+                  {#if guestAddress.streetNumber}, {guestAddress.streetNumber}{/if}
                   {#if guestAddress.aptUnit}, {guestAddress.aptUnit}{/if}<br
                   />
                   {guestAddress.city}, {guestAddress.state}
@@ -387,58 +381,6 @@
       </div>
     {/if}
 
-    <!-- Guest Contact Information -->
-    {#if !isAuthenticated}
-      <div class="mb-8 rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
-        <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
-          Your Contact Information
-        </h2>
-        
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
-            <label for="guestName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Full Name *
-            </label>
-            <input
-              type="text"
-              id="guestName"
-              bind:value={guestName}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              placeholder="Enter your full name"
-            />
-          </div>
-          
-          <div>
-            <label for="guestEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Email Address *
-            </label>
-            <input
-              type="email"
-              id="guestEmail"
-              bind:value={guestEmail}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              placeholder="Enter your email address"
-            />
-          </div>
-          
-          <div class="md:col-span-2">
-            <label for="guestPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Phone Number *
-            </label>
-            <input
-              type="tel"
-              id="guestPhone"
-              bind:value={guestPhone}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              placeholder="Enter your phone number"
-            />
-          </div>
-        </div>
-      </div>
-    {/if}
 
     <!-- Total and payment -->
     <div class="mb-8 rounded-lg bg-primary-50 p-6 dark:bg-primary-900/20">
@@ -492,10 +434,7 @@
         <!-- Authenticated user fields -->
         <input type="hidden" name="addressId" value={selectedAddress} />
       {:else}
-        <!-- Guest user fields -->
-        <input type="hidden" name="guestName" value={guestName} />
-        <input type="hidden" name="guestEmail" value={guestEmail} />
-        <input type="hidden" name="guestPhone" value={guestPhone} />
+        <!-- Guest user fields - only address data needed -->
         <input type="hidden" name="guestAddress" value={JSON.stringify(guestAddress || {})} />
       {/if}
 
@@ -513,8 +452,7 @@
             !selectedService ||
             (isAuthenticated ? !selectedAddress : !guestAddress) ||
             !selectedDate ||
-            !selectedTime ||
-            (!isAuthenticated && (!guestName || !guestEmail || !guestPhone))}
+            !selectedTime}
         >
           {#if isLoading}
             <svg

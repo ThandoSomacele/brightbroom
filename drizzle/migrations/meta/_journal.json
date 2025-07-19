@@ -43,6 +43,13 @@
       "when": 1752776754001,
       "tag": "0005_purple_mole_man",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1752922057660,
+      "tag": "0006_blushing_blue_marvel",
+      "breakpoints": true
     }
   ]
 }

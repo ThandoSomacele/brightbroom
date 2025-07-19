@@ -1,0 +1,22 @@
+[
+  {
+    "id": "c08ebaf7-3741-4565-afcb-ffe015b0a4b3",
+    "email": "thando@brightbroom.com",
+    "role": "ADMIN"
+  },
+  {
+    "id": "5922d7dc-c5c8-4d5f-afe6-72af252bf57c",
+    "email": "tsomacele@gmail.com",
+    "role": "CLEANER"
+  },
+  {
+    "id": "e60734d3-5432-4b0e-900b-a6c9a8dad538",
+    "email": "tsomacele@icloud.com",
+    "role": "CUSTOMER"
+  },
+  {
+    "id": "e4dd37fd-d9b3-4bb7-99c6-3d9bc331ebe9",
+    "email": "tsomacele@iclouds.com",
+    "role": "CUSTOMER"
+  }
+]

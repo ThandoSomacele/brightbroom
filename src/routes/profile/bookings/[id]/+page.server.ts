@@ -33,9 +33,6 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         price: booking.price,
         notes: booking.notes,
         createdAt: booking.createdAt,
-        guestName: booking.guestName,
-        guestEmail: booking.guestEmail,
-        guestPhone: booking.guestPhone,
         guestAddress: booking.guestAddress,
         service: {
           id: service.id,
