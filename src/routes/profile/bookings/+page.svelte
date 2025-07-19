@@ -8,11 +8,23 @@
   export let data;
   const { bookings } = data;
   
-  // Filter bookings by status
+  // Filter bookings by status and time
   let filterStatus = 'all';
-  $: filteredBookings = filterStatus === 'all' 
-    ? bookings 
-    : bookings.filter(booking => booking.status === filterStatus);
+  let filterTime = 'all';
+  
+  $: filteredBookings = bookings.filter(booking => {
+    // Filter by status
+    const statusMatch = filterStatus === 'all' || booking.status === filterStatus;
+    
+    // Filter by time (upcoming/past)
+    const now = new Date();
+    const bookingDate = new Date(booking.scheduledDate);
+    const timeMatch = filterTime === 'all' || 
+      (filterTime === 'upcoming' && bookingDate >= now) ||
+      (filterTime === 'past' && bookingDate < now);
+    
+    return statusMatch && timeMatch;
+  });
     
   // Format date function
   function formatDate(dateString: string): string {
@@ -59,6 +71,34 @@
     return bookingDate < now;
   }
   
+  // Get address display information (handles both regular and guest addresses)
+  function getAddressDisplay(booking: any) {
+    if (booking.address && booking.address.street) {
+      // Regular address record
+      return {
+        street: booking.address.street,
+        city: booking.address.city,
+        state: booking.address.state,
+        zipCode: booking.address.zipCode
+      };
+    } else if (booking.guestAddress) {
+      // Guest address from JSON
+      const addr = booking.guestAddress;
+      return {
+        street: addr.street || (addr.streetNumber ? `${addr.streetNumber}` : ''),
+        city: addr.city,
+        state: addr.state,
+        zipCode: addr.zipCode
+      };
+    }
+    return {
+      street: 'Address not available',
+      city: '',
+      state: '',
+      zipCode: ''
+    };
+  }
+  
 </script>
 
 <svelte:head>
@@ -79,31 +119,58 @@
     
     <!-- Filters and actions -->
     <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-      <div class="flex flex-wrap gap-2">
-        <button 
-          class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'all' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
-          on:click={() => filterStatus = 'all'}
-        >
-          All
-        </button>
-        <button 
-          class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'CONFIRMED' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
-          on:click={() => filterStatus = 'CONFIRMED'}
-        >
-          Confirmed
-        </button>
-        <button 
-          class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'PENDING' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
-          on:click={() => filterStatus = 'PENDING'}
-        >
-          Pending
-        </button>
-        <button 
-          class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'COMPLETED' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
-          on:click={() => filterStatus = 'COMPLETED'}
-        >
-          Completed
-        </button>
+      <div class="space-y-3">
+        <!-- Time filters -->
+        <div class="flex flex-wrap gap-2">
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2 py-2">Time:</span>
+          <button 
+            class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterTime === 'all' ? 'bg-secondary text-white' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
+            on:click={() => filterTime = 'all'}
+          >
+            All
+          </button>
+          <button 
+            class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterTime === 'upcoming' ? 'bg-secondary text-white' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
+            on:click={() => filterTime = 'upcoming'}
+          >
+            Upcoming
+          </button>
+          <button 
+            class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterTime === 'past' ? 'bg-secondary text-white' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
+            on:click={() => filterTime = 'past'}
+          >
+            Past
+          </button>
+        </div>
+        
+        <!-- Status filters -->
+        <div class="flex flex-wrap gap-2">
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2 py-2">Status:</span>
+          <button 
+            class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'all' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
+            on:click={() => filterStatus = 'all'}
+          >
+            All
+          </button>
+          <button 
+            class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'CONFIRMED' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
+            on:click={() => filterStatus = 'CONFIRMED'}
+          >
+            Confirmed
+          </button>
+          <button 
+            class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'PENDING' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
+            on:click={() => filterStatus = 'PENDING'}
+          >
+            Pending
+          </button>
+          <button 
+            class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'COMPLETED' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
+            on:click={() => filterStatus = 'COMPLETED'}
+          >
+            Completed
+          </button>
+        </div>
       </div>
       
       <Button variant="primary" href="/book">
@@ -156,7 +223,10 @@
                   
                   <p class="flex items-center text-gray-600 dark:text-gray-300">
                     <MapPin size={18} class="mr-2 text-primary" />
-                    {booking.address.street}, {booking.address.city}
+                    {(() => {
+                      const addr = getAddressDisplay(booking);
+                      return `${addr.street}${addr.street ? ', ' : ''}${addr.city}`;
+                    })()}
                   </p>
                   
                   {#if booking.payment}
@@ -208,16 +278,24 @@
         <div class="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
           <h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">No bookings found</h3>
           
-          {#if filterStatus !== 'all'}
+          {#if filterStatus !== 'all' || filterTime !== 'all'}
             <p class="mb-4 text-gray-600 dark:text-gray-400">
-              No {filterStatus.toLowerCase()} bookings found. Try a different filter or book a new cleaning.
+              No bookings found for the selected filters. Try adjusting your filters or book a new cleaning.
             </p>
-            <Button 
-              variant="outline" 
-              on:click={() => filterStatus = 'all'}
-            >
-              Show all bookings
-            </Button>
+            <div class="flex flex-wrap gap-2 justify-center">
+              <Button 
+                variant="outline" 
+                on:click={() => { filterStatus = 'all'; filterTime = 'all'; }}
+              >
+                Clear all filters
+              </Button>
+              <Button 
+                variant="secondary" 
+                href="/book"
+              >
+                Book New Cleaning
+              </Button>
+            </div>
           {:else}
             <p class="mb-4 text-gray-600 dark:text-gray-400">
               You haven't booked any cleanings yet. Book your first cleaning now!

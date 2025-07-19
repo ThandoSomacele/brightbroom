@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
   
   try {
-    // Get all the user's bookings
+    // Get all the user's bookings (including former guest bookings)
     const bookings = await db.select({
       id: booking.id,
       status: booking.status,
@@ -21,6 +21,7 @@ export const load: PageServerLoad = async ({ locals }) => {
       price: booking.price,
       notes: booking.notes,
       createdAt: booking.createdAt,
+      guestAddress: booking.guestAddress, // For former guest bookings
       service: {
         id: service.id,
         name: service.name,
@@ -41,7 +42,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     })
     .from(booking)
     .innerJoin(service, eq(booking.serviceId, service.id))
-    .innerJoin(address, eq(booking.addressId, address.id))
+    .leftJoin(address, eq(booking.addressId, address.id)) // Changed to leftJoin to include guest bookings
     .leftJoin(payment, eq(booking.id, payment.bookingId))
     .where(eq(booking.userId, locals.user.id))
     .orderBy(desc(booking.createdAt));
