@@ -8,6 +8,13 @@
       "when": 1744115680403,
       "tag": "0000_overjoyed_vapor",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1752921868986,
+      "tag": "0001_free_scarlet_witch",
+      "breakpoints": true
     }
   ]
 }

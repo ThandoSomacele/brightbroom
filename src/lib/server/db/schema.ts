@@ -165,9 +165,6 @@ export const booking = pgTable("booking", {
   notes: text("notes"),
   
   // Guest booking fields
-  guestName: text("guest_name"), // Guest's full name
-  guestEmail: text("guest_email"), // Guest's email address
-  guestPhone: text("guest_phone"), // Guest's phone number
   guestAddress: json("guest_address"), // Guest's address as JSON object
   
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
