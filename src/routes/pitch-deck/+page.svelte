@@ -135,7 +135,7 @@
   <title>BrightBroom | Investor Pitch Deck</title>
   <meta
     name="description"
-    content="BrightBroom connecting customers with on-demand cleaning professionals"
+    content="BrightBroom - Cleaner Bookings Made Simple. Connecting customers with professional cleaners."
   />
 </svelte:head>
 
@@ -156,7 +156,7 @@
           BrightBroom
         </h1>
         <p class="text-xl text-gray-600 dark:text-gray-300">
-          On-demand Cleaning Services
+          Cleaner Bookings Made Simple
         </p>
       </div>
       <div class="space-x-4">
@@ -192,7 +192,7 @@
                 BrightBroom
               </h1>
               <p class="text-xl text-gray-600 dark:text-gray-300 md:text-2xl">
-                On-demand Cleaning Services
+                Cleaner Bookings Made Simple
               </p>
             </div>
 

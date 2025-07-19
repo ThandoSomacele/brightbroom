@@ -66,7 +66,7 @@
   <title>Book a Cleaning | BrightBroom</title>
   <meta
     name="description"
-    content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean."
+    content="Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean."
   />
 
   <!-- Open Graph / Facebook -->
@@ -74,11 +74,11 @@
   <meta property="og:url" content={$page.url.href} />
   <meta
     property="og:title"
-    content="BrightBroom | On-demand Cleaning Services"
+    content="BrightBroom | Cleaner Bookings Made Simple"
   />
   <meta
     property="og:description"
-    content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean."
+    content="Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean."
   />
   <meta property="og:image" content={ogImageUrl} />
 
@@ -87,11 +87,11 @@
   <meta name="twitter:url" content={$page.url.href} />
   <meta
     name="twitter:title"
-    content="BrightBroom | On-demand Cleaning Services"
+    content="BrightBroom | Cleaner Bookings Made Simple"
   />
   <meta
     name="twitter:description"
-    content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean."
+    content="Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean."
   />
   <meta name="twitter:image" content={ogImageUrl} />
 </svelte:head>

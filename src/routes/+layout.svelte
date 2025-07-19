@@ -52,10 +52,10 @@
 
 <svelte:head>
   <!-- Basic meta tags -->
-  <title>BrightBroom | On-demand Cleaning Services</title>
+  <title>BrightBroom | Cleaner Bookings Made Simple</title>
   <meta
     name="description"
-    content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean."
+    content="Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean."
   />
   <!-- Canonical URL -->
   <link rel="canonical" href={canonicalUrl} />
@@ -312,7 +312,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="mb-6 md:mb-0">
         <span class="text-xl font-bold text-primary">BrightBroom</span>
         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          On-demand cleaning services
+          Cleaner Bookings Made Simple
         </p>
       </div>
 

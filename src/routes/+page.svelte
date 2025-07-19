@@ -15,10 +15,10 @@
 </script>
 
 <svelte:head>
-  <title>BrightBroom | On-demand Cleaning Services</title>
+  <title>BrightBroom | Cleaner Bookings Made Simple</title>
   <meta
     name="description"
-    content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean."
+    content="Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean."
   />
 
   <!-- Open Graph / Facebook -->
@@ -26,11 +26,11 @@
   <meta property="og:url" content={$page.url.href} />
   <meta
     property="og:title"
-    content="BrightBroom | On-demand Cleaning Services"
+    content="BrightBroom | Cleaner Bookings Made Simple"
   />
   <meta
     property="og:description"
-    content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean."
+    content="Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean."
   />
   <meta property="og:image" content={ogImageUrl} />
 
@@ -39,11 +39,11 @@
   <meta name="twitter:url" content={$page.url.href} />
   <meta
     name="twitter:title"
-    content="BrightBroom | On-demand Cleaning Services"
+    content="BrightBroom | Cleaner Bookings Made Simple"
   />
   <meta
     name="twitter:description"
-    content="Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean."
+    content="Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean."
   />
   <meta name="twitter:image" content={ogImageUrl} />
 
@@ -54,7 +54,7 @@
       "@type": "LocalBusiness",
       "name": "BrightBroom",
       "image": "{ogImageUrl}",
-      "description": "Professional cleaning services on your schedule. Book online in minutes and get your space sparkling clean.",
+      "description": "Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean.",
       "@id": "https://brightbroom.com",
       "url": "https://brightbroom.com",
       "telephone": "+27-11-123-4567",
@@ -135,11 +135,11 @@
         <h1
           class="mb-4 text-4xl font-bold tracking-tight text-gray-900 dark:text-white md:text-5xl"
         >
-          Professional cleaning services on your schedule
+          Cleaner Bookings Made Simple
         </h1>
         <p class="mb-8 text-lg text-gray-700 dark:text-gray-200">
           BrightBroom connects you with professional cleaners for your home or
-          office. Book online in minutes and get your space sparkling clean.
+          office. Cleaner bookings made simple - get your space sparkling clean.
         </p>
 
         <div

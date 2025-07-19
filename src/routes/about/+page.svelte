@@ -98,7 +98,7 @@
       "name": "BrightBroom",
       "url": "https://brightbroom.com",
       "logo": "https://brightbroom.com/images/brightbroom-logo.png",
-      "description": "BrightBroom is a professional cleaning service company that provides on-demand cleaning solutions for homes and offices.",
+      "description": "BrightBroom makes cleaner bookings simple. Professional cleaning service company providing cleaning solutions for homes and offices.",
       "foundingDate": "2023",
       "address": {
         "@type": "PostalAddress",

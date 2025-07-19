@@ -1,8 +1,8 @@
-# BrightBroom - On-Demand Cleaning Service Application
+# BrightBroom - Cleaner Bookings Made Simple
 
 ## Project Overview
 
-BrightBroom is an on-demand cleaning service application that enables users to book professional cleaners for their homes and offices. The application focuses on providing a seamless booking experience with flexible scheduling, transparent pricing, and reliable service.
+BrightBroom makes cleaner bookings simple by enabling users to book professional cleaners for their homes and offices. The application focuses on providing a seamless booking experience with flexible scheduling, transparent pricing, and reliable service.
 
 ### Key Features
 
