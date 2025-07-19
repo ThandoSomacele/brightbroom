@@ -143,14 +143,15 @@
           action="?/login"
           use:enhance={() => {
             isSubmitting = true;
-            return ({ result, update }) => {
+            return async ({ result, update }) => {
               isSubmitting = false;
               if (result.type === 'redirect') {
-                // Let SvelteKit handle the redirect
+                // Explicitly handle the redirect using goto
+                await goto(result.location);
                 return;
               }
               // Update the form to show validation errors
-              update();
+              await update();
             };
           }}
         >
@@ -227,12 +228,15 @@
           action="/auth/register"
           use:enhance={() => {
             isSubmitting = true;
-            return ({ result }) => {
+            return async ({ result, update }) => {
               isSubmitting = false;
               if (result.type === 'redirect') {
-                const redirectUrl = data.bookingId ? `/payment/process?bookingId=${data.bookingId}` : '/payment/process';
-                goto(redirectUrl);
+                // Use the redirect location from the server response
+                await goto(result.location);
+                return;
               }
+              // Update the form to show validation errors
+              await update();
             };
           }}
         >

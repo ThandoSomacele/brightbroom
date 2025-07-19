@@ -99,9 +99,9 @@ export const actions: Actions = {
         return { success: false, error: 'Address selection is required' };
       }
     } else {
-      // Guest user - require guest information
-      if (!guestName || !guestEmail || !guestPhone || !guestAddressData) {
-        return { success: false, error: 'Guest contact information and address are required' };
+      // Guest user - only require address data (contact info will be collected during authentication)
+      if (!guestAddressData) {
+        return { success: false, error: 'Address information is required' };
       }
     }
     
@@ -173,10 +173,10 @@ export const actions: Actions = {
         duration: durationMinutes,
         price: serviceData.basePrice,
         notes: notes || null,
-        // Guest booking fields
-        guestName: locals.user ? null : guestName,
-        guestEmail: locals.user ? null : guestEmail,
-        guestPhone: locals.user ? null : guestPhone,
+        // Guest booking fields - will be updated during payment authentication
+        guestName: locals.user ? null : (guestName || null),
+        guestEmail: locals.user ? null : (guestEmail || null),
+        guestPhone: locals.user ? null : (guestPhone || null),
         guestAddress: locals.user ? null : guestAddress,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -185,7 +185,7 @@ export const actions: Actions = {
       // Insert the booking into the database
       const [newBooking] = await db.insert(booking).values(bookingData).returning();
       
-      console.log(`Created new booking: ${newBooking.id} for ${locals.user ? 'user: ' + locals.user.id : 'guest: ' + guestEmail}`);
+      console.log(`Created new booking: ${newBooking.id} for ${locals.user ? 'user: ' + locals.user.id : 'guest: ' + (guestEmail || 'unknown')}`);
       
       // Store guest booking data in session for potential future use
       if (!locals.user) {
@@ -196,51 +196,44 @@ export const actions: Actions = {
           scheduledDate,
           duration: durationMinutes,
           notes: notes || undefined,
-          guestName,
-          guestEmail,
-          guestPhone,
+          guestName: guestName || undefined,
+          guestEmail: guestEmail || undefined,
+          guestPhone: guestPhone || undefined,
           guestAddress
         });
       }
       
-      // Prepare booking data for email
-      const emailAddress = locals.user ? 
-        {
+      // Send booking confirmation email only for authenticated users
+      // Guest users will receive confirmation after authentication during payment
+      if (locals.user) {
+        const emailAddress = {
           street: addressData!.street,
           city: addressData!.city,
           state: addressData!.state,
           zipCode: addressData!.zipCode
-        } : 
-        {
-          street: guestAddress!.street,
-          streetNumber: guestAddress!.streetNumber || '',
-          aptUnit: guestAddress!.aptUnit || '',
-          city: guestAddress!.city,
-          state: guestAddress!.state,
-          zipCode: guestAddress!.zipCode,
-          instructions: guestAddress!.instructions || ''
         };
-      
-      const bookingDataForEmail = {
-        id: newBooking.id,
-        service: {
-          name: serviceData.name,
-          description: serviceData.description
-        },
-        scheduledDate: scheduledDateObj.toISOString(),
-        price: newBooking.price,
-        address: emailAddress
-      };
-      
-      // Send booking confirmation email
-      const recipientEmail = locals.user ? locals.user.email : guestEmail!;
-      sendBookingConfirmationEmail(recipientEmail, bookingDataForEmail)
-        .then(success => {
-          console.log(`Booking confirmation email ${success ? 'sent' : 'failed to send'} to ${recipientEmail}`);
-        })
-        .catch(err => {
-          console.error('Error sending booking confirmation email:', err);
-        });
+        
+        const bookingDataForEmail = {
+          id: newBooking.id,
+          service: {
+            name: serviceData.name,
+            description: serviceData.description
+          },
+          scheduledDate: scheduledDateObj.toISOString(),
+          price: newBooking.price,
+          address: emailAddress
+        };
+        
+        sendBookingConfirmationEmail(locals.user.email, bookingDataForEmail)
+          .then(success => {
+            console.log(`Booking confirmation email ${success ? 'sent' : 'failed to send'} to ${locals.user!.email}`);
+          })
+          .catch(err => {
+            console.error('Error sending booking confirmation email:', err);
+          });
+      } else {
+        console.log(`Created guest booking: ${newBooking.id}, confirmation email will be sent after authentication`);
+      }
       
       return { 
         success: true,
