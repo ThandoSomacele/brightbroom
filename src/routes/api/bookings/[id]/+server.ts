@@ -29,9 +29,6 @@ export const GET: RequestHandler = async ({ params, locals }) => {
       notes: booking.notes,
       createdAt: booking.createdAt,
       userId: booking.userId,
-      guestName: booking.guestName,
-      guestEmail: booking.guestEmail,
-      guestPhone: booking.guestPhone,
       guestAddress: booking.guestAddress,
       service: {
         id: service.id,
@@ -88,9 +85,6 @@ export const GET: RequestHandler = async ({ params, locals }) => {
           notes: booking.notes,
           createdAt: booking.createdAt,
           userId: booking.userId,
-          guestName: booking.guestName,
-          guestEmail: booking.guestEmail,
-          guestPhone: booking.guestPhone,
           guestAddress: booking.guestAddress,
           service: {
             id: service.id,

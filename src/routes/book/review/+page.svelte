@@ -28,9 +28,6 @@
   
   // Guest user data
   let guestAddress = null;
-  let guestName = "";
-  let guestEmail = "";
-  let guestPhone = "";
 
   // Track loading state
   let isLoading = false;
@@ -72,9 +69,7 @@
         if (guestBookingData.guestAddress) {
           guestAddress = guestBookingData.guestAddress;
         }
-        guestName = guestBookingData.guestName || "";
-        guestEmail = guestBookingData.guestEmail || "";
-        guestPhone = guestBookingData.guestPhone || "";
+        // Guest contact info is no longer stored (obtained during authentication)
       }
     }
 
