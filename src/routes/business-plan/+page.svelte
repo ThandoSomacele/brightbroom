@@ -2,6 +2,9 @@
 <script lang="ts">
   import { ArrowUp } from "lucide-svelte";
   import { onMount } from "svelte";
+  import type { PageData } from './$types';
+
+  export let data: PageData;
 
   let showScrollTop = false;
 
@@ -145,7 +148,7 @@
               <ul class="space-y-2 text-gray-700 dark:text-gray-300">
                 <li>• R20B+ total addressable market in South Africa</li>
                 <li>• Fully functional platform with growing user base</li>
-                <li>• 25+ cleaner applications and 4+ customer sign-ups</li>
+                <li>• {data.stats.cleaners}+ cleaner applications and {data.stats.customers}+ customer sign-ups</li>
                 <li>• Seeking R2M seed investment for expansion</li>
                 <li>• Projected operational breakeven in 12 months</li>
               </ul>
@@ -849,13 +852,13 @@
         <h3 class="mb-6 text-2xl font-semibold">Current Traction</h3>
         <div class="grid gap-6 md:grid-cols-4">
           <div class="rounded-lg bg-primary/10 p-4 text-center">
-            <p class="text-3xl font-bold text-secondary">4+</p>
+            <p class="text-3xl font-bold text-secondary">{data.stats.customers}+</p>
             <p class="text-sm text-gray-700 dark:text-gray-300">
               Customer Sign-ups
             </p>
           </div>
           <div class="rounded-lg bg-primary/10 p-4 text-center">
-            <p class="text-3xl font-bold text-secondary">25+</p>
+            <p class="text-3xl font-bold text-secondary">{data.stats.cleaners}+</p>
             <p class="text-sm text-gray-700 dark:text-gray-300">
               Cleaner Applications
             </p>

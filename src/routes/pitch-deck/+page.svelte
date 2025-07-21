@@ -5,6 +5,9 @@
   import { onDestroy, onMount } from "svelte";
   import { quintOut } from "svelte/easing";
   import { fly } from "svelte/transition";
+  import type { PageData } from './$types';
+
+  export let data: PageData;
 
   // Current slide index
   let currentSlide = 0;
@@ -955,7 +958,7 @@
                   <div
                     class="rounded-lg bg-gray-50 p-4 text-center dark:bg-gray-700"
                   >
-                    <p class="text-3xl font-bold text-secondary">4+</p>
+                    <p class="text-3xl font-bold text-secondary">{data.stats.customers}+</p>
                     <p class="text-sm text-gray-700 dark:text-gray-300">
                       Customer Sign-ups
                     </p>
@@ -964,7 +967,7 @@
                   <div
                     class="rounded-lg bg-gray-50 p-4 text-center dark:bg-gray-700"
                   >
-                    <p class="text-3xl font-bold text-secondary">25+</p>
+                    <p class="text-3xl font-bold text-secondary">{data.stats.cleaners}+</p>
                     <p class="text-sm text-gray-700 dark:text-gray-300">
                       Cleaner Applications
                     </p>
