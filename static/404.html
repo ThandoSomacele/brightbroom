@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found | BrightBroom</title>
+    <meta name="description" content="The page you're looking for couldn't be found. Browse our cleaning services or contact us for assistance.">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="404 - Page Not Found | BrightBroom">
+    <meta property="og:description" content="The page you're looking for couldn't be found. Browse our cleaning services in South Africa.">
+    <meta property="og:image" content="https://brightbroom.com/images/og-default.jpg">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="404 - Page Not Found | BrightBroom">
+    <meta name="twitter:description" content="Page not found - Browse our cleaning services in South Africa.">
+    <meta name="twitter:image" content="https://brightbroom.com/images/og-default.jpg">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://brightbroom.com/">
+    
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: '#3B82F6',
+                            50: '#EBF2FE',
+                            100: '#DBEAFE',
+                            200: '#BFDBFE',
+                            300: '#93C5FD',
+                            400: '#60A5FA',
+                            500: '#3B82F6',
+                            600: '#2563EB',
+                            700: '#1D4ED8',
+                            800: '#1E40AF',
+                            900: '#1E3A8A',
+                        },
+                        secondary: {
+                            DEFAULT: '#10B981',
+                            50: '#ECFDF5',
+                            100: '#D1FAE5',
+                            200: '#A7F3D0',
+                            300: '#6EE7B7',
+                            400: '#34D399',
+                            500: '#10B981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065F46',
+                            900: '#064E3B',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Redirect script -->
+    <script>
+        // After 5 seconds, redirect to home if user hasn't navigated away
+        setTimeout(function() {
+            if (document.hasFocus()) {
+                window.location.href = '/';
+            }
+        }, 30000); // 30 seconds
+    </script>
+</head>
+<body class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <!-- Header with navigation -->
+    <header class="bg-white shadow-sm dark:bg-gray-800">
+        <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center space-x-2 text-2xl font-bold text-primary">
+                        <span>BrightBroom</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a
+                        href="/"
+                        class="inline-flex items-center space-x-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-600 transition-colors"
+                    >
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        <span>Home</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main error content -->
+    <main class="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <!-- Error illustration -->
+            <div class="mx-auto mb-8 flex h-32 w-32 items-center justify-center rounded-full bg-primary/10">
+                <div class="text-6xl font-bold text-primary">404</div>
+            </div>
+
+            <!-- Error title and description -->
+            <h1 class="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+                Page Not Found
+            </h1>
+            <p class="mt-4 text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                The page you're looking for doesn't exist or has been moved.
+            </p>
+
+            <!-- Action buttons -->
+            <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                <a
+                    href="/"
+                    class="inline-flex items-center justify-center space-x-2 rounded-md bg-primary px-6 py-3 text-base font-medium text-white hover:bg-primary-600 transition-colors"
+                >
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>Return Home</span>
+                </a>
+                
+                <a
+                    href="/contact"
+                    class="inline-flex items-center justify-center space-x-2 rounded-md border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+                >
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26c.3.16.67.16.97 0L20 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <span>Contact Support</span>
+                </a>
+            </div>
+
+            <!-- Popular pages -->
+            <div class="mt-12">
+                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white text-center mb-8">
+                    Popular Pages
+                </h2>
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 max-w-4xl mx-auto">
+                    <a
+                        href="/book"
+                        class="group relative rounded-lg border border-gray-200 bg-white p-6 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600 transition-all duration-200"
+                    >
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+                                Book Cleaning
+                            </h3>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                Schedule your cleaning service
+                            </p>
+                        </div>
+                        <div class="absolute top-6 right-6">
+                            <svg class="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </a>
+
+                    <a
+                        href="/services"
+                        class="group relative rounded-lg border border-gray-200 bg-white p-6 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600 transition-all duration-200"
+                    >
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+                                Our Services
+                            </h3>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                View all cleaning services
+                            </p>
+                        </div>
+                        <div class="absolute top-6 right-6">
+                            <svg class="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </a>
+
+                    <a
+                        href="/contact"
+                        class="group relative rounded-lg border border-gray-200 bg-white p-6 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600 transition-all duration-200"
+                    >
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+                                Contact Us
+                            </h3>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                Get help from our team
+                            </p>
+                        </div>
+                        <div class="absolute top-6 right-6">
+                            <svg class="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </a>
+
+                    <a
+                        href="/join/cleaner"
+                        class="group relative rounded-lg border border-gray-200 bg-white p-6 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600 transition-all duration-200"
+                    >
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+                                Join as Cleaner
+                            </h3>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                Start earning with us
+                            </p>
+                        </div>
+                        <div class="absolute top-6 right-6">
+                            <svg class="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- SEO content for South African context -->
+            <div class="mt-12 text-sm text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
+                <p>
+                    If you followed a link from another website, please let us know at 
+                    <a href="mailto:support@brightbroom.com" class="text-primary hover:underline">
+                        support@brightbroom.com
+                    </a>
+                </p>
+                <p class="mt-2">
+                    Looking for cleaning services in South Africa? 
+                    <a href="/services" class="text-primary hover:underline">View our services</a> or 
+                    <a href="/book" class="text-primary hover:underline">book now</a>.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer with minimal info -->
+    <footer class="mt-16 border-t border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <div class="text-center text-sm text-gray-600 dark:text-gray-400">
+                <p>&copy; 2024 BrightBroom. Professional cleaning services across South Africa.</p>
+                <div class="mt-2 space-x-4">
+                    <a href="/privacy" class="hover:text-primary transition-colors">Privacy Policy</a>
+                    <span>•</span>
+                    <a href="/terms" class="hover:text-primary transition-colors">Terms of Service</a>
+                    <span>•</span>
+                    <a href="/contact" class="hover:text-primary transition-colors">Contact</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Track 404 for analytics (if you have analytics setup)
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'page_not_found', {
+                page_location: window.location.href,
+                page_title: '404 - Page Not Found'
+            });
+        }
+    </script>
+</body>
+</html>
