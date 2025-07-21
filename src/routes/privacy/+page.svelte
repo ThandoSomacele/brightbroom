@@ -4,14 +4,6 @@
   // State for collapsible sections
   let expandedSections = {};
 
-  // Check if Sharon should be shown (after September 1, 2025)
-  let showSharon = false;
-  
-  if (typeof window !== 'undefined') {
-    const targetDate = new Date('2025-09-01T00:00:00');
-    const now = new Date();
-    showSharon = now >= targetDate;
-  }
 
   // Define all sections for the Privacy Policy
   const sections = [
@@ -1121,7 +1113,7 @@
                             >Attention</td
                           >
                           <td class="px-4 py-3 text-sm"
-                            >Information Officer:<br />{showSharon ? 'Sharon Somacele' : 'Thando Somacele'}</td
+                            >Information Officer:<br />Thando Somacele</td
                           >
                         </tr>
                         <tr>

@@ -114,7 +114,7 @@
   });
 
   // All team members data
-  let teamMembers = [
+  const teamMembers = [
     {
       name: "Thando Somacele",
       title: "Founder, CEO & CTO",
@@ -123,7 +123,6 @@
       bio: "Full-stack developer with expertise in modern web technologies and marketplace platforms.",
       image: "/team/thando.jpg",
     },
-    // Sharon will be automatically uncommented on September 1, 2025
     // {
     //   name: "Sharon Somacele",
     //   title: "Founder, CLO & COO",
@@ -133,34 +132,6 @@
     //   image: "/team/sharon.jpg",
     // },
   ];
-
-  // Non-blocking timer to automatically uncomment Sharon on September 1, 2025
-  if (typeof window !== 'undefined') {
-    const targetDate = new Date('2025-09-01T00:00:00');
-    const now = new Date();
-    
-    if (now >= targetDate) {
-      // Uncomment Sharon if date has passed
-      teamMembers = [
-        {
-          name: "Thando Somacele",
-          title: "Founder, CEO & CTO",
-          email: "thando@brightbroom.com",
-          phone: "072 225 1491",
-          bio: "Full-stack developer with expertise in modern web technologies and marketplace platforms.",
-          image: "/team/thando.jpg",
-        },
-        {
-          name: "Sharon Somacele",
-          title: "Founder, CLO & COO",
-          email: "sharon@brightbroom.com",
-          phone: "078 176 7075",
-          bio: "LLB graduate providing legal expertise with background in administrative operations.",
-          image: "/team/sharon.jpg",
-        },
-      ];
-    }
-  }
 </script>
 
 <svelte:head>
