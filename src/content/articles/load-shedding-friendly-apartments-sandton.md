@@ -72,18 +72,21 @@ Load shedding has fundamentally changed how we think about home comfort and func
 The most crucial feature of any load shedding-friendly apartment is reliable backup power. Look for properties that offer:
 
 **Generator Systems:**
+
 - Building-wide generators that automatically kick in during outages
 - Sufficient capacity to power essential appliances and lighting
 - Regular maintenance schedules to ensure reliability
 - Silent or low-noise operation for resident comfort
 
 **Solar Power Systems:**
+
 - Rooftop solar panels with battery storage
 - Grid-tie systems that reduce electricity costs
 - Off-grid capabilities during extended outages
 - Smart inverters that manage power distribution
 
 **Individual Unit Inverters:**
+
 - Personal backup power systems for each apartment
 - Capacity to run lights, WiFi, and small appliances
 - Long-lasting lithium batteries
@@ -96,12 +99,14 @@ The most crucial feature of any load shedding-friendly apartment is reliable bac
 Gas appliances are game-changers for load shedding-friendly living, providing consistent service regardless of electrical grid status.
 
 **Essential Gas Appliances:**
+
 - **Gas stoves and hobs**: Cook meals anytime, regardless of power status
 - **Gas water heaters**: Enjoy hot showers even during extended outages
 - **Gas fireplaces**: Maintain warmth and ambiance without electricity
 - **Gas braai facilities**: Perfect for outdoor cooking and entertainment
 
 **Gas Installation Considerations:**
+
 - Certified gas installations with proper ventilation
 - Regular safety inspections and maintenance
 - Emergency shut-off valves for safety
@@ -112,6 +117,7 @@ Gas appliances are game-changers for load shedding-friendly living, providing co
 ### Sandton Central Developments
 
 **Premium Apartments with Full Backup:**
+
 - Multiple high-rise developments now offer complete backup power systems
 - Full building generators with automatic switchover
 - Gas-equipped kitchens in modern units
@@ -122,6 +128,7 @@ Gas appliances are game-changers for load shedding-friendly living, providing co
 ### Fourways Estates
 
 **Family-Friendly Options:**
+
 - Secure estate living with community backup power
 - Individual unit inverters in many developments
 - Gas installations available upon request
@@ -132,6 +139,7 @@ Gas appliances are game-changers for load shedding-friendly living, providing co
 ### North Riding Complexes
 
 **Modern Apartment Living:**
+
 - Newly developed complexes with built-in energy solutions
 - Solar panel installations with battery backup
 - Gas-ready kitchens and water heating systems
@@ -148,12 +156,14 @@ If you're already living in an apartment without built-in backup solutions, ther
 ### Portable Power Solutions
 
 **Portable Generators:**
+
 - Quiet inverter generators for balcony use
 - Fuel-efficient models with long runtime
 - Proper ventilation and safety considerations
 - Noise regulations compliance
 
 **Battery Power Stations:**
+
 - Large capacity lithium battery units
 - Multiple charging options (solar, AC, car)
 - Quiet operation suitable for indoor use
@@ -162,12 +172,14 @@ If you're already living in an apartment without built-in backup solutions, ther
 ### Gas Appliance Upgrades
 
 **Kitchen Upgrades:**
+
 - Portable gas stoves for cooking
 - Gas-powered camping equipment
 - Proper ventilation and safety equipment
 - Professional gas line installation where possible
 
 **Water Heating Solutions:**
+
 - Tankless gas water heaters
 - Solar water heating systems
 - Heat pump water heaters
@@ -180,6 +192,7 @@ If you're already living in an apartment without built-in backup solutions, ther
 During power outages, effective load management ensures your backup systems last longer:
 
 **Essential Loads:**
+
 - WiFi router and modem
 - Refrigerator and freezer
 - Basic lighting
@@ -187,6 +200,7 @@ During power outages, effective load management ensures your backup systems last
 - Phone charging stations
 
 **Non-Essential Loads:**
+
 - Air conditioning (use fans instead)
 - High-power appliances
 - Entertainment systems
@@ -197,12 +211,14 @@ During power outages, effective load management ensures your backup systems last
 <img class="article-img--option-1" alt="Energy-efficient apartment with LED lighting and smart appliances" src="/images/articles/load-shedding-friendly-apartments/energy-efficient-living.webp">
 
 **LED Lighting:**
+
 - Replace all bulbs with energy-efficient LEDs
 - Use task lighting instead of overhead lights
 - Install dimmer switches for adjustable lighting
 - Solar-powered emergency lighting
 
 **Appliance Management:**
+
 - Unplug devices when not in use
 - Use energy-efficient appliances
 - Batch cooking during power-on periods
@@ -213,18 +229,21 @@ During power outages, effective load management ensures your backup systems last
 ### Questions to Ask Landlords/Developers
 
 **Power Backup:**
+
 - What backup power solutions are available?
 - How long can the system run during outages?
 - What appliances are covered by backup power?
 - Are there any additional costs for backup power usage?
 
 **Gas Installations:**
+
 - Are gas appliances pre-installed?
 - Can tenants install gas appliances?
 - Who handles gas safety inspections?
 - What gas appliances are prohibited?
 
 **Maintenance and Support:**
+
 - Who maintains backup power systems?
 - What happens if backup systems fail?
 - Are there emergency contact numbers?
@@ -233,12 +252,14 @@ During power outages, effective load management ensures your backup systems last
 ### Building Infrastructure Assessment
 
 **Electrical Systems:**
+
 - Age and condition of building wiring
 - Electrical panel capacity for additional loads
 - Safety features and surge protection
 - Professional electrical inspections
 
 **Ventilation and Safety:**
+
 - Proper ventilation for gas appliances
 - Smoke and gas detection systems
 - Emergency exits and lighting
@@ -253,20 +274,23 @@ Load shedding-friendly apartments require special maintenance attention:
 ### Backup Power System Care
 
 **Regular Maintenance:**
+
 - Monthly battery testing and maintenance
 - Generator servicing and fuel management
 - Solar panel cleaning and inspection
 - Inverter system monitoring
 
 **Professional Services:**
+
 - Annual electrical system inspections
 - Gas appliance safety checks
 - Battery replacement schedules
-- System performance optimization
+- System performance optimisation
 
 ### Cleaning During Load Shedding
 
 **Preparation Strategies:**
+
 - Stock up on cleaning supplies before outages
 - Use manual cleaning tools when possible
 - Schedule deep cleaning during power-on periods
@@ -280,12 +304,14 @@ Regular professional cleaning becomes even more important in load shedding-frien
 ### Cost-Benefit Analysis
 
 **Initial Investment:**
+
 - Higher rent for backup-equipped apartments
 - Installation costs for personal systems
 - Ongoing maintenance expenses
 - Insurance considerations
 
 **Long-term Savings:**
+
 - Reduced food spoilage costs
 - Uninterrupted work productivity
 - Lower stress and health costs
@@ -294,6 +320,7 @@ Regular professional cleaning becomes even more important in load shedding-frien
 ### Financing Options
 
 **Rental Upgrades:**
+
 - Negotiate with landlords for gas installations
 - Split upgrade costs with property owners
 - Group buying with other tenants
@@ -304,12 +331,14 @@ Regular professional cleaning becomes even more important in load shedding-frien
 ### Emerging Technologies
 
 **Smart Home Integration:**
+
 - Automated load management systems
 - Remote monitoring and control
-- AI-powered energy optimization
+- AI-powered energy optimisation
 - Integration with utility smart grids
 
 **Renewable Energy:**
+
 - Community solar programs
 - Micro-wind power solutions
 - Hybrid renewable systems
@@ -318,6 +347,7 @@ Regular professional cleaning becomes even more important in load shedding-frien
 ### Market Trends
 
 The demand for load shedding-friendly apartments continues to grow, driving innovation in:
+
 - Building design and construction
 - Renewable energy integration
 - Smart home technology
@@ -333,4 +363,4 @@ The key is to balance your budget with your lifestyle needs, prioritizing the fe
 
 ---
 
-*Disclaimer: Some images used in this article are representative depictions and may not be true reflections of the specific named places, apartments, or developments mentioned. Images are used to illustrate concepts and design ideas discussed in the content.*
+_Disclaimer: Some images used in this article are representative depictions and may not be true reflections of the specific named places, apartments, or developments mentioned. Images are used to illustrate concepts and design ideas discussed in the content._
