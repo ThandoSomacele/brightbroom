@@ -123,14 +123,14 @@
       bio: "Full-stack developer with expertise in modern web technologies and marketplace platforms.",
       image: "/team/thando.jpg",
     },
-    // {
-    //   name: "Sharon Somacele",
-    //   title: "Founder, CLO & COO",
-    //   email: "sharon@brightbroom.com",
-    //   phone: "078 176 7075",
-    //   bio: "LLB graduate providing legal expertise with background in administrative operations.",
-    //   image: "/team/sharon.jpg",
-    // },
+    {
+      name: "Sharon Somacele",
+      title: "Founder, CLO & COO",
+      email: "sharon@brightbroom.com",
+      phone: "078 176 7075",
+      bio: "LLB graduate providing legal expertise with background in administrative operations.",
+      image: "/team/sharon.jpg",
+    },
   ];
 </script>
 
