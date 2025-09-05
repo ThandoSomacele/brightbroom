@@ -3,7 +3,7 @@ import { ArticleService } from "$lib/services/article.service";
 import { error } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, url }) => {
   try {
     const article = await ArticleService.getArticleBySlug(params.slug);
 
@@ -19,6 +19,12 @@ export const load: PageServerLoad = async ({ params }) => {
       3,
     );
 
+    // Create absolute URL for Open Graph image
+    const baseUrl = url.origin;
+    const ogImage = article.frontmatter.featuredImage.startsWith('http') 
+      ? article.frontmatter.featuredImage 
+      : `${baseUrl}${article.frontmatter.featuredImage}`;
+
     return {
       article,
       relatedArticles,
@@ -28,6 +34,8 @@ export const load: PageServerLoad = async ({ params }) => {
           article.frontmatter.seo?.description ||
           article.frontmatter.description,
         keywords: article.frontmatter.seo?.keywords || article.frontmatter.tags,
+        ogImage: ogImage,
+        url: url.href,
       },
     };
   } catch (err) {

@@ -87,20 +87,28 @@
   {#if data.meta.keywords}
     <meta name="keywords" content={data.meta.keywords.join(", ")} />
   {/if}
+  <link rel="canonical" href={data.meta.url} />
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="article" />
-  <meta property="og:url" content={$page.url.href} />
+  <meta property="og:url" content={data.meta.url} />
   <meta property="og:title" content={data.meta.title} />
   <meta property="og:description" content={data.meta.description} />
-  <meta property="og:image" content={article.frontmatter.featuredImage} />
+  <meta property="og:image" content={data.meta.ogImage} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content={article.frontmatter.imageAlt} />
+  <meta property="og:site_name" content="BrightBroom" />
+  <meta property="og:locale" content="en_ZA" />
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image" />
-  <meta property="twitter:url" content={$page.url.href} />
+  <meta property="twitter:url" content={data.meta.url} />
   <meta property="twitter:title" content={data.meta.title} />
   <meta property="twitter:description" content={data.meta.description} />
-  <meta property="twitter:image" content={article.frontmatter.featuredImage} />
+  <meta property="twitter:image" content={data.meta.ogImage} />
+  <meta property="twitter:image:alt" content={article.frontmatter.imageAlt} />
+  <meta property="twitter:site" content="@BrightBroom" />
 
   <!-- Article metadata -->
   <meta
