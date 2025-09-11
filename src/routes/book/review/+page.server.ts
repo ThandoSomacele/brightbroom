@@ -71,6 +71,7 @@ export const actions: Actions = {
     const serviceId = formData.get('serviceId')?.toString();
     const scheduledDate = formData.get('scheduledDate')?.toString();
     const notes = formData.get('notes')?.toString();
+    const cleanerId = formData.get('cleanerId')?.toString() || null;
     
     // Guest booking data (contact info will be obtained during authentication)
     const guestAddressData = formData.get('guestAddress')?.toString();
@@ -159,6 +160,7 @@ export const actions: Actions = {
         userId: locals.user?.id || null,
         serviceId: serviceId,
         addressId: locals.user ? addressId : null,
+        cleanerId: cleanerId,
         status: 'PENDING' as const,
         scheduledDate: scheduledDateObj,
         duration: durationMinutes,

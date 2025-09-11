@@ -25,6 +25,8 @@
   let selectedDate = "";
   let selectedTime = "";
   let notes = "";
+  let selectedCleanerId = "";
+  let selectedCleanerData: any = null;
   
   // Guest user data
   let guestAddress = null;
@@ -49,6 +51,17 @@
     selectedDate = localStorage.getItem("booking_date") || "";
     selectedTime = localStorage.getItem("booking_time") || "";
     notes = localStorage.getItem("booking_instructions") || "";
+    selectedCleanerId = localStorage.getItem("booking_cleaner_id") || "";
+    
+    // Get cleaner data if available
+    const cleanerDataStr = localStorage.getItem("booking_cleaner_data");
+    if (cleanerDataStr) {
+      try {
+        selectedCleanerData = JSON.parse(cleanerDataStr);
+      } catch (e) {
+        console.error("Error parsing cleaner data:", e);
+      }
+    }
     
     if (isAuthenticated) {
       // Authenticated user - get address ID
@@ -112,7 +125,7 @@
   async function goToPrevious() {
     isLoading = true;
     try {
-      await goto("/book/schedule");
+      await goto("/book/cleaner");
     } catch (error) {
       console.error("Navigation error:", error);
       isLoading = false;
@@ -147,6 +160,8 @@
       localStorage.removeItem("booking_date");
       localStorage.removeItem("booking_time");
       localStorage.removeItem("booking_instructions");
+      localStorage.removeItem("booking_cleaner_id");
+      localStorage.removeItem("booking_cleaner_data");
 
       // Navigate to payment page
       if (result.isGuest) {
@@ -226,9 +241,24 @@
 
         <div class="flex flex-1 items-center">
           <div
+            class="flex h-10 w-10 items-center justify-center rounded-full bg-green-500 text-white"
+          >
+            <span>✓</span>
+          </div>
+          <div class="ml-2">
+            <p class="text-sm font-medium text-green-500">Cleaner</p>
+          </div>
+        </div>
+
+        <div class="hidden flex-1 md:flex">
+          <div class="h-1 w-full bg-primary"></div>
+        </div>
+
+        <div class="flex flex-1 items-center">
+          <div
             class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white"
           >
-            <span>4</span>
+            <span>5</span>
           </div>
           <div class="ml-2">
             <p class="text-sm font-medium text-primary">Review</p>
@@ -367,6 +397,40 @@
       </div>
     </div>
 
+    <!-- Selected Cleaner -->
+    {#if selectedCleanerData}
+      <div class="mb-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+        <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+          Your Cleaner
+        </h2>
+        
+        <div class="flex items-center space-x-4">
+          <img 
+            src={selectedCleanerData.profileImageUrl || '/images/default-avatar.svg'} 
+            alt={selectedCleanerData.name}
+            class="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+            on:error={(e) => {
+              e.currentTarget.src = '/images/default-avatar.svg';
+            }}
+          />
+          <div class="flex-1">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+              {selectedCleanerData.name}
+            </h3>
+            {#if selectedCleanerData.rating}
+              <div class="flex items-center gap-1 mt-1">
+                <span class="text-yellow-500">{'★'.repeat(Math.floor(selectedCleanerData.rating))}{'☆'.repeat(5 - Math.floor(selectedCleanerData.rating))}</span>
+                <span class="text-sm text-gray-600">({selectedCleanerData.rating})</span>
+              </div>
+            {/if}
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+              {selectedCleanerData.bio || 'Professional cleaner'}
+            </p>
+          </div>
+        </div>
+      </div>
+    {/if}
+
     <!-- Special instructions -->
     {#if notes}
       <div class="mb-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
@@ -429,6 +493,7 @@
       <input type="hidden" name="serviceId" value={selectedService} />
       <input type="hidden" name="scheduledDate" value={scheduledDateTime} />
       <input type="hidden" name="notes" value={notes} />
+      <input type="hidden" name="cleanerId" value={selectedCleanerId} />
       
       {#if isAuthenticated}
         <!-- Authenticated user fields -->

@@ -125,8 +125,8 @@
         localStorage.setItem("booking_date", selectedDate);
         localStorage.setItem("booking_time", selectedTime);
         
-        // Navigate to review
-        await goto("/book/review");
+        // Navigate to cleaner selection
+        await goto("/book/cleaner");
       } catch (error) {
         console.error("Navigation error:", error);
       } finally {
