@@ -5,8 +5,6 @@
   import Button from '$lib/components/ui/Button.svelte';
   import { ArrowLeft, ArrowRight } from 'lucide-svelte';
   
-  export let data;
-  
   let selectedCleanerId: string | null = null;
   let selectedCleaner: any = null;
   let serviceId: string | null = null;
