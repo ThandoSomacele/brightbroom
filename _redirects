@@ -1,8 +1,0 @@
-# Netlify redirects file
-# This file configures how Netlify handles routing for your SvelteKit app
-
-# SPA fallback for client-side routing
-/*    /index.html   200
-
-# Custom 404 page - serve our custom 404 page for any 404 errors
-/*    /404.html     404
