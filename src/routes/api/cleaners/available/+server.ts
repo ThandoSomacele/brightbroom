@@ -11,14 +11,13 @@ export const GET: RequestHandler = async ({ url }) => {
     const date = url.searchParams.get('date');
     const serviceId = url.searchParams.get('serviceId');
     
-    // Base query to get cleaners with profiles
+    // Base query to get cleaners with profiles (excluding private information)
     const cleanersQuery = db
       .select({
         id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
-        email: user.email,
-        phone: user.phone,
+        // Removed email and phone for privacy
         profileId: cleanerProfile.id,
         bio: cleanerProfile.bio,
         rating: cleanerProfile.rating,
@@ -50,6 +49,8 @@ export const GET: RequestHandler = async ({ url }) => {
       );
 
     let cleaners = await cleanersQuery;
+    
+    console.log(`Found ${cleaners.length} cleaners in database with profiles`);
 
     // Filter by distance if location provided
     if (lat && lng) {

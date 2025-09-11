@@ -48,59 +48,18 @@
       
       if (data.success) {
         cleaners = data.cleaners;
-        if (cleaners.length === 0) {
-          cleaners = getDefaultCleaners();
-        }
+        // Don't use placeholder data - show actual availability
       } else {
-        cleaners = getDefaultCleaners();
+        error = 'Unable to fetch available cleaners. Please try again.';
+        cleaners = [];
       }
     } catch (err) {
       console.error('Error fetching cleaners:', err);
-      cleaners = getDefaultCleaners();
+      error = 'Unable to fetch available cleaners. Please try again.';
+      cleaners = [];
     } finally {
       loading = false;
     }
-  }
-  
-  function getDefaultCleaners(): Cleaner[] {
-    return [
-      {
-        id: 'default-1',
-        name: 'Sarah Johnson',
-        firstName: 'Sarah',
-        lastName: 'Johnson',
-        bio: 'Professional cleaner with 5+ years of experience. Specializes in deep cleaning and organization. Pet-friendly and detail-oriented.',
-        rating: 4.8,
-        profileImageUrl: '/images/default-avatar.svg',
-        petCompatibility: 'BOTH',
-        experienceTypes: ['Residential Cleaning', 'Deep Cleaning'],
-        distance: null,
-      },
-      {
-        id: 'default-2',
-        name: 'Maria Garcia',
-        firstName: 'Maria',
-        lastName: 'Garcia',
-        bio: 'Dedicated cleaner with expertise in eco-friendly cleaning methods. Great with pets and passionate about creating healthy home environments.',
-        rating: 4.9,
-        profileImageUrl: '/images/default-avatar.svg',
-        petCompatibility: 'BOTH',
-        experienceTypes: ['Eco-Friendly Cleaning', 'Residential Cleaning'],
-        distance: null,
-      },
-      {
-        id: 'default-3',
-        name: 'Thandi Nkosi',
-        firstName: 'Thandi',
-        lastName: 'Nkosi',
-        bio: 'Experienced professional with attention to detail. Specializes in office and residential cleaning. Reliable and trustworthy.',
-        rating: 4.7,
-        profileImageUrl: '/images/default-avatar.svg',
-        petCompatibility: 'DOGS',
-        experienceTypes: ['Office Cleaning', 'Residential Cleaning'],
-        distance: null,
-      },
-    ];
   }
   
   function selectCleaner(cleaner: Cleaner) {
@@ -142,6 +101,11 @@
     <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
       {error}
     </div>
+  {:else if cleaners.length === 0}
+    <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-6 py-4 rounded-lg">
+      <h3 class="font-semibold mb-2">No Cleaners Available</h3>
+      <p>We don't have any cleaners available for your selected date and location at the moment. Don't worry - if you continue with your booking, we'll automatically assign the best available cleaner once one becomes available.</p>
+    </div>
   {:else}
     <div class="grid gap-6 md:grid-cols-3">
       {#each cleaners as cleaner (cleaner.id)}
@@ -159,7 +123,8 @@
                 alt={cleaner.name}
                 class="w-24 h-24 rounded-full object-cover border-2 {selectedCleaner?.id === cleaner.id ? 'border-primary' : 'border-gray-200'}"
                 on:error={(e) => {
-                  e.currentTarget.src = '/images/default-avatar.svg';
+                  const target = e.currentTarget as HTMLImageElement;
+                  target.src = '/images/default-avatar.svg';
                 }}
               />
               {#if selectedCleaner?.id === cleaner.id}
