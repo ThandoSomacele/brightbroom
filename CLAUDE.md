@@ -139,3 +139,15 @@ Key environment variables (see .env.example):
 - Client-side environment variables must be prefixed with `VITE_`
 - Use existing email templates and extend as needed
 - Validate all user input on the server side
+
+## Netlify Deployment Notes
+
+### Important: DO NOT create a _redirects file
+- SvelteKit's `adapter-netlify` handles all routing automatically
+- Creating a manual `_redirects` file will cause build failures with error: "The _redirects file should be placed in the project root"
+- The adapter manages SPA routing, 404 pages, and all redirects internally
+
+### 404 Page
+- Custom 404 page is located at `/static/404.html`
+- Uses inline CSS styles (no Tailwind CDN to avoid production warnings)
+- Automatically served by Netlify for non-existent routes
