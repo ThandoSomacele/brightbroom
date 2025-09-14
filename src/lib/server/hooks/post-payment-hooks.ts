@@ -46,8 +46,11 @@ export const postPaymentHooks = {
       return result;
     } catch (error) {
       console.error(
-        `Error in post-payment cleaner assignment for booking ${bookingId}:`,
-        error,
+        'Error in post-payment cleaner assignment for booking:',
+        {
+          bookingId,
+          error: error instanceof Error ? error.message : String(error)
+        }
       );
 
       // Record the error
@@ -187,8 +190,11 @@ export const postPaymentHooks = {
       return success;
     } catch (error) {
       console.error(
-        `[POST-PAYMENT HOOKS] Error sending confirmation email for booking ${bookingId}:`,
-        error,
+        '[POST-PAYMENT HOOKS] Error sending confirmation email for booking:',
+        {
+          bookingId,
+          error: error instanceof Error ? error.message : String(error)
+        }
       );
 
       // Record the error
@@ -368,8 +374,11 @@ export const postPaymentHooks = {
       return success;
     } catch (error) {
       console.error(
-        `[POST-PAYMENT HOOKS] Error in email retry mechanism for booking ${bookingId}:`,
-        error,
+        '[POST-PAYMENT HOOKS] Error in email retry mechanism for booking:',
+        {
+          bookingId,
+          error: error instanceof Error ? error.message : String(error)
+        }
       );
       return false;
     }
@@ -430,8 +439,11 @@ export const postPaymentHooks = {
       );
     } catch (error) {
       console.error(
-        `[POST-PAYMENT HOOKS] Error running post-payment hooks for booking ${bookingId}:`,
-        error,
+        '[POST-PAYMENT HOOKS] Error running post-payment hooks for booking:',
+        {
+          bookingId,
+          error: error instanceof Error ? error.message : String(error)
+        }
       );
     }
   },

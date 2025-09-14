@@ -60,7 +60,7 @@ export class ArticleService {
             articles.push(articleToSummary(article));
           }
         } catch (error) {
-          console.error(`Error parsing article ${filename}:`, error);
+          console.error('Error parsing article:', { filename, error });
           // Continue processing other articles
         }
       }
@@ -107,7 +107,7 @@ export class ArticleService {
       this.articleCache.set(slug, article);
       return article;
     } catch (error) {
-      console.error(`Error getting article ${slug}:`, error);
+      console.error('Error getting article:', { slug, error });
       return null;
     }
   }

@@ -95,10 +95,11 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     
     return json({ 
       success: true,
-      message: `Payment receipt email sent to ${emailTo}`
+      message: 'Payment receipt email sent',
+      emailTo
     });
   } catch (error) {
-    console.error(`Error sending payment receipt for booking ${bookingId}:`, error);
+    console.error('Error sending payment receipt for booking:', { bookingId, error });
     return json({ 
       success: false, 
       error: 'Failed to send payment receipt email' 

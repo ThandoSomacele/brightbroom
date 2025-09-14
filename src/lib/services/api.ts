@@ -10,7 +10,7 @@ export async function fetchServices(): Promise<Service[]> {
     const response = await fetch('/api/services');
     
     if (!response.ok) {
-      throw new Error(`Failed to load services: ${response.statusText}`);
+      throw new Error('Failed to load services');
     }
     
     const data = await response.json();
@@ -34,13 +34,13 @@ export async function fetchServiceById(id: string): Promise<Service | null> {
       if (response.status === 404) {
         return null;
       }
-      throw new Error(`Failed to load service: ${response.statusText}`);
+      throw new Error('Failed to load service');
     }
     
     const data = await response.json();
     return data.service;
   } catch (error) {
-    console.error(`Error loading service ${id}:`, error);
+    console.error('Error loading service:', { id, error });
     throw error;
   }
 }
@@ -61,7 +61,7 @@ export async function createService(serviceData: ServiceInput): Promise<Service>
     });
     
     if (!response.ok) {
-      throw new Error(`Failed to create service: ${response.statusText}`);
+      throw new Error('Failed to create service');
     }
     
     const data = await response.json();
@@ -89,13 +89,13 @@ export async function updateService(id: string, serviceData: Partial<ServiceInpu
     });
     
     if (!response.ok) {
-      throw new Error(`Failed to update service: ${response.statusText}`);
+      throw new Error('Failed to update service');
     }
     
     const data = await response.json();
     return data.service;
   } catch (error) {
-    console.error(`Error updating service ${id}:`, error);
+    console.error('Error updating service:', { id, error });
     throw error;
   }
 }
@@ -112,12 +112,12 @@ export async function deleteService(id: string): Promise<boolean> {
     });
     
     if (!response.ok) {
-      throw new Error(`Failed to delete service: ${response.statusText}`);
+      throw new Error('Failed to delete service');
     }
     
     return true;
   } catch (error) {
-    console.error(`Error deleting service ${id}:`, error);
+    console.error('Error deleting service:', { id, error });
     throw error;
   }
 }

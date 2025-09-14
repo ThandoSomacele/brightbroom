@@ -40,7 +40,7 @@ export const cleanerAssignmentService = {
         .limit(1);
 
       if (bookingDetails.length === 0) {
-        throw new Error(`Booking not found: ${bookingId}`);
+        throw new Error('Booking not found');
       }
 
       const bookingData = bookingDetails[0];
@@ -53,7 +53,7 @@ export const cleanerAssignmentService = {
         .limit(1);
 
       if (addressDetails.length === 0) {
-        throw new Error(`Address not found for booking: ${bookingId}`);
+        throw new Error('Address not found for booking');
       }
 
       const bookingAddress = addressDetails[0];
@@ -70,16 +70,19 @@ export const cleanerAssignmentService = {
         bookingLng = parseFloat(String(bookingAddress.lng));
 
         if (isNaN(bookingLat) || isNaN(bookingLng)) {
-          console.warn(
-            `Invalid booking coordinates for address ID ${bookingData.addressId}: Lat ${bookingAddress.lat}, Lng ${bookingAddress.lng}`,
-          );
+          console.warn('Invalid booking coordinates for address:', {
+            addressId: bookingData.addressId,
+            lat: bookingAddress.lat,
+            lng: bookingAddress.lng
+          });
           bookingLat = null;
           bookingLng = null;
         }
       } else {
-        console.warn(
-          `Missing coordinates for address ID ${bookingData.addressId}. Using city-based distance estimation.`,
-        );
+        console.warn('Missing coordinates for address:', {
+          addressId: bookingData.addressId,
+          message: 'Using city-based distance estimation'
+        });
       }
 
       // Fallback to using geocoding service in future if no coordinates available
@@ -210,9 +213,11 @@ export const cleanerAssignmentService = {
             isNaN(cleanerLng) ||
             (cleanerLat === 0 && cleanerLng === 0)
           ) {
-            console.warn(
-              `Invalid cleaner coordinates for cleaner ${cleaner.id}: Lat ${cleanerLat}, Lng ${cleanerLng}`,
-            );
+            console.warn('Invalid cleaner coordinates:', {
+              cleanerId: cleaner.id,
+              lat: cleanerLat,
+              lng: cleanerLng
+            });
             cleanerLat = null;
             cleanerLng = null;
           }
@@ -354,19 +359,18 @@ export const cleanerAssignmentService = {
         const { customerNotified, cleanerNotified } =
           await sendCleanerAssignmentNotifications(bookingId);
 
-        console.log(`Notifications sent for booking ${bookingId}:`, {
+        console.log('Notifications sent for booking:', {
+          bookingId,
           customerNotified,
-          cleanerNotified,
+          cleanerNotified
         });
 
         if (!customerNotified && !cleanerNotified) {
-          console.warn(
-            `Both customer and cleaner notification failed for booking ${bookingId}`,
-          );
+          console.warn('Both customer and cleaner notification failed:', { bookingId });
         } else if (!customerNotified) {
-          console.warn(`Customer notification failed for booking ${bookingId}`);
+          console.warn('Customer notification failed:', { bookingId });
         } else if (!cleanerNotified) {
-          console.warn(`Cleaner notification failed for booking ${bookingId}`);
+          console.warn('Cleaner notification failed:', { bookingId });
         }
       } catch (notificationError) {
         console.error(
@@ -385,7 +389,8 @@ export const cleanerAssignmentService = {
       console.error("Error auto-assigning cleaner:", error);
       return {
         success: false,
-        message: `Failed to assign cleaner: ${error instanceof Error ? error.message : "Unknown error"}`,
+        message: 'Failed to assign cleaner',
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   },

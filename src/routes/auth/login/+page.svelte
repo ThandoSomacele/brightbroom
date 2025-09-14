@@ -4,6 +4,7 @@
   import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
+  import CSRFToken from "$lib/components/forms/CSRFToken.svelte";
   import { Eye, EyeOff, Loader2 } from "lucide-svelte";
 
   // Get error from form action
@@ -92,6 +93,9 @@
           };
         }}
       >
+        <!-- CSRF Token -->
+        <CSRFToken />
+
         <!-- Email input -->
         <div class="mb-4">
           <label

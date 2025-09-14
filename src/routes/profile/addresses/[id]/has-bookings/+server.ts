@@ -32,7 +32,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
       bookingCount: count
     });
   } catch (err) {
-    console.error(`Error checking bookings for address ${addressId}:`, err);
+    console.error('Error checking bookings for address:', { addressId, error: err });
     throw error(500, "Failed to check bookings for address");
   }
 };

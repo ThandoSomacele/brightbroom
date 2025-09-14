@@ -29,7 +29,7 @@ export async function sendCleanerAssignmentNotification(
       .limit(1);
 
     if (bookingResults.length === 0 || !bookingResults[0].cleanerId) {
-      console.error(`Booking not found or no cleaner assigned: ${bookingId}`);
+      console.error('Booking not found or no cleaner assigned:', { bookingId });
       return false;
     }
 
@@ -69,7 +69,7 @@ export async function sendCleanerAssignmentNotification(
       .limit(1);
 
     if (results.length === 0) {
-      console.error(`Failed to fetch booking details: ${bookingId}`);
+      console.error('Failed to fetch booking details:', { bookingId });
       return false;
     }
 
@@ -90,7 +90,7 @@ export async function sendCleanerAssignmentNotification(
       .limit(1);
 
     if (cleanerResults.length === 0) {
-      console.error(`Cleaner not found: ${cleanerId}`);
+      console.error('Cleaner not found:', { cleanerId });
       return false;
     }
 
@@ -110,7 +110,7 @@ export async function sendCleanerAssignmentNotification(
     // Send notification to the customer
     return await sendCleanerAssignmentEmail(result.user.email, emailData);
   } catch (error) {
-    console.error(`Error sending cleaner assignment notification: ${error}`);
+    console.error('Error sending cleaner assignment notification:', { error });
     return false;
   }
 }
@@ -134,7 +134,7 @@ export async function sendCleanerJobNotification(
       .limit(1);
 
     if (bookingResults.length === 0 || !bookingResults[0].cleanerId) {
-      console.error(`Booking not found or no cleaner assigned: ${bookingId}`);
+      console.error('Booking not found or no cleaner assigned:', { bookingId });
       return false;
     }
 
@@ -171,7 +171,7 @@ export async function sendCleanerJobNotification(
       .limit(1);
 
     if (results.length === 0) {
-      console.error(`Failed to fetch booking details: ${bookingId}`);
+      console.error('Failed to fetch booking details:', { bookingId });
       return false;
     }
 
@@ -190,7 +190,7 @@ export async function sendCleanerJobNotification(
       .limit(1);
 
     if (cleanerInfo.length === 0) {
-      console.error(`Cleaner not found: ${cleanerId}`);
+      console.error('Cleaner not found:', { cleanerId });
       return false;
     }
 
@@ -206,7 +206,7 @@ export async function sendCleanerJobNotification(
       .limit(1);
 
     if (customerInfo.length === 0) {
-      console.error(`Customer not found: ${result.booking.userId}`);
+      console.error('Customer not found:', { userId: result.booking.userId });
       return false;
     }
 
@@ -224,7 +224,7 @@ export async function sendCleanerJobNotification(
     // Send notification to the cleaner
     return await sendCleanerJobAssignmentEmail(cleanerInfo[0].email, emailData);
   } catch (error) {
-    console.error(`Error sending job notification to cleaner: ${error}`);
+    console.error('Error sending job notification to cleaner:', { error });
     return false;
   }
 }
@@ -246,9 +246,10 @@ export async function sendCleanerAssignmentNotifications(
   const cleanerNotified = await sendCleanerJobNotification(bookingId);
 
   // Log the results
-  console.log(`Assignment notifications for booking ${bookingId}:`, {
+  console.log('Assignment notifications for booking:', {
+    bookingId,
     customerNotified,
-    cleanerNotified,
+    cleanerNotified
   });
 
   return { customerNotified, cleanerNotified };

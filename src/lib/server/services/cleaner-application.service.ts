@@ -50,7 +50,7 @@ export const cleanerApplicationService = {
 
       return application || null;
     } catch (error) {
-      console.error(`Error fetching cleaner application ${id}:`, error);
+      console.error('Error fetching cleaner application:', { id, error });
       throw error;
     }
   },
@@ -131,7 +131,8 @@ export const cleanerApplicationService = {
         const existingUser = existingUserCheck[0];
         return {
           success: false,
-          message: `A user with email ${existingUser.email} already exists (role: ${existingUser.role}). Please update the application email.`,
+          message: 'A user with this email already exists. Please update the application email.',
+          details: { email: existingUser.email, role: existingUser.role }
         };
       }
 
@@ -172,7 +173,7 @@ export const cleanerApplicationService = {
       try {
         availableDays = JSON.parse(application.availability);
       } catch (e) {
-        console.error("Error parsing availability days:", e);
+        console.error('Error parsing availability days:', { error: e, availabilityString: application.availability });
         // Default to weekdays if parsing fails
         availableDays = [
           "MONDAY",

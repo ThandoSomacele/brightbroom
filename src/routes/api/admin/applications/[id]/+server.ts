@@ -72,7 +72,7 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
       application: updatedApplication,
     });
   } catch (err) {
-    console.error(`Error updating application ${applicationId}:`, err);
+    console.error('Error updating application:', { applicationId, error: err });
     throw error(500, {
       message:
         err instanceof Error ? err.message : "Failed to update application",

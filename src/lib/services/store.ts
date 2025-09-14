@@ -95,8 +95,8 @@ export async function loadServiceById(id: string, forceRefresh = false): Promise
     
     return service;
   } catch (error) {
-    console.error(`Error loading service ${id}:`, error);
-    servicesError.set(error instanceof Error ? error.message : `Failed to load service ${id}`);
+    console.error('Error loading service:', { id, error });
+    servicesError.set(error instanceof Error ? error.message : 'Failed to load service');
     return null;
   } finally {
     servicesLoading.set(false);

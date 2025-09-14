@@ -74,10 +74,11 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     
     return json({ 
       success: true,
-      message: `Booking reminder email sent to ${emailTo}`
+      message: 'Booking reminder email sent',
+      emailTo
     });
   } catch (error) {
-    console.error(`Error sending booking reminder for ${bookingId}:`, error);
+    console.error('Error sending booking reminder:', { bookingId, error });
     return json({ 
       success: false, 
       error: 'Failed to send booking reminder email' 

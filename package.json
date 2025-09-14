@@ -37,9 +37,6 @@
     "deploy:validate-env": "node scripts/deploy/validate-env.js",
     "setup": "node scripts/setup.js",
     "test": "vitest",
-    "lint": "eslint --ext .js,.ts,.svelte src",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
     "dev:debug": "DEBUG=* vite dev"
   },
   "dependencies": {
@@ -101,6 +98,7 @@
     "detailed": true
   },
   "devDependencies": {
-    "@types/marked": "^5.0.2"
+    "@types/marked": "^5.0.2",
+    "globals": "^16.4.0"
   }
 }

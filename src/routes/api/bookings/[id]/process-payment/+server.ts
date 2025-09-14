@@ -19,13 +19,13 @@ export const POST: RequestHandler = async ({ params, request }) => {
   }
   
   try {
-    console.log(`[PROCESS PAYMENT] Endpoint called for booking ${bookingId}`);
+    console.log('[PROCESS PAYMENT] Endpoint called for booking:', { bookingId });
     
     // Get data from request body
     const data = await request.json();
     const paymentStatus = data.paymentStatus || "COMPLETED";
     
-    console.log(`[PROCESS PAYMENT] Processing with status ${paymentStatus} for booking ${bookingId}`);
+    console.log('[PROCESS PAYMENT] Processing with status:', { paymentStatus, bookingId });
     
     // Verify the booking exists and is not cancelled
     const bookings = await db
@@ -35,15 +35,15 @@ export const POST: RequestHandler = async ({ params, request }) => {
       .limit(1);
     
     if (bookings.length === 0) {
-      console.error(`[PROCESS PAYMENT] Booking not found: ${bookingId}`);
+      console.error('[PROCESS PAYMENT] Booking not found:', { bookingId });
       return json({ error: "Booking not found" }, { status: 404 });
     }
     
     const bookingStatus = bookings[0].status;
-    console.log(`[PROCESS PAYMENT] Current booking status: ${bookingStatus}`);
+    console.log('[PROCESS PAYMENT] Current booking status:', { bookingStatus });
     
     if (bookingStatus === "CANCELLED") {
-      console.log(`[PROCESS PAYMENT] Cannot process payment for cancelled booking: ${bookingId}`);
+      console.log('[PROCESS PAYMENT] Cannot process payment for cancelled booking:', { bookingId });
       return json({ 
         success: false, 
         message: "Cannot process payment for cancelled booking" 
@@ -51,7 +51,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
     }
     
     // Run post-payment hooks with the provided payment status
-    console.log(`[PROCESS PAYMENT] Invoking post-payment hooks with status: ${paymentStatus}`);
+    console.log('[PROCESS PAYMENT] Invoking post-payment hooks with status:', { paymentStatus });
     
     // Extra logging to troubleshoot the hook
     try {
@@ -69,12 +69,13 @@ export const POST: RequestHandler = async ({ params, request }) => {
     
     try {
       await postPaymentHooks.runAll(bookingId, paymentStatus);
-      console.log(`[PROCESS PAYMENT] Post-payment hooks completed for booking ${bookingId}`);
+      console.log('[PROCESS PAYMENT] Post-payment hooks completed for booking:', { bookingId });
     } catch (hooksError) {
       console.error(`[PROCESS PAYMENT] Error in post-payment hooks:`, hooksError);
       return json({ 
         success: false, 
-        message: `Error in post-payment hooks: ${hooksError instanceof Error ? hooksError.message : 'Unknown error'}` 
+        message: 'Error in post-payment hooks',
+        error: hooksError instanceof Error ? hooksError.message : 'Unknown error'
       }, { status: 500 });
     }
     
@@ -83,7 +84,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
       message: "Post-payment hooks executed successfully" 
     });
   } catch (error) {
-    console.error(`[PROCESS PAYMENT] Error processing payment for booking ${bookingId}:`, error);
+    console.error('[PROCESS PAYMENT] Error processing payment for booking:', { bookingId, error });
     
     return json({ 
       success: false, 

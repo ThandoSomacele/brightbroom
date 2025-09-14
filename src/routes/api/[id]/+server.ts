@@ -54,7 +54,7 @@ export const GET: RequestHandler = async ({ params }) => {
       }
     });
   } catch (error) {
-    console.error(`Error fetching service ${id}:`, error);
+    console.error('Error fetching service:', { id, error });
     return json({ error: 'Failed to fetch service' }, { status: 500 });
   }
 };
@@ -110,7 +110,7 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
     
     return json({ service: updatedService });
   } catch (error) {
-    console.error(`Error updating service ${id}:`, error);
+    console.error('Error updating service:', { id, error });
     return json({ error: 'Failed to update service' }, { status: 500 });
   }
 };
@@ -130,7 +130,7 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
     
     return json({ success: true });
   } catch (error) {
-    console.error(`Error deleting service ${id}:`, error);
+    console.error('Error deleting service:', { id, error });
     return json({ error: 'Failed to delete service' }, { status: 500 });
   }
 };

@@ -21,13 +21,13 @@ export async function GET({ url, locals }) {
     }
 
     // Log the callback
-    console.log(`Payment success callback received for booking: ${bookingId}`);
+    console.log('Payment success callback received for booking:', { bookingId });
 
     // Check if the user is authenticated
     if (!locals.user) {
       throw redirect(
         302,
-        `/auth/login?redirectTo=/payment/success?booking_id=${bookingId}`,
+        `/auth/login?redirectTo=${encodeURIComponent(`/payment/success?booking_id=${bookingId}`)}`,
       );
     }
 
@@ -46,9 +46,10 @@ export async function GET({ url, locals }) {
 
     // If payment ID was specified in query params, verify it matches
     if (paymentIdParam && paymentIdParam !== paymentData.id) {
-      console.warn(
-        `Payment ID mismatch: expected ${paymentData.id}, got ${paymentIdParam}`,
-      );
+      console.warn('Payment ID mismatch:', {
+        expected: paymentData.id,
+        received: paymentIdParam
+      });
     }
 
     // Check if the payment is already completed
@@ -64,7 +65,8 @@ export async function GET({ url, locals }) {
     await db.insert(adminNote).values({
       id: crypto.randomUUID(),
       bookingId,
-      content: `Payment completed via redirect (ID: ${paymentData.id})`,
+      content: 'Payment completed via redirect',
+      // Note: paymentId logged separately for security
       addedBy: "System (Payment Redirect)",
       createdAt: new Date(),
     });
@@ -72,12 +74,12 @@ export async function GET({ url, locals }) {
     // Run post-payment hooks to auto-assign a cleaner
     try {
       await postPaymentHooks.runAll(bookingId, "COMPLETED");
-      console.log(`Post-payment hooks completed for booking ${bookingId}`);
+      console.log('Post-payment hooks completed for booking:', { bookingId });
     } catch (hookError) {
-      console.error(
-        `Error in post-payment hooks for booking ${bookingId}:`,
-        hookError,
-      );
+      console.error('Error in post-payment hooks for booking:', {
+        bookingId,
+        error: hookError
+      });
     }
 
     // Redirect to the success page

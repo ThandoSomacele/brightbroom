@@ -75,10 +75,11 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     
     return json({ 
       success: true,
-      message: `Booking confirmation email sent to ${emailTo}`
+      message: 'Booking confirmation email sent',
+      emailTo
     });
   } catch (error) {
-    console.error(`Error sending booking confirmation for ${bookingId}:`, error);
+    console.error('Error sending booking confirmation:', { bookingId, error });
     return json({ 
       success: false, 
       error: 'Failed to send booking confirmation email' 

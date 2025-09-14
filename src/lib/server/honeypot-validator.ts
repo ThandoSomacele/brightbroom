@@ -61,7 +61,8 @@ export function validateHoneypot(
     if (submissionTime < 2000) {
       return {
         isBot: true,
-        reason: `Form submitted too quickly (${submissionTime}ms)`
+        reason: "Form submitted too quickly",
+        submissionTimeMs: submissionTime
       };
     }
 
@@ -70,7 +71,8 @@ export function validateHoneypot(
     if (submissionTime > 2 * 60 * 60 * 1000) {
       return {
         isBot: true,
-        reason: `Form submission took too long (${Math.round(submissionTime / 60000)} minutes)`
+        reason: "Form submission took too long",
+        submissionTimeMinutes: Math.round(submissionTime / 60000)
       };
     }
   }
@@ -94,7 +96,8 @@ export function validateHoneypot(
       if (pattern.test(email)) {
         return {
           isBot: true,
-          reason: `Suspicious email pattern: ${email}`
+          reason: "Suspicious email pattern detected",
+          email
         };
       }
     }
@@ -119,7 +122,8 @@ export function validateHoneypot(
       if (fullName.includes(pattern)) {
         return {
           isBot: true,
-          reason: `Suspicious name pattern: ${fullName}`
+          reason: "Suspicious name pattern detected",
+          fullName
         };
       }
     }
@@ -149,7 +153,8 @@ export function validateHoneypot(
       if (message.includes(keyword)) {
         return {
           isBot: true,
-          reason: `Spam keyword detected: ${keyword}`
+          reason: "Spam keyword detected",
+          keyword
         };
       }
     }

@@ -1,27 +1,22 @@
 import js from '@eslint/js';
 import sveltePlugin from 'eslint-plugin-svelte';
+import globals from 'globals';
 
 export default [
   js.configs.recommended,
+  ...sveltePlugin.configs['flat/recommended'],
   {
-    files: ['**/*.svelte'],
-    ...sveltePlugin.configs.recommended,
-    rules: {
-      ...sveltePlugin.configs.recommended.rules,
-    }
-  },
-  {
-    ignores: ['node_modules/**']
+    ignores: ['node_modules/**', '.svelte-kit/**', 'build/**', 'dist/**', 'package-lock.json', '.netlify/**', 'netlify/**']
   },
   {
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2022,
       sourceType: 'module',
-    },
-    env: {
-      browser: true,
-      es2017: true,
-      node: true
+      globals: {
+        ...globals.browser,
+        ...globals.es2021,
+        ...globals.node
+      }
     }
   }
 ];

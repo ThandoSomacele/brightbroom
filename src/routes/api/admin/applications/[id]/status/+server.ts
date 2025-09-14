@@ -49,7 +49,7 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
       userId: result.userId
     });
   } catch (err) {
-    console.error(`Error processing application ${applicationId}:`, err);
+    console.error('Error processing application:', { applicationId, error: err });
     throw error(500, {
       message: err instanceof Error ? err.message : "Failed to process application"
     });
@@ -94,7 +94,7 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
       message: result.message
     });
   } catch (err) {
-    console.error(`Error adding notes to application ${applicationId}:`, err);
+    console.error('Error adding notes to application:', { applicationId, error: err });
     throw error(500, {
       message: err instanceof Error ? err.message : "Failed to add notes"
     });

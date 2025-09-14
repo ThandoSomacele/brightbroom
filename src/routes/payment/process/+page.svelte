@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
+  import { secureAPIFetch } from '$lib/utils/api-helpers';
 
   // Get booking ID from query parameters
   let bookingId = $page.url.searchParams.get('bookingId');
@@ -20,12 +21,9 @@
     try {
       console.log(`Initiating payment process for booking: ${bookingId}`);
       
-      // Call the payment process API
-      const response = await fetch('/api/payments/process', {
+      // Call the payment process API with CSRF token
+      const response = await secureAPIFetch('/api/payments/process', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify({ bookingId })
       });
       

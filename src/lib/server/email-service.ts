@@ -148,8 +148,9 @@ export async function sendBookingConfirmationEmail(
 ): Promise<boolean> {
   try {
     console.log(
-      `[EMAIL SERVICE] Preparing confirmation email for booking ${bookingDetails.id}`,
+      '[EMAIL SERVICE] Preparing confirmation email for booking',
       {
+        bookingId: bookingDetails.id,
         paymentStatus: bookingDetails.paymentStatus || "Not provided",
         bookingStatus: bookingDetails.status,
         email: email,
@@ -383,8 +384,11 @@ export async function sendWelcomeEmail(
     }
 
     console.log(
-      `Welcome email (${user.role || "customer"}) sent successfully:`,
-      data.id,
+      'Welcome email sent successfully:',
+      {
+        role: user.role || "customer",
+        userId: data.id
+      }
     );
     return true;
   } catch (error) {

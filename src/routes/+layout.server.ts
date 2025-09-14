@@ -2,8 +2,9 @@
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
-  // Return user data if logged in
+  // Return user data and CSRF token
   return {
-    user: locals.user
+    user: locals.user,
+    csrf: locals.csrf
   };
 };

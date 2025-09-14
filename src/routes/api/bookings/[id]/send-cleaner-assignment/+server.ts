@@ -87,10 +87,11 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     
     return json({ 
       success: true,
-      message: `Cleaner assignment notification sent to ${emailTo}`
+      message: 'Cleaner assignment notification sent',
+      emailTo
     });
   } catch (error) {
-    console.error(`Error sending cleaner assignment notification for ${bookingId}:`, error);
+    console.error('Error sending cleaner assignment notification:', { bookingId, error });
     return json({ 
       success: false, 
       error: 'Failed to send cleaner assignment notification' 

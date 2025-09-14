@@ -21,7 +21,7 @@ export const emailRecoveryService = {
       const cutoffTime = new Date();
       cutoffTime.setHours(cutoffTime.getHours() - hoursBack);
       
-      console.log(`[EMAIL RECOVERY] Checking for missed emails within last ${hoursBack} hours`);
+      console.log('[EMAIL RECOVERY] Checking for missed emails:', { hoursBack });
       
       // Find payments marked as COMPLETED
       const completedPayments = await db
@@ -39,7 +39,7 @@ export const emailRecoveryService = {
           )
         );
       
-      console.log(`[EMAIL RECOVERY] Found ${completedPayments.length} completed payments to check`);
+      console.log('[EMAIL RECOVERY] Found completed payments to check:', { count: completedPayments.length });
       
       let sent = 0;
       let errors = 0;
@@ -61,7 +61,7 @@ export const emailRecoveryService = {
           
           // If we already sent an email, skip this booking
           if (emailSentNotes.length > 0) {
-            console.log(`[EMAIL RECOVERY] Email already sent for booking ${paymentData.bookingId}`);
+            console.log('[EMAIL RECOVERY] Email already sent for booking:', { bookingId: paymentData.bookingId });
             continue;
           }
           
@@ -98,7 +98,7 @@ export const emailRecoveryService = {
           }
           
           // Send the confirmation email
-          console.log(`[EMAIL RECOVERY] Sending recovery email for booking ${paymentData.bookingId}`);
+          console.log('[EMAIL RECOVERY] Sending recovery email for booking:', { bookingId: paymentData.bookingId });
           const success = await sendBookingConfirmationEmail(
             bookingDetails[0].user.email,
             {
@@ -126,7 +126,7 @@ export const emailRecoveryService = {
             errors++;
           }
         } catch (bookingError) {
-          console.error(`[EMAIL RECOVERY] Error processing booking ${paymentData.bookingId}:`, bookingError);
+          console.error('[EMAIL RECOVERY] Error processing booking:', { bookingId: paymentData.bookingId, error: bookingError });
           errors++;
         }
       }

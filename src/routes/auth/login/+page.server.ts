@@ -5,6 +5,7 @@ import {
   getUserByEmail,
   setSessionTokenCookie
 } from '$lib/server/auth';
+import { validateCSRFToken } from '$lib/server/csrf';
 import { fail, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
 import type { Actions, PageServerLoad } from './$types';
@@ -19,6 +20,10 @@ export const actions: Actions = {
   login: async (event) => {
     const { request } = event;
     const formData = await request.formData();
+
+    // Validate CSRF token
+    const csrfError = validateCSRFToken(event, formData);
+    if (csrfError) return csrfError;
     const email = formData.get('email')?.toString().toLowerCase();
     const password = formData.get('password')?.toString();
     const redirectTo = formData.get('redirectTo')?.toString() || '/profile';
