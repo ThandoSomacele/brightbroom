@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import CleanerSelection from '$lib/components/booking/CleanerSelection.svelte';
+  import StepTracker from '$lib/components/booking/StepTracker.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { ArrowLeft, ArrowRight } from 'lucide-svelte';
   
@@ -83,42 +84,7 @@
 <div class="container mx-auto px-4 py-8 max-w-6xl">
   <!-- Progress Steps -->
   <div class="mb-8">
-    <div class="flex items-center justify-center space-x-4">
-      <div class="flex items-center">
-        <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-semibold">
-          ✓
-        </div>
-        <span class="ml-2 text-sm text-gray-600">Service</span>
-      </div>
-      <div class="w-12 h-px bg-gray-300"></div>
-      <div class="flex items-center">
-        <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-semibold">
-          ✓
-        </div>
-        <span class="ml-2 text-sm text-gray-600">Address</span>
-      </div>
-      <div class="w-12 h-px bg-gray-300"></div>
-      <div class="flex items-center">
-        <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-semibold">
-          ✓
-        </div>
-        <span class="ml-2 text-sm text-gray-600">Schedule</span>
-      </div>
-      <div class="w-12 h-px bg-gray-300"></div>
-      <div class="flex items-center">
-        <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-semibold">
-          4
-        </div>
-        <span class="ml-2 text-sm font-semibold text-gray-900">Cleaner</span>
-      </div>
-      <div class="w-12 h-px bg-gray-300"></div>
-      <div class="flex items-center">
-        <div class="w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-semibold">
-          5
-        </div>
-        <span class="ml-2 text-sm text-gray-600">Review</span>
-      </div>
-    </div>
+    <StepTracker currentStep={4} />
   </div>
   
   <!-- Main Content -->

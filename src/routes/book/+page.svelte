@@ -3,6 +3,7 @@
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import ServiceDetailsModal from "$lib/components/booking/ServiceDetailsModal.svelte";
+  import StepTracker from "$lib/components/booking/StepTracker.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import {
     ArrowRight,
@@ -109,71 +110,7 @@
     </div>
 
     <!-- Progress steps -->
-    <div class="mb-8">
-      <div class="flex items-center justify-between">
-        <div class="flex flex-1 items-center">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white"
-          >
-            <span>1</span>
-          </div>
-          <div class="ml-2">
-            <p class="text-sm font-medium text-primary">Service</p>
-          </div>
-        </div>
-
-        <div class="hidden flex-1 md:flex">
-          <div class="h-1 w-full bg-gray-200 dark:bg-gray-700"></div>
-        </div>
-
-        <div class="flex flex-1 items-center">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
-          >
-            <span>2</span>
-          </div>
-          <div class="ml-2">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Address
-            </p>
-          </div>
-        </div>
-
-        <div class="hidden flex-1 md:flex">
-          <div class="h-1 w-full bg-gray-200 dark:bg-gray-700"></div>
-        </div>
-
-        <div class="flex flex-1 items-center">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
-          >
-            <span>3</span>
-          </div>
-          <div class="ml-2">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Schedule
-            </p>
-          </div>
-        </div>
-
-        <div class="hidden flex-1 md:flex">
-          <div class="h-1 w-full bg-gray-200 dark:bg-gray-700"></div>
-        </div>
-
-        <div class="flex flex-1 items-center">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
-          >
-            <span>4</span>
-          </div>
-          <div class="ml-2">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Review
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <StepTracker currentStep={1} />
 
     <!-- Service selection cards -->
     <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

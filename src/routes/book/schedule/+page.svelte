@@ -1,6 +1,7 @@
 <!-- src/routes/book/schedule/+page.svelte -->
 <script lang="ts">
   import { goto } from "$app/navigation";
+  import StepTracker from "$lib/components/booking/StepTracker.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { Calendar, Clock, ArrowRight, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-svelte";
   import { format, parse, isEqual, isSameDay, isToday, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, endOfWeek, startOfWeek, isSameMonth } from "date-fns";
@@ -171,65 +172,7 @@
 
     <!-- Progress steps -->
     <div class="mb-8">
-      <div class="flex items-center justify-between">
-        <div class="flex flex-1 items-center">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-green-500 text-white"
-          >
-            <span>✓</span>
-          </div>
-          <div class="ml-2">
-            <p class="text-sm font-medium text-green-500">Service</p>
-          </div>
-        </div>
-
-        <div class="hidden flex-1 md:flex">
-          <div class="h-1 w-full bg-primary"></div>
-        </div>
-
-        <div class="flex flex-1 items-center">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-green-500 text-white"
-          >
-            <span>✓</span>
-          </div>
-          <div class="ml-2">
-            <p class="text-sm font-medium text-green-500">Address</p>
-          </div>
-        </div>
-
-        <div class="hidden flex-1 md:flex">
-          <div class="h-1 w-full bg-primary"></div>
-        </div>
-
-        <div class="flex flex-1 items-center">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white"
-          >
-            <span>3</span>
-          </div>
-          <div class="ml-2">
-            <p class="text-sm font-medium text-primary">Schedule</p>
-          </div>
-        </div>
-
-        <div class="hidden flex-1 md:flex">
-          <div class="h-1 w-full bg-gray-200 dark:bg-gray-700"></div>
-        </div>
-
-        <div class="flex flex-1 items-center">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
-          >
-            <span>4</span>
-          </div>
-          <div class="ml-2">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Review
-            </p>
-          </div>
-        </div>
-      </div>
+      <StepTracker currentStep={3} />
     </div>
 
     <!-- Date and time selection -->

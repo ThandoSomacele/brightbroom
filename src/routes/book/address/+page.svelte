@@ -3,6 +3,7 @@
   import { goto } from "$app/navigation";
   import AddressSelect from "$lib/components/booking/AddressSelect.svelte";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
+  import StepTracker from "$lib/components/booking/StepTracker.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { MAX_ADDRESSES } from "$lib/constants/address";
   import { AlertCircle, ArrowLeft, ArrowRight, Plus } from "lucide-svelte";
@@ -282,67 +283,7 @@
 
     <!-- Progress steps -->
     <div class="mb-8">
-      <div class="flex items-center justify-between">
-        <div class="flex flex-1 items-center">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-green-500 text-white"
-          >
-            <span>✓</span>
-          </div>
-          <div class="ml-2">
-            <p class="text-sm font-medium text-green-500">Service</p>
-          </div>
-        </div>
-
-        <div class="hidden flex-1 md:flex">
-          <div class="h-1 w-full bg-primary"></div>
-        </div>
-
-        <div class="flex flex-1 items-center">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white"
-          >
-            <span>2</span>
-          </div>
-          <div class="ml-2">
-            <p class="text-sm font-medium text-primary">Address</p>
-          </div>
-        </div>
-
-        <div class="hidden flex-1 md:flex">
-          <div class="h-1 w-full bg-gray-200 dark:bg-gray-700"></div>
-        </div>
-
-        <div class="flex flex-1 items-center">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
-          >
-            <span>3</span>
-          </div>
-          <div class="ml-2">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Schedule
-            </p>
-          </div>
-        </div>
-
-        <div class="hidden flex-1 md:flex">
-          <div class="h-1 w-full bg-gray-200 dark:bg-gray-700"></div>
-        </div>
-
-        <div class="flex flex-1 items-center">
-          <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
-          >
-            <span>4</span>
-          </div>
-          <div class="ml-2">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Review
-            </p>
-          </div>
-        </div>
-      </div>
+      <StepTracker currentStep={2} />
     </div>
 
     <!-- Address limit information -->
