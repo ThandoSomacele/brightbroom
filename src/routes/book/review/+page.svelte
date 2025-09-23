@@ -11,6 +11,8 @@
     CreditCard,
     FileText,
     ArrowLeft,
+    RotateCw,
+    DollarSign,
   } from "lucide-svelte";
 
   // Get data from the server load function
@@ -28,6 +30,16 @@
   let notes = "";
   let selectedCleanerId = "";
   let selectedCleanerData: any = null;
+
+  // Recurring booking data
+  let isRecurring = false;
+  let recurringFrequency = "";
+  let recurringDays: string[] = [];
+  let recurringMonthlyDates: number[] = [];
+  let recurringTimeSlot = "";
+  let discountPercentage = 0;
+  let finalPrice = 0;
+  let startDate = "";
   
   // Guest user data
   let guestAddress = null;
@@ -47,10 +59,43 @@
   import { parse, format } from "date-fns";
 
   onMount(() => {
-    // Get selections from localStorage
+    // Check if this is a recurring booking
+    isRecurring = localStorage.getItem("booking_is_recurring") === "true";
+
+    if (isRecurring) {
+      // Get recurring booking data
+      recurringFrequency = localStorage.getItem("booking_recurring_frequency") || "";
+
+      const daysStr = localStorage.getItem("booking_recurring_days");
+      if (daysStr) {
+        try {
+          recurringDays = JSON.parse(daysStr);
+        } catch (e) {
+          recurringDays = [];
+        }
+      }
+
+      const datesStr = localStorage.getItem("booking_recurring_monthly_dates");
+      if (datesStr) {
+        try {
+          recurringMonthlyDates = JSON.parse(datesStr);
+        } catch (e) {
+          recurringMonthlyDates = [];
+        }
+      }
+
+      recurringTimeSlot = localStorage.getItem("booking_recurring_time_slot") || "";
+      discountPercentage = parseFloat(localStorage.getItem("booking_discount_percentage") || "0");
+      finalPrice = parseFloat(localStorage.getItem("booking_final_price") || "0");
+      startDate = localStorage.getItem("booking_start_date") || "";
+    } else {
+      // Get one-time booking data
+      selectedDate = localStorage.getItem("booking_date") || "";
+      selectedTime = localStorage.getItem("booking_time") || "";
+    }
+
+    // Get common booking data
     selectedService = localStorage.getItem("booking_service") || "";
-    selectedDate = localStorage.getItem("booking_date") || "";
-    selectedTime = localStorage.getItem("booking_time") || "";
     notes = localStorage.getItem("booking_instructions") || "";
     selectedCleanerId = localStorage.getItem("booking_cleaner_id") || "";
     

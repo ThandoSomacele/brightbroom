@@ -3,7 +3,8 @@
   import { goto } from "$app/navigation";
   import StepTracker from "$lib/components/booking/StepTracker.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import { Calendar, Clock, ArrowRight, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-svelte";
+  import RecurringOptions from "$lib/components/booking/RecurringOptions.svelte";
+  import { Calendar, Clock, ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, RotateCw } from "lucide-svelte";
   import { format, parse, isEqual, isSameDay, isToday, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, endOfWeek, startOfWeek, isSameMonth } from "date-fns";
   
   // Get data from the server load function
@@ -13,6 +14,16 @@
   // Track selected date and time
   let selectedDate = "";
   let selectedTime = "";
+
+  // Recurring booking state
+  let isRecurring = false;
+  let recurringFrequency = "";
+  let recurringDays: string[] = [];
+  let recurringMonthlyDates: number[] = [];
+  let recurringTimeSlot = "";
+  let basePrice = 0;
+  let finalPrice = 0;
+  let discountPercentage = 0;
   
   // Calendar state
   let currentMonth = new Date();
@@ -37,23 +48,34 @@
     selectedService = localStorage.getItem("booking_service") || "";
     selectedAddress = localStorage.getItem("booking_address") || "";
     accessInstructions = localStorage.getItem("booking_instructions") || "";
-    
+
+    // Get service price for recurring calculations
+    const serviceData = localStorage.getItem("booking_service_data");
+    if (serviceData) {
+      try {
+        const parsed = JSON.parse(serviceData);
+        basePrice = parseFloat(parsed.price) || 0;
+      } catch (e) {
+        console.error("Error parsing service data:", e);
+      }
+    }
+
     // Check for guest address if no regular address is found
     const guestAddress = localStorage.getItem("booking_guest_address");
-    
+
     // If required information is missing, redirect back
     if (!selectedService || (!selectedAddress && !guestAddress)) {
       goto("/book");
     }
-    
+
     // Parse available dates into Date objects
     availableDateObjects = availableDates.map(d => parse(d.date, 'yyyy-MM-dd', new Date()));
-    
+
     // Default to first available date if we have any
     if (availableDates.length > 0 && !selectedDate) {
       selectedDate = availableDates[0].date;
     }
-    
+
     // Generate calendar days for the current month
     generateCalendarDays();
   });
@@ -117,24 +139,84 @@
   
   // Continue to next step
   async function continueToNext() {
-    if (selectedDate && selectedTime) {
+    // Validate based on booking type
+    if (isRecurring) {
+      const isValidRecurring = recurringFrequency && recurringTimeSlot &&
+        ((recurringFrequency === 'TWICE_MONTHLY' && recurringMonthlyDates.length === 2) ||
+         (recurringFrequency === 'WEEKLY' && recurringDays.length === 1) ||
+         (recurringFrequency === 'BIWEEKLY' && recurringDays.length === 1) ||
+         (recurringFrequency === 'TWICE_WEEKLY' && recurringDays.length === 2));
+
+      if (!isValidRecurring) {
+        alert("Please complete all recurring booking options");
+        return;
+      }
+
       // Show loading state
       isLoading = true;
-      
+
       try {
-        // Store selections in localStorage to persist through navigation
-        localStorage.setItem("booking_date", selectedDate);
-        localStorage.setItem("booking_time", selectedTime);
-        
+        // Store recurring booking data
+        localStorage.setItem("booking_is_recurring", "true");
+        localStorage.setItem("booking_recurring_frequency", recurringFrequency);
+        localStorage.setItem("booking_recurring_days", JSON.stringify(recurringDays));
+        localStorage.setItem("booking_recurring_monthly_dates", JSON.stringify(recurringMonthlyDates));
+        localStorage.setItem("booking_recurring_time_slot", recurringTimeSlot);
+        localStorage.setItem("booking_discount_percentage", discountPercentage.toString());
+        localStorage.setItem("booking_final_price", finalPrice.toString());
+
+        // For recurring bookings, we'll use the start date as the first occurrence
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() + 7); // Start next week
+        localStorage.setItem("booking_start_date", startDate.toISOString());
+
         // Navigate to cleaner selection
         await goto("/book/cleaner");
       } catch (error) {
         console.error("Navigation error:", error);
       } finally {
-        // Reset loading state (though this won't be seen due to navigation)
         isLoading = false;
       }
+    } else {
+      // One-time booking
+      if (selectedDate && selectedTime) {
+        // Show loading state
+        isLoading = true;
+
+        try {
+          // Store selections in localStorage to persist through navigation
+          localStorage.setItem("booking_date", selectedDate);
+          localStorage.setItem("booking_time", selectedTime);
+          localStorage.setItem("booking_is_recurring", "false");
+
+          // Navigate to cleaner selection
+          await goto("/book/cleaner");
+        } catch (error) {
+          console.error("Navigation error:", error);
+        } finally {
+          isLoading = false;
+        }
+      }
     }
+  }
+
+  // Handle recurring booking events
+  function handleFrequencyChange(event: CustomEvent) {
+    recurringFrequency = event.detail.frequency;
+    discountPercentage = event.detail.discountPercentage;
+    finalPrice = event.detail.finalPrice;
+  }
+
+  function handleDaysChange(event: CustomEvent) {
+    recurringDays = event.detail.days;
+  }
+
+  function handleMonthlyDatesChange(event: CustomEvent) {
+    recurringMonthlyDates = event.detail.dates;
+  }
+
+  function handleTimeSlotChange(event: CustomEvent) {
+    recurringTimeSlot = event.detail.timeSlot;
   }
   
   // Go back to previous step
@@ -175,7 +257,64 @@
       <StepTracker currentStep={3} />
     </div>
 
-    <!-- Date and time selection -->
+    <!-- Booking Type Toggle -->
+    <div class="mb-8">
+      <div class="bg-white rounded-lg p-6 shadow-md dark:bg-gray-800">
+        <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <RotateCw class="h-5 w-5 text-teal-600" />
+          Booking Type
+        </h2>
+
+        <div class="flex gap-4">
+          <button
+            type="button"
+            on:click={() => isRecurring = false}
+            class="flex-1 p-4 border-2 rounded-lg transition-all {!isRecurring ? 'border-teal-500 bg-teal-50' : 'border-gray-200 hover:border-gray-300'}"
+          >
+            <p class="font-semibold">One-Time Cleaning</p>
+            <p class="text-sm text-gray-600">Book a single cleaning session</p>
+          </button>
+
+          <button
+            type="button"
+            on:click={() => isRecurring = true}
+            class="flex-1 p-4 border-2 rounded-lg transition-all {isRecurring ? 'border-teal-500 bg-teal-50' : 'border-gray-200 hover:border-gray-300'}"
+          >
+            <div class="flex justify-between items-start">
+              <div class="text-left">
+                <p class="font-semibold">Recurring Cleaning</p>
+                <p class="text-sm text-gray-600">Regular scheduled cleaning with discounts</p>
+              </div>
+              <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                Save up to 15%
+              </span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recurring Options (if selected) -->
+    {#if isRecurring}
+      <div class="mb-8">
+        <div class="bg-white rounded-lg p-6 shadow-md dark:bg-gray-800">
+          <RecurringOptions
+            {basePrice}
+            bind:selectedFrequency={recurringFrequency}
+            bind:selectedDays={recurringDays}
+            bind:selectedMonthlyDates={recurringMonthlyDates}
+            bind:preferredTimeSlot={recurringTimeSlot}
+            on:frequencyChange={handleFrequencyChange}
+            on:daysChange={handleDaysChange}
+            on:monthlyDatesChange={handleMonthlyDatesChange}
+            on:timeSlotChange={handleTimeSlotChange}
+          />
+        </div>
+      </div>
+    {/if}
+
+    <!-- Date and time selection (for one-time bookings) -->
+    {#if !isRecurring}
     <div class="grid gap-8 md:grid-cols-2">
       <!-- Calendar Date Picker -->
       <div>
@@ -299,22 +438,64 @@
       </div>
     </div>
 
-    <!-- Selected date and time summary -->
+    <!-- Selected date and time summary (for one-time booking) -->
     {#if selectedDate && selectedTime}
       <div class="mt-8 rounded-lg bg-primary-50 p-4 dark:bg-primary-900/20">
         <h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">
           Your Selected Time
         </h3>
-        
+
         <p class="flex items-center text-gray-700 dark:text-gray-300">
           <Calendar size={18} class="mr-2 text-primary" />
           {availableDates.find((d) => d.date === selectedDate)?.fullDisplayDate}
         </p>
-        
+
         <p class="mt-2 flex items-center text-gray-700 dark:text-gray-300">
           <Clock size={18} class="mr-2 text-primary" />
           {timeSlots.find((t) => t.time === selectedTime)?.displayTime}
         </p>
+      </div>
+    {/if}
+    {/if}
+
+    <!-- Summary for recurring booking -->
+    {#if isRecurring && recurringFrequency}
+      <div class="mt-8 rounded-lg bg-primary-50 p-4 dark:bg-primary-900/20">
+        <h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">
+          Your Recurring Schedule
+        </h3>
+
+        <p class="text-gray-700 dark:text-gray-300">
+          <strong>Frequency:</strong>
+          {recurringFrequency === 'WEEKLY' ? 'Weekly' :
+           recurringFrequency === 'BIWEEKLY' ? 'Bi-weekly' :
+           recurringFrequency === 'TWICE_WEEKLY' ? 'Twice weekly' :
+           recurringFrequency === 'TWICE_MONTHLY' ? 'Twice monthly' : ''}
+        </p>
+
+        {#if recurringDays.length > 0}
+          <p class="mt-2 text-gray-700 dark:text-gray-300">
+            <strong>Days:</strong> {recurringDays.join(', ')}
+          </p>
+        {/if}
+
+        {#if recurringMonthlyDates.length > 0}
+          <p class="mt-2 text-gray-700 dark:text-gray-300">
+            <strong>Monthly dates:</strong> {recurringMonthlyDates.map(d => `${d}${d === 1 ? 'st' : 'th'}`).join(' and ')}
+          </p>
+        {/if}
+
+        {#if recurringTimeSlot}
+          <p class="mt-2 text-gray-700 dark:text-gray-300">
+            <strong>Time slot:</strong> {recurringTimeSlot}
+          </p>
+        {/if}
+
+        {#if finalPrice > 0}
+          <p class="mt-2 text-green-600 dark:text-green-400 font-semibold">
+            Price per clean: R{finalPrice.toFixed(2)} ({discountPercentage}% discount)
+          </p>
+        {/if}
       </div>
     {/if}
 
@@ -352,7 +533,11 @@
       <Button
         variant="primary"
         on:click={continueToNext}
-        disabled={!selectedDate || !selectedTime || isLoading}
+        disabled={isLoading || (!isRecurring && (!selectedDate || !selectedTime)) ||
+                  (isRecurring && (!recurringFrequency || !recurringTimeSlot ||
+                    ((recurringFrequency === 'TWICE_MONTHLY' && recurringMonthlyDates.length !== 2) ||
+                     ((recurringFrequency === 'WEEKLY' || recurringFrequency === 'BIWEEKLY') && recurringDays.length !== 1) ||
+                     (recurringFrequency === 'TWICE_WEEKLY' && recurringDays.length !== 2))))}
       >
         {#if isLoading}
           <svg
