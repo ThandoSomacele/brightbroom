@@ -38,6 +38,21 @@ export const paymentMethodEnum = pgEnum("PaymentMethod", [
   "ZAPPER",
   "OTHER",
 ]);
+
+export const recurringFrequencyEnum = pgEnum("RecurringFrequency", [
+  "TWICE_MONTHLY", // Twice a month (e.g., 1st and 15th)
+  "WEEKLY", // Once a week on selected day
+  "BIWEEKLY", // Every two weeks
+  "TWICE_WEEKLY", // Twice a week on selected days
+]);
+
+export const subscriptionStatusEnum = pgEnum("SubscriptionStatus", [
+  "ACTIVE",
+  "PAUSED",
+  "CANCELLED",
+  "EXPIRED",
+  "PENDING",
+]);
 export const dayOfWeekEnum = pgEnum("DayOfWeek", [
   "MONDAY",
   "TUESDAY",
@@ -163,10 +178,13 @@ export const booking = pgTable("booking", {
   duration: integer("duration").notNull(), // Duration in minutes
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   notes: text("notes"),
-  
+
   // Guest booking fields
   guestAddress: json("guest_address"), // Guest's address as JSON object
-  
+
+  // Subscription reference
+  subscriptionId: text("subscription_id").references(() => subscription.id),
+
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
@@ -367,6 +385,80 @@ export const cleanerPayoutSummary = pgTable("cleaner_payout_summary", {
   lastPayoutDate: timestamp("last_payout_date", { mode: "date" }),
 });
 
+// Subscription table for recurring bookings
+export const subscription = pgTable("subscription", {
+  id: text("id").primaryKey().notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  addressId: text("address_id")
+    .notNull()
+    .references(() => address.id),
+  serviceId: text("service_id")
+    .notNull()
+    .references(() => service.id),
+  cleanerId: text("cleaner_id").references(() => user.id),
+
+  // Subscription details
+  frequency: recurringFrequencyEnum("frequency").notNull(),
+  status: subscriptionStatusEnum("status").default("PENDING").notNull(),
+
+  // Scheduling preferences
+  preferredDays: text("preferred_days").array(), // Array of DayOfWeek values
+  preferredTimeSlot: text("preferred_time_slot"), // e.g., "09:00-12:00"
+  monthlyDates: integer("monthly_dates").array(), // For TWICE_MONTHLY (e.g., [1, 15])
+
+  // Pricing with discounts
+  basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(),
+  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }).default("0").notNull(),
+  finalPrice: decimal("final_price", { precision: 10, scale: 2 }).notNull(),
+
+  // PayFast subscription details
+  payFastToken: text("pay_fast_token"), // PayFast subscription token
+  payFastSubscriptionId: text("pay_fast_subscription_id"),
+
+  // Subscription lifecycle
+  startDate: timestamp("start_date", { mode: "date" }).notNull(),
+  nextBillingDate: timestamp("next_billing_date", { mode: "date" }),
+  endDate: timestamp("end_date", { mode: "date" }), // Null for ongoing subscriptions
+  pausedAt: timestamp("paused_at", { mode: "date" }),
+  cancelledAt: timestamp("cancelled_at", { mode: "date" }),
+
+  // Additional info
+  notes: text("notes"),
+  cancellationReason: text("cancellation_reason"),
+
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Table to track subscription payments
+export const subscriptionPayment = pgTable("subscription_payment", {
+  id: text("id").primaryKey().notNull(),
+  subscriptionId: text("subscription_id")
+    .notNull()
+    .references(() => subscription.id, { onDelete: "cascade" }),
+  bookingId: text("booking_id")
+    .references(() => booking.id),
+
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  status: paymentStatusEnum("status").default("PENDING").notNull(),
+  paymentMethod: paymentMethodEnum("payment_method"),
+
+  payFastPaymentId: text("pay_fast_payment_id"),
+  payFastReference: text("pay_fast_reference"),
+
+  billingPeriodStart: timestamp("billing_period_start", { mode: "date" }).notNull(),
+  billingPeriodEnd: timestamp("billing_period_end", { mode: "date" }).notNull(),
+
+  processedAt: timestamp("processed_at", { mode: "date" }),
+  failureReason: text("failure_reason"),
+  retryCount: integer("retry_count").default(0),
+  nextRetryAt: timestamp("next_retry_at", { mode: "date" }),
+
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
 // Define types
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
@@ -416,3 +508,9 @@ export type NewCommunicationLog = typeof communicationLog.$inferInsert;
 
 export type CleanerPayoutSummary = typeof cleanerPayoutSummary.$inferSelect;
 export type NewCleanerPayoutSummary = typeof cleanerPayoutSummary.$inferInsert;
+
+export type Subscription = typeof subscription.$inferSelect;
+export type NewSubscription = typeof subscription.$inferInsert;
+
+export type SubscriptionPayment = typeof subscriptionPayment.$inferSelect;
+export type NewSubscriptionPayment = typeof subscriptionPayment.$inferInsert;
