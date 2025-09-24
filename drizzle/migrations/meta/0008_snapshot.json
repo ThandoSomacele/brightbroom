@@ -1,5 +1,5 @@
 {
-  "id": "758b212f-c278-4017-adb4-2a93d9f6d2a7",
+  "id": "a4f08770-c372-4d46-be89-795804a70e1c",
   "prevId": "b86c4f28-dcb2-483c-b29b-00f99a4421d6",
   "version": "7",
   "dialect": "postgresql",
@@ -375,19 +375,6 @@
           "tableTo": "user",
           "columnsFrom": [
             "cleaner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "booking_subscription_id_subscription_id_fk": {
-          "name": "booking_subscription_id_subscription_id_fk",
-          "tableFrom": "booking",
-          "tableTo": "subscription",
-          "columnsFrom": [
-            "subscription_id"
           ],
           "columnsTo": [
             "id"
