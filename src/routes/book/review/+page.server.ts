@@ -72,16 +72,36 @@ export const actions: Actions = {
     const scheduledDate = formData.get('scheduledDate')?.toString();
     const notes = formData.get('notes')?.toString();
     const cleanerId = formData.get('cleanerId')?.toString() || null;
-    
+
+    // Check if this is a recurring booking
+    const isRecurring = formData.get('isRecurring') === 'true';
+    const recurringFrequency = formData.get('recurringFrequency')?.toString();
+    const recurringDays = formData.get('recurringDays')?.toString();
+    const recurringMonthlyDates = formData.get('recurringMonthlyDates')?.toString();
+    const recurringTimeSlot = formData.get('recurringTimeSlot')?.toString();
+    const discountPercentage = formData.get('discountPercentage')?.toString();
+    const finalPrice = formData.get('finalPrice')?.toString();
+    const startDate = formData.get('startDate')?.toString();
+
     // Guest booking data (contact info will be obtained during authentication)
     const guestAddressData = formData.get('guestAddress')?.toString();
-    
+
     // Authenticated user booking data
     const addressId = formData.get('addressId')?.toString();
-    
-    
-    if (!serviceId || !scheduledDate) {
-      return { success: false, error: 'Missing required booking information' };
+
+    // Validate required fields based on booking type
+    if (!serviceId) {
+      return { success: false, error: 'Missing service information' };
+    }
+
+    if (isRecurring) {
+      if (!recurringFrequency || !recurringTimeSlot) {
+        return { success: false, error: 'Missing recurring booking information' };
+      }
+    } else {
+      if (!scheduledDate) {
+        return { success: false, error: 'Missing booking date information' };
+      }
     }
     
     // Validate based on user type
@@ -145,15 +165,71 @@ export const actions: Actions = {
         }
       }
       
-      // Parse the scheduled date
+      // Handle recurring booking differently
+      if (isRecurring) {
+        // Recurring bookings require authentication
+        if (!locals.user) {
+          // Store recurring booking data for after authentication
+          storeGuestBookingData(event, {
+            serviceId,
+            serviceName: serviceData.name,
+            servicePrice: serviceData.basePrice,
+            isRecurring: true,
+            recurringFrequency,
+            recurringDays: recurringDays ? JSON.parse(recurringDays) : [],
+            recurringMonthlyDates: recurringMonthlyDates ? JSON.parse(recurringMonthlyDates) : [],
+            recurringTimeSlot,
+            discountPercentage: parseFloat(discountPercentage || '0'),
+            finalPrice: parseFloat(finalPrice || serviceData.basePrice.toString()),
+            startDate,
+            notes: notes || undefined,
+            guestAddress
+          });
+
+          // Redirect guest users to login/register for recurring bookings
+          return {
+            success: true,
+            requiresAuth: true,
+            redirectTo: '/book/payment'
+          };
+        }
+
+        // For authenticated users, redirect to subscription creation
+        // Store the recurring booking data in session for the subscription API
+        storeGuestBookingData(event, {
+          serviceId,
+          serviceName: serviceData.name,
+          addressId,
+          cleanerId,
+          isRecurring: true,
+          recurringFrequency,
+          recurringDays: recurringDays ? JSON.parse(recurringDays) : [],
+          recurringMonthlyDates: recurringMonthlyDates ? JSON.parse(recurringMonthlyDates) : [],
+          recurringTimeSlot,
+          discountPercentage: parseFloat(discountPercentage || '0'),
+          finalPrice: parseFloat(finalPrice || serviceData.basePrice.toString()),
+          basePrice: serviceData.basePrice,
+          startDate: startDate || new Date().toISOString(),
+          notes: notes || undefined
+        });
+
+        // Return success with subscription flag
+        return {
+          success: true,
+          isSubscription: true,
+          redirectTo: '/api/subscription/create-redirect'
+        };
+      }
+
+      // One-time booking logic (existing code)
       const scheduledDateObj = new Date(parseDateTimeString(scheduledDate));
-      
+
       // Calculate duration in minutes based on the service
       const durationMinutes = serviceData.durationHours * 60;
-      
+
       // Create booking ID
       const bookingId = crypto.randomUUID();
-      
+
       // Prepare booking data
       const bookingData = {
         id: bookingId,
@@ -171,7 +247,7 @@ export const actions: Actions = {
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      
+
       // Insert the booking into the database
       const [newBooking] = await db.insert(booking).values(bookingData).returning();
       

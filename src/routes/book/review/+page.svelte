@@ -135,12 +135,16 @@
     
     // Validation based on user type
     const hasValidAddressData = isAuthenticated ? selectedAddress : guestAddress;
-    
+
+    // Check if we have valid scheduling data
+    const hasValidSchedule = isRecurring
+      ? (recurringFrequency && recurringTimeSlot)
+      : (selectedDate && selectedTime);
+
     // If required information is missing, redirect back
     if (
       !selectedService ||
-      !selectedDate ||
-      !selectedTime ||
+      !hasValidSchedule ||
       !hasValidAddressData
     ) {
       goto("/book");
@@ -183,12 +187,16 @@
     // For authenticated users, check selectedAddress
     // For guest users, check guestAddress only (contact info will be collected at payment)
     const hasValidAddress = isAuthenticated ? selectedAddress : guestAddress;
-    
+
+    // Check if we have valid scheduling data
+    const hasValidSchedule = isRecurring
+      ? (recurringFrequency && recurringTimeSlot)
+      : (selectedDate && selectedTime);
+
     if (
       !selectedService ||
       !hasValidAddress ||
-      !selectedDate ||
-      !selectedTime
+      !hasValidSchedule
     ) {
       return;
     }
@@ -199,15 +207,15 @@
 
   // After successful booking
   function handleBookingSuccess(result: any) {
-    if (result.bookingId) {
+    if (result.isSubscription) {
+      // For recurring bookings, create a subscription via API
+      createSubscription();
+    } else if (result.requiresAuth) {
+      // Guest user needs to authenticate for recurring booking
+      goto('/book/payment');
+    } else if (result.bookingId) {
       // Clear localStorage booking data
-      localStorage.removeItem("booking_service");
-      localStorage.removeItem("booking_address");
-      localStorage.removeItem("booking_date");
-      localStorage.removeItem("booking_time");
-      localStorage.removeItem("booking_instructions");
-      localStorage.removeItem("booking_cleaner_id");
-      localStorage.removeItem("booking_cleaner_data");
+      clearBookingData();
 
       // Navigate to payment page
       if (result.isGuest) {
@@ -218,6 +226,72 @@
         goto(`/payment/process?bookingId=${result.bookingId}`);
       }
     }
+  }
+
+  // Create subscription for recurring booking
+  async function createSubscription() {
+    isLoading = true;
+
+    try {
+      const response = await fetch('/api/subscription/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          serviceId: selectedService,
+          addressId: selectedAddress,
+          cleanerId: selectedCleanerId,
+          frequency: recurringFrequency,
+          preferredDays: recurringDays,
+          preferredTimeSlot: recurringTimeSlot,
+          monthlyDates: recurringMonthlyDates,
+          basePrice: serviceDetails?.basePrice || 0,
+          discountPercentage,
+          finalPrice,
+          startDate: startDate || new Date().toISOString(),
+          notes
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.redirectUrl) {
+        // Clear booking data
+        clearBookingData();
+
+        // Redirect to PayFast for subscription setup
+        window.location.href = data.redirectUrl;
+      } else {
+        alert('Failed to create subscription. Please try again.');
+        isLoading = false;
+      }
+    } catch (error) {
+      console.error('Error creating subscription:', error);
+      alert('An error occurred. Please try again.');
+      isLoading = false;
+    }
+  }
+
+  // Clear all booking data from localStorage
+  function clearBookingData() {
+    localStorage.removeItem("booking_service");
+    localStorage.removeItem("booking_service_data");
+    localStorage.removeItem("booking_address");
+    localStorage.removeItem("booking_date");
+    localStorage.removeItem("booking_time");
+    localStorage.removeItem("booking_instructions");
+    localStorage.removeItem("booking_cleaner_id");
+    localStorage.removeItem("booking_cleaner_data");
+    localStorage.removeItem("booking_guest_address");
+    localStorage.removeItem("booking_is_recurring");
+    localStorage.removeItem("booking_recurring_frequency");
+    localStorage.removeItem("booking_recurring_days");
+    localStorage.removeItem("booking_recurring_monthly_dates");
+    localStorage.removeItem("booking_recurring_time_slot");
+    localStorage.removeItem("booking_discount_percentage");
+    localStorage.removeItem("booking_final_price");
+    localStorage.removeItem("booking_start_date");
   }
 </script>
 
@@ -299,28 +373,100 @@
         </h2>
 
         <div class="space-y-4">
-          <div class="flex items-start">
-            <Calendar
-              size={20}
-              class="mr-3 mt-0.5 flex-shrink-0 text-primary"
-            />
-            <div>
-              <p class="font-medium text-gray-900 dark:text-white">Date</p>
-              <p class="text-gray-600 dark:text-gray-300">
-                {formatDate(selectedDate)}
-              </p>
+          {#if isRecurring}
+            <!-- Recurring Schedule -->
+            <div class="flex items-start">
+              <RotateCw
+                size={20}
+                class="mr-3 mt-0.5 flex-shrink-0 text-primary"
+              />
+              <div>
+                <p class="font-medium text-gray-900 dark:text-white">Recurring Schedule</p>
+                <p class="text-gray-600 dark:text-gray-300">
+                  {recurringFrequency === 'WEEKLY' ? 'Weekly' :
+                   recurringFrequency === 'BIWEEKLY' ? 'Bi-weekly' :
+                   recurringFrequency === 'TWICE_WEEKLY' ? 'Twice weekly' :
+                   recurringFrequency === 'TWICE_MONTHLY' ? 'Twice monthly' : ''}
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div class="flex items-start">
-            <Clock size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
-            <div>
-              <p class="font-medium text-gray-900 dark:text-white">Time</p>
-              <p class="text-gray-600 dark:text-gray-300">
-                {formatTime(selectedTime)}
-              </p>
+            {#if recurringDays.length > 0}
+              <div class="flex items-start">
+                <Calendar
+                  size={20}
+                  class="mr-3 mt-0.5 flex-shrink-0 text-primary"
+                />
+                <div>
+                  <p class="font-medium text-gray-900 dark:text-white">Preferred Days</p>
+                  <p class="text-gray-600 dark:text-gray-300">
+                    {recurringDays.join(', ')}
+                  </p>
+                </div>
+              </div>
+            {/if}
+
+            {#if recurringMonthlyDates.length > 0}
+              <div class="flex items-start">
+                <Calendar
+                  size={20}
+                  class="mr-3 mt-0.5 flex-shrink-0 text-primary"
+                />
+                <div>
+                  <p class="font-medium text-gray-900 dark:text-white">Monthly Dates</p>
+                  <p class="text-gray-600 dark:text-gray-300">
+                    {recurringMonthlyDates.map(d => `${d}${d === 1 ? 'st' : d === 15 ? 'th' : 'th'}`).join(' and ')}
+                  </p>
+                </div>
+              </div>
+            {/if}
+
+            <div class="flex items-start">
+              <Clock size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+              <div>
+                <p class="font-medium text-gray-900 dark:text-white">Time Slot</p>
+                <p class="text-gray-600 dark:text-gray-300">
+                  {recurringTimeSlot}
+                </p>
+              </div>
             </div>
-          </div>
+
+            {#if finalPrice > 0}
+              <div class="flex items-start">
+                <DollarSign size={20} class="mr-3 mt-0.5 flex-shrink-0 text-green-600" />
+                <div>
+                  <p class="font-medium text-gray-900 dark:text-white">Price per Clean</p>
+                  <p class="text-green-600 dark:text-green-400 font-semibold">
+                    R{finalPrice.toFixed(2)} ({discountPercentage}% discount)
+                  </p>
+                </div>
+              </div>
+            {/if}
+          {:else}
+            <!-- One-time Schedule -->
+            <div class="flex items-start">
+              <Calendar
+                size={20}
+                class="mr-3 mt-0.5 flex-shrink-0 text-primary"
+              />
+              <div>
+                <p class="font-medium text-gray-900 dark:text-white">Date</p>
+                <p class="text-gray-600 dark:text-gray-300">
+                  {formatDate(selectedDate)}
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start">
+              <Clock size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+              <div>
+                <p class="font-medium text-gray-900 dark:text-white">Time</p>
+                <p class="text-gray-600 dark:text-gray-300">
+                  {formatTime(selectedTime)}
+                </p>
+              </div>
+            </div>
+          {/if}
 
           {#if addressDetails}
             <!-- Authenticated user address -->
@@ -425,10 +571,22 @@
     <div class="mb-8 rounded-lg bg-primary-50 p-6 dark:bg-primary-900/20">
       <div class="flex items-center justify-between">
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-          Total
+          {isRecurring ? 'Recurring Payment' : 'Total'}
         </h2>
 
-        {#if serviceDetails}
+        {#if isRecurring && finalPrice > 0}
+          <div class="text-right">
+            <span class="text-2xl font-bold text-primary">
+              R{finalPrice.toFixed(2)}
+            </span>
+            <p class="text-sm text-gray-600">per clean</p>
+            {#if discountPercentage > 0}
+              <p class="text-sm text-green-600 font-semibold">
+                {discountPercentage}% discount applied
+              </p>
+            {/if}
+          </div>
+        {:else if serviceDetails}
           <span class="text-2xl font-bold text-primary">
             R{typeof serviceDetails.basePrice === "number"
               ? serviceDetails.basePrice.toFixed(2)
@@ -440,8 +598,12 @@
       </div>
 
       <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-        Prices include VAT. Payment will be processed
-        securely via PayFast.
+        {#if isRecurring}
+          Recurring subscription will be processed securely via PayFast.
+          You can cancel or pause anytime with 48 hours notice.
+        {:else}
+          Prices include VAT. Payment will be processed securely via PayFast.
+        {/if}
       </p>
     </div>
 
@@ -451,7 +613,18 @@
       action="?/createBooking"
       use:enhance={({ formData }) => {
         isLoading = true;
-        
+
+        // Add recurring booking data if applicable
+        if (isRecurring) {
+          formData.set('isRecurring', 'true');
+          formData.set('recurringFrequency', recurringFrequency);
+          formData.set('recurringDays', JSON.stringify(recurringDays));
+          formData.set('recurringMonthlyDates', JSON.stringify(recurringMonthlyDates));
+          formData.set('recurringTimeSlot', recurringTimeSlot);
+          formData.set('discountPercentage', discountPercentage.toString());
+          formData.set('finalPrice', finalPrice.toString());
+          formData.set('startDate', startDate);
+        }
 
         return async ({ result, update }) => {
           isLoading = false;
@@ -466,10 +639,12 @@
     >
       <!-- Hidden fields to carry booking data -->
       <input type="hidden" name="serviceId" value={selectedService} />
-      <input type="hidden" name="scheduledDate" value={scheduledDateTime} />
+      {#if !isRecurring}
+        <input type="hidden" name="scheduledDate" value={scheduledDateTime} />
+      {/if}
       <input type="hidden" name="notes" value={notes} />
       <input type="hidden" name="cleanerId" value={selectedCleanerId} />
-      
+
       {#if isAuthenticated}
         <!-- Authenticated user fields -->
         <input type="hidden" name="addressId" value={selectedAddress} />
@@ -491,8 +666,8 @@
           disabled={isLoading ||
             !selectedService ||
             (isAuthenticated ? !selectedAddress : !guestAddress) ||
-            !selectedDate ||
-            !selectedTime}
+            (!isRecurring && (!selectedDate || !selectedTime)) ||
+            (isRecurring && (!recurringFrequency || !recurringTimeSlot))}
         >
           {#if isLoading}
             <svg
