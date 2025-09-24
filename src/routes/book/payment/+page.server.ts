@@ -13,25 +13,35 @@ import type { PageServerLoad, Actions } from './$types';
 export const load: PageServerLoad = async ({ locals, url, ...event }) => {
   // Get booking ID from query parameters
   const bookingId = url.searchParams.get('bookingId');
-  
-  // If user is already authenticated, redirect to payment processing
-  if (locals.user) {
-    const redirectUrl = bookingId ? `/payment/process?bookingId=${bookingId}` : '/payment/process';
-    throw redirect(302, redirectUrl);
-  }
-  
+
   // Get guest booking data
   const guestBookingData = getGuestBookingData(event);
-  
-  // Check if we have valid booking data
-  if (!guestBookingData.serviceId || !guestBookingData.scheduledDate) {
+
+  // Check if we have valid booking data for either one-time or recurring bookings
+  const hasOneTimeBookingData = guestBookingData.serviceId && guestBookingData.scheduledDate;
+  const hasRecurringBookingData = guestBookingData.serviceId && guestBookingData.isRecurring && guestBookingData.recurringFrequency;
+
+  // If user is already authenticated, redirect to payment processing
+  if (locals.user) {
+    if (hasRecurringBookingData) {
+      // For recurring bookings, redirect with recurring flag
+      throw redirect(302, '/payment/process?recurring=true');
+    } else {
+      // For one-time bookings, redirect with booking ID
+      const redirectUrl = bookingId ? `/payment/process?bookingId=${bookingId}` : '/payment/process';
+      throw redirect(302, redirectUrl);
+    }
+  }
+
+  if (!hasOneTimeBookingData && !hasRecurringBookingData) {
     throw error(400, 'No booking data found. Please start a new booking.');
   }
-  
+
   return {
     bookingData: guestBookingData,
     bookingId,
-    isGuest: true
+    isGuest: true,
+    isRecurring: hasRecurringBookingData
   };
 };
 
@@ -47,7 +57,14 @@ export const actions: Actions = {
     const formData = await request.formData();
     const email = formData.get('email')?.toString().toLowerCase();
     const password = formData.get('password')?.toString();
-    const redirectTo = formData.get('redirectTo')?.toString() || '/payment/process';
+
+    // Get guest booking data to determine if this is a recurring booking
+    const guestBookingData = getGuestBookingData(event);
+    const isRecurring = guestBookingData.isRecurring === true;
+
+    // Set the redirect URL based on booking type
+    const redirectTo = formData.get('redirectTo')?.toString() ||
+      (isRecurring ? '/payment/process?recurring=true' : '/payment/process');
     
     console.log('Login attempt:', { email, redirectTo });
     

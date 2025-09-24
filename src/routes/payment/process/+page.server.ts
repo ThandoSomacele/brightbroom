@@ -18,11 +18,15 @@ export const load: PageServerLoad = async ({ locals, url, ...event }) => {
   // If no booking ID, check for guest booking data
   if (!locals.user) {
     const guestBookingData = getGuestBookingData(event);
-    
-    if (!guestBookingData.serviceId || !guestBookingData.scheduledDate) {
+
+    // Check if we have valid booking data for either one-time or recurring bookings
+    const hasOneTimeBookingData = guestBookingData.serviceId && guestBookingData.scheduledDate;
+    const hasRecurringBookingData = guestBookingData.serviceId && guestBookingData.isRecurring && guestBookingData.recurringFrequency;
+
+    if (!hasOneTimeBookingData && !hasRecurringBookingData) {
       throw error(400, 'No booking data found. Please start a new booking.');
     }
-    
+
     return {
       bookingId: null,
       guestBookingData,

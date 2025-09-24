@@ -13,6 +13,7 @@
     ArrowLeft,
     RotateCw,
     DollarSign,
+    WalletIcon,
   } from "lucide-svelte";
 
   // Get data from the server load function
@@ -52,6 +53,15 @@
   $: addressDetails = addresses.find((a) => a.id === selectedAddress);
   $: scheduledDateTime =
     selectedDate && selectedTime ? `${selectedDate}T${selectedTime}` : "";
+
+  // Recalculate final price for recurring bookings to ensure accuracy
+  $: if (isRecurring && serviceDetails && discountPercentage > 0) {
+    const basePrice = typeof serviceDetails.basePrice === "number"
+      ? serviceDetails.basePrice
+      : parseFloat(serviceDetails.basePrice);
+    const discountAmount = (basePrice * discountPercentage) / 100;
+    finalPrice = basePrice - discountAmount;
+  }
     
 
   // Initialize data from localStorage on mount
@@ -86,7 +96,12 @@
 
       recurringTimeSlot = localStorage.getItem("booking_recurring_time_slot") || "";
       discountPercentage = parseFloat(localStorage.getItem("booking_discount_percentage") || "0");
+
+      // Get the stored final price first
       finalPrice = parseFloat(localStorage.getItem("booking_final_price") || "0");
+
+      // We'll recalculate after serviceDetails is loaded if needed
+
       startDate = localStorage.getItem("booking_start_date") || "";
     } else {
       // Get one-time booking data
@@ -433,7 +448,7 @@
 
             {#if finalPrice > 0}
               <div class="flex items-start">
-                <DollarSign size={20} class="mr-3 mt-0.5 flex-shrink-0 text-green-600" />
+                <WalletIcon size={20} class="mr-3 mt-0.5 flex-shrink-0 text-green-600" />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">Price per Clean</p>
                   <p class="text-green-600 dark:text-green-400 font-semibold">
@@ -569,35 +584,57 @@
 
     <!-- Total and payment -->
     <div class="mb-8 rounded-lg bg-primary-50 p-6 dark:bg-primary-900/20">
-      <div class="flex items-center justify-between">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-          {isRecurring ? 'Recurring Payment' : 'Total'}
-        </h2>
+      {#if isRecurring && finalPrice > 0}
+        <!-- Recurring Payment Display -->
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+            Recurring Payment Summary
+          </h2>
 
-        {#if isRecurring && finalPrice > 0}
-          <div class="text-right">
+          {#if serviceDetails && discountPercentage > 0}
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span>Regular price:</span>
+                <span class="line-through text-gray-500">
+                  R{typeof serviceDetails.basePrice === "number"
+                    ? serviceDetails.basePrice.toFixed(2)
+                    : parseFloat(serviceDetails.basePrice).toFixed(2)}
+                </span>
+              </div>
+              <div class="flex justify-between text-green-600 font-medium">
+                <span>Recurring discount ({discountPercentage}%):</span>
+                <span>
+                  - R{((typeof serviceDetails.basePrice === "number"
+                    ? serviceDetails.basePrice
+                    : parseFloat(serviceDetails.basePrice)) * discountPercentage / 100).toFixed(2)}
+                </span>
+              </div>
+              <div class="flex justify-between font-bold text-lg pt-3 border-t border-primary-100">
+                <span>Total per clean:</span>
+                <span class="text-primary">R{finalPrice.toFixed(2)}</span>
+              </div>
+            </div>
+          {/if}
+        </div>
+      {:else}
+        <!-- One-time Payment Display -->
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+            Total
+          </h2>
+          {#if serviceDetails}
             <span class="text-2xl font-bold text-primary">
-              R{finalPrice.toFixed(2)}
+              R{typeof serviceDetails.basePrice === "number"
+                ? serviceDetails.basePrice.toFixed(2)
+                : parseFloat(serviceDetails.basePrice).toFixed(2)}
             </span>
-            <p class="text-sm text-gray-600">per clean</p>
-            {#if discountPercentage > 0}
-              <p class="text-sm text-green-600 font-semibold">
-                {discountPercentage}% discount applied
-              </p>
-            {/if}
-          </div>
-        {:else if serviceDetails}
-          <span class="text-2xl font-bold text-primary">
-            R{typeof serviceDetails.basePrice === "number"
-              ? serviceDetails.basePrice.toFixed(2)
-              : parseFloat(serviceDetails.basePrice).toFixed(2)}
-          </span>
-        {:else}
-          <span class="text-2xl font-bold text-primary">R0.00</span>
-        {/if}
-      </div>
+          {:else}
+            <span class="text-2xl font-bold text-primary">R0.00</span>
+          {/if}
+        </div>
+      {/if}
 
-      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+      <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
         {#if isRecurring}
           Recurring subscription will be processed securely via PayFast.
           You can cancel or pause anytime with 48 hours notice.

@@ -5,10 +5,26 @@ export interface GuestBookingData {
   serviceId: string;
   serviceName: string;
   servicePrice: string;
-  scheduledDate: string;
+  scheduledDate?: string; // Optional for recurring bookings
   duration: number;
   notes?: string;
-  
+
+  // Recurring booking fields
+  isRecurring?: boolean;
+  recurringFrequency?: 'WEEKLY' | 'BIWEEKLY' | 'TWICE_WEEKLY' | 'TWICE_MONTHLY';
+  preferredDays?: string[];
+  preferredTimeSlot?: string;
+  monthlyDates?: number[];
+  // Alternative field names used in the booking flow
+  recurringDays?: string[];
+  recurringTimeSlot?: string;
+  recurringMonthlyDates?: number[];
+  basePrice?: number;
+  discountPercentage?: number;
+  finalPrice?: number;
+  addressId?: string;
+  cleanerId?: string;
+
   // Guest address info (contact info obtained during authentication)
   guestAddress?: {
     street: string;
@@ -76,6 +92,18 @@ export function clearGuestBookingData(event: RequestEvent): void {
  * Check if guest booking data is complete for payment
  */
 export function isGuestBookingDataComplete(data: Partial<GuestBookingData>): boolean {
+  // For recurring bookings
+  if (data.isRecurring) {
+    return !!(
+      data.serviceId &&
+      data.recurringFrequency &&
+      data.guestAddress?.city &&
+      data.guestAddress?.state &&
+      data.guestAddress?.zipCode
+    );
+  }
+
+  // For one-time bookings
   return !!(
     data.serviceId &&
     data.scheduledDate &&
@@ -90,13 +118,23 @@ export function isGuestBookingDataComplete(data: Partial<GuestBookingData>): boo
  */
 export function validateGuestBookingData(data: any): data is GuestBookingData {
   if (!data || typeof data !== 'object') return false;
-  
+
   // Required fields
   if (!data.serviceId || typeof data.serviceId !== 'string') return false;
-  if (!data.scheduledDate || typeof data.scheduledDate !== 'string') return false;
-  
+
+  // For recurring bookings
+  if (data.isRecurring) {
+    if (!data.recurringFrequency || typeof data.recurringFrequency !== 'string') return false;
+    // Other recurring fields are optional but validate if present
+    if (data.preferredDays && !Array.isArray(data.preferredDays)) return false;
+    if (data.monthlyDates && !Array.isArray(data.monthlyDates)) return false;
+  } else {
+    // For one-time bookings
+    if (!data.scheduledDate || typeof data.scheduledDate !== 'string') return false;
+  }
+
   // Guest contact info is no longer stored (obtained during authentication)
-  
+
   // Optional address validation
   if (data.guestAddress) {
     if (typeof data.guestAddress !== 'object') return false;
@@ -107,6 +145,6 @@ export function validateGuestBookingData(data: any): data is GuestBookingData {
     if (data.guestAddress.lat && typeof data.guestAddress.lat !== 'number') return false;
     if (data.guestAddress.lng && typeof data.guestAddress.lng !== 'number') return false;
   }
-  
+
   return true;
 }
