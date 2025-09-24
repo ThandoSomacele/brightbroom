@@ -182,8 +182,8 @@ export const booking = pgTable("booking", {
   // Guest booking fields
   guestAddress: json("guest_address"), // Guest's address as JSON object
 
-  // Subscription reference
-  subscriptionId: text("subscription_id").references(() => subscription.id),
+  // Subscription reference - removed forward reference to avoid circular dependency
+  subscriptionId: text("subscription_id"),
 
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
