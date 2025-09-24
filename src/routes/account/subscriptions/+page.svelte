@@ -1,6 +1,6 @@
 <!-- src/routes/account/subscriptions/+page.svelte -->
 <script lang="ts">
-  import { Calendar, Clock, DollarSign, Pause, Play, X, ChevronRight, RotateCw } from 'lucide-svelte';
+  import { Calendar, Clock, DollarSign, Pause, Play, X, ChevronRight, RotateCw, WalletIcon } from 'lucide-svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import type { PageData } from './$types';
 
@@ -249,7 +249,7 @@
 
               <div class="space-y-2">
                 <div class="flex items-center gap-2 text-gray-600">
-                  <DollarSign class="h-4 w-4" />
+                  <WalletIcon class="h-4 w-4" />
                   <span>
                     <strong>Price per clean:</strong> R{parseFloat(subscription.finalPrice).toFixed(2)}
                     {#if subscription.discountPercentage && parseFloat(subscription.discountPercentage) > 0}

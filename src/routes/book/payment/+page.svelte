@@ -50,24 +50,73 @@
   <!-- Booking Summary -->
   <div class="bg-white rounded-lg shadow-md p-6 mb-8">
     <h2 class="text-xl font-semibold mb-4">Booking Summary</h2>
-    
+
     {#if data.bookingData}
       <div class="space-y-3">
         <div class="flex justify-between">
           <span class="text-gray-600">Service:</span>
           <span class="font-medium">{data.bookingData.serviceName}</span>
         </div>
-        
-        <div class="flex justify-between">
-          <span class="text-gray-600">Date & Time:</span>
-          <span class="font-medium">{new Date(data.bookingData.scheduledDate).toLocaleString()}</span>
-        </div>
-        
+
+        {#if data.isRecurring}
+          <!-- Recurring Booking Details -->
+          <div class="flex justify-between">
+            <span class="text-gray-600">Type:</span>
+            <span class="font-medium">Recurring Subscription</span>
+          </div>
+
+          <div class="flex justify-between">
+            <span class="text-gray-600">Frequency:</span>
+            <span class="font-medium">
+              {#if data.bookingData.recurringFrequency === 'WEEKLY'}
+                Weekly
+              {:else if data.bookingData.recurringFrequency === 'BIWEEKLY'}
+                Bi-weekly
+              {:else if data.bookingData.recurringFrequency === 'TWICE_WEEKLY'}
+                Twice Weekly
+              {:else if data.bookingData.recurringFrequency === 'TWICE_MONTHLY'}
+                Twice Monthly
+              {:else}
+                {data.bookingData.recurringFrequency}
+              {/if}
+            </span>
+          </div>
+
+          {#if data.bookingData.preferredDays?.length > 0}
+            <div class="flex justify-between">
+              <span class="text-gray-600">Preferred Days:</span>
+              <span class="font-medium">{data.bookingData.preferredDays.join(', ')}</span>
+            </div>
+          {/if}
+
+          {#if data.bookingData.monthlyDates?.length > 0}
+            <div class="flex justify-between">
+              <span class="text-gray-600">Monthly Dates:</span>
+              <span class="font-medium">
+                {data.bookingData.monthlyDates.map(d => `${d}${d === 1 ? 'st' : d === 15 ? 'th' : 'th'}`).join(' and ')}
+              </span>
+            </div>
+          {/if}
+
+          {#if data.bookingData.preferredTimeSlot}
+            <div class="flex justify-between">
+              <span class="text-gray-600">Time Slot:</span>
+              <span class="font-medium">{data.bookingData.preferredTimeSlot}</span>
+            </div>
+          {/if}
+        {:else}
+          <!-- One-time Booking Details -->
+          <div class="flex justify-between">
+            <span class="text-gray-600">Date & Time:</span>
+            <span class="font-medium">{new Date(data.bookingData.scheduledDate).toLocaleString()}</span>
+          </div>
+        {/if}
+
         <div class="flex justify-between">
           <span class="text-gray-600">Duration:</span>
           <span class="font-medium">{Math.floor(data.bookingData.duration / 60)} hours</span>
         </div>
-        
+
         {#if data.bookingData.guestAddress}
           <div class="flex justify-between">
             <span class="text-gray-600">Location:</span>
@@ -76,11 +125,21 @@
             </span>
           </div>
         {/if}
-        
+
         <div class="border-t pt-3 mt-3">
+          {#if data.isRecurring && data.bookingData.discountPercentage > 0}
+            <div class="flex justify-between text-sm text-gray-600">
+              <span>Regular Price (per clean):</span>
+              <span class="line-through">R{data.bookingData.basePrice || data.bookingData.servicePrice}</span>
+            </div>
+            <div class="flex justify-between text-sm text-green-600">
+              <span>Recurring Discount ({data.bookingData.discountPercentage}%):</span>
+              <span>-R{((data.bookingData.basePrice || data.bookingData.servicePrice) * data.bookingData.discountPercentage / 100).toFixed(2)}</span>
+            </div>
+          {/if}
           <div class="flex justify-between text-lg font-semibold">
-            <span>Total:</span>
-            <span class="text-primary">R{data.bookingData.servicePrice}</span>
+            <span>{data.isRecurring ? 'Price per Clean:' : 'Total:'}</span>
+            <span class="text-primary">R{data.bookingData.finalPrice || data.bookingData.servicePrice}</span>
           </div>
         </div>
       </div>
@@ -155,7 +214,7 @@
             };
           }}
         >
-          <input type="hidden" name="redirectTo" value={data.bookingId ? `/payment/process?bookingId=${data.bookingId}` : '/payment/process'} />
+          <input type="hidden" name="redirectTo" value={data.isRecurring ? '/payment/process?recurring=true' : (data.bookingId ? `/payment/process?bookingId=${data.bookingId}` : '/payment/process')} />
           
           <!-- Error message display -->
           {#if form?.error}
@@ -240,7 +299,7 @@
             };
           }}
         >
-          <input type="hidden" name="redirectTo" value={data.bookingId ? `/payment/process?bookingId=${data.bookingId}` : '/payment/process'} />
+          <input type="hidden" name="redirectTo" value={data.isRecurring ? '/payment/process?recurring=true' : (data.bookingId ? `/payment/process?bookingId=${data.bookingId}` : '/payment/process')} />
           
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">

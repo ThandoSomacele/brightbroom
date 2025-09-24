@@ -7,20 +7,60 @@
 
   // Get booking ID from query parameters
   let bookingId = $page.url.searchParams.get('bookingId');
+  let isRecurring = $page.url.searchParams.get('recurring') === 'true';
   let isLoading = true;
   let error = '';
-  
+
   // Initialize PayFast redirect
   onMount(async () => {
+    // For recurring payments without a booking ID, we need to create a subscription
+    if (isRecurring && !bookingId) {
+      try {
+        console.log('Initiating recurring subscription process');
+
+        // Call the subscription creation API
+        const response = await secureAPIFetch('/api/subscription/create', {
+          method: 'POST',
+          body: JSON.stringify({})
+        });
+
+        // Handle any HTTP errors
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Subscription initialization failed');
+        }
+
+        // Get the PayFast redirect URL
+        const data = await response.json();
+        const { redirectUrl } = data;
+
+        if (!redirectUrl) {
+          throw new Error('No redirect URL received from payment processor');
+        }
+
+        console.log('Redirecting to PayFast for subscription...');
+        window.location.href = redirectUrl;
+        return;
+      } catch (err) {
+        console.error('Subscription error:', err);
+        isLoading = false;
+        error = err instanceof Error
+          ? err.message
+          : 'Failed to initialize subscription. Please try again later.';
+        return;
+      }
+    }
+
+    // For one-time payments, we need a booking ID
     if (!bookingId) {
       error = 'No booking information found. Please try again.';
       isLoading = false;
       return;
     }
-    
+
     try {
       console.log(`Initiating payment process for booking: ${bookingId}`);
-      
+
       // Call the payment process API with CSRF token
       const response = await secureAPIFetch('/api/payments/process', {
         method: 'POST',
