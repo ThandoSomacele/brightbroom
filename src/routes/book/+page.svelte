@@ -51,6 +51,17 @@
         // Store selection in localStorage to persist through navigation
         localStorage.setItem("booking_service", selectedService);
 
+        // Find and store service data for price calculations
+        const service = services.find(s => s.id === selectedService);
+        if (service) {
+          localStorage.setItem("booking_service_data", JSON.stringify({
+            id: service.id,
+            name: service.name,
+            price: service.basePrice,
+            duration: service.durationHours
+          }));
+        }
+
         // Navigate to address selection with serviceId as a query parameter
         await goto(`/book/address?serviceId=${selectedService}`);
       } catch (error) {
