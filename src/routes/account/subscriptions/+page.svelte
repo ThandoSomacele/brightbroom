@@ -101,7 +101,6 @@
       WEEKLY: 'Weekly',
       BIWEEKLY: 'Bi-weekly',
       TWICE_WEEKLY: 'Twice weekly',
-      TWICE_MONTHLY: 'Twice monthly',
     };
     return frequencies[frequency] || frequency;
   }

@@ -221,7 +221,7 @@ function calculateNextCleaningDate(
       break;
 
     case 'TWICE_WEEKLY':
-      // Find next occurrence of any preferred day
+      // Find next occurrence of any preferred day (twice per week)
       if (preferredDays.length > 0) {
         const dayMap: Record<string, number> = {
           'SUNDAY': 0, 'MONDAY': 1, 'TUESDAY': 2, 'WEDNESDAY': 3,
@@ -242,26 +242,6 @@ function calculateNextCleaningDate(
         nextDate.setDate(now.getDate() + (minDays === 7 ? 3 : minDays));
       } else {
         nextDate.setDate(now.getDate() + 3);
-      }
-      break;
-
-    case 'TWICE_MONTHLY':
-      // Find next occurrence of monthly dates
-      if (monthlyDates.length > 0) {
-        const currentDate = now.getDate();
-        const sortedDates = [...monthlyDates].sort((a, b) => a - b);
-
-        let targetDate = sortedDates.find(d => d > currentDate);
-        if (targetDate) {
-          nextDate.setDate(targetDate);
-        } else {
-          // Move to next month and use first date
-          nextDate.setMonth(nextDate.getMonth() + 1);
-          nextDate.setDate(sortedDates[0]);
-        }
-      } else {
-        // Default to 15 days from now
-        nextDate.setDate(now.getDate() + 15);
       }
       break;
 

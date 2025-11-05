@@ -142,8 +142,7 @@
     // Validate based on booking type
     if (isRecurring) {
       const isValidRecurring = recurringFrequency && recurringTimeSlot &&
-        ((recurringFrequency === 'TWICE_MONTHLY' && recurringMonthlyDates.length === 2) ||
-         (recurringFrequency === 'WEEKLY' && recurringDays.length === 1) ||
+        ((recurringFrequency === 'WEEKLY' && recurringDays.length === 1) ||
          (recurringFrequency === 'BIWEEKLY' && recurringDays.length === 1) ||
          (recurringFrequency === 'TWICE_WEEKLY' && recurringDays.length === 2));
 
@@ -469,8 +468,7 @@
           <strong>Frequency:</strong>
           {recurringFrequency === 'WEEKLY' ? 'Weekly' :
            recurringFrequency === 'BIWEEKLY' ? 'Bi-weekly' :
-           recurringFrequency === 'TWICE_WEEKLY' ? 'Twice weekly' :
-           recurringFrequency === 'TWICE_MONTHLY' ? 'Twice monthly' : ''}
+           recurringFrequency === 'TWICE_WEEKLY' ? 'Twice weekly' : ''}
         </p>
 
         {#if recurringDays.length > 0}
@@ -535,8 +533,7 @@
         on:click={continueToNext}
         disabled={isLoading || (!isRecurring && (!selectedDate || !selectedTime)) ||
                   (isRecurring && (!recurringFrequency || !recurringTimeSlot ||
-                    ((recurringFrequency === 'TWICE_MONTHLY' && recurringMonthlyDates.length !== 2) ||
-                     ((recurringFrequency === 'WEEKLY' || recurringFrequency === 'BIWEEKLY') && recurringDays.length !== 1) ||
+                    (((recurringFrequency === 'WEEKLY' || recurringFrequency === 'BIWEEKLY') && recurringDays.length !== 1) ||
                      (recurringFrequency === 'TWICE_WEEKLY' && recurringDays.length !== 2))))}
       >
         {#if isLoading}

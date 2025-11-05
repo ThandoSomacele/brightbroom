@@ -400,8 +400,7 @@
                 <p class="text-gray-600 dark:text-gray-300">
                   {recurringFrequency === 'WEEKLY' ? 'Weekly' :
                    recurringFrequency === 'BIWEEKLY' ? 'Bi-weekly' :
-                   recurringFrequency === 'TWICE_WEEKLY' ? 'Twice weekly' :
-                   recurringFrequency === 'TWICE_MONTHLY' ? 'Twice monthly' : ''}
+                   recurringFrequency === 'TWICE_WEEKLY' ? 'Twice weekly' : ''}
                 </p>
               </div>
             </div>
