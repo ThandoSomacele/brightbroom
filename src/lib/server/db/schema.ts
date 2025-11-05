@@ -40,9 +40,8 @@ export const paymentMethodEnum = pgEnum("PaymentMethod", [
 ]);
 
 export const recurringFrequencyEnum = pgEnum("RecurringFrequency", [
-  "TWICE_MONTHLY", // Twice a month (e.g., 1st and 15th)
   "WEEKLY", // Once a week on selected day
-  "BIWEEKLY", // Every two weeks
+  "BIWEEKLY", // Every two weeks (every 14 days)
   "TWICE_WEEKLY", // Twice a week on selected days
 ]);
 
@@ -406,7 +405,6 @@ export const subscription = pgTable("subscription", {
   // Scheduling preferences
   preferredDays: text("preferred_days").array(), // Array of DayOfWeek values
   preferredTimeSlot: text("preferred_time_slot"), // e.g., "09:00-12:00"
-  monthlyDates: integer("monthly_dates").array(), // For TWICE_MONTHLY (e.g., [1, 15])
 
   // Pricing with discounts
   basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(),

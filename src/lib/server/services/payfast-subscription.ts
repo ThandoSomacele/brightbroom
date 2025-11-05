@@ -77,9 +77,7 @@ function calculateCycles(frequency: string, endDate?: Date): number {
     case 'BIWEEKLY':
       return Math.ceil(months * 2.17);
     case 'TWICE_WEEKLY':
-      return Math.ceil(months * 8.67);
-    case 'TWICE_MONTHLY':
-      return months * 2;
+      return Math.ceil(months * 8.67); // Twice per week
     default:
       return months;
   }
@@ -298,7 +296,7 @@ export class PayFastSubscriptionService {
   }
 
   // Calculate next billing date based on frequency
-  calculateNextBillingDate(frequency: string, lastBillingDate: Date, preferredDays?: string[], monthlyDates?: number[]): Date {
+  calculateNextBillingDate(frequency: string, lastBillingDate: Date, preferredDays?: string[]): Date {
     const next = new Date(lastBillingDate);
 
     switch (frequency) {
@@ -309,7 +307,7 @@ export class PayFastSubscriptionService {
         next.setDate(next.getDate() + 14);
         break;
       case 'TWICE_WEEKLY':
-        // Find next preferred day
+        // Find next preferred day (twice per week)
         if (preferredDays && preferredDays.length > 0) {
           const dayMap: Record<string, number> = {
             'SUNDAY': 0, 'MONDAY': 1, 'TUESDAY': 2, 'WEDNESDAY': 3,
@@ -330,24 +328,6 @@ export class PayFastSubscriptionService {
           }
         } else {
           next.setDate(next.getDate() + 3); // Default to twice a week
-        }
-        break;
-      case 'TWICE_MONTHLY':
-        // Find next monthly date
-        if (monthlyDates && monthlyDates.length > 0) {
-          const currentDate = lastBillingDate.getDate();
-          const sortedDates = [...monthlyDates].sort((a, b) => a - b);
-
-          let nextDate = sortedDates.find(d => d > currentDate);
-          if (nextDate) {
-            next.setDate(nextDate);
-          } else {
-            // Move to next month and use first date
-            next.setMonth(next.getMonth() + 1);
-            next.setDate(sortedDates[0]);
-          }
-        } else {
-          next.setDate(next.getDate() + 15); // Default to bi-monthly
         }
         break;
       default:

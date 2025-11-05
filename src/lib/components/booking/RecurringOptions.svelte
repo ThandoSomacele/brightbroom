@@ -23,7 +23,6 @@
     WEEKLY: 10, // 10% discount for weekly
     BIWEEKLY: 8, // 8% discount for bi-weekly
     TWICE_WEEKLY: 15, // 15% discount for twice weekly
-    TWICE_MONTHLY: 5, // 5% discount for twice monthly
   };
 
   // Calculate discounted price
@@ -51,17 +50,10 @@
     { value: "14:00-17:00", label: "Afternoon (2:00 PM - 5:00 PM)" },
   ];
 
-  // Monthly date options (1st, 15th, etc.)
-  const monthlyDateOptions = [
-    { value: 1, label: "1st of each month" },
-    { value: 15, label: "15th of each month" },
-  ];
-
   function handleFrequencyChange(frequency: string) {
     selectedFrequency = frequency;
     // Reset selections when frequency changes
     selectedDays = [];
-    selectedMonthlyDates = [];
 
     // Calculate the final price immediately with the new frequency
     const newDiscountPercentage = discounts[frequency as keyof typeof discounts];
@@ -95,20 +87,6 @@
     dispatch("daysChange", { days: selectedDays });
   }
 
-  function toggleMonthlyDate(date: number) {
-    if (selectedMonthlyDates.includes(date)) {
-      selectedMonthlyDates = selectedMonthlyDates.filter((d) => d !== date);
-    } else {
-      if (selectedMonthlyDates.length >= 2) {
-        selectedMonthlyDates = [...selectedMonthlyDates.slice(1), date];
-      } else {
-        selectedMonthlyDates = [...selectedMonthlyDates, date];
-      }
-    }
-
-    dispatch("monthlyDatesChange", { dates: selectedMonthlyDates });
-  }
-
   function handleTimeSlotChange(slot: string) {
     preferredTimeSlot = slot;
     dispatch("timeSlotChange", { timeSlot: slot });
@@ -118,9 +96,7 @@
   $: isValid =
     selectedFrequency &&
     preferredTimeSlot &&
-    ((selectedFrequency === "TWICE_MONTHLY" &&
-      selectedMonthlyDates.length === 2) ||
-      (selectedFrequency === "WEEKLY" && selectedDays.length === 1) ||
+    ((selectedFrequency === "WEEKLY" && selectedDays.length === 1) ||
       (selectedFrequency === "BIWEEKLY" && selectedDays.length === 1) ||
       (selectedFrequency === "TWICE_WEEKLY" && selectedDays.length === 2));
 </script>
@@ -164,7 +140,7 @@
         <div class="flex justify-between items-start">
           <div class="text-left">
             <p class="font-semibold">Bi-Weekly</p>
-            <p class="text-sm text-gray-600">Once every two weeks</p>
+            <p class="text-sm text-gray-600">Every two weeks (every 14 days)</p>
           </div>
           <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
             {discounts.BIWEEKLY}% OFF
@@ -190,89 +166,40 @@
           </span>
         </div>
       </button>
-
-      <button
-        type="button"
-        on:click={() => handleFrequencyChange("TWICE_MONTHLY")}
-        class="p-4 border-2 rounded-lg transition-all {selectedFrequency ===
-        'TWICE_MONTHLY'
-          ? 'border-teal-500 bg-teal-50'
-          : 'border-gray-200 hover:border-gray-300'}"
-      >
-        <div class="flex justify-between items-start">
-          <div class="text-left">
-            <p class="font-semibold">Twice Monthly</p>
-            <p class="text-sm text-gray-600">Two specific dates per month</p>
-          </div>
-          <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-            {discounts.TWICE_MONTHLY}% OFF
-          </span>
-        </div>
-      </button>
     </div>
   </div>
 
-  <!-- Day/Date Selection based on frequency -->
+  <!-- Day Selection based on frequency -->
   {#if selectedFrequency}
     <div>
-      {#if selectedFrequency === "TWICE_MONTHLY"}
-        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Calendar class="h-5 w-5 text-teal-600" />
-          Select Cleaning Dates
-        </h3>
-        <p class="text-sm text-gray-600 mb-3">
-          Choose 2 dates each month for your cleaning
-        </p>
+      <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+        <Calendar class="h-5 w-5 text-teal-600" />
+        Select Preferred Day{selectedFrequency === "TWICE_WEEKLY" ? "s" : ""}
+      </h3>
+      <p class="text-sm text-gray-600 mb-3">
+        {#if selectedFrequency === "WEEKLY" || selectedFrequency === "BIWEEKLY"}
+          Choose your preferred cleaning day
+        {:else if selectedFrequency === "TWICE_WEEKLY"}
+          Choose 2 days for your cleaning
+        {/if}
+      </p>
 
-        <div class="space-y-2">
-          {#each monthlyDateOptions as option}
-            <label
-              class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 {selectedMonthlyDates.includes(
-                option.value,
-              )
-                ? 'border-teal-500 bg-teal-50'
-                : 'border-gray-200'}"
-            >
-              <input
-                type="checkbox"
-                checked={selectedMonthlyDates.includes(option.value)}
-                on:change={() => toggleMonthlyDate(option.value)}
-                class="w-4 h-4 text-teal-600 rounded focus:ring-teal-500"
-              />
-              <span>{option.label}</span>
-            </label>
-          {/each}
-        </div>
-      {:else}
-        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Calendar class="h-5 w-5 text-teal-600" />
-          Select Preferred Day{selectedFrequency === "TWICE_WEEKLY" ? "s" : ""}
-        </h3>
-        <p class="text-sm text-gray-600 mb-3">
-          {#if selectedFrequency === "WEEKLY" || selectedFrequency === "BIWEEKLY"}
-            Choose your preferred cleaning day
-          {:else if selectedFrequency === "TWICE_WEEKLY"}
-            Choose 2 days for your cleaning
-          {/if}
-        </p>
-
-        <div class="grid grid-cols-7 gap-2">
-          {#each daysOfWeek as day}
-            <button
-              type="button"
-              on:click={() => toggleDay(day.value)}
-              class="p-2 text-center border rounded-lg transition-all {selectedDays.includes(
-                day.value,
-              )
-                ? 'border-teal-500 bg-teal-500 text-white'
-                : 'border-gray-200 hover:border-gray-300'}"
-              title={day.label}
-            >
-              <span class="text-sm font-medium">{day.short}</span>
-            </button>
-          {/each}
-        </div>
-      {/if}
+      <div class="grid grid-cols-7 gap-2">
+        {#each daysOfWeek as day}
+          <button
+            type="button"
+            on:click={() => toggleDay(day.value)}
+            class="p-2 text-center border rounded-lg transition-all {selectedDays.includes(
+              day.value,
+            )
+              ? 'border-teal-500 bg-teal-500 text-white'
+              : 'border-gray-200 hover:border-gray-300'}"
+            title={day.label}
+          >
+            <span class="text-sm font-medium">{day.short}</span>
+          </button>
+        {/each}
+      </div>
     </div>
   {/if}
 
@@ -343,14 +270,13 @@
         <p class="flex items-start gap-2">
           <Info class="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
           <span>
-            You'll be charged automatically {selectedFrequency ===
-            "TWICE_MONTHLY"
-              ? "on your selected dates"
-              : selectedFrequency === "WEEKLY"
-                ? "weekly"
-                : selectedFrequency === "BIWEEKLY"
-                  ? "every two weeks"
-                  : "on your selected days"}. Cancel anytime with 48 hours
+            You'll be charged automatically {selectedFrequency === "WEEKLY"
+              ? "weekly"
+              : selectedFrequency === "BIWEEKLY"
+                ? "every two weeks"
+                : selectedFrequency === "TWICE_WEEKLY"
+                  ? "on your selected days each week"
+                  : "on your selected schedule"}. Cancel anytime with 48 hours
             notice.
           </span>
         </p>

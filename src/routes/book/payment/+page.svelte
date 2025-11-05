@@ -74,8 +74,6 @@
                 Bi-weekly
               {:else if data.bookingData.recurringFrequency === 'TWICE_WEEKLY'}
                 Twice Weekly
-              {:else if data.bookingData.recurringFrequency === 'TWICE_MONTHLY'}
-                Twice Monthly
               {:else}
                 {data.bookingData.recurringFrequency}
               {/if}
