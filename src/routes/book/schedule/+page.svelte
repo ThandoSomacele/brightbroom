@@ -9,7 +9,7 @@
   
   // Get data from the server load function
   export let data;
-  const { availableDates, timeSlots } = data;
+  const { availableDates, timeSlots, selectedService } = data;
   
   // Track selected date and time
   let selectedDate = "";
@@ -36,16 +36,16 @@
   let isLoading = false;
   
   // Get previous selections from localStorage
-  let selectedService = "";
+  let selectedServiceId = "";
   let selectedAddress = "";
   let accessInstructions = "";
-  
+
   // Initialize data from localStorage on mount
   import { onMount } from "svelte";
-  
+
   onMount(() => {
     // Get previous selections
-    selectedService = localStorage.getItem("booking_service") || "";
+    selectedServiceId = localStorage.getItem("booking_service") || "";
     selectedAddress = localStorage.getItem("booking_address") || "";
     accessInstructions = localStorage.getItem("booking_instructions") || "";
 
@@ -64,7 +64,7 @@
     const guestAddress = localStorage.getItem("booking_guest_address");
 
     // If required information is missing, redirect back
-    if (!selectedService || (!selectedAddress && !guestAddress)) {
+    if (!selectedServiceId || (!selectedAddress && !guestAddress)) {
       goto("/book");
     }
 
@@ -299,6 +299,7 @@
         <div class="bg-white rounded-lg p-6 shadow-md dark:bg-gray-800">
           <RecurringOptions
             {basePrice}
+            serviceDuration={selectedService.durationHours}
             bind:selectedFrequency={recurringFrequency}
             bind:selectedDays={recurringDays}
             bind:selectedMonthlyDates={recurringMonthlyDates}
