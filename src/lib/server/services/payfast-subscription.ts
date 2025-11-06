@@ -6,8 +6,8 @@ import type { Subscription, NewSubscription, SubscriptionPayment } from '../db/s
 
 // PayFast subscription endpoints
 const PAYFAST_SUBSCRIPTION_URL = env.VITE_PAYFAST_USE_SANDBOX === 'true'
-  ? 'https://sandbox.payfast.co.za/eng/recurring'
-  : 'https://www.payfast.co.za/eng/recurring';
+  ? 'https://sandbox.payfast.co.za/eng/process'
+  : 'https://www.payfast.co.za/eng/process';
 
 const PAYFAST_API_URL = env.VITE_PAYFAST_USE_SANDBOX === 'true'
   ? 'https://api.payfast.co.za/subscriptions/v1'
@@ -128,14 +128,14 @@ export class PayFastSubscriptionService {
     email: string;
     phone?: string;
   }): Promise<{ redirectUrl: string; token?: string }> {
-    // For our custom frequencies, we'll use PayFast's tokenization
-    // and handle the billing ourselves
-    const useTokenization = ['WEEKLY', 'BIWEEKLY', 'TWICE_WEEKLY'].includes(subscription.frequency);
+    // For our custom frequencies (weekly, bi-weekly, twice weekly), we'll use PayFast's ad hoc tokenization
+    // and handle the billing ourselves since PayFast only supports monthly+ frequencies natively
+    const useTokenization = ['WEEKLY', 'BIWEEKLY', 'TWICE_WEEKLY', 'TWICE_MONTHLY'].includes(subscription.frequency);
 
     const params: PayFastSubscriptionParams = {
       merchant_id: this.merchantId,
       merchant_key: this.merchantKey,
-      subscription_type: useTokenization ? 2 : 1, // Ad hoc token for custom frequencies
+      subscription_type: useTokenization ? 2 : 1, // 2 = Ad hoc token for custom billing, 1 = Standard subscription
       recurring_amount: parseFloat(subscription.finalPrice.toString()),
       frequency: mapFrequencyToPayFast(subscription.frequency),
       cycles: calculateCycles(subscription.frequency, subscription.endDate || undefined),
