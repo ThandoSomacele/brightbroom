@@ -34,6 +34,10 @@ export const POST: RequestHandler = async ({ request, locals, ...event }) => {
       }
 
       // Map guest booking data to subscription data
+      // basePrice may be stored as basePrice (number) or servicePrice (string)
+      const basePriceValue = guestBookingData.basePrice ||
+        (guestBookingData.servicePrice ? parseFloat(guestBookingData.servicePrice) : 0);
+
       data = {
         serviceId: guestBookingData.serviceId,
         addressId: guestBookingData.addressId,
@@ -42,7 +46,7 @@ export const POST: RequestHandler = async ({ request, locals, ...event }) => {
         preferredDays: guestBookingData.recurringDays || guestBookingData.preferredDays || [],
         preferredTimeSlot: guestBookingData.recurringTimeSlot || guestBookingData.preferredTimeSlot,
         monthlyDates: guestBookingData.recurringMonthlyDates || guestBookingData.monthlyDates || [],
-        basePrice: guestBookingData.basePrice || 0,
+        basePrice: basePriceValue,
         discountPercentage: guestBookingData.discountPercentage || 0,
         finalPrice: guestBookingData.finalPrice || 0,
         startDate: new Date(), // Start immediately

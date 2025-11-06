@@ -11,9 +11,10 @@ export interface GuestBookingData {
 
   // Recurring booking fields
   isRecurring?: boolean;
-  recurringFrequency?: 'WEEKLY' | 'BIWEEKLY' | 'TWICE_WEEKLY';
+  recurringFrequency?: 'WEEKLY' | 'BIWEEKLY' | 'TWICE_WEEKLY' | 'TWICE_MONTHLY';
   preferredDays?: string[];
   preferredTimeSlot?: string;
+  monthlyDates?: number[];
   // Alternative field names used in the booking flow
   recurringDays?: string[];
   recurringTimeSlot?: string;
@@ -21,6 +22,7 @@ export interface GuestBookingData {
   basePrice?: number;
   discountPercentage?: number;
   finalPrice?: number;
+  startDate?: string;
   addressId?: string;
   cleanerId?: string;
 
