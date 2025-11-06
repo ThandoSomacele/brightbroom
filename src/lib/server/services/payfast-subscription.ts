@@ -95,29 +95,36 @@ function calculateCycles(frequency: string, endDate?: Date): number {
 // Generate PayFast signature
 function generateSignature(params: Record<string, any>, passphrase?: string): string {
   // Remove signature if present
-  const { signature, ...dataToSign } = params;
+  const { signature: _unusedSignature, ...dataToSign } = params;
 
   // Sort keys alphabetically - CRITICAL for PayFast signature validation
   const sortedKeys = Object.keys(dataToSign).sort();
 
   // Create parameter string with sorted keys
-  let paramString = '';
+  // Use URLSearchParams to ensure proper encoding that matches the final URL
+  const searchParams = new URLSearchParams();
   for (const key of sortedKeys) {
     if (dataToSign[key] !== undefined && dataToSign[key] !== '') {
-      paramString += `${key}=${encodeURIComponent(dataToSign[key].toString().trim()).replace(/%20/g, '+')}&`;
+      searchParams.append(key, dataToSign[key].toString().trim());
     }
   }
 
-  // Remove last ampersand
-  paramString = paramString.slice(0, -1);
+  // Get the encoded string
+  let paramString = searchParams.toString();
 
   // Add passphrase if provided
   if (passphrase) {
     paramString += `&passphrase=${encodeURIComponent(passphrase.trim()).replace(/%20/g, '+')}`;
   }
 
+  // Debug logging
+  console.log('PayFast Signature String:', paramString);
+
   // Generate MD5 signature
-  return crypto.createHash('md5').update(paramString).digest('hex');
+  const signature = crypto.createHash('md5').update(paramString).digest('hex');
+  console.log('PayFast Generated Signature:', signature);
+
+  return signature;
 }
 
 export class PayFastSubscriptionService {
