@@ -126,7 +126,7 @@ export class PayFastSubscriptionService {
   constructor() {
     this.merchantId = env.VITE_PAYFAST_MERCHANT_ID || '';
     this.merchantKey = env.VITE_PAYFAST_MERCHANT_KEY || '';
-    this.passphrase = env.PAYFAST_PASSPHRASE;
+    this.passphrase = env.VITE_PAYFAST_PASSPHRASE || env.PAYFAST_PASSPHRASE;
     this.apiKey = env.PAYFAST_API_KEY;
   }
 
