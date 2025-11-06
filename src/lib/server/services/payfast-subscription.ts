@@ -5,11 +5,11 @@ import crypto from 'crypto';
 import type { Subscription, NewSubscription, SubscriptionPayment } from '../db/schema';
 
 // PayFast subscription endpoints
-const PAYFAST_SUBSCRIPTION_URL = env.VITE_PAYFAST_USE_SANDBOX === 'true'
+const PAYFAST_SUBSCRIPTION_URL = (env.VITE_PAYFAST_SANDBOX_MODE === 'true' || env.VITE_PAYFAST_USE_SANDBOX === 'true')
   ? 'https://sandbox.payfast.co.za/eng/process'
   : 'https://www.payfast.co.za/eng/process';
 
-const PAYFAST_API_URL = env.VITE_PAYFAST_USE_SANDBOX === 'true'
+const PAYFAST_API_URL = (env.VITE_PAYFAST_SANDBOX_MODE === 'true' || env.VITE_PAYFAST_USE_SANDBOX === 'true')
   ? 'https://api.payfast.co.za/subscriptions/v1'
   : 'https://api.payfast.co.za/subscriptions/v1';
 
