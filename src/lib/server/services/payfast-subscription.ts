@@ -112,9 +112,10 @@ function generateSignature(params: Record<string, any>, passphrase?: string): st
   // Get the encoded string
   let paramString = searchParams.toString();
 
-  // Add passphrase if provided
+  // Add passphrase directly to the end (NOT as a parameter)
+  // PayFast docs: "passphrase should be added to the end of the parameter string without a parameter name"
   if (passphrase) {
-    paramString += `&passphrase=${encodeURIComponent(passphrase.trim()).replace(/%20/g, '+')}`;
+    paramString += passphrase.trim();
   }
 
   // Debug logging
