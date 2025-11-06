@@ -31,6 +31,7 @@
   let notes = "";
   let selectedCleanerId = "";
   let selectedCleanerData: any = null;
+  let cachedServiceData: any = null;
 
   // Recurring booking data
   let isRecurring = false;
@@ -49,7 +50,12 @@
   let isLoading = false;
 
   // Computed values
-  $: serviceDetails = services.find((s) => s.id === selectedService);
+  $: serviceDetailsFromDB = services.find((s) => s.id === selectedService);
+  $: serviceDetails = serviceDetailsFromDB || (cachedServiceData ? {
+    ...cachedServiceData,
+    basePrice: cachedServiceData.price,
+    durationHours: cachedServiceData.duration
+  } : null);
   $: addressDetails = addresses.find((a) => a.id === selectedAddress);
   $: scheduledDateTime =
     selectedDate && selectedTime ? `${selectedDate}T${selectedTime}` : "";
@@ -111,6 +117,17 @@
 
     // Get common booking data
     selectedService = localStorage.getItem("booking_service") || "";
+
+    // Get cached service data as fallback (especially important for recurring bookings)
+    const cachedServiceStr = localStorage.getItem("booking_service_data");
+    if (cachedServiceStr) {
+      try {
+        cachedServiceData = JSON.parse(cachedServiceStr);
+      } catch (e) {
+        console.error("Error parsing cached service data:", e);
+      }
+    }
+
     notes = localStorage.getItem("booking_instructions") || "";
     selectedCleanerId = localStorage.getItem("booking_cleaner_id") || "";
     
@@ -361,8 +378,8 @@
             >
               <span class="text-gray-600 dark:text-gray-300">Duration:</span>
               <span class="font-medium text-gray-900 dark:text-white">
-                {serviceDetails.durationHours}
-                {serviceDetails.durationHours === 1 ? "hour" : "hours"}
+                {serviceDetails.durationHours || 'N/A'}
+                {serviceDetails.durationHours && (serviceDetails.durationHours === 1 ? " hour" : " hours")}
               </span>
             </div>
             <div class="mt-2 flex justify-between">
