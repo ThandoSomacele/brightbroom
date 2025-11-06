@@ -24,9 +24,15 @@ interface PayFastSubscriptionParams {
   // Subscription details
   subscription_type: 1 | 2; // 1 = Subscription, 2 = Ad hoc token
   billing_date?: string; // Format: YYYY-MM-DD
-  recurring_amount: number; // Amount for recurring charges
+  recurring_amount?: number; // Amount for recurring charges (optional for type 1)
   frequency: 3 | 4 | 5 | 6; // 3 = Monthly, 4 = Quarterly, 5 = Biannual, 6 = Annual
   cycles: number; // 0 for indefinite
+
+  // Subscription notification settings
+  email_confirmation?: string; // "1" to send confirmation email
+  confirmation_address?: string; // Email address for confirmation
+  subscription_notify_email?: string; // "true" to notify merchant
+  subscription_notify_buyer?: string; // "true" to notify buyer
 
   // Customer details
   name_first: string;
@@ -131,51 +137,49 @@ export class PayFastSubscriptionService {
     email: string;
     phone?: string;
   }): Promise<{ redirectUrl: string; token?: string }> {
-    // For our custom frequencies (weekly, bi-weekly, twice weekly), we'll use PayFast's ad hoc tokenization
-    // and handle the billing ourselves since PayFast only supports monthly+ frequencies natively
-    const useTokenization = ['WEEKLY', 'BIWEEKLY', 'TWICE_WEEKLY', 'TWICE_MONTHLY'].includes(subscription.frequency);
+    // For all our frequencies, use subscription_type: 1 (standard subscription)
+    // We'll handle custom frequencies (weekly, bi-weekly, etc.) manually via API after initial setup
+    const finalPrice = parseFloat(subscription.finalPrice.toString());
 
-    // Base parameters common to both subscription types
-    const baseParams = {
+    // All subscriptions use type 1 with frequency set to monthly (3)
+    // For custom frequencies, we'll use the PayFast API to manually charge on our schedule
+    const params: PayFastSubscriptionParams = {
       merchant_id: this.merchantId,
       merchant_key: this.merchantKey,
-      subscription_type: useTokenization ? 2 : 1, // 2 = Ad hoc token for custom billing, 1 = Standard subscription
+
+      // Payment details
+      amount: finalPrice, // Initial payment
+
+      // Subscription details - use type 1 for all subscriptions
+      subscription_type: 1,
+      frequency: 3, // Monthly - required field
+      cycles: 0, // Infinite cycles
+
+      // Subscription notifications
+      email_confirmation: "1",
+      confirmation_address: customer.email,
+      subscription_notify_email: "true",
+      subscription_notify_buyer: "true",
+
+      // Customer details
       name_first: customer.firstName,
       name_last: customer.lastName,
       email_address: customer.email,
       cell_number: customer.phone,
+
+      // URLs
       return_url: `${env.PUBLIC_URL || process.env.PUBLIC_URL}/book/payment/subscription-success`,
       cancel_url: `${env.PUBLIC_URL || process.env.PUBLIC_URL}/book/payment/subscription-cancel`,
       notify_url: `${env.PUBLIC_URL || process.env.PUBLIC_URL}/api/payfast/subscription-webhook`,
+
+      // Additional fields
       m_payment_id: subscription.id,
       item_name: 'Recurring Cleaning Service',
       item_description: `${subscription.frequency} cleaning service subscription`,
     };
 
-    // For ad hoc tokens (type 2) and standard subscriptions (type 1), both need amount and recurring_amount
-    // amount = initial payment, recurring_amount = subsequent payments
-    const finalPrice = parseFloat(subscription.finalPrice.toString());
-
-    const params: PayFastSubscriptionParams = useTokenization
-      ? {
-          ...baseParams,
-          subscription_type: 2,
-          amount: finalPrice, // Initial payment
-          recurring_amount: finalPrice, // Recurring payment amount (for API calls later)
-          frequency: 3, // Required but not used for ad hoc - set to monthly as placeholder
-          cycles: 0, // Required but not used for ad hoc
-        } as PayFastSubscriptionParams
-      : {
-          ...baseParams,
-          subscription_type: 1,
-          amount: finalPrice, // Initial payment
-          recurring_amount: finalPrice, // Recurring payment amount
-          frequency: mapFrequencyToPayFast(subscription.frequency),
-          cycles: calculateCycles(subscription.frequency, subscription.endDate || undefined),
-        } as PayFastSubscriptionParams;
-
-    // Set billing date for monthly subscriptions
-    if (!useTokenization && subscription.monthlyDates && subscription.monthlyDates.length > 0) {
+    // Set billing date for TWICE_MONTHLY subscriptions (specific dates each month)
+    if (subscription.frequency === 'TWICE_MONTHLY' && subscription.monthlyDates && subscription.monthlyDates.length > 0) {
       const nextMonth = new Date();
       nextMonth.setMonth(nextMonth.getMonth() + 1);
       nextMonth.setDate(subscription.monthlyDates[0]);
