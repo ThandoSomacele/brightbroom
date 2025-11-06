@@ -15,25 +15,22 @@ export const load: PageServerLoad = async ({ locals, url, ...event }) => {
     };
   }
   
-  // If no booking ID, check for guest booking data
-  if (!locals.user) {
-    const guestBookingData = getGuestBookingData(event);
+  // If no booking ID, check for guest booking data (from cookies)
+  // This handles both guest users and newly authenticated users who just logged in
+  const guestBookingData = getGuestBookingData(event);
 
-    // Check if we have valid booking data for either one-time or recurring bookings
-    const hasOneTimeBookingData = guestBookingData.serviceId && guestBookingData.scheduledDate;
-    const hasRecurringBookingData = guestBookingData.serviceId && guestBookingData.isRecurring && guestBookingData.recurringFrequency;
+  // Check if we have valid booking data for either one-time or recurring bookings
+  const hasOneTimeBookingData = guestBookingData.serviceId && guestBookingData.scheduledDate;
+  const hasRecurringBookingData = guestBookingData.serviceId && guestBookingData.isRecurring && guestBookingData.recurringFrequency;
 
-    if (!hasOneTimeBookingData && !hasRecurringBookingData) {
-      throw error(400, 'No booking data found. Please start a new booking.');
-    }
-
+  if (hasOneTimeBookingData || hasRecurringBookingData) {
     return {
       bookingId: null,
       guestBookingData,
-      isGuest: true
+      isGuest: !locals.user // False if user just logged in, true if still a guest
     };
   }
-  
-  // Authenticated user without booking ID - redirect to bookings
-  throw error(400, 'No booking information found. Please select a booking to pay for.');
+
+  // No booking data found at all
+  throw error(400, 'No booking information found. Please start a new booking.');
 };
