@@ -97,10 +97,13 @@ function generateSignature(params: Record<string, any>, passphrase?: string): st
   // Remove signature if present
   const { signature, ...dataToSign } = params;
 
-  // Create parameter string
+  // Sort keys alphabetically - CRITICAL for PayFast signature validation
+  const sortedKeys = Object.keys(dataToSign).sort();
+
+  // Create parameter string with sorted keys
   let paramString = '';
-  for (const key in dataToSign) {
-    if (dataToSign.hasOwnProperty(key) && dataToSign[key] !== undefined && dataToSign[key] !== '') {
+  for (const key of sortedKeys) {
+    if (dataToSign[key] !== undefined && dataToSign[key] !== '') {
       paramString += `${key}=${encodeURIComponent(dataToSign[key].toString().trim()).replace(/%20/g, '+')}&`;
     }
   }
