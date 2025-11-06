@@ -2,7 +2,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import { goto } from '$app/navigation';
+  import { goto, invalidateAll } from '$app/navigation';
   import { secureAPIFetch } from '$lib/utils/api-helpers';
 
   // Get booking ID from query parameters
@@ -17,6 +17,12 @@
     if (isRecurring && !bookingId) {
       try {
         console.log('Initiating recurring subscription process');
+
+        // Reload page data to get fresh CSRF token after login
+        await invalidateAll();
+
+        // Wait a bit for the page data to refresh
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         // Call the subscription creation API
         const response = await secureAPIFetch('/api/subscription/create', {
