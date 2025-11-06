@@ -69,11 +69,13 @@
             <span class="text-gray-600">Frequency:</span>
             <span class="font-medium">
               {#if data.bookingData.recurringFrequency === 'WEEKLY'}
-                Weekly
+                Weekly (52/year)
               {:else if data.bookingData.recurringFrequency === 'BIWEEKLY'}
-                Bi-weekly
+                Every 2 Weeks (26/year)
               {:else if data.bookingData.recurringFrequency === 'TWICE_WEEKLY'}
-                Twice Weekly
+                Twice Weekly (~104/year)
+              {:else if data.bookingData.recurringFrequency === 'TWICE_MONTHLY'}
+                Twice Monthly (24/year)
               {:else}
                 {data.bookingData.recurringFrequency}
               {/if}

@@ -41,8 +41,9 @@ export const paymentMethodEnum = pgEnum("PaymentMethod", [
 
 export const recurringFrequencyEnum = pgEnum("RecurringFrequency", [
   "WEEKLY", // Once a week on selected day
-  "BIWEEKLY", // Every two weeks (every 14 days)
+  "BIWEEKLY", // Every 14 days on selected day (26 times/year)
   "TWICE_WEEKLY", // Twice a week on selected days
+  "TWICE_MONTHLY", // Twice a month on specific dates (24 times/year)
 ]);
 
 export const subscriptionStatusEnum = pgEnum("SubscriptionStatus", [
@@ -403,7 +404,8 @@ export const subscription = pgTable("subscription", {
   status: subscriptionStatusEnum("status").default("PENDING").notNull(),
 
   // Scheduling preferences
-  preferredDays: text("preferred_days").array(), // Array of DayOfWeek values
+  preferredDays: text("preferred_days").array(), // Array of DayOfWeek values (for weekly/biweekly/twice weekly)
+  monthlyDates: integer("monthly_dates").array(), // Array of dates (1-31) for twice monthly
   preferredTimeSlot: text("preferred_time_slot"), // e.g., "09:00-12:00"
 
   // Pricing with discounts

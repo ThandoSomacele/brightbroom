@@ -415,9 +415,10 @@
               <div>
                 <p class="font-medium text-gray-900 dark:text-white">Recurring Schedule</p>
                 <p class="text-gray-600 dark:text-gray-300">
-                  {recurringFrequency === 'WEEKLY' ? 'Weekly' :
-                   recurringFrequency === 'BIWEEKLY' ? 'Bi-weekly' :
-                   recurringFrequency === 'TWICE_WEEKLY' ? 'Twice weekly' : ''}
+                  {recurringFrequency === 'WEEKLY' ? 'Weekly (52 times/year)' :
+                   recurringFrequency === 'BIWEEKLY' ? 'Every 2 Weeks (26 times/year)' :
+                   recurringFrequency === 'TWICE_WEEKLY' ? 'Twice Weekly (~104 times/year)' :
+                   recurringFrequency === 'TWICE_MONTHLY' ? 'Twice Monthly (24 times/year)' : ''}
                 </p>
               </div>
             </div>

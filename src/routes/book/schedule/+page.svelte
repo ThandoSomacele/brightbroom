@@ -144,7 +144,8 @@
       const isValidRecurring = recurringFrequency && recurringTimeSlot &&
         ((recurringFrequency === 'WEEKLY' && recurringDays.length === 1) ||
          (recurringFrequency === 'BIWEEKLY' && recurringDays.length === 1) ||
-         (recurringFrequency === 'TWICE_WEEKLY' && recurringDays.length === 2));
+         (recurringFrequency === 'TWICE_WEEKLY' && recurringDays.length === 2) ||
+         (recurringFrequency === 'TWICE_MONTHLY' && recurringMonthlyDates.length === 2));
 
       if (!isValidRecurring) {
         alert("Please complete all recurring booking options");
@@ -467,9 +468,10 @@
 
         <p class="text-gray-700 dark:text-gray-300">
           <strong>Frequency:</strong>
-          {recurringFrequency === 'WEEKLY' ? 'Weekly' :
-           recurringFrequency === 'BIWEEKLY' ? 'Bi-weekly' :
-           recurringFrequency === 'TWICE_WEEKLY' ? 'Twice weekly' : ''}
+          {recurringFrequency === 'WEEKLY' ? 'Weekly (52 times/year)' :
+           recurringFrequency === 'BIWEEKLY' ? 'Every 2 Weeks (26 times/year)' :
+           recurringFrequency === 'TWICE_WEEKLY' ? 'Twice Weekly (~104 times/year)' :
+           recurringFrequency === 'TWICE_MONTHLY' ? 'Twice Monthly (24 times/year)' : ''}
         </p>
 
         {#if recurringDays.length > 0}
@@ -535,7 +537,8 @@
         disabled={isLoading || (!isRecurring && (!selectedDate || !selectedTime)) ||
                   (isRecurring && (!recurringFrequency || !recurringTimeSlot ||
                     (((recurringFrequency === 'WEEKLY' || recurringFrequency === 'BIWEEKLY') && recurringDays.length !== 1) ||
-                     (recurringFrequency === 'TWICE_WEEKLY' && recurringDays.length !== 2))))}
+                     (recurringFrequency === 'TWICE_WEEKLY' && recurringDays.length !== 2) ||
+                     (recurringFrequency === 'TWICE_MONTHLY' && recurringMonthlyDates.length !== 2))))}
       >
         {#if isLoading}
           <svg
