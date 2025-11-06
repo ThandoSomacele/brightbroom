@@ -169,11 +169,15 @@ export const actions: Actions = {
       if (isRecurring) {
         // Recurring bookings require authentication
         if (!locals.user) {
+          // Calculate duration in minutes based on the service
+          const durationMinutes = serviceData.durationHours * 60;
+
           // Store recurring booking data for after authentication
           storeGuestBookingData(event, {
             serviceId,
             serviceName: serviceData.name,
             servicePrice: serviceData.basePrice,
+            duration: durationMinutes,
             isRecurring: true,
             recurringFrequency,
             recurringDays: recurringDays ? JSON.parse(recurringDays) : [],
@@ -195,10 +199,14 @@ export const actions: Actions = {
         }
 
         // For authenticated users, redirect to subscription creation
+        // Calculate duration in minutes based on the service
+        const durationMinutes = serviceData.durationHours * 60;
+
         // Store the recurring booking data in session for the subscription API
         storeGuestBookingData(event, {
           serviceId,
           serviceName: serviceData.name,
+          duration: durationMinutes,
           addressId,
           cleanerId,
           isRecurring: true,
