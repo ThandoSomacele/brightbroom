@@ -11,6 +11,7 @@
   import { createEventDispatcher } from "svelte";
 
   export let basePrice: number = 0;
+  export let serviceDuration: number = 2; // Duration in hours
   export let selectedFrequency: string = "";
   export let selectedDays: string[] = [];
   export let selectedMonthlyDates: number[] = [];
@@ -43,12 +44,35 @@
     { value: "SUNDAY", label: "Sunday", short: "Sun" },
   ];
 
-  // Time slots - matching one-time cleaning format
-  const timeSlots = [
-    { value: "08:00-11:00", display: "8:00 AM - 11:00 AM" },
-    { value: "11:00-14:00", display: "11:00 AM - 2:00 PM" },
-    { value: "14:00-17:00", display: "2:00 PM - 5:00 PM" },
-  ];
+  // Generate time slots dynamically based on service duration
+  // Same logic as one-time cleaning: slots from 8 AM to 12 PM, filtered by end time
+  $: timeSlots = (() => {
+    const slots = [];
+
+    // Generate all possible time slots from 8 AM to 12 PM
+    for (let hour = 8; hour <= 12; hour++) {
+      // Calculate end time by adding duration
+      const endHour = hour + serviceDuration;
+
+      // Include this slot only if it ends at or before 6 PM (18:00)
+      if (endHour <= 18) {
+        // Format start time
+        const startHour12 = hour > 12 ? hour - 12 : hour;
+        const startPeriod = hour >= 12 ? 'PM' : 'AM';
+        const startTimeDisplay = `${startHour12}:00 ${startPeriod}`;
+
+        // Format the value as HH:mm
+        const startTimeValue = `${hour.toString().padStart(2, '0')}:00`;
+
+        slots.push({
+          value: startTimeValue,
+          display: startTimeDisplay,
+        });
+      }
+    }
+
+    return slots;
+  })();
 
   function handleFrequencyChange(frequency: string) {
     selectedFrequency = frequency;
