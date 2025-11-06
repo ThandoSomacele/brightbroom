@@ -43,11 +43,11 @@
     { value: "SUNDAY", label: "Sunday", short: "Sun" },
   ];
 
-  // Time slots
+  // Time slots - matching one-time cleaning format
   const timeSlots = [
-    { value: "08:00-11:00", label: "Morning (8:00 AM - 11:00 AM)" },
-    { value: "11:00-14:00", label: "Midday (11:00 AM - 2:00 PM)" },
-    { value: "14:00-17:00", label: "Afternoon (2:00 PM - 5:00 PM)" },
+    { value: "08:00-11:00", display: "8:00 AM - 11:00 AM" },
+    { value: "11:00-14:00", display: "11:00 AM - 2:00 PM" },
+    { value: "14:00-17:00", display: "2:00 PM - 5:00 PM" },
   ];
 
   function handleFrequencyChange(frequency: string) {
@@ -208,27 +208,22 @@
     <div>
       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
         <Clock class="h-5 w-5 text-teal-600" />
-        Preferred Time Slot
+        Select a Time
       </h3>
 
-      <div class="space-y-2">
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {#each timeSlots as slot}
-          <label
-            class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 {preferredTimeSlot ===
-            slot.value
-              ? 'border-teal-500 bg-teal-50'
-              : 'border-gray-200'}"
+          <button
+            type="button"
+            class="py-3 px-3 text-center rounded-md border transition-colors cursor-pointer {preferredTimeSlot === slot.value
+              ? 'border-teal-500 bg-teal-50 dark:border-teal-600 dark:bg-teal-900/20'
+              : 'border-gray-200 hover:border-teal-200 dark:border-gray-700 dark:hover:border-teal-700'}"
+            on:click={() => handleTimeSlotChange(slot.value)}
           >
-            <input
-              type="radio"
-              name="timeSlot"
-              value={slot.value}
-              checked={preferredTimeSlot === slot.value}
-              on:change={() => handleTimeSlotChange(slot.value)}
-              class="w-4 h-4 text-teal-600 focus:ring-teal-500"
-            />
-            <span>{slot.label}</span>
-          </label>
+            <span class="text-sm font-medium text-gray-900 dark:text-white">
+              {slot.display}
+            </span>
+          </button>
         {/each}
       </div>
     </div>
