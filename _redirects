@@ -1,0 +1,2 @@
+/relay-VjWm/static/*  https://eu-assets.i.posthog.com/static/:splat  200!
+/relay-VjWm/*         https://eu.i.posthog.com/:splat  200!
