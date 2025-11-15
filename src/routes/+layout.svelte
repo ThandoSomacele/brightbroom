@@ -1,6 +1,9 @@
 <!-- src/routes/+layout.svelte -->
 <script lang="ts">
   import { page } from "$app/stores";
+  import { browser } from "$app/environment";
+  import { beforeNavigate, afterNavigate } from "$app/navigation";
+  import posthog from "posthog-js";
   import Button from "$lib/components/ui/Button.svelte";
   import LoadingIndicator from "$lib/components/ui/LoadingIndicator.svelte";
   import ErrorBoundary from "$lib/components/ErrorBoundary.svelte";
@@ -48,6 +51,12 @@
       performanceMonitor.reportMetrics();
     }, 2000);
   });
+
+  // PostHog pageview & pageleave tracking
+  if (browser) {
+    beforeNavigate(() => posthog.capture('$pageleave'));
+    afterNavigate(() => posthog.capture('$pageview'));
+  }
 </script>
 
 <svelte:head>

@@ -75,6 +75,8 @@
     "papaparse": "^5.5.2",
     "postcss": "^8.5.3",
     "postgres": "^3.4.5",
+    "posthog-js": "^1.292.0",
+    "posthog-node": "^5.11.2",
     "prettier": "^3.5.3",
     "prettier-plugin-svelte": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.5",
