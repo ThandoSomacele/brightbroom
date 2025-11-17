@@ -7,6 +7,7 @@
   import Button from "$lib/components/ui/Button.svelte";
   import LoadingIndicator from "$lib/components/ui/LoadingIndicator.svelte";
   import ErrorBoundary from "$lib/components/ErrorBoundary.svelte";
+  import CookieConsentBanner from "$lib/components/CookieConsentBanner.svelte";
   import { performanceMonitor } from "$lib/utils/performance";
   import { onMount } from "svelte";
   import "../app.css";
@@ -325,7 +326,7 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
         </p>
       </div>
 
-      <div class="flex space-x-6">
+      <div class="flex flex-wrap justify-center gap-4">
         <a
           href="/terms"
           class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
@@ -335,6 +336,11 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
           href="/privacy"
           class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >Privacy</a
+        >
+        <a
+          href="/cookie-preferences"
+          class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+          >Cookie Preferences</a
         >
         <a
           href="/join/cleaner"
@@ -356,3 +362,6 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
     </div>
   </div>
 </footer>
+
+<!-- Cookie Consent Banner -->
+<CookieConsentBanner />
