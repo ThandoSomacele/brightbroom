@@ -1,13 +1,16 @@
 <!-- src/lib/components/CookieConsentBanner.svelte -->
 <script lang="ts">
-  import { consentStatus, acceptCookies, declineCookies } from '$lib/stores/cookieConsent';
-  import { X } from 'lucide-svelte';
-  import Button from './ui/Button.svelte';
+  import {
+    acceptCookies,
+    consentStatus,
+    declineCookies,
+  } from "$lib/stores/cookieConsent";
+  import Button from "./ui/Button.svelte";
 
   let showBanner = false;
 
   // Only show banner if consent is pending
-  $: showBanner = $consentStatus === 'pending';
+  $: showBanner = $consentStatus === "pending";
 
   function handleAccept() {
     acceptCookies();
@@ -26,7 +29,9 @@
     aria-describedby="cookie-consent-description"
   >
     <div class="container mx-auto max-w-6xl p-4 sm:p-6">
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      >
         <!-- Content -->
         <div class="flex-1">
           <h3
@@ -39,9 +44,10 @@
             id="cookie-consent-description"
             class="text-sm text-gray-600 dark:text-gray-300"
           >
-            We use cookies and similar technologies to improve your experience, analyze site
-            usage, and assist in our marketing efforts. This includes using analytics tools like
-            PostHog to understand how you use our website.
+            We use cookies and similar technologies to improve your experience,
+            analyze site usage, and assist in our marketing efforts. This
+            includes using analytics tools to understand how you use our
+            website.
             <a
               href="/cookie-preferences"
               class="text-primary underline hover:text-primary-600 dark:text-primary-400"
@@ -84,7 +90,7 @@
 
 <style>
   /* Ensure banner appears above other content */
-  div[role='dialog'] {
+  div[role="dialog"] {
     box-shadow:
       0 -4px 6px -1px rgb(0 0 0 / 0.1),
       0 -2px 4px -2px rgb(0 0 0 / 0.1);
