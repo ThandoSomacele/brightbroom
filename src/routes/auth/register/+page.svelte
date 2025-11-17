@@ -3,6 +3,7 @@
   import { enhance } from "$app/forms";
   import { goto } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
+  import HoneypotField from "$lib/components/forms/HoneypotField.svelte";
   import { Eye, EyeOff, Loader2 } from "lucide-svelte";
 
   // Get possible error from form action
@@ -83,6 +84,7 @@
           };
         }}
       >
+        <HoneypotField fieldPrefix="register" />
         <!-- First Name & Last Name (2-column grid) -->
         <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>

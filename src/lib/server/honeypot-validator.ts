@@ -104,20 +104,24 @@ export function validateHoneypot(
   }
 
   // Check for suspicious name patterns (bots often use patterns like "John Smith", "Test User")
-  const firstName = formData.get("firstName")?.toString().toLowerCase();
-  const lastName = formData.get("lastName")?.toString().toLowerCase();
-  
+  const firstName = formData.get("firstName")?.toString();
+  const lastName = formData.get("lastName")?.toString();
+
   if (firstName && lastName) {
+    const firstNameLower = firstName.toLowerCase();
+    const lastNameLower = lastName.toLowerCase();
+
+    // Check for common suspicious patterns
     const suspiciousNamePatterns = [
       "test",
-      "admin", 
+      "admin",
       "user",
       "demo",
       "sample",
       "example"
     ];
 
-    const fullName = `${firstName} ${lastName}`;
+    const fullName = `${firstNameLower} ${lastNameLower}`;
     for (const pattern of suspiciousNamePatterns) {
       if (fullName.includes(pattern)) {
         return {
@@ -127,11 +131,105 @@ export function validateHoneypot(
         };
       }
     }
+
+    // Detect random character spam (like "cvFbaAhUBUxBXZuVxMGJmYq")
+    // Check if name has excessive mixed case without spaces or common patterns
+    const hasRandomPattern = (text: string): boolean => {
+      // Check length - random spam is usually very long
+      if (text.length > 25) return true;
+
+      // Count uppercase/lowercase transitions (random spam has many)
+      let transitions = 0;
+      for (let i = 1; i < text.length; i++) {
+        const prevIsUpper = text[i - 1] === text[i - 1].toUpperCase();
+        const currIsUpper = text[i] === text[i].toUpperCase();
+        if (prevIsUpper !== currIsUpper) transitions++;
+      }
+
+      // If more than 40% of characters are case transitions, it's suspicious
+      if (transitions > text.length * 0.4) return true;
+
+      // Check for lack of vowels (real names usually have vowels)
+      const vowels = text.match(/[aeiou]/gi);
+      const vowelRatio = vowels ? vowels.length / text.length : 0;
+      if (vowelRatio < 0.2 && text.length > 8) return true;
+
+      // Check for excessive consonant clusters (more than 5 consonants in a row)
+      if (/[bcdfghjklmnpqrstvwxyz]{6,}/i.test(text)) return true;
+
+      return false;
+    };
+
+    if (hasRandomPattern(firstName) || hasRandomPattern(lastName)) {
+      return {
+        isBot: true,
+        reason: "Random character pattern detected in name",
+        firstName,
+        lastName
+      };
+    }
+  }
+
+  // Check for random patterns in subject and message
+  const subject = formData.get("subject")?.toString();
+  if (subject) {
+    // Apply same random pattern detection to subject
+    const hasRandomPattern = (text: string): boolean => {
+      if (text.length > 40) return true;
+      let transitions = 0;
+      for (let i = 1; i < text.length; i++) {
+        const prevIsUpper = text[i - 1] === text[i - 1].toUpperCase();
+        const currIsUpper = text[i] === text[i].toUpperCase();
+        if (prevIsUpper !== currIsUpper) transitions++;
+      }
+      if (transitions > text.length * 0.4) return true;
+      const vowels = text.match(/[aeiou]/gi);
+      const vowelRatio = vowels ? vowels.length / text.length : 0;
+      if (vowelRatio < 0.2 && text.length > 8) return true;
+      if (/[bcdfghjklmnpqrstvwxyz]{6,}/i.test(text)) return true;
+      return false;
+    };
+
+    if (hasRandomPattern(subject)) {
+      return {
+        isBot: true,
+        reason: "Random character pattern detected in subject",
+        subject
+      };
+    }
   }
 
   // Check for suspicious message content (only for contact forms)
-  const message = formData.get("message")?.toString().toLowerCase();
+  const message = formData.get("message")?.toString();
   if (message) {
+    const messageLower = message.toLowerCase();
+
+    // Check for random patterns in message
+    const hasRandomPattern = (text: string): boolean => {
+      if (text.length > 500) return false; // Don't flag long legitimate messages
+      let transitions = 0;
+      for (let i = 1; i < text.length; i++) {
+        const prevIsUpper = text[i - 1] === text[i - 1].toUpperCase();
+        const currIsUpper = text[i] === text[i].toUpperCase();
+        if (prevIsUpper !== currIsUpper) transitions++;
+      }
+      if (transitions > text.length * 0.4) return true;
+      const vowels = text.match(/[aeiou]/gi);
+      const vowelRatio = vowels ? vowels.length / text.length : 0;
+      if (vowelRatio < 0.2 && text.length > 15) return true;
+      if (/[bcdfghjklmnpqrstvwxyz]{7,}/i.test(text)) return true;
+      return false;
+    };
+
+    if (hasRandomPattern(message)) {
+      return {
+        isBot: true,
+        reason: "Random character pattern detected in message",
+        message: message.substring(0, 50)
+      };
+    }
+
+    // Check for spam keywords
     const spamKeywords = [
       "seo",
       "bitcoin",
@@ -150,7 +248,7 @@ export function validateHoneypot(
     ];
 
     for (const keyword of spamKeywords) {
-      if (message.includes(keyword)) {
+      if (messageLower.includes(keyword)) {
         return {
           isBot: true,
           reason: "Spam keyword detected",
