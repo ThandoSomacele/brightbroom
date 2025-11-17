@@ -10,7 +10,17 @@ export const load = async () => {
       capture_pageview: false,
       capture_pageleave: false,
       capture_exceptions: true, // This enables capturing exceptions using Error Tracking
+      persistence: "localStorage+cookie", // Use both localStorage and cookies
+      opt_out_capturing_by_default: true, // Don't capture until user gives consent
     });
+
+    // Check for existing consent and apply it
+    const consentStatus = localStorage.getItem('cookie_consent_status');
+    if (consentStatus === 'granted') {
+      posthog.opt_in_capturing();
+    } else if (consentStatus === 'denied') {
+      posthog.opt_out_capturing();
+    }
   }
 
   return;
