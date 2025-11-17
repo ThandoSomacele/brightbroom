@@ -128,6 +128,45 @@ const handleCSRF: Handle = async ({ event, resolve }) => {
 };
 
 /**
+ * PostHog reverse proxy hook - proxies requests to PostHog Cloud
+ * This prevents ad blockers from blocking analytics requests
+ */
+const handlePostHogProxy: Handle = async ({ event, resolve }) => {
+  const { pathname } = event.url;
+
+  if (pathname.startsWith('/relay-VjWm')) {
+    // Determine target hostname based on static or dynamic ingestion
+    const hostname = pathname.startsWith('/relay-VjWm/static/')
+      ? 'eu-assets.i.posthog.com'  // EU Cloud for static assets
+      : 'eu.i.posthog.com';         // EU Cloud for API calls
+
+    // Build external URL
+    const url = new URL(event.request.url);
+    url.protocol = 'https:';
+    url.hostname = hostname;
+    url.port = '443';
+    url.pathname = pathname.replace('/relay-VjWm/', '');
+
+    // Clone and adjust headers
+    const headers = new Headers(event.request.headers);
+    headers.set("Accept-Encoding", "");
+    headers.set('host', hostname);
+
+    // Proxy the request to PostHog
+    const response = await fetch(url.toString(), {
+      method: event.request.method,
+      headers,
+      body: event.request.body,
+      duplex: "half"
+    } as RequestInit);
+
+    return response;
+  }
+
+  return resolve(event);
+};
+
+/**
  * Custom routing hook to handle specific error cases
  */
 const handleRouting: Handle = async ({ event, resolve }) => {
@@ -170,8 +209,9 @@ if (path.includes('//')) {
 };
 
 // Combine hooks in sequence (order matters!)
-// 1. First authenticate the user
-// 2. Then check CSRF tokens
-// 3. Then check route permissions
-// 4. Finally handle any errors that occur
-export const handle = sequence(handleAuth, handleCSRF, handleRouting, handleErrors);
+// 1. First handle PostHog proxy (bypass auth/CSRF for analytics)
+// 2. Then authenticate the user
+// 3. Then check CSRF tokens
+// 4. Then check route permissions
+// 5. Finally handle any errors that occur
+export const handle = sequence(handlePostHogProxy, handleAuth, handleCSRF, handleRouting, handleErrors);
