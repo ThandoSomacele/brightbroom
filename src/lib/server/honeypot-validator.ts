@@ -279,12 +279,13 @@ export function logBotDetection(
   additionalData?: Record<string, any>
 ): void {
   if (validationResult.isBot) {
-    console.warn(`🤖 Bot detected on ${formType} form:`, {
+    // Use separate log message and data object to avoid format string injection
+    console.warn('🤖 Bot detected on form:', {
+      formType,
       ip: clientIP,
       reason: validationResult.reason,
       suspiciousFields: validationResult.suspiciousFields,
       timestamp: new Date().toISOString(),
-      formType,
       ...additionalData
     });
   }
