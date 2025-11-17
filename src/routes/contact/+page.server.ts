@@ -57,7 +57,7 @@ export const actions: Actions = {
 
         // Return a generic error to avoid revealing anti-spam measures
         return fail(400, {
-          error: "Please try submitting the form again.",
+          error: "There was a problem with your submission. Please check your information and try again.",
           firstName,
           lastName,
           email,
