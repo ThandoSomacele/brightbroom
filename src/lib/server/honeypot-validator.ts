@@ -111,22 +111,23 @@ export function validateHoneypot(
     const firstNameLower = firstName.toLowerCase();
     const lastNameLower = lastName.toLowerCase();
 
-    // Check for common suspicious patterns
-    const suspiciousNamePatterns = [
-      "test",
-      "admin",
-      "user",
-      "demo",
-      "sample",
-      "example"
+    // Check for obvious bot patterns (exact matches only to avoid false positives)
+    // Only blocks the most obvious duplicate patterns to allow development testing
+    const obviousBotPatterns = [
+      "test test",
+      "admin admin",
+      "demo demo",
+      "sample sample",
+      "example example",
+      "user user"
     ];
 
     const fullName = `${firstNameLower} ${lastNameLower}`;
-    for (const pattern of suspiciousNamePatterns) {
-      if (fullName.includes(pattern)) {
+    for (const pattern of obviousBotPatterns) {
+      if (fullName === pattern) {
         return {
           isBot: true,
-          reason: "Suspicious name pattern detected",
+          reason: "Obvious bot pattern detected",
           fullName
         };
       }
