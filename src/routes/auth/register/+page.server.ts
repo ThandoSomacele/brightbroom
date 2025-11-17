@@ -9,6 +9,8 @@ import {
 import { db } from "$lib/server/db";
 import { user } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
+import { validateHoneypot, logBotDetection } from "$lib/server/honeypot-validator";
+import { checkRateLimit } from "$lib/server/rate-limiter";
 import { fail, redirect } from "@sveltejs/kit";
 import { z } from "zod";
 import type { Actions, PageServerLoad } from "./$types";
@@ -36,7 +38,7 @@ const registerSchema = z.object({
 
 export const actions: Actions = {
   default: async (event) => {
-    const { request } = event;
+    const { request, getClientAddress } = event;
     const formData = await request.formData();
 
     const firstName = formData.get("firstName")?.toString();
@@ -59,6 +61,46 @@ export const actions: Actions = {
         password,
         terms,
       });
+
+      // Honeypot validation - check for bot submissions
+      const honeypotResult = validateHoneypot(formData, "register");
+
+      if (honeypotResult.isBot) {
+        const clientIP = getClientAddress();
+        logBotDetection(honeypotResult, clientIP, "register", {
+          email,
+          firstName,
+          lastName,
+          reason: honeypotResult.reason
+        });
+
+        // Return a generic error to avoid revealing anti-spam measures
+        return fail(400, {
+          error: "Please try again.",
+          firstName,
+          lastName,
+          email,
+          phone,
+        });
+      }
+
+      // Rate limiting
+      const clientIP = getClientAddress();
+      const ipRateLimit = checkRateLimit('registration', clientIP);
+
+      if (!ipRateLimit.allowed) {
+        console.log(`Registration rate limit exceeded for IP: ${clientIP}`);
+        return fail(429, {
+          error: `Too many registration attempts. Please try again after ${ipRateLimit.resetTime?.toLocaleTimeString('en-ZA', {
+            hour: '2-digit',
+            minute: '2-digit'
+          })}.`,
+          firstName,
+          lastName,
+          email,
+          phone,
+        });
+      }
 
       // Check if user already exists
       const existingUser = await getUserByEmail(email!);
