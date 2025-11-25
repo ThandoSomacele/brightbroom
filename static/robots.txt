@@ -7,10 +7,9 @@ Disallow: /auth/
 Disallow: /api/
 Disallow: /cleaner/
 Disallow: /profile/
-Disallow: /book/
 Disallow: /payment/
 
-# Allow public pages
+# Explicitly allow public pages and location pages for SEO
 Allow: /
 Allow: /services
 Allow: /about
@@ -19,6 +18,15 @@ Allow: /magazine
 Allow: /privacy
 Allow: /terms
 Allow: /join
+Allow: /service-areas
+
+# Allow location-specific service pages (High Priority for Local SEO)
+Allow: /cleaning-services-north-riding
+Allow: /cleaning-services-cosmo-city
+Allow: /cleaning-services-fourways
+Allow: /cleaning-services-bryanston
+Allow: /cleaning-services-randburg
+Allow: /cleaning-services-midrand
 
 # Sitemap location
 Sitemap: https://brightbroom.com/sitemap.xml
