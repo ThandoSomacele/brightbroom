@@ -180,10 +180,10 @@
         Join hundreds of satisfied customers in Bryanston who trust BrightBroom for their cleaning needs.
       </p>
       <div class="flex flex-wrap gap-4 justify-center">
-        <Button href="/book" size="lg" variant="primary" class="bg-white text-gray-900 hover:bg-gray-100">
+        <Button href="/book" size="lg" class="!bg-white !text-gray-900 hover:!bg-gray-100 focus:ring-primary-500">
           Book Your Cleaning Today
         </Button>
-        <Button href="/contact" size="lg" variant="secondary" class="border-white text-white hover:bg-white hover:text-gray-900">
+        <Button href="/contact" size="lg" class="!bg-transparent !border-2 !border-white !text-white hover:!bg-white hover:!text-gray-900 focus:ring-white">
           Get a Quote
         </Button>
       </div>
