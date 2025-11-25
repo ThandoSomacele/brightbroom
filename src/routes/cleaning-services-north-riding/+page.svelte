@@ -475,7 +475,7 @@
         <Button
           href="/book"
           size="lg"
-          class="!bg-white !text-gray-900 hover:!bg-gray-100 focus:ring-primary-500"
+          class="!bg-white !text-gray-900 hover:!bg-secondary-200 focus:ring-primary-500"
         >
           Book Your Cleaning Today
         </Button>
