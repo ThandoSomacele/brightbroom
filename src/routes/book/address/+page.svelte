@@ -2,8 +2,8 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import AddressSelect from "$lib/components/booking/AddressSelect.svelte";
-  import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import StepTracker from "$lib/components/booking/StepTracker.svelte";
+  import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { MAX_ADDRESSES } from "$lib/constants/address";
   import { AlertCircle, ArrowLeft, ArrowRight, Plus } from "lucide-svelte";
@@ -331,7 +331,7 @@
     <!-- Add new address button -->
     <div class="mb-6">
       {#if hasReachedLimit}
-        <div class="flex sm:flex-row gap-3">
+        <div class="flex flex-col md:flex-row gap-4">
           <Button
             variant="primary"
             disabled={true}
@@ -456,7 +456,6 @@
               </div>
             </div>
           </div>
-
 
           <!-- Address validation error -->
           {#if addressValidationError}

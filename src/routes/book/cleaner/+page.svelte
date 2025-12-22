@@ -1,26 +1,26 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import { onMount } from 'svelte';
-  import CleanerSelection from '$lib/components/booking/CleanerSelection.svelte';
-  import StepTracker from '$lib/components/booking/StepTracker.svelte';
-  import Button from '$lib/components/ui/Button.svelte';
-  import { ArrowLeft, ArrowRight } from 'lucide-svelte';
-  
+  import { goto } from "$app/navigation";
+  import CleanerSelection from "$lib/components/booking/CleanerSelection.svelte";
+  import StepTracker from "$lib/components/booking/StepTracker.svelte";
+  import Button from "$lib/components/ui/Button.svelte";
+  import { ArrowLeft, ArrowRight } from "lucide-svelte";
+  import { onMount } from "svelte";
+
   let selectedCleanerId: string | null = null;
   let selectedCleaner: any = null;
   let serviceId: string | null = null;
   let address: { lat?: number; lng?: number } | null = null;
   let scheduledDate: string | null = null;
-  
+
   onMount(() => {
     // Get booking data from localStorage
-    serviceId = localStorage.getItem('booking_service');
-    scheduledDate = localStorage.getItem('booking_date');
-    
+    serviceId = localStorage.getItem("booking_service");
+    scheduledDate = localStorage.getItem("booking_date");
+
     // Get address coordinates if available
-    const addressId = localStorage.getItem('booking_address');
-    const guestAddressStr = localStorage.getItem('booking_guest_address');
-    
+    const addressId = localStorage.getItem("booking_address");
+    const guestAddressStr = localStorage.getItem("booking_guest_address");
+
     if (guestAddressStr) {
       try {
         const guestAddress = JSON.parse(guestAddressStr);
@@ -29,51 +29,54 @@
           lng: guestAddress.lng,
         };
       } catch (e) {
-        console.error('Error parsing guest address:', e);
+        console.error("Error parsing guest address:", e);
       }
     }
-    
+
     // Load previously selected cleaner if any
-    const savedCleanerId = localStorage.getItem('booking_cleaner_id');
-    const savedCleanerData = localStorage.getItem('booking_cleaner_data');
+    const savedCleanerId = localStorage.getItem("booking_cleaner_id");
+    const savedCleanerData = localStorage.getItem("booking_cleaner_data");
     if (savedCleanerId) {
       selectedCleanerId = savedCleanerId;
       if (savedCleanerData) {
         try {
           selectedCleaner = JSON.parse(savedCleanerData);
         } catch (e) {
-          console.error('Error parsing cleaner data:', e);
+          console.error("Error parsing cleaner data:", e);
         }
       }
     }
   });
-  
+
   function handleCleanerSelect(event: CustomEvent) {
     selectedCleanerId = event.detail.cleanerId;
     selectedCleaner = event.detail.cleaner;
-    
+
     // Save to localStorage
-    localStorage.setItem('booking_cleaner_id', selectedCleanerId);
-    localStorage.setItem('booking_cleaner_data', JSON.stringify(selectedCleaner));
+    localStorage.setItem("booking_cleaner_id", selectedCleanerId);
+    localStorage.setItem(
+      "booking_cleaner_data",
+      JSON.stringify(selectedCleaner),
+    );
   }
-  
+
   function goBack() {
-    goto('/book/schedule');
+    goto("/book/schedule");
   }
-  
+
   function goNext() {
     if (!selectedCleanerId) {
-      alert('Please select a cleaner to continue');
+      alert("Please select a cleaner to continue");
       return;
     }
-    goto('/book/review');
+    goto("/book/review");
   }
-  
+
   function skipCleanerSelection() {
     // Clear any previously selected cleaner
-    localStorage.removeItem('booking_cleaner_id');
-    localStorage.removeItem('booking_cleaner_data');
-    goto('/book/review');
+    localStorage.removeItem("booking_cleaner_id");
+    localStorage.removeItem("booking_cleaner_data");
+    goto("/book/review");
   }
 </script>
 
@@ -86,7 +89,7 @@
   <div class="mb-8">
     <StepTracker currentStep={4} />
   </div>
-  
+
   <!-- Main Content -->
   <div class="bg-white rounded-lg shadow-lg p-6">
     <CleanerSelection
@@ -96,35 +99,37 @@
       {scheduledDate}
       on:select={handleCleanerSelect}
     />
-    
+
     <!-- Optional Selection -->
     <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
       <p class="text-sm text-blue-800">
-        <strong>Note:</strong> Selecting a cleaner is optional. If you skip this step, we'll automatically assign the best available cleaner for your booking.
+        <strong>Note:</strong> Selecting a cleaner is optional. If you skip this
+        step, we'll automatically assign the best available cleaner for your booking.
       </p>
     </div>
-    
+
     <!-- Navigation Buttons -->
-    <div class="mt-8 flex justify-between items-center">
+    <div
+      class="mt-8 flex flex-col md:flex-row gap-3 justify-between items-center"
+    >
       <Button
         variant="outline"
+        wide="full"
         on:click={goBack}
         class="flex items-center gap-2"
       >
         <ArrowLeft class="w-4 h-4" />
         Back to Schedule
       </Button>
-      
-      <div class="flex gap-3">
-        <Button
-          variant="outline"
-          on:click={skipCleanerSelection}
-        >
+
+      <div class="flex flex-col md:flex-row gap-3 w-full">
+        <Button variant="outline" wide="full" on:click={skipCleanerSelection}>
           Skip Selection
         </Button>
-        
+
         <Button
           variant="primary"
+          wide="full"
           on:click={goNext}
           disabled={!selectedCleanerId}
           class="flex items-center gap-2"
