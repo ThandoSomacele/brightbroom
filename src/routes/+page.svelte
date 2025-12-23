@@ -3,6 +3,8 @@
   import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
   import heroImage from "$lib/image-assets/hero.webp";
+  import kitchenImage from "$lib/image-assets/kitchen.webp";
+  import livingRoomImage from "$lib/image-assets/living-room.webp";
   import { Building, Home, HousePlus } from "lucide-svelte";
 
   // Get user data from loader
@@ -327,6 +329,78 @@
     <div class="mt-12 text-center">
       <Button variant="secondary" href="/book">
         Book Now
+      </Button>
+    </div>
+  </div>
+</section>
+
+<!-- Areas We Clean section -->
+<section class="bg-gray-50 py-16 dark:bg-gray-900">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="mb-12 text-center">
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+        Some Areas We Clean
+      </h2>
+      <p class="mt-4 text-lg text-gray-700 dark:text-gray-200">
+        From kitchens to living rooms, we make every space shine
+      </p>
+    </div>
+
+    <!-- Kitchen Cleaning -->
+    <div class="mb-16 grid gap-8 md:grid-cols-2 md:gap-12">
+      <div class="flex flex-col justify-center">
+        <h3 class="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
+          Kitchen Deep Clean
+        </h3>
+        <p class="mb-6 text-lg text-gray-700 dark:text-gray-200">
+          The kitchen is the heart of your home, and we treat it that way. Our thorough cleaning covers every surface - from countertops and appliances to cabinets and floors. We ensure your kitchen is not just clean, but hygienic and welcoming.
+        </p>
+        <div>
+          <Button variant="outline" href="/services">
+            Learn More
+          </Button>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-center">
+        <img
+          src={kitchenImage}
+          alt="Sparkling clean kitchen with organized countertops and appliances"
+          class="h-auto w-full rounded-lg object-cover shadow-md md:h-full lg:h-96"
+          loading="lazy"
+        />
+      </div>
+    </div>
+
+    <!-- Living Room Cleaning -->
+    <div class="mb-16 grid gap-8 md:grid-cols-2 md:gap-12">
+      <div class="flex items-center justify-center md:order-1">
+        <img
+          src={livingRoomImage}
+          alt="Fresh and tidy living room with clean furniture and organized space"
+          class="h-auto w-full rounded-lg object-cover shadow-md md:h-full lg:h-96"
+          loading="lazy"
+        />
+      </div>
+
+      <div class="flex flex-col justify-center md:order-2">
+        <h3 class="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
+          Living Room Care
+        </h3>
+        <p class="mb-6 text-lg text-gray-700 dark:text-gray-200">
+          Your living room is where you relax and entertain. We dust every surface, vacuum thoroughly, and ensure your space feels fresh and inviting. From furniture to floors, we leave no corner untouched.
+        </p>
+        <div>
+          <Button variant="outline" href="/services">
+            Learn More
+          </Button>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center">
+      <Button variant="primary" href="/services">
+        See All Our Services
       </Button>
     </div>
   </div>
