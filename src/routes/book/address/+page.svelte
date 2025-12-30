@@ -120,14 +120,13 @@
   // Validate guest address
   function isGuestAddressValid() {
     // For South African addresses, we need at least:
-    // - Some form of address identifier (street OR formatted address)
-    // - City (locality or sublocality)
-    // - State (province)
-    // - ZIP code (postal code)
-    const hasAddressIdentifier =
-      guestAddress.street || selectedGoogleAddress.formatted;
-    const hasRequiredFields =
-      guestAddress.city && guestAddress.state && guestAddress.zipCode;
+    // - A formatted address from Google Maps (this ensures it's a valid, geocoded address)
+    // - Optionally city/state/zipCode (some Google Places results may not have all fields)
+    const hasFormattedAddress = selectedGoogleAddress.formatted && selectedGoogleAddress.formatted.trim() !== "";
+
+    if (!hasFormattedAddress) {
+      return false; // Must select from Google Maps dropdown
+    }
 
     // Additional validation for estates and complexes
     const isEstateOrComplex =
@@ -140,15 +139,11 @@
         guestAddress.streetNumber && guestAddress.streetNumber.trim() !== "";
       const hasUnitNumber =
         guestAddress.aptUnit && guestAddress.aptUnit.trim() !== "";
-      return (
-        hasAddressIdentifier &&
-        hasRequiredFields &&
-        hasStreetNumber &&
-        hasUnitNumber
-      );
+      return hasFormattedAddress && hasStreetNumber && hasUnitNumber;
     }
 
-    return hasAddressIdentifier && hasRequiredFields;
+    // For regular addresses, just need the formatted address
+    return hasFormattedAddress;
   }
 
   // Continue to next step
@@ -172,15 +167,6 @@
       if (!selectedGoogleAddress.formatted) {
         addressValidationError =
           "Please select an address from the Google Maps suggestions.";
-      } else if (!guestAddress.city) {
-        addressValidationError =
-          "Address is missing city information. Please select a different address.";
-      } else if (!guestAddress.state) {
-        addressValidationError =
-          "Address is missing province/state information. Please select a different address.";
-      } else if (!guestAddress.zipCode) {
-        addressValidationError =
-          "Address is missing postal code. Please select a different address.";
       } else if (
         isEstateOrComplex &&
         (!guestAddress.streetNumber || guestAddress.streetNumber.trim() === "")

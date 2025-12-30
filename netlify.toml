@@ -10,14 +10,19 @@
 [functions]
   node_bundler = "esbuild"
   external_node_modules = [
-    "@node-rs/argon2", 
-    "oslo", 
-    "@oslojs/crypto", 
+    "@node-rs/argon2",
+    "oslo",
+    "@oslojs/crypto",
     "@oslojs/encoding",
     "react",
     "react-dom",
     "react/jsx-runtime"
   ]
+
+# Scheduled function for processing recurring subscription charges
+[[functions]]
+  name = "recurring-charge-cron"
+  schedule = "0 2 * * *"  # Runs daily at 2 AM UTC
 
 
 
