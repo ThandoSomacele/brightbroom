@@ -49,7 +49,18 @@ exports.handler = async (event, context) => {
     if (!contentType || !contentType.includes("application/json")) {
       const text = await response.text();
       console.error(`[Cron] Non-JSON response received:`, text.substring(0, 200));
-      throw new Error(`Expected JSON response but got ${contentType}. Response: ${text.substring(0, 100)}`);
+      const errorDetails = {
+        message: `Expected JSON response but got ${contentType}`,
+        responsePreview: text.substring(0, 100),
+        debugInfo: {
+          baseUrl,
+          apiUrl,
+          DEPLOY_PRIME_URL: process.env.DEPLOY_PRIME_URL,
+          URL: process.env.URL,
+          DEPLOY_URL: process.env.DEPLOY_URL,
+        }
+      };
+      throw new Error(JSON.stringify(errorDetails));
     }
 
     const data = await response.json();
