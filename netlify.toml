@@ -19,10 +19,9 @@
     "react/jsx-runtime"
   ]
 
-# Scheduled function for processing recurring subscription charges
-[[functions]]
-  name = "recurring-charge-cron"
-  schedule = "0 2 * * *"  # Runs daily at 2 AM UTC
+# Note: Scheduled function 'recurring-charge-cron' is configured via Netlify UI
+# Schedule: "0 2 * * *" (daily at 2 AM UTC)
+# This processes recurring subscription charges
 
 
 
