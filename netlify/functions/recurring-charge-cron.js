@@ -16,8 +16,6 @@
  *   schedule = "0 2 * * *"  # Runs daily at 2 AM UTC
  */
 
-const fetch = require("node-fetch");
-
 exports.handler = async (event, context) => {
   console.log("[Cron] Starting recurring charge processing job");
 
