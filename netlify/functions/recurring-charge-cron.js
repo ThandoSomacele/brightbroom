@@ -20,10 +20,11 @@ exports.handler = async (event, context) => {
   console.log("[Cron] Starting recurring charge processing job");
 
   try {
-    // Determine the base URL (production or branch deploy)
-    // Note: Netlify Functions use URL for the primary site URL and DEPLOY_PRIME_URL for the current deploy
-    const baseUrl =
-      process.env.DEPLOY_PRIME_URL || process.env.URL || process.env.DEPLOY_URL || "http://localhost:5173";
+    // Determine the base URL from the request headers
+    // This ensures we call the same deployment that triggered the function
+    const host = event.headers.host || event.headers[':authority'];
+    const protocol = event.headers['x-forwarded-proto'] || 'https';
+    const baseUrl = host ? `${protocol}://${host}` : (process.env.URL || "http://localhost:5173");
 
     const apiUrl = `${baseUrl}/api/subscriptions/process-recurring`;
 
