@@ -80,6 +80,11 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({
         error: "Failed to execute recurring charge cron job",
         details: error.message,
+        debugInfo: {
+          DEPLOY_PRIME_URL: process.env.DEPLOY_PRIME_URL,
+          URL: process.env.URL,
+          DEPLOY_URL: process.env.DEPLOY_URL,
+        }
       }),
     };
   }
