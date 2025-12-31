@@ -40,6 +40,16 @@ exports.handler = async (event, context) => {
       },
     });
 
+    console.log(`[Cron] Response status: ${response.status}`);
+    console.log(`[Cron] Response headers:`, Object.fromEntries(response.headers.entries()));
+
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await response.text();
+      console.error(`[Cron] Non-JSON response received:`, text.substring(0, 200));
+      throw new Error(`Expected JSON response but got ${contentType}. Response: ${text.substring(0, 100)}`);
+    }
+
     const data = await response.json();
 
     if (response.ok) {
