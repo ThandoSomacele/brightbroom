@@ -72,7 +72,8 @@ const handleCSRF: Handle = async ({ event, resolve }) => {
   const exemptPaths = [
     '/api/payments/ipn',
     '/api/payments/success',
-    '/api/payments/cancel'
+    '/api/payments/cancel',
+    '/api/subscriptions/process-recurring' // Cron job endpoint
   ];
 
   if (exemptPaths.includes(path)) {

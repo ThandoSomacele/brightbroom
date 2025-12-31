@@ -7,12 +7,8 @@ import { payFastSubscriptionService } from '$lib/server/services/payfast-subscri
 import { and, eq, lte, or } from 'drizzle-orm';
 import crypto from 'crypto';
 
-// Disable CSRF protection for this cron job endpoint
-export const config = {
-  csrf: false
-};
-
 // This endpoint processes subscriptions that are due for recurring charges
+// CSRF protection is exempted in hooks.server.ts for this endpoint
 // It should be called by a cron job (e.g., Netlify scheduled functions, external cron service)
 export const POST: RequestHandler = async ({ request }) => {
   try {
