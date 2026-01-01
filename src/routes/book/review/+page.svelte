@@ -4,6 +4,7 @@
   import { goto } from "$app/navigation";
   import StepTracker from "$lib/components/booking/StepTracker.svelte";
   import Button from "$lib/components/ui/Button.svelte";
+  import { getAPIHeaders } from "$lib/utils/api-helpers";
   import {
     Calendar,
     MapPin,
@@ -267,9 +268,7 @@
     try {
       const response = await fetch('/api/subscription/create', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAPIHeaders(),
         body: JSON.stringify({
           serviceId: selectedService,
           addressId: selectedAddress,

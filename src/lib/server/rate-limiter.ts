@@ -41,6 +41,12 @@ const limits = {
     ipLimit: { max: 2, window: 60 * 60 * 1000 },
     // Max 1 cleaner application per email in a 24 hour window
     emailLimit: { max: 1, window: 24 * 60 * 60 * 1000 }
+  },
+  registration: {
+    // Max 5 registrations per IP in a 1 hour window
+    ipLimit: { max: 5, window: 60 * 60 * 1000 },
+    // Max 3 registrations per email in a 24 hour window
+    emailLimit: { max: 3, window: 24 * 60 * 60 * 1000 }
   }
 };
 

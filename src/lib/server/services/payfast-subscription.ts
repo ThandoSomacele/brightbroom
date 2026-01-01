@@ -94,8 +94,9 @@ function calculateCycles(frequency: string, endDate?: Date): number {
 
 // Generate PayFast signature
 function generateSignature(params: Record<string, any>, passphrase?: string): string {
-  // Remove signature if present
-  const { signature: _unusedSignature, ...dataToSign } = params;
+  // Remove signature and merchant_key if present
+  // merchant_key is sent as a parameter but NOT included in signature calculation
+  const { signature: _unusedSignature, merchant_key: _unusedMerchantKey, ...dataToSign } = params;
 
   // Sort keys alphabetically - CRITICAL for PayFast signature validation
   const sortedKeys = Object.keys(dataToSign).sort();
