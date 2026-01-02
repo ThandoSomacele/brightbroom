@@ -94,9 +94,8 @@ function calculateCycles(frequency: string, endDate?: Date): number {
 
 // Generate PayFast signature
 function generateSignature(params: Record<string, any>, passphrase?: string): string {
-  // Remove signature and merchant_key if present
-  // merchant_key is sent as a parameter but NOT included in signature calculation
-  const { signature: _unusedSignature, merchant_key: _unusedMerchantKey, ...dataToSign } = params;
+  // Remove signature if present
+  const { signature: _unusedSignature, ...dataToSign } = params;
 
   // Sort keys alphabetically - CRITICAL for PayFast signature validation
   const sortedKeys = Object.keys(dataToSign).sort();
@@ -113,10 +112,10 @@ function generateSignature(params: Record<string, any>, passphrase?: string): st
   // Get the encoded string
   let paramString = searchParams.toString();
 
-  // Add passphrase directly to the end (NOT as a parameter)
-  // PayFast docs: "passphrase should be added to the end of the parameter string without a parameter name"
-  if (passphrase) {
-    paramString += passphrase.trim();
+  // Add passphrase as a parameter
+  if (passphrase && passphrase !== '') {
+    const encodedPassphrase = encodeURIComponent(passphrase.trim()).replace(/%20/g, '+');
+    paramString += `&passphrase=${encodedPassphrase}`;
   }
 
   // Debug logging
