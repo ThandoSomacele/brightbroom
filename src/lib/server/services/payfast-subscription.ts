@@ -92,37 +92,105 @@ function calculateCycles(frequency: string, endDate?: Date): number {
   }
 }
 
-// Generate PayFast signature
+// Generate PayFast signature using PayFast's specific parameter order
 function generateSignature(params: Record<string, any>, passphrase?: string): string {
   // Remove signature if present
-  const { signature: _unusedSignature, ...dataToSign } = params;
+  const { signature: _unusedSignature, ...data } = params;
 
-  // Sort keys alphabetically - CRITICAL for PayFast signature validation
-  const sortedKeys = Object.keys(dataToSign).sort();
+  // Define sections of parameters based on PayFast documentation
+  // Parameters MUST be in this specific order, NOT alphabetical
+  const sections = [
+    // Merchant details
+    [
+      "merchant_id",
+      "merchant_key",
+      "return_url",
+      "cancel_url",
+      "notify_url",
+      "fica_idnumber",
+    ],
+    // Customer details
+    ["name_first", "name_last", "email_address", "cell_number"],
+    // Transaction details
+    ["m_payment_id", "amount", "item_name", "item_description"],
+    // Custom variables
+    [
+      "custom_str1",
+      "custom_str2",
+      "custom_str3",
+      "custom_str4",
+      "custom_str5",
+      "custom_int1",
+      "custom_int2",
+      "custom_int3",
+      "custom_int4",
+      "custom_int5",
+    ],
+    // Transaction options
+    ["email_confirmation", "confirmation_address", "payment_method"],
+    // Recurring Billing
+    [
+      "subscription_type",
+      "billing_date",
+      "recurring_amount",
+      "frequency",
+      "cycles",
+      "subscription_notify_email",
+      "subscription_notify_webhook",
+      "subscription_notify_buyer",
+    ],
+  ];
 
-  // Create parameter string with sorted keys
-  // Use URLSearchParams to ensure proper encoding that matches the final URL
-  const searchParams = new URLSearchParams();
-  for (const key of sortedKeys) {
-    if (dataToSign[key] !== undefined && dataToSign[key] !== '') {
-      searchParams.append(key, dataToSign[key].toString().trim());
+  // Create parameter string
+  let pfOutput = "";
+
+  // Create a set to track processed parameters
+  const processedParams = new Set<string>();
+
+  // Add parameters in the defined sections if they exist in the data
+  for (const section of sections) {
+    for (const key of section) {
+      if (data[key] && data[key] !== "" && key !== "signature") {
+        const encodedValue = encodeURIComponent(data[key].toString().trim()).replace(
+          /%20/g,
+          "+",
+        );
+        pfOutput += `${key}=${encodedValue}&`;
+        processedParams.add(key);
+      }
     }
   }
 
-  // Get the encoded string
-  let paramString = searchParams.toString();
+  // Add any remaining parameters not in the defined sections
+  for (const key in data) {
+    if (
+      !processedParams.has(key) &&
+      data[key] !== "" &&
+      key !== "signature" &&
+      data.hasOwnProperty(key)
+    ) {
+      const encodedValue = encodeURIComponent(data[key].toString().trim()).replace(/%20/g, "+");
+      pfOutput += `${key}=${encodedValue}&`;
+    }
+  }
 
-  // Add passphrase as a parameter
-  if (passphrase && passphrase !== '') {
-    const encodedPassphrase = encodeURIComponent(passphrase.trim()).replace(/%20/g, '+');
-    paramString += `&passphrase=${encodedPassphrase}`;
+  // Remove last ampersand
+  pfOutput = pfOutput.slice(0, -1);
+
+  // Add passphrase if provided
+  if (passphrase && passphrase !== "") {
+    const encodedPassphrase = encodeURIComponent(passphrase.trim()).replace(
+      /%20/g,
+      "+",
+    );
+    pfOutput += `&passphrase=${encodedPassphrase}`;
   }
 
   // Debug logging
-  console.log('PayFast Signature String:', paramString);
+  console.log('PayFast Signature String:', pfOutput);
 
   // Generate MD5 signature
-  const signature = crypto.createHash('md5').update(paramString).digest('hex');
+  const signature = crypto.createHash('md5').update(pfOutput).digest('hex');
   console.log('PayFast Generated Signature:', signature);
 
   return signature;
