@@ -150,7 +150,8 @@ function generateSignature(params: Record<string, any>, passphrase?: string): st
   // Add parameters in the defined sections if they exist in the data
   for (const section of sections) {
     for (const key of section) {
-      if (data[key] && data[key] !== "" && key !== "signature") {
+      // Check for undefined/null, but allow 0 and false values
+      if (data[key] !== undefined && data[key] !== null && data[key] !== "" && key !== "signature") {
         const encodedValue = encodeURIComponent(data[key].toString().trim()).replace(
           /%20/g,
           "+",
@@ -165,6 +166,8 @@ function generateSignature(params: Record<string, any>, passphrase?: string): st
   for (const key in data) {
     if (
       !processedParams.has(key) &&
+      data[key] !== undefined &&
+      data[key] !== null &&
       data[key] !== "" &&
       key !== "signature" &&
       data.hasOwnProperty(key)
@@ -186,12 +189,8 @@ function generateSignature(params: Record<string, any>, passphrase?: string): st
     pfOutput += `&passphrase=${encodedPassphrase}`;
   }
 
-  // Debug logging
-  console.log('PayFast Signature String:', pfOutput);
-
   // Generate MD5 signature
   const signature = crypto.createHash('md5').update(pfOutput).digest('hex');
-  console.log('PayFast Generated Signature:', signature);
 
   return signature;
 }
