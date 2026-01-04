@@ -220,41 +220,41 @@ export class PayFastSubscriptionService {
     // We'll handle custom frequencies (weekly, bi-weekly, etc.) manually via API after initial setup
     const finalPrice = parseFloat(subscription.finalPrice.toString());
 
-    // All subscriptions use type 1 with frequency set to monthly (3)
-    // For custom frequencies, we'll use the PayFast API to manually charge on our schedule
+    // Build params in PayFast's required order - CRITICAL!
+    // The object insertion order MUST match the signature generation order
     const params: PayFastSubscriptionParams = {
+      // 1. Merchant details
       merchant_id: this.merchantId,
       merchant_key: this.merchantKey,
+      return_url: `${env.PUBLIC_URL || process.env.PUBLIC_URL}/book/payment/subscription-success`,
+      cancel_url: `${env.PUBLIC_URL || process.env.PUBLIC_URL}/book/payment/subscription-cancel`,
+      notify_url: `${env.PUBLIC_URL || process.env.PUBLIC_URL}/api/payfast/subscription-webhook`,
 
-      // Payment details
-      amount: finalPrice, // Initial payment
-
-      // Subscription details - use type 1 for all subscriptions
-      subscription_type: 1,
-      frequency: 3, // Monthly - required field
-      cycles: 0, // Infinite cycles
-
-      // Subscription notifications
-      email_confirmation: "1",
-      confirmation_address: customer.email,
-      subscription_notify_email: "true",
-      subscription_notify_buyer: "true",
-
-      // Customer details
+      // 2. Customer details
       name_first: customer.firstName,
       name_last: customer.lastName,
       email_address: customer.email,
       cell_number: customer.phone,
 
-      // URLs
-      return_url: `${env.PUBLIC_URL || process.env.PUBLIC_URL}/book/payment/subscription-success`,
-      cancel_url: `${env.PUBLIC_URL || process.env.PUBLIC_URL}/book/payment/subscription-cancel`,
-      notify_url: `${env.PUBLIC_URL || process.env.PUBLIC_URL}/api/payfast/subscription-webhook`,
-
-      // Additional fields
+      // 3. Transaction details
       m_payment_id: subscription.id,
+      amount: finalPrice,
       item_name: 'Recurring Cleaning Service',
       item_description: `${subscription.frequency} cleaning service subscription`,
+
+      // 4. Transaction options
+      email_confirmation: "1",
+      confirmation_address: customer.email,
+
+      // 5. Recurring Billing (must match generateSignature section order!)
+      subscription_type: 1,
+      // billing_date - optional, only for TWICE_MONTHLY
+      // recurring_amount - optional
+      frequency: 3, // Monthly - required field
+      cycles: 0, // Infinite cycles
+      subscription_notify_email: "true",
+      // subscription_notify_webhook - not used
+      subscription_notify_buyer: "true",
     };
 
     // Set billing date for TWICE_MONTHLY subscriptions (specific dates each month)
