@@ -29,7 +29,7 @@
   let addressValidationError = "";
 
   // Google Maps API key
-  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const googleMapsApiKey = import.meta.env.GOOGLE_MAPS_API_KEY;
 
   // Guest address form fields
   let guestAddress = {
@@ -122,7 +122,9 @@
     // For South African addresses, we need at least:
     // - A formatted address from Google Maps (this ensures it's a valid, geocoded address)
     // - Optionally city/state/zipCode (some Google Places results may not have all fields)
-    const hasFormattedAddress = selectedGoogleAddress.formatted && selectedGoogleAddress.formatted.trim() !== "";
+    const hasFormattedAddress =
+      selectedGoogleAddress.formatted &&
+      selectedGoogleAddress.formatted.trim() !== "";
 
     if (!hasFormattedAddress) {
       return false; // Must select from Google Maps dropdown

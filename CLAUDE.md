@@ -5,17 +5,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build Commands
 
 ### Development
+
 - `npm run dev` - Start development server (Vite + SvelteKit)
 - `npm run dev:debug` - Start development server with debug logging
 - `npm run check` - Run TypeScript checks (uses svelte-check)
 - `npm run check:watch` - Run TypeScript checks in watch mode
 
 ### Production
+
 - `npm run build` - Build for production (svelte-kit sync + vite build)
 - `npm run preview` - Preview production build locally
 - `npm run analyze` - Build with bundle analysis
 
 ### Testing & Quality
+
 - `npm run test` - Run tests with Vitest
 - `npm run test -- path/to/test.ts` - Run a specific test file
 - `npm run lint` - Run ESLint on .js, .ts, .svelte files
@@ -24,6 +27,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run format:check` - Check formatting without making changes
 
 ### Database
+
 - `npm run db:start` - Start PostgreSQL in Docker container
 - `npm run db:stop` - Stop PostgreSQL container
 - `npm run db:generate` - Generate new migration from schema changes (outputs to ./drizzle/migrations)
@@ -37,6 +41,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run db:backup:full` - Create full database backup
 
 ### Utility Scripts
+
 - `npm run services:update` - Update services
 - `npm run services:convert` - Convert services format
 - `npm run update:address-coordinates` - Update address coordinates
@@ -47,6 +52,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## High-Level Architecture
 
 ### Tech Stack
+
 - **Framework**: SvelteKit (Svelte 5) with TypeScript (strict mode enabled)
 - **Database**: PostgreSQL with Drizzle ORM
 - **Authentication**: Lucia Auth v3 with Argon2 password hashing
@@ -57,6 +63,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Maps**: Google Maps API for address autocomplete and service area validation
 
 ### Project Structure
+
 ```
 src/
 ├── lib/
@@ -90,12 +97,14 @@ src/
 ### Key Patterns & Conventions
 
 #### Authentication & Authorization
+
 - Uses Lucia Auth v3 with session-based authentication
 - User roles: CUSTOMER, CLEANER, ADMIN (defined in schema)
 - Session management in `hooks.server.ts`
 - Protected routes check user role in `+page.server.ts` or `+layout.server.ts`
 
 #### Database & Data Flow
+
 - Drizzle ORM for type-safe database queries
 - Schema defined in `src/lib/server/db/schema.ts`
 - Database connections through `src/lib/server/db/index.ts`
@@ -103,35 +112,42 @@ src/
 - Load functions fetch data server-side for SSR
 
 #### Form Handling
+
 - Zod schemas for validation (imported where needed)
 - Progressive enhancement with SvelteKit form actions
 - Honeypot fields for spam protection (`src/lib/components/forms/HoneypotField.svelte`)
 - Server-side validation in form actions
 
 #### Email System
+
 - Templates defined in `src/lib/server/email-templates.ts`
 - Sent via Resend API (`src/lib/server/email-service.ts`)
 - Includes booking confirmations, password resets, cleaner notifications
 
 #### Service Areas & Addresses
+
 - Validates addresses against defined service areas
 - Uses Google Maps API for address autocomplete
 - Coordinates stored for cleaner assignments
 
 #### Error Handling
+
 - Custom error types in `src/lib/utils/errors.ts`
 - Consistent error pages (`+error.svelte`)
 - Form validation errors returned from server actions
 
 ### Environment Variables
+
 Key environment variables (see .env.example):
+
 - `DATABASE_URL` - PostgreSQL connection string (Neon)
 - `PUBLIC_URL` - Site URL for emails and redirects
-- `VITE_GOOGLE_MAPS_API_KEY` - Google Maps API key
+- `GOOGLE_MAPS_API_KEY` - Google Maps API key
 - `RESEND_API_KEY` - Email service API key
 - `VITE_PAYFAST_*` - Payment gateway configuration
 
 ### Important Notes
+
 - Always use `$lib/` imports for internal modules
 - Maintain TypeScript strict mode compliance
 - Follow existing component patterns when creating new features
@@ -142,12 +158,14 @@ Key environment variables (see .env.example):
 
 ## Netlify Deployment Notes
 
-### Important: DO NOT create a _redirects file
+### Important: DO NOT create a \_redirects file
+
 - SvelteKit's `adapter-netlify` handles all routing automatically
-- Creating a manual `_redirects` file will cause build failures with error: "The _redirects file should be placed in the project root"
+- Creating a manual `_redirects` file will cause build failures with error: "The \_redirects file should be placed in the project root"
 - The adapter manages SPA routing, 404 pages, and all redirects internally
 
 ### 404 Page
+
 - Custom 404 page is located at `/static/404.html`
 - Uses inline CSS styles (no Tailwind CDN to avoid production warnings)
 - Automatically served by Netlify for non-existent routes

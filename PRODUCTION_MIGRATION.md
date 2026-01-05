@@ -57,6 +57,7 @@ curl -X POST \
 The migrations will apply these schema changes to production:
 
 ### Migration 0005 (Latest):
+
 - ✅ Make `user_id` nullable in bookings (for guest bookings)
 - ✅ Make `address_id` nullable in bookings (for guest bookings)
 - ✅ Add `guest_name` field
@@ -65,6 +66,7 @@ The migrations will apply these schema changes to production:
 - ✅ Add `guest_address` JSON field
 
 ### Previous Migrations (0000-0004):
+
 - ✅ All core tables and relationships
 - ✅ User authentication system
 - ✅ Booking system
@@ -77,11 +79,13 @@ The migrations will apply these schema changes to production:
 After migration, verify the following:
 
 1. **Schema Check**:
+
    ```bash
    npx drizzle-kit check
    ```
 
 2. **Application Test**:
+
    - Test user registration/login
    - Test booking creation (both authenticated and guest)
    - Test payment flow
@@ -90,9 +94,9 @@ After migration, verify the following:
 3. **Database Query Test**:
    ```sql
    -- Check if new guest booking fields exist
-   SELECT column_name, data_type, is_nullable 
-   FROM information_schema.columns 
-   WHERE table_name = 'booking' 
+   SELECT column_name, data_type, is_nullable
+   FROM information_schema.columns
+   WHERE table_name = 'booking'
    AND column_name IN ('guest_name', 'guest_email', 'guest_phone', 'guest_address');
    ```
 
@@ -110,7 +114,7 @@ PUBLIC_URL="https://brightbroom.com"
 MIGRATION_AUTH_TOKEN="your-secure-random-token"
 
 # Your existing vars (make sure these are also set)
-VITE_GOOGLE_MAPS_API_KEY="your_api_key"
+GOOGLE_MAPS_API_KEY="your_api_key"
 RESEND_API_KEY="your_resend_key"
 VITE_PAYFAST_MERCHANT_ID="your_merchant_id"
 VITE_PAYFAST_MERCHANT_KEY="your_merchant_key"
@@ -129,12 +133,14 @@ If issues occur:
 ## Post-Migration Tasks
 
 1. **Test Critical Flows**:
+
    - [ ] Guest booking creation
-   - [ ] User authentication 
+   - [ ] User authentication
    - [ ] Payment processing
    - [ ] Admin functions
 
 2. **Monitor**:
+
    - [ ] Application logs
    - [ ] Database performance
    - [ ] User error reports
