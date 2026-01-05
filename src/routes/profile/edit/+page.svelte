@@ -7,14 +7,16 @@
   // Get data from the server load function
   export let data;
   export let form;
-  
+
   // Get user data
   $: user = data.user;
-  
+
   let isLoading = false;
-  let firstName = user.firstName;
-  let lastName = user.lastName;
-  let phone = user.phone || '';
+
+  // Initialize form fields reactively to avoid undefined errors
+  $: firstName = user?.firstName || '';
+  $: lastName = user?.lastName || '';
+  $: phone = user?.phone || '';
 </script>
 
 <svelte:head>
