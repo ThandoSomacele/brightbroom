@@ -225,7 +225,7 @@ export class PayFastSubscriptionService {
       // 1. Merchant details
       merchant_id: this.merchantId,
       merchant_key: this.merchantKey,
-      return_url: `${env.PUBLIC_URL || process.env.PUBLIC_URL}/book/payment/subscription-success`,
+      return_url: `${env.PUBLIC_URL || process.env.PUBLIC_URL}/book/payment/subscription-success?m_payment_id=${subscription.id}`,
       cancel_url: `${env.PUBLIC_URL || process.env.PUBLIC_URL}/book/payment/subscription-cancel`,
       notify_url: `${env.PUBLIC_URL || process.env.PUBLIC_URL}/api/payfast/subscription-webhook`,
 

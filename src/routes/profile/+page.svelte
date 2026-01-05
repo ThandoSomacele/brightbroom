@@ -97,18 +97,28 @@
         <!-- Quick Actions -->
         <div class="mb-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
           <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">Quick Actions</h2>
-          
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
             <Button variant="secondary" href="/book" class="flex h-auto flex-col items-center justify-center p-6">
               <Calendar size={32} class="mb-3" />
               <span class="text-lg font-medium">Book Now</span>
               <span class="mt-1 text-sm text-white/80">Schedule your next service</span>
             </Button>
-            
+
             <Button variant="secondary" href="/profile/bookings" class="flex h-auto flex-col items-center justify-center p-6">
               <Clock size={32} class="mb-3" />
               <span class="text-lg font-medium">View Bookings</span>
               <span class="mt-1 text-sm text-white/80">Manage your appointments</span>
+            </Button>
+
+            <Button variant="secondary" href="/profile/subscriptions" class="flex h-auto flex-col items-center justify-center p-6">
+              <svg xmlns="http://www.w3.org/2000/svg" class="mb-3" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+              </svg>
+              <span class="text-lg font-medium">Subscriptions</span>
+              <span class="mt-1 text-sm text-white/80">Manage recurring services</span>
             </Button>
           </div>
         </div>
