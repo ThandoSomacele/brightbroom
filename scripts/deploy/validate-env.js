@@ -15,7 +15,8 @@ dotenv.config();
 const REQUIRED_VARS = [
   'DATABASE_URL',
   'PUBLIC_URL',
-  'VITE_GOOGLE_MAPS_API_KEY',
+  'VITE_GOOGLE_MAPS_API_KEY', // Client-side (browser)
+  'GOOGLE_MAPS_API_KEY', // Server-side
   'RESEND_API_KEY'
 ];
 

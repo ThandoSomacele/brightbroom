@@ -1,6 +1,7 @@
 // src/lib/utils/geocoding.ts
+import { env } from '$env/dynamic/private';
 
-const GOOGLE_MAPS_API_KEY = process.env.VITE_GOOGLE_MAPS_API_KEY;
+const GOOGLE_MAPS_API_KEY = env.GOOGLE_MAPS_API_KEY;
 
 /**
  * Geocode an address to get coordinates

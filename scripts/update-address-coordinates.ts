@@ -12,10 +12,10 @@ import { db } from '../src/lib/server/db';
 import { address } from '../src/lib/server/db/schema';
 
 // Get Google Maps API key from env
-const GOOGLE_MAPS_API_KEY = process.env.VITE_GOOGLE_MAPS_API_KEY;
+const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
 if (!GOOGLE_MAPS_API_KEY) {
-  console.error('VITE_GOOGLE_MAPS_API_KEY environment variable is not set');
+  console.error('GOOGLE_MAPS_API_KEY environment variable is not set');
   process.exit(1);
 }
 
