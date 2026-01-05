@@ -1,7 +1,7 @@
 <!-- src/routes/profile/subscriptions/+page.svelte -->
 <script lang="ts">
   import Button from '$lib/components/ui/Button.svelte';
-  import { Calendar, MapPin, Clock, CreditCard, Repeat, DollarSign } from 'lucide-svelte';
+  import { Calendar, MapPin, Clock, CreditCard, Repeat, DollarSign, Wallet } from 'lucide-svelte';
   import { enhance } from '$app/forms';
 
   // Get data from the server load function
@@ -217,7 +217,7 @@
                   {/if}
 
                   <p class="flex items-center text-gray-600 dark:text-gray-300">
-                    <DollarSign size={18} class="mr-2 text-primary" />
+                    <Wallet size={18} class="mr-2 text-primary" />
                     Created: {formatDate(subscription.createdAt)}
                   </p>
 
