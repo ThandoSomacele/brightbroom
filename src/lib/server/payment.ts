@@ -11,18 +11,19 @@ import {
 import { postPaymentHooks } from "$lib/server/hooks/post-payment-hooks";
 import crypto from "crypto";
 import { eq } from "drizzle-orm";
+import { env } from "$env/dynamic/private";
 
 // Get environment variables with fallbacks to sandbox credentials for safety
 const PAYFAST_MERCHANT_ID =
-  import.meta.env.VITE_PAYFAST_MERCHANT_ID || "10035674";
+  env.PAYFAST_MERCHANT_ID || "10035674";
 const PAYFAST_MERCHANT_KEY =
-  import.meta.env.VITE_PAYFAST_MERCHANT_KEY || "9nqhf208lzpc4";
+  env.PAYFAST_MERCHANT_KEY || "9nqhf208lzpc4";
 const PAYFAST_PASSPHRASE =
-  import.meta.env.VITE_PAYFAST_PASSPHRASE || "personalprojectssanding";
+  env.PAYFAST_PASSPHRASE || "personalprojectssanding";
 
 // Determine if we should use sandbox mode (default to true in development)
 const USE_SANDBOX =
-  import.meta.env.VITE_PAYFAST_SANDBOX_MODE === "false" ? false : true;
+  env.PAYFAST_SANDBOX_MODE === "false" ? false : true;
 
 // Set appropriate PayFast URL based on environment
 const PAYFAST_URL = USE_SANDBOX

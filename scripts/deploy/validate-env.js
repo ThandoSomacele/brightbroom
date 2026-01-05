@@ -22,8 +22,9 @@ const REQUIRED_VARS = [
 // Production-specific required variables
 const PRODUCTION_REQUIRED_VARS = [
   'DATABASE_URL_PRODUCTION',
-  'VITE_PAYFAST_MERCHANT_ID',
-  'VITE_PAYFAST_MERCHANT_KEY'
+  'PAYFAST_MERCHANT_ID',
+  'PAYFAST_MERCHANT_KEY',
+  'PAYFAST_PASSPHRASE'
 ];
 
 // Function to validate environment variables
