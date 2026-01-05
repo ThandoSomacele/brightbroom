@@ -103,12 +103,8 @@
           "name": "address_user_id_user_id_fk",
           "tableFrom": "address",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -161,12 +157,8 @@
           "name": "admin_note_booking_id_booking_id_fk",
           "tableFrom": "admin_note",
           "tableTo": "booking",
-          "columnsFrom": [
-            "booking_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["booking_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -219,12 +211,8 @@
           "name": "application_note_application_id_cleaner_application_id_fk",
           "tableFrom": "application_note",
           "tableTo": "cleaner_application",
-          "columnsFrom": [
-            "application_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["application_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -334,12 +322,8 @@
           "name": "booking_user_id_user_id_fk",
           "tableFrom": "booking",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -347,12 +331,8 @@
           "name": "booking_address_id_address_id_fk",
           "tableFrom": "booking",
           "tableTo": "address",
-          "columnsFrom": [
-            "address_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["address_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -360,12 +340,8 @@
           "name": "booking_service_id_service_id_fk",
           "tableFrom": "booking",
           "tableTo": "service",
-          "columnsFrom": [
-            "service_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["service_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -373,12 +349,8 @@
           "name": "booking_cleaner_id_user_id_fk",
           "tableFrom": "booking",
           "tableTo": "user",
-          "columnsFrom": [
-            "cleaner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cleaner_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -671,12 +643,8 @@
           "name": "cleaner_payout_summary_cleaner_id_user_id_fk",
           "tableFrom": "cleaner_payout_summary",
           "tableTo": "user",
-          "columnsFrom": [
-            "cleaner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cleaner_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -819,12 +787,8 @@
           "name": "cleaner_profile_user_id_user_id_fk",
           "tableFrom": "cleaner_profile",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -834,9 +798,7 @@
         "cleaner_profile_user_id_unique": {
           "name": "cleaner_profile_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         }
       },
       "policies": {},
@@ -878,12 +840,8 @@
           "name": "cleaner_specialisation_cleaner_profile_id_cleaner_profile_id_fk",
           "tableFrom": "cleaner_specialisation",
           "tableTo": "cleaner_profile",
-          "columnsFrom": [
-            "cleaner_profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cleaner_profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -891,12 +849,8 @@
           "name": "cleaner_specialisation_service_id_service_id_fk",
           "tableFrom": "cleaner_specialisation",
           "tableTo": "service",
-          "columnsFrom": [
-            "service_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["service_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -975,12 +929,8 @@
           "name": "communication_log_booking_id_booking_id_fk",
           "tableFrom": "communication_log",
           "tableTo": "booking",
-          "columnsFrom": [
-            "booking_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["booking_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1020,12 +970,8 @@
           "name": "key_user_id_user_id_fk",
           "tableFrom": "key",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1085,12 +1031,8 @@
           "name": "password_reset_token_user_id_user_id_fk",
           "tableFrom": "password_reset_token",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1100,9 +1042,7 @@
         "password_reset_token_token_unique": {
           "name": "password_reset_token_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -1224,12 +1164,8 @@
           "name": "payment_booking_id_booking_id_fk",
           "tableFrom": "payment",
           "tableTo": "booking",
-          "columnsFrom": [
-            "booking_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["booking_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1237,12 +1173,8 @@
           "name": "payment_user_id_user_id_fk",
           "tableFrom": "payment",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1252,9 +1184,7 @@
         "payment_booking_id_unique": {
           "name": "payment_booking_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "booking_id"
-          ]
+          "columns": ["booking_id"]
         }
       },
       "policies": {},
@@ -1367,12 +1297,8 @@
           "name": "user_session_user_id_user_id_fk",
           "tableFrom": "user_session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1544,12 +1470,8 @@
           "name": "subscription_user_id_user_id_fk",
           "tableFrom": "subscription",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1557,12 +1479,8 @@
           "name": "subscription_address_id_address_id_fk",
           "tableFrom": "subscription",
           "tableTo": "address",
-          "columnsFrom": [
-            "address_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["address_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1570,12 +1488,8 @@
           "name": "subscription_service_id_service_id_fk",
           "tableFrom": "subscription",
           "tableTo": "service",
-          "columnsFrom": [
-            "service_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["service_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1583,12 +1497,8 @@
           "name": "subscription_cleaner_id_user_id_fk",
           "tableFrom": "subscription",
           "tableTo": "user",
-          "columnsFrom": [
-            "cleaner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cleaner_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1705,12 +1615,8 @@
           "name": "subscription_payment_subscription_id_subscription_id_fk",
           "tableFrom": "subscription_payment",
           "tableTo": "subscription",
-          "columnsFrom": [
-            "subscription_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["subscription_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1718,12 +1624,8 @@
           "name": "subscription_payment_booking_id_booking_id_fk",
           "tableFrom": "subscription_payment",
           "tableTo": "booking",
-          "columnsFrom": [
-            "booking_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["booking_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1811,9 +1713,7 @@
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -1825,11 +1725,7 @@
     "public.ApplicationStatus": {
       "name": "ApplicationStatus",
       "schema": "public",
-      "values": [
-        "PENDING",
-        "APPROVED",
-        "REJECTED"
-      ]
+      "values": ["PENDING", "APPROVED", "REJECTED"]
     },
     "public.BookingStatus": {
       "name": "BookingStatus",
@@ -1845,19 +1741,12 @@
     "public.CommunicationDirection": {
       "name": "CommunicationDirection",
       "schema": "public",
-      "values": [
-        "INCOMING",
-        "OUTGOING"
-      ]
+      "values": ["INCOMING", "OUTGOING"]
     },
     "public.CommunicationType": {
       "name": "CommunicationType",
       "schema": "public",
-      "values": [
-        "EMAIL",
-        "SMS",
-        "NOTE"
-      ]
+      "values": ["EMAIL", "SMS", "NOTE"]
     },
     "public.DayOfWeek": {
       "name": "DayOfWeek",
@@ -1875,10 +1764,7 @@
     "public.IdType": {
       "name": "IdType",
       "schema": "public",
-      "values": [
-        "SOUTH_AFRICAN_ID",
-        "PASSPORT"
-      ]
+      "values": ["SOUTH_AFRICAN_ID", "PASSPORT"]
     },
     "public.PaymentMethod": {
       "name": "PaymentMethod",
@@ -1896,52 +1782,27 @@
     "public.PaymentStatus": {
       "name": "PaymentStatus",
       "schema": "public",
-      "values": [
-        "PENDING",
-        "COMPLETED",
-        "FAILED",
-        "REFUNDED"
-      ]
+      "values": ["PENDING", "COMPLETED", "FAILED", "REFUNDED"]
     },
     "public.PetCompatibility": {
       "name": "PetCompatibility",
       "schema": "public",
-      "values": [
-        "NONE",
-        "DOGS",
-        "CATS",
-        "BOTH"
-      ]
+      "values": ["NONE", "DOGS", "CATS", "BOTH"]
     },
     "public.RecurringFrequency": {
       "name": "RecurringFrequency",
       "schema": "public",
-      "values": [
-        "TWICE_MONTHLY",
-        "WEEKLY",
-        "BIWEEKLY",
-        "TWICE_WEEKLY"
-      ]
+      "values": ["TWICE_MONTHLY", "WEEKLY", "BIWEEKLY", "TWICE_WEEKLY"]
     },
     "public.SubscriptionStatus": {
       "name": "SubscriptionStatus",
       "schema": "public",
-      "values": [
-        "ACTIVE",
-        "PAUSED",
-        "CANCELLED",
-        "EXPIRED",
-        "PENDING"
-      ]
+      "values": ["ACTIVE", "PAUSED", "CANCELLED", "EXPIRED", "PENDING"]
     },
     "public.UserRole": {
       "name": "UserRole",
       "schema": "public",
-      "values": [
-        "CUSTOMER",
-        "CLEANER",
-        "ADMIN"
-      ]
+      "values": ["CUSTOMER", "CLEANER", "ADMIN"]
     }
   },
   "schemas": {},

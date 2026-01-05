@@ -1,0 +1,1 @@
+ALTER TABLE "address" ADD CONSTRAINT "unique_user_address" UNIQUE("user_id","street","apt_unit","city","state","zip_code");

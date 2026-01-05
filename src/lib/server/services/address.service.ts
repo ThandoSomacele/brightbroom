@@ -3,6 +3,7 @@ import { MAX_ADDRESSES } from "$lib/constants/address";
 import { db } from "$lib/server/db";
 import { address, booking } from "$lib/server/db/schema";
 import { geocodeAddress } from "$lib/utils/geocoding";
+import { normalizeAddressField } from "$lib/utils/address-normalization";
 import { and, eq, ne, sql } from "drizzle-orm";
 
 /**
@@ -19,7 +20,7 @@ export const addressService = {
     try {
       // Build the where conditions properly
       const whereConditions = [eq(address.userId, userId)];
-      
+
       if (!includeInactive) {
         whereConditions.push(eq(address.isActive, true));
       }
@@ -102,64 +103,188 @@ export const addressService = {
   },
 
   /**
-   * Create a new address for a user
+   * Find existing address with same normalized fields
+   *
+   * This method checks if a user already has an address with the same
+   * street, apt/unit, city, state, and zip code (case-insensitive comparison).
+   *
+   * @param userId - The user ID to search for
+   * @param addressData - The address data to match against
+   * @returns The existing address if found, null otherwise
    */
-  async createAddress(userId: string, addressData: {
-    street: string;
-    aptUnit?: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    instructions?: string;
-    isDefault?: boolean;
-  }): Promise<typeof address.$inferSelect> {
+  async findExistingAddress(
+    userId: string,
+    addressData: {
+      street: string;
+      aptUnit?: string | null;
+      city: string;
+      state: string;
+      zipCode: string;
+    },
+  ): Promise<typeof address.$inferSelect | null> {
     try {
-      // Check if user has reached address limit
-      const hasReachedLimit = await this.hasReachedAddressLimit(userId);
-      if (hasReachedLimit) {
-        throw new Error(`You have reached the maximum limit of ${MAX_ADDRESSES} addresses`);
+      // Normalize all fields for comparison
+      const normalized = {
+        street: normalizeAddressField(addressData.street),
+        aptUnit: normalizeAddressField(addressData.aptUnit),
+        city: normalizeAddressField(addressData.city),
+        state: normalizeAddressField(addressData.state),
+        zipCode: normalizeAddressField(addressData.zipCode),
+      };
+
+      // Build where conditions for exact match (case-insensitive)
+      const conditions = [
+        eq(address.userId, userId),
+        eq(address.isActive, true),
+        sql`LOWER(TRIM(${address.street})) = ${normalized.street}`,
+        sql`LOWER(TRIM(${address.city})) = ${normalized.city}`,
+        sql`LOWER(TRIM(${address.state})) = ${normalized.state}`,
+        sql`LOWER(TRIM(${address.zipCode})) = ${normalized.zipCode}`,
+      ];
+
+      // Handle aptUnit comparison (NULL-safe)
+      // Two addresses with different apt/unit numbers are considered different
+      if (normalized.aptUnit) {
+        conditions.push(
+          sql`LOWER(TRIM(${address.aptUnit})) = ${normalized.aptUnit}`,
+        );
+      } else {
+        conditions.push(sql`${address.aptUnit} IS NULL`);
       }
 
-      // If setting as default, update other addresses first
+      const [existing] = await db
+        .select()
+        .from(address)
+        .where(and(...conditions))
+        .limit(1);
+
+      return existing || null;
+    } catch (error) {
+      console.error("Error finding existing address:", error);
+      return null;
+    }
+  },
+
+  /**
+   * Create a new address for a user
+   */
+  async createAddress(
+    userId: string,
+    addressData: {
+      street: string;
+      aptUnit?: string;
+      city: string;
+      state: string;
+      zipCode: string;
+      instructions?: string;
+      isDefault?: boolean;
+    },
+  ): Promise<typeof address.$inferSelect> {
+    try {
+      // Step 1: Normalize address data for comparison
+      const normalizedData = {
+        street: normalizeAddressField(addressData.street),
+        aptUnit: normalizeAddressField(addressData.aptUnit),
+        city: normalizeAddressField(addressData.city),
+        state: normalizeAddressField(addressData.state),
+        zipCode: normalizeAddressField(addressData.zipCode),
+      };
+
+      // Step 2: Check for existing duplicate address
+      const existingAddress = await this.findExistingAddress(
+        userId,
+        normalizedData,
+      );
+
+      if (existingAddress) {
+        console.log(
+          `Duplicate address detected for user ${userId}, returning existing address ${existingAddress.id}`,
+        );
+
+        // If user wants this as default, update the existing address
+        if (addressData.isDefault && !existingAddress.isDefault) {
+          return await this.setDefaultAddress(userId, existingAddress.id);
+        }
+
+        // Return existing address without creating a new one
+        return existingAddress;
+      }
+
+      // Step 3: Check if user has reached address limit (only for new addresses)
+      const hasReachedLimit = await this.hasReachedAddressLimit(userId);
+      if (hasReachedLimit) {
+        throw new Error(
+          `You have reached the maximum limit of ${MAX_ADDRESSES} addresses`,
+        );
+      }
+
+      // Step 4: If setting as default, update other addresses first
       if (addressData.isDefault) {
         await this.ensureSingleDefaultAddress(userId);
       }
 
-      // Check if coordinates are provided
+      // Step 5: Geocode if coordinates not provided
       let coordinates = null;
       if (!addressData.lat || !addressData.lng) {
-        // Construct full address
-        const fullAddress = `${addressData.street}, ${addressData.city}, ${addressData.state}, ${addressData.zipCode}`;
+        // Use normalized data for geocoding
+        const fullAddress = `${normalizedData.street}, ${normalizedData.city}, ${normalizedData.state}, ${normalizedData.zipCode}`;
 
-        // Try to geocode address (if geocoding service is available)
         try {
           coordinates = await geocodeAddress?.(fullAddress);
         } catch (geocodeError) {
-          console.warn("Geocoding failed, proceeding without coordinates:", geocodeError);
+          console.warn(
+            "Geocoding failed, proceeding without coordinates:",
+            geocodeError,
+          );
         }
       }
 
-      // Create new address
+      // Step 6: Create new address with normalized data
       const newAddressId = crypto.randomUUID();
-      const [newAddress] = await db.insert(address).values({
-        id: newAddressId,
-        userId,
-        street: addressData.street,
-        aptUnit: addressData.aptUnit || null,
-        city: addressData.city,
-        state: addressData.state,
-        zipCode: addressData.zipCode,
-        lat: coordinates?.lat ? coordinates.lat.toString() : null,
-        lng: coordinates?.lng ? coordinates.lng.toString() : null,
-        instructions: addressData.instructions || null,
-        isDefault: addressData.isDefault || false,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }).returning();
+      const [newAddress] = await db
+        .insert(address)
+        .values({
+          id: newAddressId,
+          userId,
+          street: normalizedData.street,
+          aptUnit: normalizedData.aptUnit || null,
+          city: normalizedData.city,
+          state: normalizedData.state,
+          zipCode: normalizedData.zipCode,
+          lat: coordinates?.lat ? coordinates.lat.toString() : null,
+          lng: coordinates?.lng ? coordinates.lng.toString() : null,
+          instructions: addressData.instructions || null,
+          isDefault: addressData.isDefault || false,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
 
+      console.log(`New address created for user ${userId}: ${newAddress.id}`);
       return newAddress;
-    } catch (error) {
+    } catch (error: any) {
+      // Handle database unique constraint violation gracefully
+      if (error?.code === "23505") {
+        // PostgreSQL unique violation error code
+        console.log(
+          `Database unique constraint prevented duplicate address for user ${userId}`,
+        );
+
+        // Try to find and return the existing address
+        const existing = await this.findExistingAddress(userId, {
+          street: addressData.street,
+          aptUnit: addressData.aptUnit,
+          city: addressData.city,
+          state: addressData.state,
+          zipCode: addressData.zipCode,
+        });
+
+        if (existing) {
+          return existing;
+        }
+      }
+
       console.error("Error creating address:", error);
       throw error;
     }
@@ -283,7 +408,7 @@ export const addressService = {
   ): Promise<typeof address.$inferSelect | null> {
     try {
       const whereConditions = [eq(address.id, addressId)];
-      
+
       if (!includeInactive) {
         whereConditions.push(eq(address.isActive, true));
       }
@@ -293,7 +418,7 @@ export const addressService = {
         .from(address)
         .where(and(...whereConditions))
         .limit(1);
-        
+
       return result || null;
     } catch (error) {
       console.error("Error getting address by ID:", error);

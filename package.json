@@ -26,6 +26,7 @@
     "db:seed:users": "tsx scripts/db/seed.ts users",
     "db:backup": "tsx scripts/db/backup.ts",
     "db:backup:full": "tsx scripts/db/backup.ts --full",
+    "db:deduplicate": "tsx scripts/deduplicate-addresses.ts",
     "services:update": "tsx scripts/services/update.ts",
     "services:update:sort": "tsx scripts/services/update.ts --sort-order",
     "services:update:details": "tsx scripts/services/update.ts --details",

@@ -8,6 +8,7 @@ import {
   pgTable,
   text,
   timestamp,
+  unique,
 } from "drizzle-orm/pg-core";
 
 // Define enums
@@ -133,24 +134,40 @@ export const passwordResetToken = pgTable("password_reset_token", {
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
-export const address = pgTable("address", {
-  id: text("id").primaryKey().notNull(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  street: text("street").notNull(),
-  aptUnit: text("apt_unit"),
-  city: text("city").notNull(),
-  state: text("state").notNull(),
-  zipCode: text("zip_code").notNull(),
-  lat: decimal("lat", { precision: 10, scale: 6 }),
-  lng: decimal("lng", { precision: 10, scale: 6 }),
-  instructions: text("instructions"),
-  isDefault: boolean("is_default").default(false).notNull(),
-  isActive: boolean("is_active").default(true).notNull(),
-  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
-});
+export const address = pgTable(
+  "address",
+  {
+    id: text("id").primaryKey().notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    street: text("street").notNull(),
+    aptUnit: text("apt_unit"),
+    city: text("city").notNull(),
+    state: text("state").notNull(),
+    zipCode: text("zip_code").notNull(),
+    lat: decimal("lat", { precision: 10, scale: 6 }),
+    lng: decimal("lng", { precision: 10, scale: 6 }),
+    instructions: text("instructions"),
+    isDefault: boolean("is_default").default(false).notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => ({
+    // Unique constraint: prevents duplicate addresses for the same user
+    // Same street with different apt/unit numbers are allowed (different addresses)
+    // PostgreSQL treats NULL values as distinct in unique constraints
+    uniqueUserAddress: unique("unique_user_address").on(
+      table.userId,
+      table.street,
+      table.aptUnit,
+      table.city,
+      table.state,
+      table.zipCode,
+    ),
+  }),
+);
 
 export const service = pgTable("service", {
   id: text("id").primaryKey().notNull(),
@@ -410,7 +427,9 @@ export const subscription = pgTable("subscription", {
 
   // Pricing with discounts
   basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(),
-  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }).default("0").notNull(),
+  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 })
+    .default("0")
+    .notNull(),
   finalPrice: decimal("final_price", { precision: 10, scale: 2 }).notNull(),
 
   // PayFast subscription details
@@ -438,8 +457,7 @@ export const subscriptionPayment = pgTable("subscription_payment", {
   subscriptionId: text("subscription_id")
     .notNull()
     .references(() => subscription.id, { onDelete: "cascade" }),
-  bookingId: text("booking_id")
-    .references(() => booking.id),
+  bookingId: text("booking_id").references(() => booking.id),
 
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   status: paymentStatusEnum("status").default("PENDING").notNull(),
@@ -448,7 +466,9 @@ export const subscriptionPayment = pgTable("subscription_payment", {
   payFastPaymentId: text("pay_fast_payment_id"),
   payFastReference: text("pay_fast_reference"),
 
-  billingPeriodStart: timestamp("billing_period_start", { mode: "date" }).notNull(),
+  billingPeriodStart: timestamp("billing_period_start", {
+    mode: "date",
+  }).notNull(),
   billingPeriodEnd: timestamp("billing_period_end", { mode: "date" }).notNull(),
 
   processedAt: timestamp("processed_at", { mode: "date" }),

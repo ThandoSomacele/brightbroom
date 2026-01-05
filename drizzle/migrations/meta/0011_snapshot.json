@@ -1,6 +1,6 @@
 {
-  "id": "99472004-fe52-4f61-b492-a91ee175ca95",
-  "prevId": "c76ecaf0-20c2-4bdb-9edb-336a401e2775",
+  "id": "03484de2-d30d-4204-a7be-cfa01480101c",
+  "prevId": "a62db2a0-0dc4-46d4-837d-a5f9d7a754dd",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -110,7 +110,20 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "unique_user_address": {
+          "name": "unique_user_address",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id",
+            "street",
+            "apt_unit",
+            "city",
+            "state",
+            "zip_code"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -237,13 +250,13 @@
           "name": "user_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "address_id": {
           "name": "address_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "service_id": {
           "name": "service_id",
@@ -285,6 +298,18 @@
         },
         "notes": {
           "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "guest_address": {
+          "name": "guest_address",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "subscription_id": {
+          "name": "subscription_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -1297,6 +1322,333 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.subscription": {
+      "name": "subscription",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address_id": {
+          "name": "address_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "service_id": {
+          "name": "service_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cleaner_id": {
+          "name": "cleaner_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "frequency": {
+          "name": "frequency",
+          "type": "RecurringFrequency",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "SubscriptionStatus",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "preferred_days": {
+          "name": "preferred_days",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "monthly_dates": {
+          "name": "monthly_dates",
+          "type": "integer[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "preferred_time_slot": {
+          "name": "preferred_time_slot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "base_price": {
+          "name": "base_price",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "discount_percentage": {
+          "name": "discount_percentage",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        },
+        "final_price": {
+          "name": "final_price",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pay_fast_token": {
+          "name": "pay_fast_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pay_fast_subscription_id": {
+          "name": "pay_fast_subscription_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "next_billing_date": {
+          "name": "next_billing_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "paused_at": {
+          "name": "paused_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancelled_at": {
+          "name": "cancelled_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancellation_reason": {
+          "name": "cancellation_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "subscription_user_id_user_id_fk": {
+          "name": "subscription_user_id_user_id_fk",
+          "tableFrom": "subscription",
+          "tableTo": "user",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "subscription_address_id_address_id_fk": {
+          "name": "subscription_address_id_address_id_fk",
+          "tableFrom": "subscription",
+          "tableTo": "address",
+          "columnsFrom": ["address_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "subscription_service_id_service_id_fk": {
+          "name": "subscription_service_id_service_id_fk",
+          "tableFrom": "subscription",
+          "tableTo": "service",
+          "columnsFrom": ["service_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "subscription_cleaner_id_user_id_fk": {
+          "name": "subscription_cleaner_id_user_id_fk",
+          "tableFrom": "subscription",
+          "tableTo": "user",
+          "columnsFrom": ["cleaner_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.subscription_payment": {
+      "name": "subscription_payment",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "subscription_id": {
+          "name": "subscription_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "booking_id": {
+          "name": "booking_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "PaymentStatus",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "payment_method": {
+          "name": "payment_method",
+          "type": "PaymentMethod",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pay_fast_payment_id": {
+          "name": "pay_fast_payment_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pay_fast_reference": {
+          "name": "pay_fast_reference",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "billing_period_start": {
+          "name": "billing_period_start",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "billing_period_end": {
+          "name": "billing_period_end",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "processed_at": {
+          "name": "processed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "failure_reason": {
+          "name": "failure_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "retry_count": {
+          "name": "retry_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "next_retry_at": {
+          "name": "next_retry_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "subscription_payment_subscription_id_subscription_id_fk": {
+          "name": "subscription_payment_subscription_id_subscription_id_fk",
+          "tableFrom": "subscription_payment",
+          "tableTo": "subscription",
+          "columnsFrom": ["subscription_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "subscription_payment_booking_id_booking_id_fk": {
+          "name": "subscription_payment_booking_id_booking_id_fk",
+          "tableFrom": "subscription_payment",
+          "tableTo": "booking",
+          "columnsFrom": ["booking_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.user": {
       "name": "user",
       "schema": "",
@@ -1449,6 +1801,16 @@
       "name": "PetCompatibility",
       "schema": "public",
       "values": ["NONE", "DOGS", "CATS", "BOTH"]
+    },
+    "public.RecurringFrequency": {
+      "name": "RecurringFrequency",
+      "schema": "public",
+      "values": ["WEEKLY", "BIWEEKLY", "TWICE_WEEKLY", "TWICE_MONTHLY"]
+    },
+    "public.SubscriptionStatus": {
+      "name": "SubscriptionStatus",
+      "schema": "public",
+      "values": ["ACTIVE", "PAUSED", "CANCELLED", "EXPIRED", "PENDING"]
     },
     "public.UserRole": {
       "name": "UserRole",
