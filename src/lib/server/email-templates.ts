@@ -2444,3 +2444,889 @@ This email was sent to ${recipientEmail}.
     text,
   };
 }
+
+/**
+ * CORE TEMPLATE - Generate subscription activated email
+ * Sent when the first payment succeeds and subscription becomes active
+ */
+export function getSubscriptionActivatedTemplate(
+  recipientEmail: string,
+  subscription: {
+    id: string;
+    service: { name: string };
+    frequency: string;
+    finalPrice: number | string;
+    preferredDays?: string[];
+    preferredTimeSlot?: string;
+    nextBillingDate?: string;
+  },
+  data: EmailTemplateData,
+): { subject: string; html: string; text: string } {
+  const subscriptionUrl = `${data.appUrl}/profile/subscriptions`;
+  const escapedEmail = escapeHtml(recipientEmail);
+
+  // Format frequency
+  const frequencyMap: Record<string, string> = {
+    'WEEKLY': 'Weekly',
+    'BIWEEKLY': 'Every 2 weeks',
+    'TWICE_WEEKLY': 'Twice per week',
+    'TWICE_MONTHLY': 'Twice per month',
+  };
+  const frequencyDisplay = frequencyMap[subscription.frequency] || subscription.frequency;
+
+  // Format days
+  const daysDisplay = subscription.preferredDays && subscription.preferredDays.length > 0
+    ? subscription.preferredDays.map(d => d.charAt(0) + d.slice(1).toLowerCase()).join(', ')
+    : '';
+
+  // Format price
+  const formattedPrice = typeof subscription.finalPrice === 'number'
+    ? subscription.finalPrice.toFixed(2)
+    : subscription.finalPrice.toString();
+
+  // Format next billing date
+  const nextBillingDisplay = subscription.nextBillingDate
+    ? new Date(subscription.nextBillingDate).toLocaleDateString('en-ZA', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : 'Will be scheduled after first cleaning';
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscription Activated</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background-color: ${data.primaryColor};
+    }
+    .content {
+      padding: 30px 20px;
+      background-color: #ffffff;
+    }
+    .success-box {
+      background-color: #E8F5E9;
+      border-left: 4px solid #4CAF50;
+      padding: 15px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    .subscription-details {
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .detail-row {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #eeeeee;
+      padding-bottom: 10px;
+    }
+    .detail-row:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .label {
+      font-weight: bold;
+      color: #666666;
+    }
+    .footer {
+      font-size: 12px;
+      text-align: center;
+      color: #888888;
+      padding: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: ${data.primaryColor};
+      color: #ffffff !important;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+    @media only screen and (max-width: 480px) {
+      .email-container {
+        padding: 10px;
+      }
+      .content {
+        padding: 20px 15px;
+      }
+      .btn {
+        display: block;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1 style="color: #ffffff; margin: 0;">${data.brandName}</h1>
+    </div>
+    <div class="content">
+      <h2>Your Subscription is Active! 🎉</h2>
+      <p>Hello,</p>
+
+      <div class="success-box">
+        <p style="font-size: 18px; font-weight: bold; margin: 0; color: #2E7D32;">
+          ✓ Subscription Successfully Activated
+        </p>
+      </div>
+
+      <p>Great news! Your recurring cleaning service subscription has been activated. Your first payment has been processed successfully.</p>
+
+      <div class="subscription-details">
+        <div class="detail-row">
+          <span class="label">Service:</span>
+          <span>${subscription.service.name}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Frequency:</span>
+          <span>${frequencyDisplay}${daysDisplay ? ` (${daysDisplay})` : ''}</span>
+        </div>
+        ${subscription.preferredTimeSlot ? `
+        <div class="detail-row">
+          <span class="label">Time:</span>
+          <span>${subscription.preferredTimeSlot}</span>
+        </div>` : ''}
+        <div class="detail-row">
+          <span class="label">Price per cleaning:</span>
+          <span>R${formattedPrice}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Next billing date:</span>
+          <span>${nextBillingDisplay}</span>
+        </div>
+      </div>
+
+      <h3>What happens next?</h3>
+      <ul>
+        <li>We'll automatically create bookings based on your schedule</li>
+        <li>You'll receive notifications before each cleaning</li>
+        <li>Payments will be processed automatically on your billing date</li>
+        <li>You can pause or cancel anytime with 48 hours notice</li>
+      </ul>
+
+      <div style="text-align: center;">
+        <a href="${subscriptionUrl}" class="btn">Manage My Subscription</a>
+      </div>
+
+      <p>Thank you for subscribing to ${data.brandName}! We look forward to keeping your space clean and fresh.</p>
+
+      <p>Best regards,<br>The ${data.brandName} Team</p>
+    </div>
+    <div class="footer">
+      <p>This email was sent to ${escapedEmail}.</p>
+      <p>&copy; ${new Date().getFullYear()} ${data.brandName}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const text = `
+Subscription Activated - ${data.brandName}
+
+Hello,
+
+✓ SUBSCRIPTION SUCCESSFULLY ACTIVATED
+
+Great news! Your recurring cleaning service subscription has been activated. Your first payment has been processed successfully.
+
+Subscription Details:
+- Service: ${subscription.service.name}
+- Frequency: ${frequencyDisplay}${daysDisplay ? ` (${daysDisplay})` : ''}
+${subscription.preferredTimeSlot ? `- Time: ${subscription.preferredTimeSlot}\n` : ''}- Price per cleaning: R${formattedPrice}
+- Next billing date: ${nextBillingDisplay}
+
+What happens next?
+- We'll automatically create bookings based on your schedule
+- You'll receive notifications before each cleaning
+- Payments will be processed automatically on your billing date
+- You can pause or cancel anytime with 48 hours notice
+
+Manage your subscription here: ${subscriptionUrl}
+
+Thank you for subscribing to ${data.brandName}! We look forward to keeping your space clean and fresh.
+
+Best regards,
+The ${data.brandName} Team
+
+This email was sent to ${recipientEmail}.
+© ${new Date().getFullYear()} ${data.brandName}. All rights reserved.
+`;
+
+  return {
+    subject: `Your ${data.brandName} Subscription is Active!`,
+    html,
+    text,
+  };
+}
+
+/**
+ * CORE TEMPLATE - Generate subscription payment failed email
+ * Sent when a recurring payment fails
+ */
+export function getSubscriptionPaymentFailedTemplate(
+  recipientEmail: string,
+  subscription: {
+    id: string;
+    service: { name: string };
+    frequency: string;
+    finalPrice: number | string;
+  },
+  failureReason?: string,
+  data: EmailTemplateData,
+): { subject: string; html: string; text: string } {
+  const subscriptionUrl = `${data.appUrl}/profile/subscriptions`;
+  const escapedEmail = escapeHtml(recipientEmail);
+
+  // Format frequency
+  const frequencyMap: Record<string, string> = {
+    'WEEKLY': 'Weekly',
+    'BIWEEKLY': 'Every 2 weeks',
+    'TWICE_WEEKLY': 'Twice per week',
+    'TWICE_MONTHLY': 'Twice per month',
+  };
+  const frequencyDisplay = frequencyMap[subscription.frequency] || subscription.frequency;
+
+  // Format price
+  const formattedPrice = typeof subscription.finalPrice === 'number'
+    ? subscription.finalPrice.toFixed(2)
+    : subscription.finalPrice.toString();
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscription Payment Failed</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background-color: ${data.primaryColor};
+    }
+    .content {
+      padding: 30px 20px;
+      background-color: #ffffff;
+    }
+    .alert-box {
+      background-color: #FFEBEE;
+      border-left: 4px solid #F44336;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .subscription-details {
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .footer {
+      font-size: 12px;
+      text-align: center;
+      color: #888888;
+      padding: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: ${data.primaryColor};
+      color: #ffffff !important;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+    @media only screen and (max-width: 480px) {
+      .email-container {
+        padding: 10px;
+      }
+      .content {
+        padding: 20px 15px;
+      }
+      .btn {
+        display: block;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1 style="color: #ffffff; margin: 0;">${data.brandName}</h1>
+    </div>
+    <div class="content">
+      <h2>Subscription Payment Failed</h2>
+      <p>Hello,</p>
+
+      <div class="alert-box">
+        <p style="font-weight: bold; margin: 0 0 10px 0;">⚠️ Action Required</p>
+        <p style="margin: 0;">We were unable to process your recent subscription payment for ${subscription.service.name} (${frequencyDisplay}).</p>
+      </div>
+
+      ${failureReason ? `<p><strong>Reason:</strong> ${failureReason}</p>` : ''}
+
+      <p><strong>Amount due:</strong> R${formattedPrice}</p>
+
+      <p>To continue your subscription without interruption, please update your payment method or retry the payment.</p>
+
+      <h3>What you need to do:</h3>
+      <ol>
+        <li>Log in to your account</li>
+        <li>Go to your subscription settings</li>
+        <li>Update your payment method or retry payment</li>
+      </ol>
+
+      <div style="text-align: center;">
+        <a href="${subscriptionUrl}" class="btn">Update Payment Method</a>
+      </div>
+
+      <p><strong>Note:</strong> If we cannot process your payment, your subscription may be paused or cancelled after multiple failed attempts.</p>
+
+      <p>If you need assistance, please contact our support team.</p>
+
+      <p>Best regards,<br>The ${data.brandName} Team</p>
+    </div>
+    <div class="footer">
+      <p>This email was sent to ${escapedEmail}.</p>
+      <p>&copy; ${new Date().getFullYear()} ${data.brandName}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const text = `
+Subscription Payment Failed - ${data.brandName}
+
+Hello,
+
+⚠️ ACTION REQUIRED
+
+We were unable to process your recent subscription payment for ${subscription.service.name} (${frequencyDisplay}).
+
+${failureReason ? `Reason: ${failureReason}\n` : ''}
+Amount due: R${formattedPrice}
+
+To continue your subscription without interruption, please update your payment method or retry the payment.
+
+What you need to do:
+1. Log in to your account
+2. Go to your subscription settings
+3. Update your payment method or retry payment
+
+Update payment method here: ${subscriptionUrl}
+
+Note: If we cannot process your payment, your subscription may be paused or cancelled after multiple failed attempts.
+
+If you need assistance, please contact our support team.
+
+Best regards,
+The ${data.brandName} Team
+
+This email was sent to ${recipientEmail}.
+© ${new Date().getFullYear()} ${data.brandName}. All rights reserved.
+`;
+
+  return {
+    subject: `Action Required: ${data.brandName} Subscription Payment Failed`,
+    html,
+    text,
+  };
+}
+
+/**
+ * CORE TEMPLATE - Generate subscription cancelled email
+ * Sent when subscription is cancelled
+ */
+export function getSubscriptionCancelledTemplate(
+  recipientEmail: string,
+  subscription: {
+    id: string;
+    service: { name: string };
+    frequency: string;
+  },
+  cancelledBy: 'user' | 'system',
+  reason?: string,
+  data: EmailTemplateData,
+): { subject: string; html: string; text: string } {
+  const bookingUrl = `${data.appUrl}/book`;
+  const escapedEmail = escapeHtml(recipientEmail);
+
+  // Format frequency
+  const frequencyMap: Record<string, string> = {
+    'WEEKLY': 'Weekly',
+    'BIWEEKLY': 'Every 2 weeks',
+    'TWICE_WEEKLY': 'Twice per week',
+    'TWICE_MONTHLY': 'Twice per month',
+  };
+  const frequencyDisplay = frequencyMap[subscription.frequency] || subscription.frequency;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscription Cancelled</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background-color: ${data.primaryColor};
+    }
+    .content {
+      padding: 30px 20px;
+      background-color: #ffffff;
+    }
+    .info-box {
+      background-color: #FFF9C4;
+      border-left: 4px solid #FBC02D;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .footer {
+      font-size: 12px;
+      text-align: center;
+      color: #888888;
+      padding: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: ${data.primaryColor};
+      color: #ffffff !important;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+    @media only screen and (max-width: 480px) {
+      .email-container {
+        padding: 10px;
+      }
+      .content {
+        padding: 20px 15px;
+      }
+      .btn {
+        display: block;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1 style="color: #ffffff; margin: 0;">${data.brandName}</h1>
+    </div>
+    <div class="content">
+      <h2>Subscription Cancelled</h2>
+      <p>Hello,</p>
+
+      <div class="info-box">
+        <p style="font-weight: bold; margin: 0 0 10px 0;">Your subscription has been cancelled</p>
+        <p style="margin: 0;">Service: ${subscription.service.name} (${frequencyDisplay})</p>
+      </div>
+
+      ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+
+      <p>Your subscription has been ${cancelledBy === 'user' ? 'cancelled as requested' : 'cancelled'}. No further payments will be processed.</p>
+
+      <h3>What this means:</h3>
+      <ul>
+        <li>No more automatic bookings will be created</li>
+        <li>No further payments will be charged</li>
+        <li>Any existing upcoming bookings will remain scheduled</li>
+      </ul>
+
+      <p>We're sorry to see you go! If you cancelled due to an issue with our service, we'd love to hear your feedback so we can improve.</p>
+
+      <p>You can always start a new subscription or book one-time cleanings whenever you need:</p>
+
+      <div style="text-align: center;">
+        <a href="${bookingUrl}" class="btn">Book a Cleaning</a>
+      </div>
+
+      <p>Thank you for choosing ${data.brandName}. We hope to serve you again in the future!</p>
+
+      <p>Best regards,<br>The ${data.brandName} Team</p>
+    </div>
+    <div class="footer">
+      <p>This email was sent to ${escapedEmail}.</p>
+      <p>&copy; ${new Date().getFullYear()} ${data.brandName}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const text = `
+Subscription Cancelled - ${data.brandName}
+
+Hello,
+
+Your subscription has been cancelled.
+Service: ${subscription.service.name} (${frequencyDisplay})
+
+${reason ? `Reason: ${reason}\n` : ''}
+Your subscription has been ${cancelledBy === 'user' ? 'cancelled as requested' : 'cancelled'}. No further payments will be processed.
+
+What this means:
+- No more automatic bookings will be created
+- No further payments will be charged
+- Any existing upcoming bookings will remain scheduled
+
+We're sorry to see you go! If you cancelled due to an issue with our service, we'd love to hear your feedback so we can improve.
+
+You can always start a new subscription or book one-time cleanings whenever you need:
+${bookingUrl}
+
+Thank you for choosing ${data.brandName}. We hope to serve you again in the future!
+
+Best regards,
+The ${data.brandName} Team
+
+This email was sent to ${recipientEmail}.
+© ${new Date().getFullYear()} ${data.brandName}. All rights reserved.
+`;
+
+  return {
+    subject: `Subscription Cancelled - ${data.brandName}`,
+    html,
+    text,
+  };
+}
+
+/**
+ * OPTIONAL TEMPLATE - Generate subscription paused email
+ * Sent when subscription is paused by user
+ */
+export function getSubscriptionPausedTemplate(
+  recipientEmail: string,
+  subscription: {
+    id: string;
+    service: { name: string };
+    frequency: string;
+  },
+  data: EmailTemplateData,
+): { subject: string; html: string; text: string } {
+  const subscriptionUrl = `${data.appUrl}/profile/subscriptions`;
+  const escapedEmail = escapeHtml(recipientEmail);
+
+  const frequencyMap: Record<string, string> = {
+    'WEEKLY': 'Weekly',
+    'BIWEEKLY': 'Every 2 weeks',
+    'TWICE_WEEKLY': 'Twice per week',
+    'TWICE_MONTHLY': 'Twice per month',
+  };
+  const frequencyDisplay = frequencyMap[subscription.frequency] || subscription.frequency;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscription Paused</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background-color: ${data.primaryColor};
+    }
+    .content {
+      padding: 30px 20px;
+      background-color: #ffffff;
+    }
+    .info-box {
+      background-color: #E3F2FD;
+      border-left: 4px solid #2196F3;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .footer {
+      font-size: 12px;
+      text-align: center;
+      color: #888888;
+      padding: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: ${data.primaryColor};
+      color: #ffffff !important;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1 style="color: #ffffff; margin: 0;">${data.brandName}</h1>
+    </div>
+    <div class="content">
+      <h2>Subscription Paused</h2>
+      <p>Hello,</p>
+
+      <div class="info-box">
+        <p style="font-weight: bold; margin: 0 0 10px 0;">Your subscription has been paused</p>
+        <p style="margin: 0;">Service: ${subscription.service.name} (${frequencyDisplay})</p>
+      </div>
+
+      <p>Your subscription has been paused as requested. No new bookings will be created and no payments will be processed while your subscription is paused.</p>
+
+      <p>You can resume your subscription anytime from your account.</p>
+
+      <div style="text-align: center;">
+        <a href="${subscriptionUrl}" class="btn">Resume Subscription</a>
+      </div>
+
+      <p>Best regards,<br>The ${data.brandName} Team</p>
+    </div>
+    <div class="footer">
+      <p>This email was sent to ${escapedEmail}.</p>
+      <p>&copy; ${new Date().getFullYear()} ${data.brandName}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const text = `
+Subscription Paused - ${data.brandName}
+
+Hello,
+
+Your subscription has been paused.
+Service: ${subscription.service.name} (${frequencyDisplay})
+
+Your subscription has been paused as requested. No new bookings will be created and no payments will be processed while your subscription is paused.
+
+You can resume your subscription anytime from your account: ${subscriptionUrl}
+
+Best regards,
+The ${data.brandName} Team
+
+This email was sent to ${recipientEmail}.
+© ${new Date().getFullYear()} ${data.brandName}. All rights reserved.
+`;
+
+  return {
+    subject: `Subscription Paused - ${data.brandName}`,
+    html,
+    text,
+  };
+}
+
+/**
+ * OPTIONAL TEMPLATE - Generate subscription resumed email
+ * Sent when subscription is resumed by user
+ */
+export function getSubscriptionResumedTemplate(
+  recipientEmail: string,
+  subscription: {
+    id: string;
+    service: { name: string };
+    frequency: string;
+    nextBillingDate?: string;
+  },
+  data: EmailTemplateData,
+): { subject: string; html: string; text: string } {
+  const subscriptionUrl = `${data.appUrl}/profile/subscriptions`;
+  const escapedEmail = escapeHtml(recipientEmail);
+
+  const frequencyMap: Record<string, string> = {
+    'WEEKLY': 'Weekly',
+    'BIWEEKLY': 'Every 2 weeks',
+    'TWICE_WEEKLY': 'Twice per week',
+    'TWICE_MONTHLY': 'Twice per month',
+  };
+  const frequencyDisplay = frequencyMap[subscription.frequency] || subscription.frequency;
+
+  const nextBillingDisplay = subscription.nextBillingDate
+    ? new Date(subscription.nextBillingDate).toLocaleDateString('en-ZA', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : 'Will be scheduled soon';
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscription Resumed</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background-color: ${data.primaryColor};
+    }
+    .content {
+      padding: 30px 20px;
+      background-color: #ffffff;
+    }
+    .success-box {
+      background-color: #E8F5E9;
+      border-left: 4px solid #4CAF50;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .footer {
+      font-size: 12px;
+      text-align: center;
+      color: #888888;
+      padding: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: ${data.primaryColor};
+      color: #ffffff !important;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1 style="color: #ffffff; margin: 0;">${data.brandName}</h1>
+    </div>
+    <div class="content">
+      <h2>Subscription Resumed! 🎉</h2>
+      <p>Hello,</p>
+
+      <div class="success-box">
+        <p style="font-weight: bold; margin: 0 0 10px 0;">Your subscription is active again</p>
+        <p style="margin: 0;">Service: ${subscription.service.name} (${frequencyDisplay})</p>
+      </div>
+
+      <p>Your subscription has been resumed and is now active. We'll continue creating bookings based on your schedule.</p>
+
+      <p><strong>Next billing date:</strong> ${nextBillingDisplay}</p>
+
+      <div style="text-align: center;">
+        <a href="${subscriptionUrl}" class="btn">View Subscription</a>
+      </div>
+
+      <p>Welcome back! We're happy to continue serving you.</p>
+
+      <p>Best regards,<br>The ${data.brandName} Team</p>
+    </div>
+    <div class="footer">
+      <p>This email was sent to ${escapedEmail}.</p>
+      <p>&copy; ${new Date().getFullYear()} ${data.brandName}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const text = `
+Subscription Resumed - ${data.brandName}
+
+Hello,
+
+Your subscription is active again!
+Service: ${subscription.service.name} (${frequencyDisplay})
+
+Your subscription has been resumed and is now active. We'll continue creating bookings based on your schedule.
+
+Next billing date: ${nextBillingDisplay}
+
+View subscription: ${subscriptionUrl}
+
+Welcome back! We're happy to continue serving you.
+
+Best regards,
+The ${data.brandName} Team
+
+This email was sent to ${recipientEmail}.
+© ${new Date().getFullYear()} ${data.brandName}. All rights reserved.
+`;
+
+  return {
+    subject: `Subscription Resumed - ${data.brandName}`,
+    html,
+    text,
+  };
+}
