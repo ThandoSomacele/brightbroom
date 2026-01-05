@@ -103,6 +103,23 @@ src/
 - Session management in `hooks.server.ts`
 - Protected routes check user role in `+page.server.ts` or `+layout.server.ts`
 
+#### Server Hooks (hooks.server.ts)
+
+Executed in sequence:
+1. `handlePostHogProxy` - Reverse proxy for analytics (bypasses auth/CSRF)
+2. `handleAuth` - Session validation and user loading
+3. `handleCSRF` - Token generation and validation
+4. `handleRouting` - Route protection and admin access control
+5. `handleErrors` - Error formatting
+
+#### CSRF Protection
+
+- CSRF tokens automatically generated in `hooks.server.ts`
+- Access via `event.locals.csrf` in server-side code
+- Form submissions with `multipart/form-data` or `application/x-www-form-urlencoded` skip header validation
+- API calls require `x-csrf-token` header
+- Exempt paths: `/api/payments/ipn`, `/api/payments/success`, `/api/payments/cancel`, `/api/subscriptions/process-recurring`
+
 #### Database & Data Flow
 
 - Drizzle ORM for type-safe database queries
@@ -110,6 +127,12 @@ src/
 - Database connections through `src/lib/server/db/index.ts`
 - Form actions in `+page.server.ts` files for data mutations
 - Load functions fetch data server-side for SSR
+
+#### Type Inference from Schema
+
+- Use `$inferSelect` for read types: `type User = typeof user.$inferSelect`
+- Use `$inferInsert` for insert types: `type NewUser = typeof user.$inferInsert`
+- All types exported from `src/lib/server/db/schema.ts`
 
 #### Form Handling
 
@@ -123,6 +146,20 @@ src/
 - Templates defined in `src/lib/server/email-templates.ts`
 - Sent via Resend API (`src/lib/server/email-service.ts`)
 - Includes booking confirmations, password resets, cleaner notifications
+
+#### PayFast Integration
+
+- IPN endpoint: `/api/payments/ipn` (exempt from CSRF, accepts external requests)
+- Supports sandbox mode via `PAYFAST_SANDBOX_MODE` env var
+- Post-payment hooks in `src/lib/server/hooks/post-payment-hooks.ts`
+- Payment validation in `src/lib/server/payment.ts`
+- Subscription payments handled via `/api/subscriptions/process-recurring`
+
+#### PostHog Analytics
+
+- Reverse proxy via `/relay-VjWm` path (defined in `hooks.server.ts`)
+- Uses EU Cloud endpoints for GDPR compliance
+- Cookie consent managed via `$lib/stores/cookieConsent.ts`
 
 #### Service Areas & Addresses
 
@@ -142,9 +179,14 @@ Key environment variables (see .env.example):
 
 - `DATABASE_URL` - PostgreSQL connection string (Neon)
 - `PUBLIC_URL` - Site URL for emails and redirects
-- `GOOGLE_MAPS_API_KEY` - Google Maps API key
+- `GOOGLE_MAPS_API_KEY` - Server-side Google Maps API key
+- `VITE_GOOGLE_MAPS_API_KEY` - Client-side Google Maps API key
 - `RESEND_API_KEY` - Email service API key
-- `VITE_PAYFAST_*` - Payment gateway configuration
+- `PAYFAST_MERCHANT_ID`, `PAYFAST_MERCHANT_KEY`, `PAYFAST_PASSPHRASE`, `PAYFAST_API_KEY` - Payment gateway credentials
+- `PAYFAST_SANDBOX_MODE` - Set to "true" for test mode
+- `PUBLIC_POSTHOG_KEY` - PostHog analytics API key
+- `PUBLIC_POSTHOG_UI_HOST` - PostHog host URL (EU: `https://eu.posthog.com`)
+- `CRON_SECRET_TOKEN` - Protects the recurring payment cron endpoint
 
 ### Important Notes
 
