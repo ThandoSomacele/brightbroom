@@ -3,21 +3,37 @@
   import Button from "$lib/components/ui/Button.svelte";
   import DeleteAddressModal from "$lib/components/addresses/DeleteAddressModal.svelte";
   import { Edit, MapPin, Plus, Star, Trash2, AlertTriangle, CheckCircle } from "lucide-svelte";
-  import { enhance } from "$app/forms";
+  import { enhance, applyAction, deserialize } from "$app/forms";
+  import { invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
   import { fly, fade } from "svelte/transition";
   import { onMount } from "svelte";
+  import type { Address } from "$lib/server/db/schema";
 
   export let data;
   export let form; // For form result handling
-  const { addresses, maxAddresses, hasReachedLimit, error: pageError, success: pageSuccess } = data;
 
-  // State for delete confirmation
-  let deleteModal = {
+  // Use reactive statements to update when data changes after invalidateAll()
+  $: ({ addresses, maxAddresses, hasReachedLimit, error: pageError, success: pageSuccess } = data);
+
+  // State for delete confirmation - using compatible type with DeleteAddressModal
+  let deleteModal: {
+    isOpen: boolean;
+    addressToDelete: {
+      id: string;
+      street: string;
+      city: string;
+      state: string;
+      zipCode: string;
+      aptUnit?: string;
+    } | null;
+    isProcessing: boolean;
+    hasBookings: boolean;
+  } = {
     isOpen: false,
     addressToDelete: null,
     isProcessing: false,
-    hasBookings: false // We'll set this based on our check later
+    hasBookings: false
   };
 
   // Success notification
@@ -38,15 +54,25 @@
   });
 
   // Function to show delete confirmation
-  async function confirmDelete(address) {
+  async function confirmDelete(address: Address) {
+    // Convert Address to modal-compatible type (null -> undefined for aptUnit)
+    const modalAddress = {
+      id: address.id,
+      street: address.street,
+      city: address.city,
+      state: address.state,
+      zipCode: address.zipCode,
+      aptUnit: address.aptUnit ?? undefined
+    };
+
     // Check if this address has bookings by making a quick API call
     try {
       const response = await fetch(`/api/addresses/${address.id}/has-bookings`);
       const data = await response.json();
-      
+
       deleteModal = {
         isOpen: true,
-        addressToDelete: address,
+        addressToDelete: modalAddress,
         isProcessing: false,
         hasBookings: data.hasBookings
       };
@@ -55,7 +81,7 @@
       // Fallback to showing the modal without booking info
       deleteModal = {
         isOpen: true,
-        addressToDelete: address,
+        addressToDelete: modalAddress,
         isProcessing: false,
         hasBookings: false
       };
@@ -68,32 +94,36 @@
   }
 
   // Function to set an address as default
-  async function setAsDefault(id) {
-    const form = new FormData();
-    form.append("addressId", id);
+  async function setAsDefault(id: string) {
+    const formData = new FormData();
+    formData.append("addressId", id);
 
     try {
       const response = await fetch(`?/setDefault`, {
         method: "POST",
-        body: form,
+        body: formData,
       });
 
-      if (response.ok) {
+      // Properly deserialize the SvelteKit form action response
+      const result = deserialize(await response.text());
+
+      if (result.type === 'success') {
         // Show success notification
         successMessage = "Default address updated successfully";
         showSuccessNotification = true;
-        
+
         // Auto-hide after 5 seconds
         setTimeout(() => {
           showSuccessNotification = false;
         }, 5000);
-        
-        // Refresh addresses without full page reload
-        const result = await response.json();
-        // TODO: Update addresses in the store instead of reloading
-        window.location.reload();
-      } else {
-        console.error("Failed to set default address");
+
+        // Apply the action result and invalidate data to refresh
+        await applyAction(result);
+        await invalidateAll();
+      } else if (result.type === 'failure') {
+        console.error("Failed to set default address:", result.data);
+      } else if (result.type === 'redirect') {
+        await applyAction(result);
       }
     } catch (error) {
       console.error("Error setting default address:", error);
@@ -101,36 +131,41 @@
   }
   
   // Function to handle address deletion
-  async function handleDeleteAddress({ id }) {
+  async function handleDeleteAddress({ id }: { id: string }) {
     deleteModal.isProcessing = true;
-    
-    const form = new FormData();
-    form.append("addressId", id);
+
+    const formData = new FormData();
+    formData.append("addressId", id);
 
     try {
       const response = await fetch(`?/deleteAddress`, {
         method: "POST",
-        body: form,
+        body: formData,
       });
 
-      if (response.ok) {
+      // Properly deserialize the SvelteKit form action response
+      const result = deserialize(await response.text());
+
+      if (result.type === 'success') {
         // Close modal
         deleteModal.isOpen = false;
-        
+
         // Show success notification
         successMessage = "Address deleted successfully";
         showSuccessNotification = true;
-        
+
         // Auto-hide after 5 seconds
         setTimeout(() => {
           showSuccessNotification = false;
         }, 5000);
-        
-        // Refresh addresses without full page reload
-        window.location.reload();
-      } else {
-        const errorData = await response.json();
-        console.error("Failed to delete address:", errorData);
+
+        // Apply the action result and invalidate data to refresh without full page reload
+        await applyAction(result);
+        await invalidateAll();
+      } else if (result.type === 'failure') {
+        console.error("Failed to delete address:", result.data);
+      } else if (result.type === 'redirect') {
+        await applyAction(result);
       }
     } catch (error) {
       console.error("Error deleting address:", error);
