@@ -5,6 +5,7 @@
   import { onMount } from 'svelte';
   import { CheckCircle } from 'lucide-svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import { formatDate, formatTime } from '$lib/utils/date-utils';
   
   // Get booking ID from URL params - try multiple possible parameters
   let bookingId = $page.url.searchParams.get('m_payment_id');
@@ -139,17 +140,14 @@
           <div class="flex justify-between">
             <span class="text-gray-600 dark:text-gray-400">Date:</span>
             <span class="font-medium text-gray-900 dark:text-white">
-              {new Date(booking.scheduledDate).toLocaleDateString('en-ZA')}
+              {formatDate(booking.scheduledDate)}
             </span>
           </div>
-          
+
           <div class="flex justify-between">
             <span class="text-gray-600 dark:text-gray-400">Time:</span>
             <span class="font-medium text-gray-900 dark:text-white">
-              {new Date(booking.scheduledDate).toLocaleTimeString('en-ZA', { 
-                hour: '2-digit', 
-                minute: '2-digit'
-              })}
+              {formatTime(booking.scheduledDate)}
             </span>
           </div>
           
