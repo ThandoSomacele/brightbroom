@@ -25,7 +25,7 @@
     X,
   } from "lucide-svelte";
 
-  const googleMapsApiKey = import.meta.env.GOOGLE_MAPS_API_KEY;
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   export let data;
   export let form;

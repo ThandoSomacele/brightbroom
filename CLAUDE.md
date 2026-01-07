@@ -179,7 +179,6 @@ Key environment variables (see .env.example):
 
 - `DATABASE_URL` - PostgreSQL connection string (Neon)
 - `PUBLIC_URL` - Site URL for emails and redirects
-- `GOOGLE_MAPS_API_KEY` - Server-side Google Maps API key
 - `VITE_GOOGLE_MAPS_API_KEY` - Client-side Google Maps API key
 - `RESEND_API_KEY` - Email service API key
 - `PAYFAST_MERCHANT_ID`, `PAYFAST_MERCHANT_KEY`, `PAYFAST_PASSPHRASE`, `PAYFAST_API_KEY` - Payment gateway credentials

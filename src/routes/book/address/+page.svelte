@@ -29,7 +29,7 @@
   let addressValidationError = "";
 
   // Google Maps API key
-  const googleMapsApiKey = import.meta.env.GOOGLE_MAPS_API_KEY;
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   // Guest address form fields
   let guestAddress = {

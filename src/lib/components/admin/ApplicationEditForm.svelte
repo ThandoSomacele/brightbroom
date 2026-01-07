@@ -31,7 +31,7 @@
     (editableApplication?.experienceTypes || []) as string[];
 
   // Google Maps API key
-  const googleMapsApiKey = import.meta.env.GOOGLE_MAPS_API_KEY;
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   // Create event dispatcher
   const dispatch = createEventDispatcher<{

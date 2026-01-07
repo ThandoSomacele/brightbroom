@@ -74,7 +74,7 @@ Copy `.env.example` to `.env` and configure:
 |----------|-------------|
 | `DATABASE_URL` | PostgreSQL connection string |
 | `PUBLIC_URL` | Site URL (e.g., `https://brightbroom.com`) |
-| `GOOGLE_MAPS_API_KEY` | Server-side Google Maps key |
+| `VITE_GOOGLE_MAPS_API_KEY` | Server-side Google Maps key |
 | `VITE_GOOGLE_MAPS_API_KEY` | Client-side Google Maps key |
 | `RESEND_API_KEY` | Resend email service key |
 | `PAYFAST_MERCHANT_ID` | PayFast merchant ID |

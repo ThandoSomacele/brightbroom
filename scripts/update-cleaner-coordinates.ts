@@ -12,10 +12,10 @@ import { db } from "../src/lib/server/db";
 import { cleanerProfile } from "../src/lib/server/db/schema";
 
 // Get Google Maps API key from env
-const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+const VITE_GOOGLE_MAPS_API_KEY = process.env.VITE_GOOGLE_MAPS_API_KEY;
 
-if (!GOOGLE_MAPS_API_KEY) {
-  console.error("GOOGLE_MAPS_API_KEY environment variable is not set");
+if (!VITE_GOOGLE_MAPS_API_KEY) {
+  console.error("VITE_GOOGLE_MAPS_API_KEY environment variable is not set");
   process.exit(1);
 }
 
@@ -34,7 +34,7 @@ async function geocodeAddress(
     console.log(`Attempting to geocode: "${normalizedAddress}"`);
 
     const encodedAddress = encodeURIComponent(normalizedAddress);
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${GOOGLE_MAPS_API_KEY}`;
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${VITE_GOOGLE_MAPS_API_KEY}`;
 
     const response = await fetch(url);
     const data = (await response.json()) as any;
@@ -61,7 +61,7 @@ async function geocodeAddress(
         const cityState = `${parts[1].trim()}, ${parts[2] ? parts[2].trim() : ""}`;
         console.log(`Trying again with just city/state: "${cityState}"`);
 
-        const fallbackUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityState)}&key=${GOOGLE_MAPS_API_KEY}`;
+        const fallbackUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityState)}&key=${VITE_GOOGLE_MAPS_API_KEY}`;
 
         const fallbackResponse = await fetch(fallbackUrl);
         const fallbackData = (await fallbackResponse.json()) as any;

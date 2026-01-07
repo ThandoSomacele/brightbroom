@@ -32,7 +32,7 @@ The solution consists of several components:
 1. Create or update your `.env` file with your Google Maps API key:
 
    ```
-   GOOGLE_MAPS_API_KEY="your_google_maps_api_key"
+   VITE_GOOGLE_MAPS_API_KEY="your_google_maps_api_key"
    ```
 
 2. Make sure your `svelte.config.js` is set up to handle environment variables properly.

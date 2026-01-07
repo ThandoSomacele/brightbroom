@@ -114,7 +114,7 @@ PUBLIC_URL="https://brightbroom.com"
 MIGRATION_AUTH_TOKEN="your-secure-random-token"
 
 # Your existing vars (make sure these are also set)
-GOOGLE_MAPS_API_KEY="your_api_key"
+VITE_GOOGLE_MAPS_API_KEY="your_api_key"
 RESEND_API_KEY="your_resend_key"
 VITE_PAYFAST_MERCHANT_ID="your_merchant_id"
 VITE_PAYFAST_MERCHANT_KEY="your_merchant_key"

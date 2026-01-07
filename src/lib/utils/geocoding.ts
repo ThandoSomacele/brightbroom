@@ -1,6 +1,6 @@
 // src/lib/utils/geocoding.ts
 
-const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+const VITE_GOOGLE_MAPS_API_KEY = process.env.VITE_GOOGLE_MAPS_API_KEY;
 
 /**
  * Geocode an address to get coordinates
@@ -14,13 +14,13 @@ export async function geocodeAddress(
     // Encode address for URL
     const encodedAddress = encodeURIComponent(address);
 
-    if (!GOOGLE_MAPS_API_KEY) {
+    if (!VITE_GOOGLE_MAPS_API_KEY) {
       console.error("Google Maps API key not found in environment variables");
       return null;
     }
 
     // Create Google Maps Geocoding API URL
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${GOOGLE_MAPS_API_KEY}`;
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${VITE_GOOGLE_MAPS_API_KEY}`;
 
     // Fetch geocoding results
     const response = await fetch(url);
