@@ -5,6 +5,7 @@
   import { enhance } from '$app/forms';
   import type { PageData } from './$types';
   import type { ActionData } from './$types';
+  import { formatDateTimeShort } from '$lib/utils/date-utils';
   
   export let data: PageData;
   export let form: ActionData;
@@ -108,7 +109,7 @@
           <!-- One-time Booking Details -->
           <div class="flex justify-between">
             <span class="text-gray-600">Date & Time:</span>
-            <span class="font-medium">{new Date(data.bookingData.scheduledDate).toLocaleString()}</span>
+            <span class="font-medium">{data.bookingData.scheduledDate ? formatDateTimeShort(data.bookingData.scheduledDate) : 'Not set'}</span>
           </div>
         {/if}
 

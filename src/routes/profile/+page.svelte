@@ -2,6 +2,7 @@
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
   import { Calendar, Clock, MapPin, Settings, User } from "lucide-svelte";
+  import { formatDate, formatTime } from "$lib/utils/date-utils";
 
   // Get data from the server load function
   export let data;
@@ -233,11 +234,7 @@
                         class="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400"
                       >
                         <Calendar size={14} class="mr-1" />
-                        {new Date(booking.scheduledDate).toLocaleDateString()} at
-                        {new Date(booking.scheduledDate).toLocaleTimeString(
-                          [],
-                          { hour: "2-digit", minute: "2-digit" },
-                        )}
+                        {formatDate(booking.scheduledDate)} at {formatTime(booking.scheduledDate)}
                       </p>
                     </div>
 

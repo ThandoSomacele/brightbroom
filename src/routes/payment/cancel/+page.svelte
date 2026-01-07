@@ -4,6 +4,7 @@
   import { goto } from '$app/navigation';
   import Button from '$lib/components/ui/Button.svelte';
   import { XCircle, AlertTriangle, Calendar, MapPin } from 'lucide-svelte';
+  import { formatDate, formatTime } from '$lib/utils/date-utils';
   
   // Get data from the server load function
   export let data;
@@ -55,18 +56,10 @@
                   <Calendar size={18} class="mr-2 mt-0.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                   <div>
                     <p class="text-sm text-gray-700 dark:text-gray-300">
-                      {new Date(bookingData.booking.scheduledDate).toLocaleDateString('en-ZA', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                      {formatDate(bookingData.booking.scheduledDate)}
                     </p>
                     <p class="text-xs text-gray-500 dark:text-gray-400">
-                      {new Date(bookingData.booking.scheduledDate).toLocaleTimeString('en-ZA', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                      {formatTime(bookingData.booking.scheduledDate)}
                     </p>
                   </div>
                 </div>

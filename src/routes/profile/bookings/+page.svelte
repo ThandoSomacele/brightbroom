@@ -3,48 +3,29 @@
   import Button from '$lib/components/ui/Button.svelte';
   import { Calendar, MapPin, Clock, CreditCard } from 'lucide-svelte';
   import { getBookingReference } from '$lib/utils/strings';
-  
+  import { formatDate, formatTime, parseDateTimeString } from '$lib/utils/date-utils';
+
   // Get data from the server load function
   export let data;
   const { bookings } = data;
-  
+
   // Filter bookings by status and time
   let filterStatus = 'all';
   let filterTime = 'all';
-  
+
   $: filteredBookings = bookings.filter(booking => {
     // Filter by status
     const statusMatch = filterStatus === 'all' || booking.status === filterStatus;
-    
+
     // Filter by time (upcoming/past)
     const now = new Date();
-    const bookingDate = new Date(booking.scheduledDate);
-    const timeMatch = filterTime === 'all' || 
+    const bookingDate = parseDateTimeString(booking.scheduledDate);
+    const timeMatch = filterTime === 'all' ||
       (filterTime === 'upcoming' && bookingDate >= now) ||
       (filterTime === 'past' && bookingDate < now);
-    
+
     return statusMatch && timeMatch;
   });
-    
-  // Format date function
-  function formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, { 
-      weekday: 'short', 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  }
-  
-  // Format time function
-  function formatTime(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString(undefined, { 
-      hour: '2-digit', 
-      minute: '2-digit'
-    });
-  }
   
   // Get status badge class
   function getStatusBadgeClass(status: string): string {
