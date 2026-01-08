@@ -1,7 +1,6 @@
 <!-- src/lib/components/booking/RoomSelector.svelte -->
 <script lang="ts">
   import { Bed, Bath, Minus, Plus } from "lucide-svelte";
-  import { formatPrice } from "$lib/utils/pricing";
 
   // Props using Svelte 5 runes
   interface Props {
@@ -11,8 +10,6 @@
     bedroomMax?: number;
     bathroomMin?: number;
     bathroomMax?: number;
-    bedroomPrice?: number;
-    bathroomPrice?: number;
     onchange?: (data: { bedroomCount: number; bathroomCount: number }) => void;
   }
 
@@ -23,8 +20,6 @@
     bedroomMax = 10,
     bathroomMin = 1,
     bathroomMax = 6,
-    bedroomPrice = 36,
-    bathroomPrice = 36,
     onchange,
   }: Props = $props();
 
@@ -63,10 +58,6 @@
       bathroomCount,
     });
   }
-
-  // Reactive calculations
-  let bedroomTotal = $derived(bedroomCount * bedroomPrice);
-  let bathroomTotal = $derived(bathroomCount * bathroomPrice);
 </script>
 
 <div class="space-y-6">
@@ -80,7 +71,7 @@
         <div>
           <h3 class="font-semibold text-gray-900 dark:text-white">Bedrooms</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            {formatPrice(bedroomPrice)} per bedroom
+            How many bedrooms need cleaning?
           </p>
         </div>
       </div>
@@ -112,13 +103,6 @@
       </div>
     </div>
 
-    {#if bedroomCount > 0}
-      <div class="mt-3 text-right">
-        <span class="text-sm font-medium text-primary-600 dark:text-primary-400">
-          {formatPrice(bedroomTotal)}
-        </span>
-      </div>
-    {/if}
   </div>
 
   <!-- Bathroom selector -->
@@ -131,7 +115,7 @@
         <div>
           <h3 class="font-semibold text-gray-900 dark:text-white">Bathrooms</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            {formatPrice(bathroomPrice)} per bathroom
+            How many bathrooms need cleaning?
           </p>
         </div>
       </div>
@@ -163,13 +147,6 @@
       </div>
     </div>
 
-    {#if bathroomCount > 0}
-      <div class="mt-3 text-right">
-        <span class="text-sm font-medium text-secondary-600 dark:text-secondary-400">
-          {formatPrice(bathroomTotal)}
-        </span>
-      </div>
-    {/if}
   </div>
 
   <!-- What's included info -->

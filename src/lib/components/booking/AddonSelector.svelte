@@ -1,7 +1,6 @@
 <!-- src/lib/components/booking/AddonSelector.svelte -->
 <script lang="ts">
-  import { Check, Clock, Sparkles } from "lucide-svelte";
-  import { formatPrice, formatDuration } from "$lib/utils/pricing";
+  import { Check, Sparkles } from "lucide-svelte";
   import type { Addon } from "$lib/server/db/schema";
 
   // Props using Svelte 5 runes
@@ -30,17 +29,8 @@
     return selectedAddonIds.includes(addonId);
   }
 
-  // Calculate totals
+  // Get selected addon names for summary
   let selectedAddons = $derived(addons.filter((a) => selectedAddonIds.includes(a.id)));
-  let totalPrice = $derived(
-    selectedAddons.reduce(
-      (sum, a) => sum + parseFloat(a.price as unknown as string),
-      0
-    )
-  );
-  let totalDuration = $derived(
-    selectedAddons.reduce((sum, a) => sum + a.durationMinutes, 0)
-  );
 </script>
 
 <div class="space-y-4">
@@ -59,7 +49,6 @@
   <div class="grid gap-3 sm:grid-cols-2">
     {#each addons as addon (addon.id)}
       {@const selected = isSelected(addon.id)}
-      {@const price = parseFloat(addon.price as unknown as string)}
       <button
         type="button"
         onclick={() => toggleAddon(addon.id)}
@@ -78,20 +67,11 @@
           {/if}
         </div>
 
-        <!-- Addon name and price -->
+        <!-- Addon name -->
         <div class="pr-8">
           <h4 class="font-medium text-gray-900 dark:text-white">
             {addon.name}
           </h4>
-          <div class="mt-1 flex items-center gap-3">
-            <span class="font-semibold text-primary-600 dark:text-primary-400">
-              {formatPrice(price)}
-            </span>
-            <span class="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
-              <Clock class="h-3.5 w-3.5" />
-              {formatDuration(addon.durationMinutes)}
-            </span>
-          </div>
         </div>
 
         <!-- Description -->
@@ -107,21 +87,10 @@
   <!-- Selected addons summary -->
   {#if selectedAddonIds.length > 0}
     <div class="mt-4 rounded-lg bg-primary-50 p-4 dark:bg-primary-900/20">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm font-medium text-primary-900 dark:text-primary-100">
-            {selectedAddonIds.length} add-on{selectedAddonIds.length > 1 ? "s" : ""} selected
-          </p>
-          <p class="text-sm text-primary-700 dark:text-primary-300">
-            +{formatDuration(totalDuration)} to your clean
-          </p>
-        </div>
-        <div class="text-right">
-          <p class="text-lg font-bold text-primary-600 dark:text-primary-400">
-            +{formatPrice(totalPrice)}
-          </p>
-        </div>
-      </div>
+      <p class="text-sm font-medium text-primary-900 dark:text-primary-100">
+        {selectedAddonIds.length} add-on{selectedAddonIds.length > 1 ? "s" : ""} selected:
+        {selectedAddons.map(a => a.name).join(", ")}
+      </p>
     </div>
   {/if}
 </div>

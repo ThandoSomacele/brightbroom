@@ -10,7 +10,6 @@
   import { ArrowRight, Home, Utensils, Check } from "lucide-svelte";
   import {
     calculateCleaningPrice,
-    formatPrice,
     type PriceBreakdown,
   } from "$lib/utils/pricing";
   import type { PageData } from "./$types";
@@ -31,9 +30,6 @@
   let isLoading = $state(false);
 
   // Parse pricing config values
-  const basePrice = parseFloat(pricingConfig.basePrice as unknown as string) || 72;
-  const bedroomPrice = parseFloat(pricingConfig.bedroomPrice as unknown as string) || 36;
-  const bathroomPrice = parseFloat(pricingConfig.bathroomPrice as unknown as string) || 36;
   const bedroomMin = pricingConfig.bedroomMin || 1;
   const bedroomMax = pricingConfig.bedroomMax || 10;
   const bathroomMin = pricingConfig.bathroomMin || 1;
@@ -145,7 +141,7 @@
                 Always Included
               </h2>
               <p class="text-sm text-green-700 dark:text-green-300">
-                {formatPrice(basePrice)} base price
+                Standard with every clean
               </p>
             </div>
           </div>
@@ -191,8 +187,6 @@
             {bedroomMax}
             {bathroomMin}
             {bathroomMax}
-            {bedroomPrice}
-            {bathroomPrice}
             onchange={handleRoomChange}
           />
         </div>
