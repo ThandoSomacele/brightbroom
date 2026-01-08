@@ -7,9 +7,10 @@
   import AddonSelector from "$lib/components/booking/AddonSelector.svelte";
   import PriceSummary from "$lib/components/booking/PriceSummary.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import { ArrowRight, Home, Utensils, Check } from "lucide-svelte";
+  import { ArrowRight, Home, Utensils, Check, Clock } from "lucide-svelte";
   import {
     calculateCleaningPrice,
+    formatDuration,
     type PriceBreakdown,
   } from "$lib/utils/pricing";
   import type { PageData } from "./$types";
@@ -112,7 +113,7 @@
   <meta name="twitter:image" content={ogImageUrl} />
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50 px-4 py-8 dark:bg-gray-900">
+<div class="min-h-screen bg-gray-50 px-4 py-8 pb-28 lg:pb-8 dark:bg-gray-900">
   <div class="mx-auto max-w-5xl">
     <!-- Page header -->
     <div class="mb-8 text-center">
@@ -200,8 +201,8 @@
         {/if}
       </div>
 
-      <!-- Right column: Price Summary -->
-      <div class="lg:col-span-1">
+      <!-- Right column: Price Summary (desktop) -->
+      <div class="hidden lg:block lg:col-span-1">
         <div class="sticky top-4">
           <PriceSummary breakdown={priceBreakdown} />
 
@@ -249,5 +250,56 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Fixed bottom bar for mobile -->
+<div class="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 bg-white px-4 py-3 shadow-lg dark:border-gray-700 dark:bg-gray-800 lg:hidden">
+  <div class="mx-auto flex max-w-5xl items-center justify-between gap-4">
+    <!-- Price and duration display -->
+    <div class="flex flex-col">
+      <span class="text-xl font-bold text-gray-900 dark:text-white">
+        R{priceBreakdown.totalPrice.toFixed(2)}
+      </span>
+      <span class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+        <Clock class="h-3 w-3" />
+        {formatDuration(priceBreakdown.totalDurationMinutes)}
+      </span>
+    </div>
+
+    <!-- Continue button -->
+    <Button
+      variant="primary"
+      on:click={continueToNext}
+      disabled={isLoading}
+      class="flex-1 max-w-xs justify-center"
+    >
+      {#if isLoading}
+        <svg
+          class="mr-2 h-4 w-4 animate-spin"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          ></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+        Loading...
+      {:else}
+        Continue
+        <ArrowRight size={18} class="ml-2" />
+      {/if}
+    </Button>
   </div>
 </div>

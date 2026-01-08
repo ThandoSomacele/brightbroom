@@ -3,6 +3,10 @@
 
 import type { PricingConfig, Addon } from "$lib/server/db/schema";
 
+// Maximum booking duration: 10 hours = 600 minutes
+export const MAX_BOOKING_DURATION_MINUTES = 600;
+export const MAX_BOOKING_DURATION_HOURS = 10;
+
 export interface RoomSelection {
   bedroomCount: number;
   bathroomCount: number;
@@ -37,6 +41,9 @@ export interface PriceBreakdown {
   totalPrice: number;
   totalDurationMinutes: number;
   totalDurationHours: number;
+  // Duration cap info
+  durationCapped: boolean;
+  uncappedDurationMinutes: number;
 }
 
 export interface ValidationResult {
@@ -86,11 +93,15 @@ export function calculateCleaningPrice(
 
   // Calculate grand totals
   const totalPrice = basePrice + bedroomTotal + bathroomTotal + addonsTotal;
-  const totalDurationMinutes =
+  const uncappedDurationMinutes =
     baseDuration +
     bedroomDurationTotal +
     bathroomDurationTotal +
     addonsDurationTotal;
+
+  // Apply 10-hour cap to duration
+  const durationCapped = uncappedDurationMinutes > MAX_BOOKING_DURATION_MINUTES;
+  const totalDurationMinutes = Math.min(uncappedDurationMinutes, MAX_BOOKING_DURATION_MINUTES);
   const totalDurationHours = totalDurationMinutes / 60;
 
   return {
@@ -110,6 +121,8 @@ export function calculateCleaningPrice(
     totalPrice,
     totalDurationMinutes,
     totalDurationHours,
+    durationCapped,
+    uncappedDurationMinutes,
   };
 }
 
