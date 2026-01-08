@@ -44,7 +44,7 @@ const DEFAULT_ADDONS = [
     name: "Laundry & Ironing",
     description:
       "Use of household laundry machine. Collection of clothes allowed to go into the laundry machine. Relevant washing option selected. Ironing all washed and dried clothes.",
-    price: "54.00",
+    price: "100.00",
     durationMinutes: 90, // 1.5 hours
     sortOrder: 1,
   },
@@ -52,14 +52,14 @@ const DEFAULT_ADDONS = [
     name: "Inside Fridge",
     description:
       "Unpacking, washing/wiping, drying and repacking inside fridge.",
-    price: "18.00",
+    price: "35.00",
     durationMinutes: 30, // 0.5 hours
     sortOrder: 2,
   },
   {
     name: "Inside Oven",
     description: "Washing and drying inside oven and microwave.",
-    price: "18.00",
+    price: "35.00",
     durationMinutes: 30, // 0.5 hours
     sortOrder: 3,
   },
@@ -67,7 +67,7 @@ const DEFAULT_ADDONS = [
     name: "Inside Cabinets",
     description:
       "Unpacking, washing/wiping, drying and repacking inside kitchen cabinets.",
-    price: "36.00",
+    price: "70.00",
     durationMinutes: 60, // 1 hour
     sortOrder: 4,
   },
@@ -75,7 +75,7 @@ const DEFAULT_ADDONS = [
     name: "Interior Walls",
     description:
       "Removal of visible spots/spatter/smudges. Wiping and drying of section of interior walls.",
-    price: "36.00",
+    price: "70.00",
     durationMinutes: 60, // 1 hour
     sortOrder: 5,
   },
@@ -83,7 +83,7 @@ const DEFAULT_ADDONS = [
     name: "Interior Windows",
     description:
       "Removal of visible smudges/dirt. Wiping and drying of interior windows.",
-    price: "36.00",
+    price: "70.00",
     durationMinutes: 60, // 1 hour
     sortOrder: 6,
   },
@@ -132,25 +132,25 @@ async function seedPricing() {
       await db.insert(schema.pricingConfig).values({
         id: "default",
         // Base price (Living Room + Kitchen)
-        basePrice: "72.00",
+        basePrice: "130.00",
         baseDurationMinutes: 120, // 2 hours
         baseDescription: "Living Room and Kitchen cleaning included",
         // Bedroom pricing
-        bedroomPrice: "36.00",
+        bedroomPrice: "50.00",
         bedroomDurationMinutes: 60, // 1 hour
         bedroomMin: 1,
         bedroomMax: 10,
         // Bathroom pricing
-        bathroomPrice: "36.00",
+        bathroomPrice: "50.00",
         bathroomDurationMinutes: 60, // 1 hour
         bathroomMin: 1,
         bathroomMax: 6,
       });
 
       console.log("Pricing configuration seeded:");
-      console.log("  Base (Living Room + Kitchen): R72.00 (2 hours)");
-      console.log("  Per Bedroom: R36.00 (1 hour)");
-      console.log("  Per Bathroom: R36.00 (1 hour)");
+      console.log("  Base (Living Room + Kitchen): R130.00 (2 hours)");
+      console.log("  Per Bedroom: R50.00 (1 hour)");
+      console.log("  Per Bathroom: R50.00 (1 hour)");
       console.log("  Bedroom range: 1-10");
       console.log("  Bathroom range: 1-6");
     }
@@ -225,7 +225,7 @@ async function seedPricing() {
         name: "General Clean",
         description:
           "Customizable room-based cleaning. Includes Living Room and Kitchen with every clean. Add bedrooms, bathrooms, and optional addons.",
-        basePrice: "72.00", // Base price only (customers select rooms)
+        basePrice: "130.00", // Base price only (customers select rooms)
         durationHours: 2, // Base duration only
         isActive: true,
         sortOrder: 0, // First in list
@@ -244,10 +244,10 @@ async function seedPricing() {
     console.log("\n=== Summary ===");
     console.log("Pricing and addons seeding completed successfully!");
     console.log("\nExample pricing calculations:");
-    console.log("  1 bed, 1 bath: R72 + R36 + R36 = R144 (4 hours)");
-    console.log("  2 bed, 1 bath: R72 + R72 + R36 = R180 (5 hours)");
-    console.log("  3 bed, 2 bath: R72 + R108 + R72 = R252 (7 hours)");
-    console.log("  + Laundry & Ironing: +R54 (+1.5 hours)");
+    console.log("  1 bed, 1 bath: R130 + R50 + R50 = R230 (4 hours)");
+    console.log("  2 bed, 1 bath: R130 + R100 + R50 = R280 (5 hours)");
+    console.log("  3 bed, 2 bath: R130 + R150 + R100 = R380 (7 hours)");
+    console.log("  + Laundry & Ironing: +R100 (+1.5 hours)");
   } catch (error) {
     console.error("Error during seeding:", error);
     process.exit(1);

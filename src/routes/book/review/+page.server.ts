@@ -31,14 +31,14 @@ export const load: PageServerLoad = async ({ locals, ...event }) => {
     // If no pricing config exists, use defaults
     const pricingData = config || {
       id: "default",
-      basePrice: "72.00",
+      basePrice: "130.00",
       baseDurationMinutes: 120,
       baseDescription: "Living Room and Kitchen cleaning included",
-      bedroomPrice: "36.00",
+      bedroomPrice: "50.00",
       bedroomDurationMinutes: 60,
       bedroomMin: 1,
       bedroomMax: 10,
-      bathroomPrice: "36.00",
+      bathroomPrice: "50.00",
       bathroomDurationMinutes: 60,
       bathroomMin: 1,
       bathroomMax: 6,

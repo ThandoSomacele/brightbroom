@@ -53,11 +53,11 @@ export function calculateCleaningPrice(
   selectedAddons: Addon[] = []
 ): PriceBreakdown {
   // Parse prices from config (they come as strings from the database)
-  const basePrice = parseFloat(config.basePrice as unknown as string) || 72;
+  const basePrice = parseFloat(config.basePrice as unknown as string) || 130;
   const bedroomPrice =
-    parseFloat(config.bedroomPrice as unknown as string) || 36;
+    parseFloat(config.bedroomPrice as unknown as string) || 50;
   const bathroomPrice =
-    parseFloat(config.bathroomPrice as unknown as string) || 36;
+    parseFloat(config.bathroomPrice as unknown as string) || 50;
 
   // Parse durations
   const baseDuration = config.baseDurationMinutes || 120;
