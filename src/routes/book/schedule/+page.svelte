@@ -200,23 +200,23 @@
     }
   }
 
-  // Handle recurring booking events
-  function handleFrequencyChange(event: CustomEvent) {
-    recurringFrequency = event.detail.frequency;
-    discountPercentage = event.detail.discountPercentage;
-    finalPrice = event.detail.finalPrice;
+  // Handle recurring booking events (Svelte 5 callback props)
+  function handleFrequencyChange(data: { frequency: string; discountPercentage: number; finalPrice: number }) {
+    recurringFrequency = data.frequency;
+    discountPercentage = data.discountPercentage;
+    finalPrice = data.finalPrice;
   }
 
-  function handleDaysChange(event: CustomEvent) {
-    recurringDays = event.detail.days;
+  function handleDaysChange(data: { days: string[] }) {
+    recurringDays = data.days;
   }
 
-  function handleMonthlyDatesChange(event: CustomEvent) {
-    recurringMonthlyDates = event.detail.dates;
+  function handleMonthlyDatesChange(data: { dates: number[] }) {
+    recurringMonthlyDates = data.dates;
   }
 
-  function handleTimeSlotChange(event: CustomEvent) {
-    recurringTimeSlot = event.detail.timeSlot;
+  function handleTimeSlotChange(data: { timeSlot: string }) {
+    recurringTimeSlot = data.timeSlot;
   }
   
   // Go back to previous step
@@ -305,10 +305,10 @@
             bind:selectedDays={recurringDays}
             bind:selectedMonthlyDates={recurringMonthlyDates}
             bind:preferredTimeSlot={recurringTimeSlot}
-            on:frequencyChange={handleFrequencyChange}
-            on:daysChange={handleDaysChange}
-            on:monthlyDatesChange={handleMonthlyDatesChange}
-            on:timeSlotChange={handleTimeSlotChange}
+            onfrequencychange={handleFrequencyChange}
+            ondayschange={handleDaysChange}
+            onmonthlydateschange={handleMonthlyDatesChange}
+            ontimeslotchange={handleTimeSlotChange}
           />
         </div>
       </div>
