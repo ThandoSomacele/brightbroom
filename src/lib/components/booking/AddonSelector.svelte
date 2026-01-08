@@ -1,7 +1,20 @@
 <!-- src/lib/components/booking/AddonSelector.svelte -->
 <script lang="ts">
-  import { Check, Sparkles, Info, X } from "lucide-svelte";
+  import {
+    Check,
+    Sparkles,
+    Info,
+    X,
+    Shirt,
+    Snowflake,
+    Flame,
+    DoorOpen,
+    PaintBucket,
+    SquareStack,
+    type Icon
+  } from "lucide-svelte";
   import type { Addon } from "$lib/server/db/schema";
+  import type { ComponentType } from "svelte";
 
   // Props using Svelte 5 runes
   interface Props {
@@ -15,6 +28,20 @@
     selectedAddonIds = $bindable([]),
     onchange,
   }: Props = $props();
+
+  // Map addon names to their icons
+  const addonIcons: Record<string, ComponentType<Icon>> = {
+    "Laundry & Ironing": Shirt,
+    "Inside Fridge": Snowflake,
+    "Inside Oven": Flame,
+    "Inside Cabinets": DoorOpen,
+    "Interior Walls": PaintBucket,
+    "Interior Windows": SquareStack,
+  };
+
+  function getAddonIcon(addonName: string): ComponentType<Icon> {
+    return addonIcons[addonName] || Sparkles;
+  }
 
   // State for showing description popup
   let activePopup: string | null = $state(null);
@@ -57,6 +84,7 @@
   <div class="grid gap-3 sm:grid-cols-2">
     {#each addons as addon (addon.id)}
       {@const selected = isSelected(addon.id)}
+      {@const AddonIcon = getAddonIcon(addon.name)}
       <div class="relative">
         <!-- Addon card container - uses div with role for accessibility -->
         <div
@@ -79,6 +107,13 @@
               {#if selected}
                 <Check class="h-4 w-4" />
               {/if}
+            </div>
+
+            <!-- Addon icon -->
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg flex-shrink-0 {selected
+              ? 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-300'
+              : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'}">
+              <AddonIcon class="h-4 w-4" />
             </div>
 
             <!-- Addon name -->
