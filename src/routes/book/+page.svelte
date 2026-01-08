@@ -177,9 +177,6 @@
 
         <!-- Room Selection -->
         <div>
-          <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
-            Select Your Rooms
-          </h2>
           <RoomSelector
             bind:bedroomCount
             bind:bathroomCount
