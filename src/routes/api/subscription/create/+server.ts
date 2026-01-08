@@ -50,9 +50,13 @@ export const POST: RequestHandler = async ({ request, locals, ...event }) => {
         basePrice: basePriceValue,
         discountPercentage: guestBookingData.discountPercentage || 0,
         finalPrice: guestBookingData.finalPrice || 0,
-        startDate: new Date(), // Start immediately
+        startDate: guestBookingData.startDate || new Date(),
         notes: guestBookingData.notes || null,
-        guestAddress: guestBookingData.guestAddress // Include guest address for creation
+        guestAddress: guestBookingData.guestAddress,
+        // Room-based pricing fields - CRITICAL for correct price calculation
+        bedroomCount: guestBookingData.bedroomCount || 1,
+        bathroomCount: guestBookingData.bathroomCount || 1,
+        addonIds: guestBookingData.addonIds || []
       };
     }
 
