@@ -274,81 +274,83 @@
       <StepTracker currentStep={2} />
     </div>
 
-    <!-- Address limit information -->
-    <div
-      class="mb-6 bg-blue-50 p-4 rounded-lg dark:bg-blue-900/20 flex items-start"
-    >
-      <button
-        type="button"
-        class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-primary-50 hover:bg-primary-100 hover:text-primary-700 rounded-md transition-colors dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40 mr-2 flex-shrink-0"
+    <!-- Address limit information - only show for authenticated users -->
+    {#if isAuthenticated}
+      <div
+        class="mb-6 bg-blue-50 p-4 rounded-lg dark:bg-blue-900/20 flex items-start"
       >
-        <svg
-          class="w-3 h-3"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-primary-50 hover:bg-primary-100 hover:text-primary-700 rounded-md transition-colors dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40 mr-2 flex-shrink-0"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-          />
-        </svg>
-        View Details
-      </button>
-      <div>
-        <p class="text-blue-800 dark:text-blue-300">
-          You are using <span class="font-semibold">{addresses.length}</span> of
-          <span class="font-semibold">{MAX_ADDRESSES}</span> available address slots.
-        </p>
-        {#if hasReachedLimit}
-          <p class="text-sm text-blue-700 dark:text-blue-400 mt-1">
-            To add a new address, you must first delete an existing one.
+          <svg
+            class="w-3 h-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+            />
+          </svg>
+          View Details
+        </button>
+        <div>
+          <p class="text-blue-800 dark:text-blue-300">
+            You are using <span class="font-semibold">{addresses.length}</span> of
+            <span class="font-semibold">{MAX_ADDRESSES}</span> available address slots.
           </p>
-        {/if}
+          {#if hasReachedLimit}
+            <p class="text-sm text-blue-700 dark:text-blue-400 mt-1">
+              To add a new address, you must first delete an existing one.
+            </p>
+          {/if}
+        </div>
       </div>
-    </div>
 
-    <!-- Add new address button -->
-    <div class="mb-6">
-      {#if hasReachedLimit}
-        <div class="flex flex-col md:flex-row gap-4">
+      <!-- Add new address button -->
+      <div class="mb-6">
+        {#if hasReachedLimit}
+          <div class="flex flex-col md:flex-row gap-4">
+            <Button
+              variant="primary"
+              disabled={true}
+              title="You have reached the maximum limit of addresses"
+              class="w-full sm:w-auto flex"
+            >
+              <Plus size={18} class="mr-2" />
+              Add New Address (Limit Reached)
+            </Button>
+
+            <Button
+              variant="secondary"
+              on:click={goToManageAddresses}
+              class="w-full sm:w-auto"
+            >
+              Manage My Addresses
+            </Button>
+          </div>
+        {:else}
           <Button
             variant="primary"
-            disabled={true}
-            title="You have reached the maximum limit of addresses"
-            class="w-full sm:w-auto flex"
-          >
-            <Plus size={18} class="mr-2" />
-            Add New Address (Limit Reached)
-          </Button>
-
-          <Button
-            variant="secondary"
-            on:click={goToManageAddresses}
+            href="/profile/addresses/new?redirectTo=/book/address"
             class="w-full sm:w-auto"
           >
-            Manage My Addresses
+            <Plus size={18} class="mr-2" />
+            Add New Address ({remainingAddresses} remaining)
           </Button>
-        </div>
-      {:else}
-        <Button
-          variant="primary"
-          href="/profile/addresses/new?redirectTo=/book/address"
-          class="w-full sm:w-auto"
-        >
-          <Plus size={18} class="mr-2" />
-          Add New Address ({remainingAddresses} remaining)
-        </Button>
-      {/if}
-    </div>
+        {/if}
+      </div>
+    {/if}
 
     <!-- Guest Address Form -->
     {#if !isAuthenticated}
