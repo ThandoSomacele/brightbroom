@@ -1,40 +1,69 @@
 // src/routes/book/review/+page.server.ts
 import { db } from '$lib/server/db';
-import { service, address, booking, user } from '$lib/server/db/schema';
+import { service, address, booking, pricingConfig, addon, bookingAddon } from '$lib/server/db/schema';
 import { error, redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { eq, inArray, asc } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 import { sendBookingConfirmationEmail } from '$lib/server/email-service';
 import { addressService } from '$lib/server/services/address.service';
 import { parseDateTimeString } from '$lib/utils/date-utils';
 import { getGuestBookingData, storeGuestBookingData } from '$lib/server/guest-booking';
+import { calculateCleaningPrice, validateRoomSelection } from '$lib/utils/pricing';
 
 export const load: PageServerLoad = async ({ locals, ...event }) => {
   // Load guest booking data from session
   const guestBookingData = getGuestBookingData(event);
-  
+
   try {
-    // Get services for validation
-    const services = await db.select().from(service);
-    
+    // Load pricing configuration
+    const [config] = await db
+      .select()
+      .from(pricingConfig)
+      .where(eq(pricingConfig.id, "default"));
+
+    // Load active addons ordered by sortOrder
+    const addons = await db
+      .select()
+      .from(addon)
+      .where(eq(addon.isActive, true))
+      .orderBy(asc(addon.sortOrder));
+
+    // If no pricing config exists, use defaults
+    const pricingData = config || {
+      id: "default",
+      basePrice: "130.00",
+      baseDurationMinutes: 120,
+      baseDescription: "Living Room and Kitchen cleaning included",
+      bedroomPrice: "50.00",
+      bedroomDurationMinutes: 60,
+      bedroomMin: 1,
+      bedroomMax: 10,
+      bathroomPrice: "50.00",
+      bathroomDurationMinutes: 60,
+      bathroomMin: 1,
+      bathroomMax: 6,
+    };
+
     // For authenticated users, also load their addresses
     if (locals.user) {
       const addresses = await addressService.getUserAddresses(locals.user.id);
-      
+
       return {
         user: locals.user,
         addresses,
-        services,
+        pricingConfig: pricingData,
+        addons,
         guestBookingData,
         isAuthenticated: true
       };
     }
-    
+
     // For guest users, return guest booking data
     return {
       user: null,
       addresses: [],
-      services,
+      pricingConfig: pricingData,
+      addons,
       guestBookingData,
       isAuthenticated: false
     };
@@ -73,6 +102,12 @@ export const actions: Actions = {
     const notes = formData.get('notes')?.toString();
     const cleanerId = formData.get('cleanerId')?.toString() || null;
 
+    // Room-based pricing data
+    const bedroomCount = parseInt(formData.get('bedroomCount')?.toString() || '1', 10);
+    const bathroomCount = parseInt(formData.get('bathroomCount')?.toString() || '1', 10);
+    const addonIdsJson = formData.get('addonIds')?.toString();
+    const addonIds: string[] = addonIdsJson ? JSON.parse(addonIdsJson) : [];
+
     // Check if this is a recurring booking
     const isRecurring = formData.get('isRecurring') === 'true';
     const recurringFrequency = formData.get('recurringFrequency')?.toString();
@@ -80,7 +115,7 @@ export const actions: Actions = {
     const recurringMonthlyDates = formData.get('recurringMonthlyDates')?.toString();
     const recurringTimeSlot = formData.get('recurringTimeSlot')?.toString();
     const discountPercentage = formData.get('discountPercentage')?.toString();
-    const finalPrice = formData.get('finalPrice')?.toString();
+    const clientFinalPrice = formData.get('finalPrice')?.toString();
     const startDate = formData.get('startDate')?.toString();
 
     // Guest booking data (contact info will be obtained during authentication)
@@ -103,7 +138,7 @@ export const actions: Actions = {
         return { success: false, error: 'Missing booking date information' };
       }
     }
-    
+
     // Validate based on user type
     if (locals.user) {
       // Authenticated user - require addressId
@@ -116,22 +151,54 @@ export const actions: Actions = {
         return { success: false, error: 'Address information is required' };
       }
     }
-    
+
     try {
-      // Validate service exists
+      // Load pricing configuration for server-side validation and price calculation
+      const [config] = await db
+        .select()
+        .from(pricingConfig)
+        .where(eq(pricingConfig.id, "default"));
+
+      if (!config) {
+        return { success: false, error: 'Pricing configuration not found' };
+      }
+
+      // Validate room selection
+      const roomValidation = validateRoomSelection(config, { bedroomCount, bathroomCount });
+      if (!roomValidation.valid) {
+        return { success: false, error: roomValidation.error };
+      }
+
+      // Load selected addons for price calculation
+      let selectedAddons: typeof addon.$inferSelect[] = [];
+      if (addonIds.length > 0) {
+        selectedAddons = await db
+          .select()
+          .from(addon)
+          .where(inArray(addon.id, addonIds));
+      }
+
+      // Calculate price SERVER-SIDE (never trust client prices)
+      const priceBreakdown = calculateCleaningPrice(
+        config,
+        { bedroomCount, bathroomCount },
+        selectedAddons
+      );
+
+      // Validate service exists (for backward compatibility)
       const serviceResult = await db.select()
         .from(service)
         .where(eq(service.id, serviceId))
         .limit(1);
-      
+
       if (serviceResult.length === 0) {
         return { success: false, error: 'Selected service not found' };
       }
-      
+
       const serviceData = serviceResult[0];
       let addressData = null;
       let guestAddress = null;
-      
+
       // Handle address validation based on user type
       if (locals.user) {
         // Authenticated user - validate address exists and belongs to user
@@ -139,52 +206,56 @@ export const actions: Actions = {
           .from(address)
           .where(eq(address.id, addressId!))
           .limit(1);
-        
+
         if (addressResult.length === 0 || addressResult[0].userId !== locals.user.id) {
           return { success: false, error: 'Selected address not found or invalid' };
         }
-        
+
         addressData = addressResult[0];
       } else {
         // Guest user - parse and validate guest address
         try {
           guestAddress = JSON.parse(guestAddressData!);
-          
+
           // Check if guest address is null or missing required fields
           if (!guestAddress) {
             return { success: false, error: 'Guest address information is missing' };
           }
-          
+
           // For South African addresses, validate required fields
           // Street can be empty for estates/complexes as long as we have other identifying info
           if (!guestAddress.city || !guestAddress.state || !guestAddress.zipCode) {
             return { success: false, error: 'Complete address information is required (city, province, and postal code)' };
           }
-        } catch (error) {
+        } catch (parseError) {
           return { success: false, error: 'Invalid address format' };
         }
       }
-      
+
       // Handle recurring booking differently
       if (isRecurring) {
+        // Apply discount to server-calculated price
+        const discount = parseFloat(discountPercentage || '0');
+        const discountedPrice = priceBreakdown.totalPrice * (1 - discount / 100);
+
         // Recurring bookings require authentication
         if (!locals.user) {
-          // Calculate duration in minutes based on the service
-          const durationMinutes = serviceData.durationHours * 60;
-
           // Store recurring booking data for after authentication
           storeGuestBookingData(event, {
             serviceId,
-            serviceName: serviceData.name,
-            servicePrice: serviceData.basePrice,
-            duration: durationMinutes,
+            serviceName: 'General Clean',
+            servicePrice: priceBreakdown.totalPrice,
+            duration: priceBreakdown.totalDurationMinutes,
+            bedroomCount,
+            bathroomCount,
+            addonIds,
             isRecurring: true,
             recurringFrequency,
             recurringDays: recurringDays ? JSON.parse(recurringDays) : [],
             recurringMonthlyDates: recurringMonthlyDates ? JSON.parse(recurringMonthlyDates) : [],
             recurringTimeSlot,
-            discountPercentage: parseFloat(discountPercentage || '0'),
-            finalPrice: parseFloat(finalPrice || serviceData.basePrice.toString()),
+            discountPercentage: discount,
+            finalPrice: discountedPrice,
             startDate,
             notes: notes || undefined,
             guestAddress
@@ -199,24 +270,24 @@ export const actions: Actions = {
         }
 
         // For authenticated users, redirect to subscription creation
-        // Calculate duration in minutes based on the service
-        const durationMinutes = serviceData.durationHours * 60;
-
         // Store the recurring booking data in session for the subscription API
         storeGuestBookingData(event, {
           serviceId,
-          serviceName: serviceData.name,
-          duration: durationMinutes,
+          serviceName: 'General Clean',
+          duration: priceBreakdown.totalDurationMinutes,
           addressId,
           cleanerId,
+          bedroomCount,
+          bathroomCount,
+          addonIds,
           isRecurring: true,
           recurringFrequency,
           recurringDays: recurringDays ? JSON.parse(recurringDays) : [],
           recurringMonthlyDates: recurringMonthlyDates ? JSON.parse(recurringMonthlyDates) : [],
           recurringTimeSlot,
-          discountPercentage: parseFloat(discountPercentage || '0'),
-          finalPrice: parseFloat(finalPrice || serviceData.basePrice.toString()),
-          basePrice: serviceData.basePrice,
+          discountPercentage: discount,
+          finalPrice: discountedPrice,
+          basePrice: priceBreakdown.totalPrice,
           startDate: startDate || new Date().toISOString(),
           notes: notes || undefined
         });
@@ -229,16 +300,13 @@ export const actions: Actions = {
         };
       }
 
-      // One-time booking logic (existing code)
-      const scheduledDateObj = new Date(parseDateTimeString(scheduledDate));
-
-      // Calculate duration in minutes based on the service
-      const durationMinutes = serviceData.durationHours * 60;
+      // One-time booking logic - scheduledDate is guaranteed to exist here (validated above)
+      const scheduledDateObj = new Date(parseDateTimeString(scheduledDate!));
 
       // Create booking ID
       const bookingId = crypto.randomUUID();
 
-      // Prepare booking data
+      // Prepare booking data with room counts
       const bookingData = {
         id: bookingId,
         userId: locals.user?.id || null,
@@ -247,8 +315,10 @@ export const actions: Actions = {
         cleanerId: cleanerId,
         status: 'PENDING' as const,
         scheduledDate: scheduledDateObj,
-        duration: durationMinutes,
-        price: serviceData.basePrice,
+        duration: priceBreakdown.totalDurationMinutes,
+        price: priceBreakdown.totalPrice.toFixed(2),
+        bedroomCount,
+        bathroomCount,
         notes: notes || null,
         // Guest booking fields - only address data (contact info obtained during authentication)
         guestAddress: locals.user ? null : guestAddress,
@@ -258,22 +328,39 @@ export const actions: Actions = {
 
       // Insert the booking into the database
       const [newBooking] = await db.insert(booking).values(bookingData).returning();
-      
-      console.log(`Created new booking: ${newBooking.id} for ${locals.user ? 'user: ' + locals.user.id : 'guest (contact info to be collected during authentication)'}`);
-      
+
+      // Insert booking addons if any
+      if (selectedAddons.length > 0) {
+        const bookingAddonRecords = selectedAddons.map((a) => ({
+          id: crypto.randomUUID(),
+          bookingId: newBooking.id,
+          addonId: a.id,
+          priceAtBooking: a.price,
+          durationAtBooking: a.durationMinutes,
+          createdAt: new Date(),
+        }));
+
+        await db.insert(bookingAddon).values(bookingAddonRecords);
+      }
+
+      console.log(`Created new booking: ${newBooking.id} (${bedroomCount} bedrooms, ${bathroomCount} bathrooms, ${selectedAddons.length} addons) for ${locals.user ? 'user: ' + locals.user.id : 'guest (contact info to be collected during authentication)'}`);
+
       // Store guest booking data in session for potential future use
       if (!locals.user) {
         storeGuestBookingData(event, {
           serviceId,
-          serviceName: serviceData.name,
-          servicePrice: serviceData.basePrice,
+          serviceName: 'General Clean',
+          servicePrice: priceBreakdown.totalPrice,
           scheduledDate,
-          duration: durationMinutes,
+          duration: priceBreakdown.totalDurationMinutes,
+          bedroomCount,
+          bathroomCount,
+          addonIds,
           notes: notes || undefined,
           guestAddress
         });
       }
-      
+
       // Send booking confirmation email only for authenticated users
       // Guest users will receive confirmation after authentication during payment
       if (locals.user) {
@@ -283,18 +370,18 @@ export const actions: Actions = {
           state: addressData!.state,
           zipCode: addressData!.zipCode
         };
-        
+
         const bookingDataForEmail = {
           id: newBooking.id,
           service: {
-            name: serviceData.name,
-            description: serviceData.description
+            name: 'General Clean',
+            description: `${bedroomCount} bedroom${bedroomCount > 1 ? 's' : ''}, ${bathroomCount} bathroom${bathroomCount > 1 ? 's' : ''}${selectedAddons.length > 0 ? ' + ' + selectedAddons.length + ' add-on' + (selectedAddons.length > 1 ? 's' : '') : ''}`
           },
           scheduledDate: scheduledDateObj.toISOString(),
           price: newBooking.price,
           address: emailAddress
         };
-        
+
         sendBookingConfirmationEmail(locals.user.email, bookingDataForEmail)
           .then(success => {
             console.log(`Booking confirmation email ${success ? 'sent' : 'failed to send'} to ${locals.user!.email}`);
@@ -305,8 +392,8 @@ export const actions: Actions = {
       } else {
         console.log(`Created guest booking: ${newBooking.id}, confirmation email will be sent after authentication`);
       }
-      
-      return { 
+
+      return {
         success: true,
         bookingId: newBooking.id,
         message: 'Booking created successfully',
@@ -314,9 +401,9 @@ export const actions: Actions = {
       };
     } catch (err) {
       console.error('Error creating booking:', err);
-      return { 
-        success: false, 
-        error: 'Failed to create booking. Please try again.' 
+      return {
+        success: false,
+        error: 'Failed to create booking. Please try again.'
       };
     }
   }

@@ -3,10 +3,11 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
-import { subscription, booking, payment, user, address, service } from '$lib/server/db/schema';
+import { subscription, booking, payment, user, address, service, subscriptionAddon, addon, pricingConfig } from '$lib/server/db/schema';
 import { payFastSubscriptionService } from '$lib/server/services/payfast-subscription';
 import { getGuestBookingData } from '$lib/server/guest-booking';
-import { eq } from 'drizzle-orm';
+import { calculateCleaningPrice } from '$lib/utils/pricing';
+import { eq, inArray } from 'drizzle-orm';
 import crypto from 'crypto';
 
 export const POST: RequestHandler = async ({ request, locals, ...event }) => {
@@ -69,7 +70,11 @@ export const POST: RequestHandler = async ({ request, locals, ...event }) => {
       finalPrice,
       startDate,
       notes,
-      guestAddress
+      guestAddress,
+      // Room-based pricing fields
+      bedroomCount = 1,
+      bathroomCount = 1,
+      addonIds = []
     } = data;
 
     console.log('Subscription create - validation:', {
@@ -111,13 +116,12 @@ export const POST: RequestHandler = async ({ request, locals, ...event }) => {
       }
     }
 
-    if (!serviceId || !addressId || !frequency || !basePrice || !finalPrice) {
+    // Only validate essential fields - prices are recalculated server-side
+    if (!serviceId || !addressId || !frequency) {
       console.error('Missing required fields:', {
         serviceId: !!serviceId,
         addressId: !!addressId,
-        frequency: !!frequency,
-        basePrice: !!basePrice,
-        finalPrice: !!finalPrice
+        frequency: !!frequency
       });
       return json({ error: 'Missing required fields' }, { status: 400 });
     }
@@ -139,6 +143,44 @@ export const POST: RequestHandler = async ({ request, locals, ...event }) => {
       return json({ error: 'Invalid user or address' }, { status: 400 });
     }
 
+    // Fetch pricing config for server-side price calculation
+    const [config] = await db
+      .select()
+      .from(pricingConfig)
+      .where(eq(pricingConfig.id, 'default'));
+
+    if (!config) {
+      return json({ error: 'Pricing configuration not found' }, { status: 500 });
+    }
+
+    // Fetch selected addons if any
+    let selectedAddons: typeof addon.$inferSelect[] = [];
+    if (addonIds && addonIds.length > 0) {
+      selectedAddons = await db
+        .select()
+        .from(addon)
+        .where(inArray(addon.id, addonIds));
+    }
+
+    // Calculate price SERVER-SIDE (never trust client prices)
+    const priceBreakdown = calculateCleaningPrice(
+      config,
+      { bedroomCount, bathroomCount },
+      selectedAddons
+    );
+
+    // Apply recurring discount
+    const discounts: Record<string, number> = {
+      WEEKLY: 10,
+      BIWEEKLY: 8,
+      TWICE_WEEKLY: 15,
+      TWICE_MONTHLY: 7,
+    };
+    const actualDiscountPercentage = discounts[frequency] || 0;
+    const serverBasePrice = priceBreakdown.totalPrice;
+    const discountAmount = (serverBasePrice * actualDiscountPercentage) / 100;
+    const serverFinalPrice = serverBasePrice - discountAmount;
+
     // Create subscription record
     const subscriptionId = crypto.randomBytes(16).toString('hex');
 
@@ -155,13 +197,28 @@ export const POST: RequestHandler = async ({ request, locals, ...event }) => {
         preferredDays: preferredDays || [],
         preferredTimeSlot: preferredTimeSlot || null,
         monthlyDates: monthlyDates || [],
-        basePrice: basePrice.toString(),
-        discountPercentage: discountPercentage.toString(),
-        finalPrice: finalPrice.toString(),
+        bedroomCount,
+        bathroomCount,
+        basePrice: serverBasePrice.toFixed(2),
+        discountPercentage: actualDiscountPercentage.toFixed(2),
+        finalPrice: serverFinalPrice.toFixed(2),
         startDate: new Date(startDate),
         notes: notes || null,
       })
       .returning();
+
+    // Create subscription addon records if any
+    if (selectedAddons.length > 0) {
+      const subscriptionAddonRecords = selectedAddons.map((a) => ({
+        id: crypto.randomBytes(16).toString('hex'),
+        subscriptionId: newSubscription.id,
+        addonId: a.id,
+        priceAtSubscription: a.price,
+        durationAtSubscription: a.durationMinutes,
+        createdAt: new Date(),
+      }));
+      await db.insert(subscriptionAddon).values(subscriptionAddonRecords);
+    }
 
     // Create PayFast subscription
     const { redirectUrl } = await payFastSubscriptionService.createSubscription(

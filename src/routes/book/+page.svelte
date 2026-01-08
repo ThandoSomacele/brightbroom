@@ -2,74 +2,88 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
-  import ServiceDetailsModal from "$lib/components/booking/ServiceDetailsModal.svelte";
   import StepTracker from "$lib/components/booking/StepTracker.svelte";
+  import RoomSelector from "$lib/components/booking/RoomSelector.svelte";
+  import AddonSelector from "$lib/components/booking/AddonSelector.svelte";
+  import PriceSummary from "$lib/components/booking/PriceSummary.svelte";
   import Button from "$lib/components/ui/Button.svelte";
+  import { ArrowRight, Home, Utensils, Check } from "lucide-svelte";
   import {
-    ArrowRight,
-    Building,
-    Home,
-    HousePlus,
-    WashingMachine,
-  } from "lucide-svelte";
+    calculateCleaningPrice,
+    type PriceBreakdown,
+  } from "$lib/utils/pricing";
+  import type { PageData } from "./$types";
 
-  // Get data from the server load function
-  export let data;
-  const { services, user, isAuthenticated } = data;
+  // Get data from the server load function using Svelte 5 props
+  let { data }: { data: PageData } = $props();
+  const { pricingConfig, addons, user, isAuthenticated } = data;
 
   const siteUrl = import.meta.env.VITE_SITE_URL || "https://brightbroom.com";
   const ogImageUrl = `${siteUrl}/images/brightbroom-og-image.jpg`;
 
-  // Track selected service
-  let selectedService = "";
+  // Room selection state using $state for reactivity
+  let bedroomCount = $state(1);
+  let bathroomCount = $state(1);
+  let selectedAddonIds: string[] = $state([]);
 
-  // Add loading state
-  let isLoading = false;
+  // Loading state
+  let isLoading = $state(false);
 
-  // Modal state
-  let showDetailsModal = false;
-  let selectedServiceForDetails = null;
+  // Parse pricing config values
+  const bedroomMin = pricingConfig.bedroomMin || 1;
+  const bedroomMax = pricingConfig.bedroomMax || 10;
+  const bathroomMin = pricingConfig.bathroomMin || 1;
+  const bathroomMax = pricingConfig.bathroomMax || 6;
 
-  // Handle service selection
-  function selectService(id: string) {
-    selectedService = id;
+  // Calculate price breakdown reactively using $derived
+  let selectedAddons = $derived(addons.filter((a) => selectedAddonIds.includes(a.id)));
+  let priceBreakdown = $derived(calculateCleaningPrice(
+    pricingConfig as Parameters<typeof calculateCleaningPrice>[0],
+    { bedroomCount, bathroomCount },
+    selectedAddons
+  ));
+
+  // Handle room selection change (used by RoomSelector's onchange callback)
+  function handleRoomChange(data: { bedroomCount: number; bathroomCount: number }) {
+    bedroomCount = data.bedroomCount;
+    bathroomCount = data.bathroomCount;
   }
 
-  // Show service details modal
-  function showServiceDetails(service) {
-    selectedServiceForDetails = service;
-    showDetailsModal = true;
+  // Handle addon selection change (used by AddonSelector's onchange callback)
+  function handleAddonChange(data: { selectedAddonIds: string[] }) {
+    selectedAddonIds = data.selectedAddonIds;
   }
 
   // Continue to next step
   async function continueToNext() {
-    if (selectedService) {
-      // Show loading state
-      isLoading = true;
+    isLoading = true;
 
-      try {
-        // Store selection in localStorage to persist through navigation
-        localStorage.setItem("booking_service", selectedService);
+    try {
+      // Store selection in localStorage
+      localStorage.setItem("booking_bedroom_count", bedroomCount.toString());
+      localStorage.setItem("booking_bathroom_count", bathroomCount.toString());
+      localStorage.setItem("booking_addon_ids", JSON.stringify(selectedAddonIds));
+      localStorage.setItem("booking_total_price", priceBreakdown.totalPrice.toString());
+      localStorage.setItem("booking_total_duration", priceBreakdown.totalDurationMinutes.toString());
 
-        // Find and store service data for price calculations
-        const service = services.find(s => s.id === selectedService);
-        if (service) {
-          localStorage.setItem("booking_service_data", JSON.stringify({
-            id: service.id,
-            name: service.name,
-            price: service.basePrice,
-            duration: service.durationHours
-          }));
-        }
+      // Store the "general-clean" service ID for backward compatibility
+      localStorage.setItem("booking_service", "general-clean");
+      localStorage.setItem(
+        "booking_service_data",
+        JSON.stringify({
+          id: "general-clean",
+          name: "General Clean",
+          price: priceBreakdown.totalPrice,
+          duration: priceBreakdown.totalDurationHours,
+        })
+      );
 
-        // Navigate to address selection with serviceId as a query parameter
-        await goto(`/book/address?serviceId=${selectedService}`);
-      } catch (error) {
-        console.error("Navigation error:", error);
-      } finally {
-        // Reset loading state
-        isLoading = false;
-      }
+      // Navigate to address selection
+      await goto("/book/address?serviceId=general-clean");
+    } catch (error) {
+      console.error("Navigation error:", error);
+    } finally {
+      isLoading = false;
     }
   }
 </script>
@@ -78,32 +92,22 @@
   <title>Book a Cleaning | BrightBroom</title>
   <meta
     name="description"
-    content="Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean."
+    content="Cleaner Bookings Made Simple. Build your perfect cleaning package by selecting rooms and add-ons."
   />
-
-  <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content={$page.url.href} />
-  <meta
-    property="og:title"
-    content="BrightBroom | Cleaner Bookings Made Simple"
-  />
+  <meta property="og:title" content="BrightBroom | Build Your Perfect Clean" />
   <meta
     property="og:description"
-    content="Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean."
+    content="Cleaner Bookings Made Simple. Customize your cleaning based on your home's bedrooms, bathrooms, and optional add-ons."
   />
   <meta property="og:image" content={ogImageUrl} />
-
-  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content={$page.url.href} />
-  <meta
-    name="twitter:title"
-    content="BrightBroom | Cleaner Bookings Made Simple"
-  />
+  <meta name="twitter:title" content="BrightBroom | Build Your Perfect Clean" />
   <meta
     name="twitter:description"
-    content="Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean."
+    content="Cleaner Bookings Made Simple. Customize your cleaning based on your home's bedrooms, bathrooms, and optional add-ons."
   />
   <meta name="twitter:image" content={ogImageUrl} />
 </svelte:head>
@@ -113,147 +117,137 @@
     <!-- Page header -->
     <div class="mb-8 text-center">
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-        Book a Cleaning
+        Build Your Clean
       </h1>
       <p class="mt-2 text-gray-600 dark:text-gray-300">
-        Select the type of cleaning service you need
+        Select your rooms and add optional extras
       </p>
     </div>
 
     <!-- Progress steps -->
     <StepTracker currentStep={1} />
 
-    <!-- Service selection cards -->
-    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {#if services && services.length > 0}
-        {#each services as service}
-          <div
-            class={`cursor-pointer rounded-lg border-2 p-6 transition-all hover:shadow-md flex flex-col h-full
-              ${
-                selectedService === service.id
-                  ? "border-primary bg-primary-50 dark:border-primary-600 dark:bg-primary-900/20"
-                  : "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
-              }`}
-            on:click={() => selectService(service.id)}
-            on:keydown={(e) => (e.key === "Enter" || e.key === " ") && selectService(service.id)}
-            role="button"
-            tabindex="0"
-            aria-label="Select {service.name} service - {service.description}"
-          >
-            <div class="flex justify-between items-start">
-              <div
-                class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/30"
-              >
-                <svelte:component
-                  this={service.name.includes("Office")
-                    ? Building
-                    : service.name.includes("Extended")
-                      ? HousePlus
-                      : service.name.includes("Laundry")
-                        ? WashingMachine
-                        : Home}
-                  size={24}
-                />
-              </div>
+    <div class="grid gap-8 lg:grid-cols-3">
+      <!-- Left column: Selection -->
+      <div class="lg:col-span-2 space-y-8">
+        <!-- Standard Inclusions Card -->
+        <div class="rounded-lg border border-green-200 bg-green-50 p-6 dark:border-green-800 dark:bg-green-900/20">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-800">
+              <Check class="h-5 w-5 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <h2 class="text-lg font-semibold text-green-800 dark:text-green-200">
+                Always Included
+              </h2>
+              <p class="text-sm text-green-700 dark:text-green-300">
+                Standard with every clean
+              </p>
+            </div>
+          </div>
 
-              <button
-                type="button"
-                on:click|stopPropagation={() => showServiceDetails(service)}
-                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-primary-50 hover:bg-primary-100 hover:text-primary-700 rounded-md transition-colors dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40"
-                aria-label="View service details"
-              >
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-                View Details
-              </button>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <!-- Living Room -->
+            <div class="flex items-start gap-3 rounded-lg bg-white p-4 dark:bg-gray-800">
+              <Home class="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
+              <div>
+                <h3 class="font-medium text-gray-900 dark:text-white">Living Room</h3>
+                <ul class="mt-1 text-sm text-gray-600 dark:text-gray-400 space-y-0.5">
+                  <li>• Dusting furniture & surfaces</li>
+                  <li>• Mopping & vacuuming floors</li>
+                  <li>• Wiping skirtings & switches</li>
+                </ul>
+              </div>
             </div>
 
-            <h3
-              class="mb-2 text-xl font-semibold text-gray-900 dark:text-white"
-            >
-              {service.name}
-            </h3>
-            <p class="mb-4 text-sm text-gray-600 dark:text-gray-300 flex-grow">
-              {service.description}
-            </p>
-
-            <div class="flex items-end justify-between mt-auto">
+            <!-- Kitchen -->
+            <div class="flex items-start gap-3 rounded-lg bg-white p-4 dark:bg-gray-800">
+              <Utensils class="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
               <div>
-                <p class="text-sm text-gray-600 dark:text-gray-400">
-                  Starting at
-                </p>
-                <p class="text-2xl font-bold text-primary">
-                  R{typeof service.basePrice === "number"
-                    ? service.basePrice.toFixed(2)
-                    : parseFloat(service.basePrice).toFixed(2)}
-                </p>
-              </div>
-
-              <div class="text-right">
-                <p class="text-sm text-gray-600 dark:text-gray-400">Duration</p>
-                <p class="text-lg font-medium text-gray-800 dark:text-gray-200">
-                  {service.durationHours}
-                  {service.durationHours === 1 ? "hour" : "hours"}
-                </p>
+                <h3 class="font-medium text-gray-900 dark:text-white">Kitchen</h3>
+                <ul class="mt-1 text-sm text-gray-600 dark:text-gray-400 space-y-0.5">
+                  <li>• Washing dishes</li>
+                  <li>• Wiping surfaces & appliances</li>
+                  <li>• Mopping floors</li>
+                </ul>
               </div>
             </div>
           </div>
-        {/each}
-      {:else}
-        <div
-          class="col-span-full rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800"
-        >
-          <p class="text-gray-500 dark:text-gray-400">
-            No services available at the moment.
+        </div>
+
+        <!-- Room Selection -->
+        <div>
+          <RoomSelector
+            bind:bedroomCount
+            bind:bathroomCount
+            {bedroomMin}
+            {bedroomMax}
+            {bathroomMin}
+            {bathroomMax}
+            onchange={handleRoomChange}
+          />
+        </div>
+
+        <!-- Addons -->
+        {#if addons.length > 0}
+          <div>
+            <AddonSelector
+              {addons}
+              bind:selectedAddonIds
+              onchange={handleAddonChange}
+            />
+          </div>
+        {/if}
+      </div>
+
+      <!-- Right column: Price Summary -->
+      <div class="lg:col-span-1">
+        <div class="sticky top-4">
+          <PriceSummary breakdown={priceBreakdown} />
+
+          <!-- Continue button -->
+          <div class="mt-6">
+            <Button
+              variant="primary"
+              on:click={continueToNext}
+              disabled={isLoading}
+              class="w-full justify-center"
+            >
+              {#if isLoading}
+                <svg
+                  class="mr-2 h-4 w-4 animate-spin"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Loading...
+              {:else}
+                Continue to Address
+                <ArrowRight size={18} class="ml-2" />
+              {/if}
+            </Button>
+          </div>
+
+          <!-- Info text -->
+          <p class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+            Save up to 15% with recurring bookings
           </p>
         </div>
-      {/if}
-    </div>
-
-    <!-- Continue button -->
-    <div class="mt-8 flex justify-end">
-      <Button
-        variant="primary"
-        on:click={continueToNext}
-        disabled={!selectedService || isLoading}
-      >
-        {#if isLoading}
-          <svg
-            class="mr-2 h-4 w-4 animate-spin"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            ></circle>
-            <path
-              class="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          Loading...
-        {:else}
-          Continue
-          <ArrowRight size={18} class="ml-2" />
-        {/if}
-      </Button>
+      </div>
     </div>
   </div>
 </div>
-
-<!-- Service details modal -->
-{#if showDetailsModal && selectedServiceForDetails}
-  <ServiceDetailsModal
-    service={selectedServiceForDetails}
-    on:close={() => (showDetailsModal = false)}
-  />
-{/if}

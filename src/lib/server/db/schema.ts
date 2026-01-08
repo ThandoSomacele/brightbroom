@@ -182,6 +182,83 @@ export const service = pgTable("service", {
   sortOrder: integer("sort_order").default(999),
 });
 
+// Pricing configuration table (single row for global config)
+export const pricingConfig = pgTable("pricing_config", {
+  id: text("id").primaryKey().notNull().default("default"),
+  // Base cleaning (Living Room + Kitchen - included in every clean)
+  basePrice: decimal("base_price", { precision: 10, scale: 2 })
+    .notNull()
+    .default("72.00"),
+  baseDurationMinutes: integer("base_duration_minutes").notNull().default(120),
+  baseDescription: text("base_description").default(
+    "Living Room and Kitchen cleaning included"
+  ),
+  // Per-bedroom pricing
+  bedroomPrice: decimal("bedroom_price", { precision: 10, scale: 2 })
+    .notNull()
+    .default("36.00"),
+  bedroomDurationMinutes: integer("bedroom_duration_minutes")
+    .notNull()
+    .default(60),
+  bedroomMin: integer("bedroom_min").notNull().default(1),
+  bedroomMax: integer("bedroom_max").notNull().default(10),
+  // Per-bathroom pricing
+  bathroomPrice: decimal("bathroom_price", { precision: 10, scale: 2 })
+    .notNull()
+    .default("36.00"),
+  bathroomDurationMinutes: integer("bathroom_duration_minutes")
+    .notNull()
+    .default(60),
+  bathroomMin: integer("bathroom_min").notNull().default(1),
+  bathroomMax: integer("bathroom_max").notNull().default(6),
+  // Timestamps
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Addon services that customers can add to their booking
+export const addon = pgTable("addon", {
+  id: text("id").primaryKey().notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  durationMinutes: integer("duration_minutes").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(999),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Junction table for bookings and addons
+export const bookingAddon = pgTable("booking_addon", {
+  id: text("id").primaryKey().notNull(),
+  bookingId: text("booking_id")
+    .notNull()
+    .references(() => booking.id, { onDelete: "cascade" }),
+  addonId: text("addon_id")
+    .notNull()
+    .references(() => addon.id),
+  // Store price/duration at time of booking for historical accuracy
+  priceAtBooking: decimal("price_at_booking", { precision: 10, scale: 2 }).notNull(),
+  durationAtBooking: integer("duration_at_booking").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Subscription add-ons junction table
+export const subscriptionAddon = pgTable("subscription_addon", {
+  id: text("id").primaryKey().notNull(),
+  subscriptionId: text("subscription_id")
+    .notNull()
+    .references(() => subscription.id, { onDelete: "cascade" }),
+  addonId: text("addon_id")
+    .notNull()
+    .references(() => addon.id),
+  // Store price/duration at time of subscription for historical accuracy
+  priceAtSubscription: decimal("price_at_subscription", { precision: 10, scale: 2 }).notNull(),
+  durationAtSubscription: integer("duration_at_subscription").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
 export const booking = pgTable("booking", {
   id: text("id").primaryKey().notNull(),
   userId: text("user_id").references(() => user.id), // Now nullable for guest bookings
@@ -198,6 +275,10 @@ export const booking = pgTable("booking", {
 
   // Guest booking fields
   guestAddress: json("guest_address"), // Guest's address as JSON object
+
+  // Room-based pricing fields
+  bedroomCount: integer("bedroom_count").default(1),
+  bathroomCount: integer("bathroom_count").default(1),
 
   // Subscription reference - removed forward reference to avoid circular dependency
   subscriptionId: text("subscription_id"),
@@ -425,6 +506,10 @@ export const subscription = pgTable("subscription", {
   monthlyDates: integer("monthly_dates").array(), // Array of dates (1-31) for twice monthly
   preferredTimeSlot: text("preferred_time_slot"), // e.g., "09:00-12:00"
 
+  // Room-based pricing fields
+  bedroomCount: integer("bedroom_count").default(1),
+  bathroomCount: integer("bathroom_count").default(1),
+
   // Pricing with discounts
   basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(),
   discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 })
@@ -497,6 +582,18 @@ export type NewAddress = typeof address.$inferInsert;
 
 export type Service = typeof service.$inferSelect;
 export type NewService = typeof service.$inferInsert;
+
+export type PricingConfig = typeof pricingConfig.$inferSelect;
+export type NewPricingConfig = typeof pricingConfig.$inferInsert;
+
+export type Addon = typeof addon.$inferSelect;
+export type NewAddon = typeof addon.$inferInsert;
+
+export type BookingAddon = typeof bookingAddon.$inferSelect;
+export type NewBookingAddon = typeof bookingAddon.$inferInsert;
+
+export type SubscriptionAddon = typeof subscriptionAddon.$inferSelect;
+export type NewSubscriptionAddon = typeof subscriptionAddon.$inferInsert;
 
 export type Booking = typeof booking.$inferSelect;
 export type NewBooking = typeof booking.$inferInsert;

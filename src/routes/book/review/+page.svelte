@@ -3,6 +3,7 @@
   import { enhance } from "$app/forms";
   import { goto } from "$app/navigation";
   import StepTracker from "$lib/components/booking/StepTracker.svelte";
+  import PriceSummary from "$lib/components/booking/PriceSummary.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { getAPIHeaders } from "$lib/utils/api-helpers";
   import {
@@ -13,63 +14,60 @@
     FileText,
     ArrowLeft,
     RotateCw,
-    DollarSign,
     WalletIcon,
   } from "lucide-svelte";
+  import { calculateCleaningPrice, type PriceBreakdown } from "$lib/utils/pricing";
+  import type { PageData, ActionData } from "./$types";
 
-  // Get data from the server load function
-  export let data;
-  const { user, addresses, services, isAuthenticated, guestBookingData } = data;
+  // Get data from the server load function using Svelte 5 props
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+  const { user, addresses, pricingConfig, addons, isAuthenticated, guestBookingData } = data;
 
-  // Handle form result
-  export let form;
+  // Track booking data using $state for reactivity
+  let selectedService = $state("");
+  let selectedAddress = $state("");
+  let selectedDate = $state("");
+  let selectedTime = $state("");
+  let notes = $state("");
+  let selectedCleanerId = $state("");
+  let selectedCleanerData: any = $state(null);
 
-  // Track booking data
-  let selectedService = "";
-  let selectedAddress = "";
-  let selectedDate = "";
-  let selectedTime = "";
-  let notes = "";
-  let selectedCleanerId = "";
-  let selectedCleanerData: any = null;
-  let cachedServiceData: any = null;
+  // Room-based pricing data
+  let bedroomCount = $state(1);
+  let bathroomCount = $state(1);
+  let selectedAddonIds: string[] = $state([]);
+  let priceBreakdown: PriceBreakdown | null = $state(null);
 
   // Recurring booking data
-  let isRecurring = false;
-  let recurringFrequency = "";
-  let recurringDays: string[] = [];
-  let recurringMonthlyDates: number[] = [];
-  let recurringTimeSlot = "";
-  let discountPercentage = 0;
-  let finalPrice = 0;
-  let startDate = "";
-  
+  let isRecurring = $state(false);
+  let recurringFrequency = $state("");
+  let recurringDays: string[] = $state([]);
+  let recurringMonthlyDates: number[] = $state([]);
+  let recurringTimeSlot = $state("");
+  let discountPercentage = $state(0);
+  let finalPrice = $state(0);
+  let startDate = $state("");
+
   // Guest user data
-  let guestAddress = null;
+  let guestAddress: any = $state(null);
 
   // Track loading state
-  let isLoading = false;
+  let isLoading = $state(false);
 
-  // Computed values
-  $: serviceDetailsFromDB = services.find((s) => s.id === selectedService);
-  $: serviceDetails = serviceDetailsFromDB || (cachedServiceData ? {
-    ...cachedServiceData,
-    basePrice: cachedServiceData.price,
-    durationHours: cachedServiceData.duration
-  } : null);
-  $: addressDetails = addresses.find((a) => a.id === selectedAddress);
-  $: scheduledDateTime =
-    selectedDate && selectedTime ? `${selectedDate}T${selectedTime}` : "";
+  // Computed values using $derived
+  let addressDetails = $derived(addresses.find((a) => a.id === selectedAddress));
+  let scheduledDateTime = $derived(
+    selectedDate && selectedTime ? `${selectedDate}T${selectedTime}` : ""
+  );
+  let selectedAddonsComputed = $derived(addons.filter((a) => selectedAddonIds.includes(a.id)));
 
-  // Recalculate final price for recurring bookings to ensure accuracy
-  $: if (isRecurring && serviceDetails && discountPercentage > 0) {
-    const basePrice = typeof serviceDetails.basePrice === "number"
-      ? serviceDetails.basePrice
-      : parseFloat(serviceDetails.basePrice);
-    const discountAmount = (basePrice * discountPercentage) / 100;
-    finalPrice = basePrice - discountAmount;
-  }
-    
+  // Recalculate final price for recurring bookings using $effect
+  $effect(() => {
+    if (isRecurring && priceBreakdown && discountPercentage > 0) {
+      const discountAmount = (priceBreakdown.totalPrice * discountPercentage) / 100;
+      finalPrice = priceBreakdown.totalPrice - discountAmount;
+    }
+  });
 
   // Initialize data from localStorage on mount
   import { onMount } from "svelte";
@@ -107,8 +105,6 @@
       // Get the stored final price first
       finalPrice = parseFloat(localStorage.getItem("booking_final_price") || "0");
 
-      // We'll recalculate after serviceDetails is loaded if needed
-
       startDate = localStorage.getItem("booking_start_date") || "";
     } else {
       // Get one-time booking data
@@ -119,19 +115,37 @@
     // Get common booking data
     selectedService = localStorage.getItem("booking_service") || "";
 
-    // Get cached service data as fallback (especially important for recurring bookings)
-    const cachedServiceStr = localStorage.getItem("booking_service_data");
-    if (cachedServiceStr) {
+    // Get room-based pricing data
+    bedroomCount = parseInt(localStorage.getItem("booking_bedroom_count") || "1", 10);
+    bathroomCount = parseInt(localStorage.getItem("booking_bathroom_count") || "1", 10);
+
+    const addonIdsStr = localStorage.getItem("booking_addon_ids");
+    if (addonIdsStr) {
       try {
-        cachedServiceData = JSON.parse(cachedServiceStr);
+        selectedAddonIds = JSON.parse(addonIdsStr);
       } catch (e) {
-        console.error("Error parsing cached service data:", e);
+        console.error("Error parsing addon IDs:", e);
+        selectedAddonIds = [];
       }
+    }
+
+    // Calculate price breakdown using server-provided config
+    const selectedAddonsForCalc = addons.filter((a) => selectedAddonIds.includes(a.id));
+    priceBreakdown = calculateCleaningPrice(
+      pricingConfig,
+      { bedroomCount, bathroomCount },
+      selectedAddonsForCalc
+    );
+
+    // Recalculate final price for recurring if needed
+    if (isRecurring && discountPercentage > 0) {
+      const discountAmount = (priceBreakdown.totalPrice * discountPercentage) / 100;
+      finalPrice = priceBreakdown.totalPrice - discountAmount;
     }
 
     notes = localStorage.getItem("booking_instructions") || "";
     selectedCleanerId = localStorage.getItem("booking_cleaner_id") || "";
-    
+
     // Get cleaner data if available
     const cleanerDataStr = localStorage.getItem("booking_cleaner_data");
     if (cleanerDataStr) {
@@ -141,7 +155,7 @@
         console.error("Error parsing cleaner data:", e);
       }
     }
-    
+
     if (isAuthenticated) {
       // Authenticated user - get address ID
       selectedAddress = localStorage.getItem("booking_address") || "";
@@ -155,17 +169,15 @@
           console.error("Error parsing guest address:", e);
         }
       }
-      
+
       // Also check server-side guest booking data
       if (guestBookingData) {
         if (guestBookingData.guestAddress) {
           guestAddress = guestBookingData.guestAddress;
         }
-        // Guest contact info is no longer stored (obtained during authentication)
       }
     }
 
-    
     // Validation based on user type
     const hasValidAddressData = isAuthenticated ? selectedAddress : guestAddress;
 
@@ -277,11 +289,15 @@
           preferredDays: recurringDays,
           preferredTimeSlot: recurringTimeSlot,
           monthlyDates: recurringMonthlyDates,
-          basePrice: serviceDetails?.basePrice || 0,
+          basePrice: priceBreakdown?.totalPrice || 0,
           discountPercentage,
           finalPrice,
           startDate: startDate || new Date().toISOString(),
-          notes
+          notes,
+          // Room-based pricing data
+          bedroomCount,
+          bathroomCount,
+          addonIds: selectedAddonIds
         })
       });
 
@@ -323,6 +339,12 @@
     localStorage.removeItem("booking_discount_percentage");
     localStorage.removeItem("booking_final_price");
     localStorage.removeItem("booking_start_date");
+    // Room-based pricing data
+    localStorage.removeItem("booking_bedroom_count");
+    localStorage.removeItem("booking_bathroom_count");
+    localStorage.removeItem("booking_addon_ids");
+    localStorage.removeItem("booking_total_price");
+    localStorage.removeItem("booking_total_duration");
   }
 </script>
 
@@ -358,41 +380,20 @@
 
     <!-- Booking details -->
     <div class="mb-8 grid gap-6 md:grid-cols-2">
-      <!-- Service details -->
+      <!-- Service details with room breakdown -->
       <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
         <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
-          Service Details
+          Cleaning Details
         </h2>
 
-        {#if serviceDetails}
-          <div>
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-              {serviceDetails.name}
-            </h3>
-            <p class="mt-1 text-gray-600 dark:text-gray-300">
-              {serviceDetails.description}
-            </p>
-            <div
-              class="mt-4 flex justify-between border-t border-gray-200 pt-3 dark:border-gray-700"
-            >
-              <span class="text-gray-600 dark:text-gray-300">Duration:</span>
-              <span class="font-medium text-gray-900 dark:text-white">
-                {serviceDetails.durationHours || 'N/A'}
-                {serviceDetails.durationHours && (serviceDetails.durationHours === 1 ? " hour" : " hours")}
-              </span>
-            </div>
-            <div class="mt-2 flex justify-between">
-              <span class="text-gray-600 dark:text-gray-300">Price:</span>
-              <span class="font-bold text-primary">
-                R{typeof serviceDetails.basePrice === "number"
-                  ? serviceDetails.basePrice.toFixed(2)
-                  : parseFloat(serviceDetails.basePrice).toFixed(2)}
-              </span>
-            </div>
-          </div>
+        {#if priceBreakdown}
+          <PriceSummary
+            breakdown={priceBreakdown}
+            discountPercentage={isRecurring ? discountPercentage : 0}
+          />
         {:else}
           <p class="text-gray-500 dark:text-gray-400">
-            Service information not available
+            Loading pricing information...
           </p>
         {/if}
       </div>
@@ -462,14 +463,20 @@
               </div>
             </div>
 
-            {#if finalPrice > 0}
+            {#if priceBreakdown}
               <div class="flex items-start">
                 <WalletIcon size={20} class="mr-3 mt-0.5 flex-shrink-0 text-green-600" />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">Price per Clean</p>
-                  <p class="text-green-600 dark:text-green-400 font-semibold">
-                    R{finalPrice.toFixed(2)} ({discountPercentage}% discount)
-                  </p>
+                  {#if discountPercentage > 0}
+                    <p class="text-green-600 dark:text-green-400 font-semibold">
+                      R{finalPrice.toFixed(2)} ({discountPercentage}% discount)
+                    </p>
+                  {:else}
+                    <p class="text-green-600 dark:text-green-400 font-semibold">
+                      R{priceBreakdown.totalPrice.toFixed(2)}
+                    </p>
+                  {/if}
                 </div>
               </div>
             {/if}
@@ -557,12 +564,12 @@
         </h2>
         
         <div class="flex items-center space-x-4">
-          <img 
-            src={selectedCleanerData.profileImageUrl || '/images/default-avatar.svg'} 
+          <img
+            src={selectedCleanerData.profileImageUrl || '/images/default-avatar.svg'}
             alt={selectedCleanerData.name}
             class="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
-            on:error={(e) => {
-              e.currentTarget.src = '/images/default-avatar.svg';
+            onerror={(e: Event) => {
+              (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.svg';
             }}
           />
           <div class="flex-1">
@@ -600,35 +607,36 @@
 
     <!-- Total and payment -->
     <div class="mb-8 rounded-lg bg-primary-50 p-6 dark:bg-primary-900/20">
-      {#if isRecurring && finalPrice > 0}
+      {#if isRecurring && priceBreakdown}
         <!-- Recurring Payment Display -->
         <div>
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
             Recurring Payment Summary
           </h2>
 
-          {#if serviceDetails && discountPercentage > 0}
+          {#if discountPercentage > 0}
             <div class="space-y-2 text-sm">
               <div class="flex justify-between">
                 <span>Regular price:</span>
                 <span class="line-through text-gray-500">
-                  R{typeof serviceDetails.basePrice === "number"
-                    ? serviceDetails.basePrice.toFixed(2)
-                    : parseFloat(serviceDetails.basePrice).toFixed(2)}
+                  R{priceBreakdown.totalPrice.toFixed(2)}
                 </span>
               </div>
               <div class="flex justify-between text-green-600 font-medium">
                 <span>Recurring discount ({discountPercentage}%):</span>
                 <span>
-                  - R{((typeof serviceDetails.basePrice === "number"
-                    ? serviceDetails.basePrice
-                    : parseFloat(serviceDetails.basePrice)) * discountPercentage / 100).toFixed(2)}
+                  - R{(priceBreakdown.totalPrice * discountPercentage / 100).toFixed(2)}
                 </span>
               </div>
               <div class="flex justify-between font-bold text-lg pt-3 border-t border-primary-100">
                 <span>Total per clean:</span>
                 <span class="text-primary">R{finalPrice.toFixed(2)}</span>
               </div>
+            </div>
+          {:else}
+            <div class="flex justify-between font-bold text-lg">
+              <span>Total per clean:</span>
+              <span class="text-primary">R{priceBreakdown.totalPrice.toFixed(2)}</span>
             </div>
           {/if}
         </div>
@@ -638,11 +646,9 @@
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
             Total
           </h2>
-          {#if serviceDetails}
+          {#if priceBreakdown}
             <span class="text-2xl font-bold text-primary">
-              R{typeof serviceDetails.basePrice === "number"
-                ? serviceDetails.basePrice.toFixed(2)
-                : parseFloat(serviceDetails.basePrice).toFixed(2)}
+              R{priceBreakdown.totalPrice.toFixed(2)}
             </span>
           {:else}
             <span class="text-2xl font-bold text-primary">R0.00</span>
@@ -682,7 +688,7 @@
         return async ({ result, update }) => {
           isLoading = false;
 
-          if (result.type === "success" && result.data.success) {
+          if (result.type === "success" && result.data?.success) {
             handleBookingSuccess(result.data);
           } else {
             await update();
@@ -697,6 +703,11 @@
       {/if}
       <input type="hidden" name="notes" value={notes} />
       <input type="hidden" name="cleanerId" value={selectedCleanerId} />
+
+      <!-- Room-based pricing fields -->
+      <input type="hidden" name="bedroomCount" value={bedroomCount} />
+      <input type="hidden" name="bathroomCount" value={bathroomCount} />
+      <input type="hidden" name="addonIds" value={JSON.stringify(selectedAddonIds)} />
 
       {#if isAuthenticated}
         <!-- Authenticated user fields -->

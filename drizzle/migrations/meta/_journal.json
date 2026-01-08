@@ -85,6 +85,20 @@
       "when": 1767610259966,
       "tag": "0011_organic_human_robot",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1767871683902,
+      "tag": "0012_striped_thor",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1767873521535,
+      "tag": "0013_thin_morph",
+      "breakpoints": true
     }
   ]
 }
