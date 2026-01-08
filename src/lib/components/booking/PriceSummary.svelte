@@ -1,7 +1,7 @@
 <!-- src/lib/components/booking/PriceSummary.svelte -->
 <script lang="ts">
-  import { Home, Bed, Bath, Sparkles, Tag } from "lucide-svelte";
-  import { formatPrice } from "$lib/utils/pricing";
+  import { Home, Bed, Bath, Sparkles, Tag, Clock, AlertCircle } from "lucide-svelte";
+  import { formatPrice, formatDuration, MAX_BOOKING_DURATION_HOURS } from "$lib/utils/pricing";
   import type { PriceBreakdown } from "$lib/utils/pricing";
 
   // Props using Svelte 5 runes
@@ -32,6 +32,13 @@
           {breakdown.bathroomCount} bathroom{breakdown.bathroomCount > 1 ? "s" : ""}
           {#if breakdown.addons.length > 0}
             + {breakdown.addons.length} add-on{breakdown.addons.length > 1 ? "s" : ""}
+          {/if}
+        </p>
+        <p class="mt-1 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+          <Clock class="h-3 w-3" />
+          {formatDuration(breakdown.totalDurationMinutes)}
+          {#if breakdown.durationCapped}
+            <span class="text-amber-600 dark:text-amber-400">(max {MAX_BOOKING_DURATION_HOURS}h)</span>
           {/if}
         </p>
       </div>
@@ -95,6 +102,24 @@
             {/each}
           </div>
         {/if}
+
+        <!-- Estimated duration -->
+        <div class="border-t border-gray-100 pt-3 dark:border-gray-700">
+          <div class="flex items-center gap-2">
+            <Clock class="h-4 w-4 text-primary-500" />
+            <span class="text-gray-700 dark:text-gray-300">
+              Est. duration: {formatDuration(breakdown.totalDurationMinutes)}
+            </span>
+          </div>
+          {#if breakdown.durationCapped}
+            <div class="mt-2 flex items-start gap-2 rounded-md bg-amber-50 p-2 dark:bg-amber-900/20">
+              <AlertCircle class="h-4 w-4 flex-shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+              <span class="text-xs text-amber-700 dark:text-amber-300">
+                Duration capped at {MAX_BOOKING_DURATION_HOURS} hours. For larger jobs, consider booking multiple sessions.
+              </span>
+            </div>
+          {/if}
+        </div>
       </div>
 
       <!-- Total section -->
