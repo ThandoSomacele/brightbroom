@@ -116,13 +116,12 @@ export const POST: RequestHandler = async ({ request, locals, ...event }) => {
       }
     }
 
-    if (!serviceId || !addressId || !frequency || !basePrice || !finalPrice) {
+    // Only validate essential fields - prices are recalculated server-side
+    if (!serviceId || !addressId || !frequency) {
       console.error('Missing required fields:', {
         serviceId: !!serviceId,
         addressId: !!addressId,
-        frequency: !!frequency,
-        basePrice: !!basePrice,
-        finalPrice: !!finalPrice
+        frequency: !!frequency
       });
       return json({ error: 'Missing required fields' }, { status: 400 });
     }
