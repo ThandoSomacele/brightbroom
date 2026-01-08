@@ -7,9 +7,10 @@
   import AddonSelector from "$lib/components/booking/AddonSelector.svelte";
   import PriceSummary from "$lib/components/booking/PriceSummary.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import { ArrowRight, Home, Utensils, Check } from "lucide-svelte";
+  import { ArrowRight, Home, Utensils, Check, Clock } from "lucide-svelte";
   import {
     calculateCleaningPrice,
+    formatDuration,
     type PriceBreakdown,
   } from "$lib/utils/pricing";
   import type { PageData } from "./$types";
@@ -255,11 +256,14 @@
 <!-- Fixed bottom bar for mobile -->
 <div class="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 bg-white px-4 py-3 shadow-lg dark:border-gray-700 dark:bg-gray-800 lg:hidden">
   <div class="mx-auto flex max-w-5xl items-center justify-between gap-4">
-    <!-- Price display -->
+    <!-- Price and duration display -->
     <div class="flex flex-col">
-      <span class="text-xs text-gray-500 dark:text-gray-400">Total</span>
       <span class="text-xl font-bold text-gray-900 dark:text-white">
         R{priceBreakdown.totalPrice.toFixed(2)}
+      </span>
+      <span class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+        <Clock class="h-3 w-3" />
+        {formatDuration(priceBreakdown.totalDurationMinutes)}
       </span>
     </div>
 
