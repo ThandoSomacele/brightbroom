@@ -1,5 +1,6 @@
 <!-- src/lib/components/CookieConsentBanner.svelte -->
 <script lang="ts">
+  import { onMount } from "svelte";
   import {
     acceptCookies,
     consentStatus,
@@ -7,10 +8,14 @@
   } from "$lib/stores/cookieConsent";
   import Button from "./ui/Button.svelte";
 
-  let showBanner = false;
+  // Start with false to prevent flash during SSR/hydration
+  let mounted = $state(false);
+  let showBanner = $derived(mounted && $consentStatus === "pending");
 
-  // Only show banner if consent is pending
-  $: showBanner = $consentStatus === "pending";
+  // Only check consent status after mounting (client-side only)
+  onMount(() => {
+    mounted = true;
+  });
 
   function handleAccept() {
     acceptCookies();
