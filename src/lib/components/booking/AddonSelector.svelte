@@ -11,23 +11,36 @@
     DoorOpen,
     PaintBucket,
     SquareStack,
+    AlertCircle,
     type Icon
   } from "lucide-svelte";
   import type { Addon } from "$lib/server/db/schema";
   import type { ComponentType } from "svelte";
+  import { MAX_BOOKING_DURATION_MINUTES } from "$lib/utils/pricing";
 
   // Props using Svelte 5 runes
   interface Props {
     addons?: Addon[];
     selectedAddonIds?: string[];
+    currentTotalDuration?: number;
     onchange?: (data: { selectedAddonIds: string[] }) => void;
   }
 
   let {
     addons = [],
     selectedAddonIds = $bindable([]),
+    currentTotalDuration = 0,
     onchange,
   }: Props = $props();
+
+  // Check if we're at or near the duration limit
+  let atDurationLimit = $derived(currentTotalDuration >= MAX_BOOKING_DURATION_MINUTES);
+
+  // Check if a specific addon can be added (not already selected and won't exceed limit)
+  function canAddAddon(addon: Addon): boolean {
+    if (selectedAddonIds.includes(addon.id)) return true; // Already selected, can toggle off
+    return currentTotalDuration + addon.durationMinutes <= MAX_BOOKING_DURATION_MINUTES;
+  }
 
   // Map addon names to their icons
   const addonIcons: Record<string, ComponentType<Icon>> = {
@@ -46,13 +59,16 @@
   // State for showing description popup
   let activePopup: string | null = $state(null);
 
-  function toggleAddon(addonId: string) {
-    if (selectedAddonIds.includes(addonId)) {
-      selectedAddonIds = selectedAddonIds.filter((id) => id !== addonId);
-    } else {
-      selectedAddonIds = [...selectedAddonIds, addonId];
+  function toggleAddon(addon: Addon) {
+    if (selectedAddonIds.includes(addon.id)) {
+      // Always allow deselecting
+      selectedAddonIds = selectedAddonIds.filter((id) => id !== addon.id);
+      onchange?.({ selectedAddonIds });
+    } else if (canAddAddon(addon)) {
+      // Only add if it won't exceed the limit
+      selectedAddonIds = [...selectedAddonIds, addon.id];
+      onchange?.({ selectedAddonIds });
     }
-    onchange?.({ selectedAddonIds });
   }
 
   function isSelected(addonId: string): boolean {
@@ -84,19 +100,24 @@
   <div class="grid gap-3 sm:grid-cols-2">
     {#each addons as addon (addon.id)}
       {@const selected = isSelected(addon.id)}
+      {@const canAdd = canAddAddon(addon)}
+      {@const disabled = !selected && !canAdd}
       {@const AddonIcon = getAddonIcon(addon.name)}
       <div class="relative">
         <!-- Addon card container - uses div with role for accessibility -->
         <div
           class="w-full flex items-center justify-between rounded-lg border-2 p-4 transition-all {selected
             ? 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-primary-900/20'
-            : 'border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600'}"
+            : disabled
+              ? 'border-gray-200 bg-gray-100 opacity-60 dark:border-gray-700 dark:bg-gray-800/50'
+              : 'border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600'}"
         >
           <!-- Clickable area for toggle -->
           <button
             type="button"
-            onclick={() => toggleAddon(addon.id)}
-            class="flex items-center gap-3 flex-1 text-left"
+            onclick={() => toggleAddon(addon)}
+            {disabled}
+            class="flex items-center gap-3 flex-1 text-left {disabled ? 'cursor-not-allowed' : ''}"
           >
             <!-- Checkbox indicator -->
             <div
@@ -166,6 +187,16 @@
       <p class="text-sm font-medium text-primary-900 dark:text-primary-100">
         {selectedAddonIds.length} add-on{selectedAddonIds.length > 1 ? "s" : ""} selected:
         {selectedAddons.map(a => a.name).join(", ")}
+      </p>
+    </div>
+  {/if}
+
+  <!-- Duration limit warning -->
+  {#if atDurationLimit}
+    <div class="mt-4 flex items-start gap-2 rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20">
+      <AlertCircle class="h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+      <p class="text-sm text-amber-700 dark:text-amber-300">
+        Maximum booking duration (10 hours) reached. Remove items to add more add-ons.
       </p>
     </div>
   {/if}

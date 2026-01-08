@@ -1,6 +1,7 @@
 <!-- src/lib/components/booking/RoomSelector.svelte -->
 <script lang="ts">
-  import { Bed, Bath, Minus, Plus, Info, X } from "lucide-svelte";
+  import { Bed, Bath, Minus, Plus, Info, X, AlertCircle } from "lucide-svelte";
+  import { MAX_BOOKING_DURATION_MINUTES } from "$lib/utils/pricing";
 
   // Props using Svelte 5 runes
   interface Props {
@@ -10,6 +11,9 @@
     bedroomMax?: number;
     bathroomMin?: number;
     bathroomMax?: number;
+    bedroomDurationMinutes?: number;
+    bathroomDurationMinutes?: number;
+    currentTotalDuration?: number;
     onchange?: (data: { bedroomCount: number; bathroomCount: number }) => void;
   }
 
@@ -20,8 +24,24 @@
     bedroomMax = 10,
     bathroomMin = 1,
     bathroomMax = 6,
+    bedroomDurationMinutes = 60,
+    bathroomDurationMinutes = 60,
+    currentTotalDuration = 0,
     onchange,
   }: Props = $props();
+
+  // Check if adding another room would exceed the max duration
+  let canAddBedroom = $derived(
+    bedroomCount < bedroomMax &&
+    currentTotalDuration + bedroomDurationMinutes <= MAX_BOOKING_DURATION_MINUTES
+  );
+  let canAddBathroom = $derived(
+    bathroomCount < bathroomMax &&
+    currentTotalDuration + bathroomDurationMinutes <= MAX_BOOKING_DURATION_MINUTES
+  );
+
+  // Check if we're at the duration limit
+  let atDurationLimit = $derived(currentTotalDuration >= MAX_BOOKING_DURATION_MINUTES);
 
   // State for showing info popup
   let showInfoPopup = $state(false);
@@ -36,7 +56,7 @@
 
   // Increment/decrement handlers
   function incrementBedrooms() {
-    if (bedroomCount < bedroomMax) {
+    if (canAddBedroom) {
       bedroomCount++;
       dispatchChange();
     }
@@ -50,7 +70,7 @@
   }
 
   function incrementBathrooms() {
-    if (bathroomCount < bathroomMax) {
+    if (canAddBathroom) {
       bathroomCount++;
       dispatchChange();
     }
@@ -183,7 +203,7 @@
         <button
           type="button"
           onclick={incrementBedrooms}
-          disabled={bedroomCount >= bedroomMax}
+          disabled={!canAddBedroom}
           class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           aria-label="Increase bedrooms"
         >
@@ -191,7 +211,6 @@
         </button>
       </div>
     </div>
-
   </div>
 
   <!-- Bathroom selector -->
@@ -227,7 +246,7 @@
         <button
           type="button"
           onclick={incrementBathrooms}
-          disabled={bathroomCount >= bathroomMax}
+          disabled={!canAddBathroom}
           class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           aria-label="Increase bathrooms"
         >
@@ -235,8 +254,17 @@
         </button>
       </div>
     </div>
-
   </div>
+
+  <!-- Duration limit warning -->
+  {#if atDurationLimit}
+    <div class="flex items-start gap-2 rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20">
+      <AlertCircle class="h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+      <p class="text-sm text-amber-700 dark:text-amber-300">
+        Maximum booking duration (10 hours) reached. Remove items to add more rooms.
+      </p>
+    </div>
+  {/if}
 </div>
 
 <!-- Click outside to close popup -->

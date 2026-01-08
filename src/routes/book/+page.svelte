@@ -35,6 +35,8 @@
   const bedroomMax = pricingConfig.bedroomMax || 10;
   const bathroomMin = pricingConfig.bathroomMin || 1;
   const bathroomMax = pricingConfig.bathroomMax || 6;
+  const bedroomDurationMinutes = pricingConfig.bedroomDurationMinutes || 60;
+  const bathroomDurationMinutes = pricingConfig.bathroomDurationMinutes || 60;
 
   // Calculate price breakdown reactively using $derived
   let selectedAddons = $derived(addons.filter((a) => selectedAddonIds.includes(a.id)));
@@ -185,6 +187,9 @@
             {bedroomMax}
             {bathroomMin}
             {bathroomMax}
+            {bedroomDurationMinutes}
+            {bathroomDurationMinutes}
+            currentTotalDuration={priceBreakdown.totalDurationMinutes}
             onchange={handleRoomChange}
           />
         </div>
@@ -195,6 +200,7 @@
             <AddonSelector
               {addons}
               bind:selectedAddonIds
+              currentTotalDuration={priceBreakdown.totalDurationMinutes}
               onchange={handleAddonChange}
             />
           </div>
