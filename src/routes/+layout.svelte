@@ -14,10 +14,13 @@
 
   // Access user data from the page store
   $: user = $page.data.user;
-  
+
   // Get site URL for canonical URLs
   const siteUrl = import.meta.env.VITE_SITE_URL || "https://brightbroom.com";
   $: canonicalUrl = `${siteUrl}${$page.url.pathname}`;
+
+  // Check if current page is in booking flow (hide footer on mobile for these)
+  $: isBookingFlow = $page.url.pathname.startsWith('/book');
 
   let isMenuOpen = false;
 
@@ -315,8 +318,8 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
   </main>
 </ErrorBoundary>
 
-<!-- Footer -->
-<footer class="bg-gray-50 py-8 dark:bg-gray-900">
+<!-- Footer - hidden on mobile during booking flow since we have fixed bottom bar -->
+<footer class="bg-gray-50 py-8 dark:bg-gray-900 {isBookingFlow ? 'hidden lg:block' : ''}">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="md:flex md:items-center md:justify-between">
       <div class="mb-6 md:mb-0">
