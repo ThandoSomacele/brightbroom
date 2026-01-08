@@ -38,7 +38,8 @@
       Settings,
       User,
       Users,
-      X
+      X,
+      DollarSign
   } from 'lucide-svelte';
   import UpdateStatusIndicator from "$lib/components/admin/UpdateStatusIndicator.svelte";
   
@@ -50,6 +51,7 @@
     { label: 'Applications', href: '/admin/applications', icon: FileText },
     { label: 'Cleaners', href: '/admin/cleaners', icon: Users },
     { label: 'Users', href: '/admin/users', icon: User },
+    { label: 'Pricing', href: '/admin/pricing', icon: DollarSign },
     { label: 'Services', href: '/admin/services', icon: Settings },
     { label: 'Reports', href: '/admin/reports', icon: ChartNoAxesColumnIncreasing },
   ];

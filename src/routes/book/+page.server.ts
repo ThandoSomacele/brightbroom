@@ -1,42 +1,70 @@
 // src/routes/book/+page.server.ts
-import { db } from '$lib/server/db';
-import { service } from '$lib/server/db/schema';
-import { redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm'; // Add this import
-import type { PageServerLoad } from './$types';
+import { db } from "$lib/server/db";
+import { pricingConfig, addon } from "$lib/server/db/schema";
+import { eq, asc } from "drizzle-orm";
+import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals }) => {
   // Allow both authenticated and guest users to access service selection
   // Authentication will be handled at payment step
-  
+
   try {
-    // Simply select all services without adding the where clause
-    // until we fix the schema and ensure the isActive field exists
-    const services = await db.select().from(service);
-    
-    // Sort them manually if needed temporarily
-    const serviceOrder = {
-      'Regular Cleaning': 1,
-      'Regular Cleaning with Laundry & Ironing': 2,
-      'Extended Cleaning': 3,
-      'Office Cleaning': 4
+    // Load pricing configuration
+    const [config] = await db
+      .select()
+      .from(pricingConfig)
+      .where(eq(pricingConfig.id, "default"));
+
+    // Load active addons ordered by sortOrder
+    const addons = await db
+      .select()
+      .from(addon)
+      .where(eq(addon.isActive, true))
+      .orderBy(asc(addon.sortOrder));
+
+    // If no pricing config exists, use defaults
+    const pricingData = config || {
+      id: "default",
+      basePrice: "72.00",
+      baseDurationMinutes: 120,
+      baseDescription: "Living Room and Kitchen cleaning included",
+      bedroomPrice: "36.00",
+      bedroomDurationMinutes: 60,
+      bedroomMin: 1,
+      bedroomMax: 10,
+      bathroomPrice: "36.00",
+      bathroomDurationMinutes: 60,
+      bathroomMin: 1,
+      bathroomMax: 6,
     };
-    
-    const sortedServices = [...services].sort((a, b) => {
-      return (serviceOrder[a.name] || 999) - (serviceOrder[b.name] || 999);
-    });
-    
+
     return {
-      services: sortedServices,
+      pricingConfig: pricingData,
+      addons,
       user: locals.user,
-      isAuthenticated: !!locals.user
+      isAuthenticated: !!locals.user,
     };
   } catch (err) {
-    console.error('Error loading services:', err);
+    console.error("Error loading pricing config:", err);
+    // Return defaults on error
     return {
-      services: [],
+      pricingConfig: {
+        id: "default",
+        basePrice: "72.00",
+        baseDurationMinutes: 120,
+        baseDescription: "Living Room and Kitchen cleaning included",
+        bedroomPrice: "36.00",
+        bedroomDurationMinutes: 60,
+        bedroomMin: 1,
+        bedroomMax: 10,
+        bathroomPrice: "36.00",
+        bathroomDurationMinutes: 60,
+        bathroomMin: 1,
+        bathroomMax: 6,
+      },
+      addons: [],
       user: locals.user,
-      isAuthenticated: !!locals.user
+      isAuthenticated: !!locals.user,
     };
   }
 };

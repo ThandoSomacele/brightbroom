@@ -8,16 +8,32 @@
     Percent,
     WalletIcon,
   } from "lucide-svelte";
-  import { createEventDispatcher } from "svelte";
 
-  export let basePrice: number = 0;
-  export let serviceDuration: number = 2; // Duration in hours
-  export let selectedFrequency: string = "";
-  export let selectedDays: string[] = [];
-  export let selectedMonthlyDates: number[] = [];
-  export let preferredTimeSlot: string = "";
+  interface Props {
+    basePrice?: number;
+    serviceDuration?: number; // Duration in hours
+    selectedFrequency?: string;
+    selectedDays?: string[];
+    selectedMonthlyDates?: number[];
+    preferredTimeSlot?: string;
+    onfrequencychange?: (data: { frequency: string; discountPercentage: number; finalPrice: number }) => void;
+    ondayschange?: (data: { days: string[] }) => void;
+    onmonthlydateschange?: (data: { dates: number[] }) => void;
+    ontimeslotchange?: (data: { timeSlot: string }) => void;
+  }
 
-  const dispatch = createEventDispatcher();
+  let {
+    basePrice = 0,
+    serviceDuration = 2,
+    selectedFrequency = $bindable(""),
+    selectedDays = $bindable([]),
+    selectedMonthlyDates = $bindable([]),
+    preferredTimeSlot = $bindable(""),
+    onfrequencychange,
+    ondayschange,
+    onmonthlydateschange,
+    ontimeslotchange,
+  }: Props = $props();
 
   // Discount structure based on frequency
   const discounts = {
@@ -28,11 +44,11 @@
   };
 
   // Calculate discounted price
-  $: discountPercentage = selectedFrequency
+  let discountPercentage = $derived(selectedFrequency
     ? discounts[selectedFrequency as keyof typeof discounts]
-    : 0;
-  $: discountAmount = (basePrice * discountPercentage) / 100;
-  $: finalPrice = basePrice - discountAmount;
+    : 0);
+  let discountAmount = $derived((basePrice * discountPercentage) / 100);
+  let finalPrice = $derived(basePrice - discountAmount);
 
   // Days of week for selection
   const daysOfWeek = [
@@ -47,7 +63,7 @@
 
   // Generate time slots dynamically based on service duration
   // Same logic as one-time cleaning: slots from 8 AM to 12 PM, filtered by end time
-  $: timeSlots = (() => {
+  let timeSlots = $derived((() => {
     const slots = [];
 
     // Generate all possible time slots from 8 AM to 12 PM
@@ -73,7 +89,7 @@
     }
 
     return slots;
-  })();
+  })());
 
   function handleFrequencyChange(frequency: string) {
     selectedFrequency = frequency;
@@ -86,7 +102,7 @@
     const newDiscountAmount = (basePrice * newDiscountPercentage) / 100;
     const newFinalPrice = basePrice - newDiscountAmount;
 
-    dispatch("frequencyChange", {
+    onfrequencychange?.({
       frequency,
       discountPercentage: newDiscountPercentage,
       finalPrice: newFinalPrice,
@@ -110,7 +126,7 @@
       }
     }
 
-    dispatch("daysChange", { days: selectedDays });
+    ondayschange?.({ days: selectedDays });
   }
 
   function toggleMonthlyDate(date: number) {
@@ -125,22 +141,22 @@
       }
     }
 
-    dispatch("monthlyDatesChange", { dates: selectedMonthlyDates });
+    onmonthlydateschange?.({ dates: selectedMonthlyDates });
   }
 
   function handleTimeSlotChange(slot: string) {
     preferredTimeSlot = slot;
-    dispatch("timeSlotChange", { timeSlot: slot });
+    ontimeslotchange?.({ timeSlot: slot });
   }
 
   // Validation helper
-  $: isValid =
+  let isValid = $derived(
     selectedFrequency &&
     preferredTimeSlot &&
     ((selectedFrequency === "WEEKLY" && selectedDays.length === 1) ||
       (selectedFrequency === "BIWEEKLY" && selectedDays.length === 1) ||
       (selectedFrequency === "TWICE_WEEKLY" && selectedDays.length === 2) ||
-      (selectedFrequency === "TWICE_MONTHLY" && selectedMonthlyDates.length === 2));
+      (selectedFrequency === "TWICE_MONTHLY" && selectedMonthlyDates.length === 2)));
 </script>
 
 <div class="space-y-6">
@@ -154,7 +170,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <button
         type="button"
-        on:click={() => handleFrequencyChange("WEEKLY")}
+        onclick={() => handleFrequencyChange("WEEKLY")}
         class="p-4 border-2 rounded-lg transition-all {selectedFrequency ===
         'WEEKLY'
           ? 'border-teal-500 bg-teal-50'
@@ -173,7 +189,7 @@
 
       <button
         type="button"
-        on:click={() => handleFrequencyChange("BIWEEKLY")}
+        onclick={() => handleFrequencyChange("BIWEEKLY")}
         class="p-4 border-2 rounded-lg transition-all {selectedFrequency ===
         'BIWEEKLY'
           ? 'border-teal-500 bg-teal-50'
@@ -192,7 +208,7 @@
 
       <button
         type="button"
-        on:click={() => handleFrequencyChange("TWICE_WEEKLY")}
+        onclick={() => handleFrequencyChange("TWICE_WEEKLY")}
         class="p-4 border-2 rounded-lg transition-all {selectedFrequency ===
         'TWICE_WEEKLY'
           ? 'border-teal-500 bg-teal-50'
@@ -211,7 +227,7 @@
 
       <button
         type="button"
-        on:click={() => handleFrequencyChange("TWICE_MONTHLY")}
+        onclick={() => handleFrequencyChange("TWICE_MONTHLY")}
         class="p-4 border-2 rounded-lg transition-all {selectedFrequency ===
         'TWICE_MONTHLY'
           ? 'border-teal-500 bg-teal-50'
@@ -251,7 +267,7 @@
         {#each daysOfWeek as day}
           <button
             type="button"
-            on:click={() => toggleDay(day.value)}
+            onclick={() => toggleDay(day.value)}
             class="p-2 text-center border rounded-lg transition-all {selectedDays.includes(
               day.value,
             )
@@ -281,7 +297,7 @@
         {#each Array.from({ length: 31 }, (_, i) => i + 1) as date}
           <button
             type="button"
-            on:click={() => toggleMonthlyDate(date)}
+            onclick={() => toggleMonthlyDate(date)}
             class="p-2 text-center border rounded-lg transition-all {selectedMonthlyDates.includes(
               date,
             )
@@ -310,7 +326,7 @@
             class="py-3 px-3 text-center rounded-md border transition-colors cursor-pointer {preferredTimeSlot === slot.value
               ? 'border-teal-500 bg-teal-50 dark:border-teal-600 dark:bg-teal-900/20'
               : 'border-gray-200 hover:border-teal-200 dark:border-gray-700 dark:hover:border-teal-700'}"
-            on:click={() => handleTimeSlotChange(slot.value)}
+            onclick={() => handleTimeSlotChange(slot.value)}
           >
             <span class="text-sm font-medium text-gray-900 dark:text-white">
               {slot.display}
