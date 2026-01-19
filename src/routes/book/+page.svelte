@@ -102,7 +102,7 @@
   <meta property="og:title" content="BrightBroom | Build Your Perfect Clean" />
   <meta
     property="og:description"
-    content="Cleaner Bookings Made Simple. Customize your cleaning based on your home's bedrooms, bathrooms, and optional add-ons."
+    content="Cleaner Bookings Made Simple. Customise your cleaning based on your home's bedrooms, bathrooms, and optional add-ons."
   />
   <meta property="og:image" content={ogImageUrl} />
   <meta name="twitter:card" content="summary_large_image" />
@@ -110,7 +110,7 @@
   <meta name="twitter:title" content="BrightBroom | Build Your Perfect Clean" />
   <meta
     name="twitter:description"
-    content="Cleaner Bookings Made Simple. Customize your cleaning based on your home's bedrooms, bathrooms, and optional add-ons."
+    content="Cleaner Bookings Made Simple. Customise your cleaning based on your home's bedrooms, bathrooms, and optional add-ons."
   />
   <meta name="twitter:image" content={ogImageUrl} />
 </svelte:head>
