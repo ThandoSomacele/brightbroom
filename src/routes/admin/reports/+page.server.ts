@@ -1,8 +1,8 @@
 // src/routes/admin/reports/+page.server.ts
 import { db } from "$lib/server/db";
-import { booking, payment } from "$lib/server/db/schema";
+import { booking, payment, bookingAddon, addon } from "$lib/server/db/schema";
 import { redirect } from "@sveltejs/kit";
-import { and, eq, gte, lt, sql } from "drizzle-orm";
+import { and, eq, gte, lt, sql, desc } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ url, locals }) => {
@@ -34,8 +34,8 @@ export const load: PageServerLoad = async ({ url, locals }) => {
     // Fetch booking metrics
     const bookingMetrics = await getBookingMetrics(startDateObj, endDateObj);
 
-    // Fetch top services
-    const topServices = await getTopServices(startDateObj, endDateObj);
+    // Fetch booking insights (room configurations and addons)
+    const bookingInsights = await getBookingInsights(startDateObj, endDateObj);
 
     // Fetch user growth data
     const userGrowth = await getUserGrowth(startDateObj, endDateObj, period);
@@ -56,7 +56,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
       metrics: {
         revenue: revenueData,
         bookings: bookingMetrics,
-        topServices,
+        bookingInsights,
         userGrowth,
         cleanerPerformance,
       },
@@ -84,7 +84,12 @@ export const load: PageServerLoad = async ({ url, locals }) => {
           pendingConfirmation: 0,
           conversionRate: 0,
         },
-        topServices: [],
+        bookingInsights: {
+          roomConfigurations: [],
+          popularAddons: [],
+          averageDuration: 0,
+          averagePrice: 0,
+        },
         userGrowth: {
           customers: [],
           cleaners: [],
@@ -288,42 +293,83 @@ async function getBookingMetrics(startDate: Date, endDate: Date) {
   };
 }
 
-// Get top services
-async function getTopServices(startDate: Date, endDate: Date) {
-  // Using a simplified approach for development
-  // Mock data for top services
-  return [
-    {
-      serviceId: "1",
-      serviceName: "Regular Cleaning",
-      bookingCount: 42,
-      totalRevenue: 14700,
-    },
-    {
-      serviceId: "2",
-      serviceName: "Extended Cleaning",
-      bookingCount: 28,
-      totalRevenue: 15400,
-    },
-    {
-      serviceId: "3",
-      serviceName: "Office Cleaning",
-      bookingCount: 21,
-      totalRevenue: 9450,
-    },
-    {
-      serviceId: "4",
-      serviceName: "Move-in/Move-out",
-      bookingCount: 15,
-      totalRevenue: 8250,
-    },
-    {
-      serviceId: "5",
-      serviceName: "Post Construction",
-      bookingCount: 8,
-      totalRevenue: 5600,
-    },
-  ];
+// Get booking insights (room configurations and addons)
+async function getBookingInsights(startDate: Date, endDate: Date) {
+  // Get popular room configurations
+  const roomConfigsResult = await db
+    .select({
+      bedroomCount: booking.bedroomCount,
+      bathroomCount: booking.bathroomCount,
+      count: sql<number>`count(*)`.mapWith(Number),
+      totalRevenue: sql<string>`COALESCE(SUM(${booking.price}), 0)`.mapWith(Number),
+    })
+    .from(booking)
+    .where(
+      and(
+        gte(booking.createdAt, startDate),
+        lt(booking.createdAt, endDate),
+      ),
+    )
+    .groupBy(booking.bedroomCount, booking.bathroomCount)
+    .orderBy(desc(sql`count(*)`))
+    .limit(5);
+
+  const roomConfigurations = roomConfigsResult.map((config) => ({
+    configuration: `${config.bedroomCount || 1} Bed, ${config.bathroomCount || 1} Bath`,
+    bedroomCount: config.bedroomCount || 1,
+    bathroomCount: config.bathroomCount || 1,
+    bookingCount: config.count,
+    totalRevenue: config.totalRevenue,
+  }));
+
+  // Get popular addons
+  const addonsResult = await db
+    .select({
+      addonId: bookingAddon.addonId,
+      addonName: addon.name,
+      count: sql<number>`count(*)`.mapWith(Number),
+      totalRevenue: sql<string>`COALESCE(SUM(${bookingAddon.priceAtBooking}), 0)`.mapWith(Number),
+    })
+    .from(bookingAddon)
+    .innerJoin(addon, eq(bookingAddon.addonId, addon.id))
+    .innerJoin(booking, eq(bookingAddon.bookingId, booking.id))
+    .where(
+      and(
+        gte(booking.createdAt, startDate),
+        lt(booking.createdAt, endDate),
+      ),
+    )
+    .groupBy(bookingAddon.addonId, addon.name)
+    .orderBy(desc(sql`count(*)`))
+    .limit(5);
+
+  const popularAddons = addonsResult.map((item) => ({
+    addonId: item.addonId,
+    addonName: item.addonName,
+    bookingCount: item.count,
+    totalRevenue: item.totalRevenue,
+  }));
+
+  // Get average duration and price
+  const averagesResult = await db
+    .select({
+      avgDuration: sql<string>`COALESCE(AVG(${booking.duration}), 0)`.mapWith(Number),
+      avgPrice: sql<string>`COALESCE(AVG(${booking.price}), 0)`.mapWith(Number),
+    })
+    .from(booking)
+    .where(
+      and(
+        gte(booking.createdAt, startDate),
+        lt(booking.createdAt, endDate),
+      ),
+    );
+
+  return {
+    roomConfigurations,
+    popularAddons,
+    averageDuration: Math.round(averagesResult[0]?.avgDuration || 0),
+    averagePrice: averagesResult[0]?.avgPrice || 0,
+  };
 }
 
 // Get user growth data

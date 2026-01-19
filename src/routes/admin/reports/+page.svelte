@@ -480,13 +480,51 @@
   </div>
 </div>
 
-<!-- Top services and growth trend -->
+<!-- Booking insights section -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-  <!-- Top Services Table -->
+  <!-- Average Metrics -->
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
     <div class="p-4 border-b border-gray-200 dark:border-gray-700">
       <h2 class="text-lg font-medium text-gray-900 dark:text-white">
-        Top Services
+        Booking Averages
+      </h2>
+    </div>
+    <div class="p-6 grid grid-cols-2 gap-6">
+      <div class="text-center">
+        <p class="text-3xl font-bold text-primary">
+          {Math.floor((metrics.bookingInsights?.averageDuration || 0) / 60)}h {(metrics.bookingInsights?.averageDuration || 0) % 60}m
+        </p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Avg Duration</p>
+      </div>
+      <div class="text-center">
+        <p class="text-3xl font-bold text-primary">
+          {formatCurrency(metrics.bookingInsights?.averagePrice || 0)}
+        </p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Avg Price</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Growth Chart -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+    <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+      <h2 class="text-lg font-medium text-gray-900 dark:text-white">
+        User Growth
+      </h2>
+    </div>
+    <div class="p-4">
+      <canvas bind:this={userGrowthChartEl} width="400" height="200"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Room configurations and addons section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+  <!-- Popular Room Configurations -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+    <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+      <h2 class="text-lg font-medium text-gray-900 dark:text-white">
+        Popular Room Configurations
       </h2>
     </div>
     <div class="overflow-x-auto">
@@ -497,7 +535,7 @@
               scope="col"
               class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
             >
-              Service
+              Configuration
             </th>
             <th
               scope="col"
@@ -522,8 +560,8 @@
         <tbody
           class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
         >
-          {#if metrics.topServices && metrics.topServices.length > 0}
-            {#each metrics.topServices as service, i}
+          {#if metrics.bookingInsights?.roomConfigurations && metrics.bookingInsights.roomConfigurations.length > 0}
+            {#each metrics.bookingInsights.roomConfigurations as config, i (config.configuration)}
               <tr
                 class={i % 2 === 0
                   ? "bg-white dark:bg-gray-800"
@@ -532,17 +570,17 @@
                 <td
                   class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white"
                 >
-                  {service.serviceName}
+                  {config.configuration}
                 </td>
                 <td
                   class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
                 >
-                  {service.bookingCount}
+                  {config.bookingCount}
                 </td>
                 <td
                   class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
                 >
-                  {formatCurrency(service.totalRevenue)}
+                  {formatCurrency(config.totalRevenue)}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
@@ -551,17 +589,17 @@
                     >
                       <div
                         class="h-2 bg-primary rounded-full"
-                        style="width: {(
-                          (service.bookingCount / metrics.bookings.total) *
+                        style="width: {metrics.bookings.total > 0 ? (
+                          (config.bookingCount / metrics.bookings.total) *
                           100
-                        ).toFixed(1)}%"
+                        ).toFixed(1) : 0}%"
                       ></div>
                     </div>
                     <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">
-                      {(
-                        (service.bookingCount / metrics.bookings.total) *
+                      {metrics.bookings.total > 0 ? (
+                        (config.bookingCount / metrics.bookings.total) *
                         100
-                      ).toFixed(1)}%
+                      ).toFixed(1) : 0}%
                     </span>
                   </div>
                 </td>
@@ -573,7 +611,7 @@
                 colspan="4"
                 class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
               >
-                No service data available for this period
+                No booking data available for this period
               </td>
             </tr>
           {/if}
@@ -582,15 +620,76 @@
     </div>
   </div>
 
-  <!-- User Growth Chart -->
+  <!-- Popular Addons -->
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
     <div class="p-4 border-b border-gray-200 dark:border-gray-700">
       <h2 class="text-lg font-medium text-gray-900 dark:text-white">
-        User Growth
+        Popular Add-ons
       </h2>
     </div>
-    <div class="p-4">
-      <canvas bind:this={userGrowthChartEl} width="400" height="200"></canvas>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-700">
+          <tr>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+            >
+              Add-on
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+            >
+              Times Added
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+            >
+              Revenue
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
+        >
+          {#if metrics.bookingInsights?.popularAddons && metrics.bookingInsights.popularAddons.length > 0}
+            {#each metrics.bookingInsights.popularAddons as addon, i (addon.addonId)}
+              <tr
+                class={i % 2 === 0
+                  ? "bg-white dark:bg-gray-800"
+                  : "bg-gray-50 dark:bg-gray-700"}
+              >
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  {addon.addonName}
+                </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                >
+                  {addon.bookingCount}
+                </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                >
+                  {formatCurrency(addon.totalRevenue)}
+                </td>
+              </tr>
+            {/each}
+          {:else}
+            <tr>
+              <td
+                colspan="3"
+                class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+              >
+                No add-on data available for this period
+              </td>
+            </tr>
+          {/if}
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
