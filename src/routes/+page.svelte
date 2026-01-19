@@ -5,7 +5,6 @@
   import heroImage from "$lib/image-assets/hero.webp";
   import kitchenImage from "$lib/image-assets/kitchen.webp";
   import livingRoomImage from "$lib/image-assets/living-room.webp";
-  import { Building, Home, HousePlus } from "lucide-svelte";
 
   // Get user data from loader
   export let data;
@@ -177,81 +176,6 @@
   </div>
 </section>
 
-<!-- Services section -->
-<section class="bg-gray-50 py-16 dark:bg-gray-900">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="mb-12 text-center">
-      <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
-        Our Services
-      </h2>
-      <p class="mt-4 text-lg text-gray-700 dark:text-gray-200">
-        Choose the perfect cleaning package for your needs
-      </p>
-    </div>
-
-    <div class="grid gap-8 md:grid-cols-3">
-      <!-- Regular Cleaning -->
-      <div
-        class="rounded-lg bg-white p-6 shadow-md transition-transform hover:-translate-y-1 dark:bg-gray-800"
-      >
-        <div class="mb-4 text-primary">
-          <Home class="h-12 w-12" />
-        </div>
-        <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
-          Regular Cleaning
-        </h3>
-        <p class="mb-4 text-gray-700 dark:text-gray-200">
-          Perfect for maintaining a clean and tidy home on a regular basis.
-        </p>
-        <Button variant="outline" href="/services" class="w-full">
-          Learn More
-        </Button>
-      </div>
-
-      <!-- Extended Cleaning -->
-      <div
-        class="rounded-lg bg-white p-6 shadow-md transition-transform hover:-translate-y-1 dark:bg-gray-800"
-      >
-        <div class="mb-4 text-primary">
-          <HousePlus class="h-12 w-12" />
-        </div>
-
-        <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
-          Extended Cleaning
-        </h3>
-        <p class="mb-4 text-gray-700 dark:text-gray-200">
-          A thorough cleaning service that reaches every corner and detail.
-        </p>
-        <Button variant="outline" href="/services" class="w-full">
-          Learn More
-        </Button>
-      </div>
-
-      <!-- Office Cleaning -->
-      <div
-        class="rounded-lg bg-white p-6 shadow-md transition-transform hover:-translate-y-1 dark:bg-gray-800"
-      >
-        <div class="mb-4 text-primary">
-          <Building class="h-12 w-12" />
-        </div>
-        <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
-          Office Cleaning
-        </h3>
-        <p class="mb-4 text-gray-700 dark:text-gray-200">
-          Professional cleaning for your office space or commercial property.
-        </p>
-        <Button variant="outline" href="/services" class="w-full">
-          Learn More
-        </Button>
-      </div>
-    </div>
-
-    <div class="mt-12 text-center">
-      <Button variant="primary" href="/services">View All Services</Button>
-    </div>
-  </div>
-</section>
-
 <!-- How it works section -->
 <section class="bg-white py-16 dark:bg-gray-800">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -273,10 +197,10 @@
           <span class="text-2xl font-bold">1</span>
         </div>
         <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-white">
-          Choose a Service
+          Choose Your Hours
         </h3>
         <p class="text-gray-700 dark:text-gray-200">
-          Select the type of cleaning service that meets your needs.
+          Select how long you need a cleaner - from a quick tidy to a deep clean.
         </p>
       </div>
 
@@ -288,10 +212,10 @@
           <span class="text-2xl font-bold">2</span>
         </div>
         <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-white">
-          Set a Date & Time
+          Select Rooms & Extras
         </h3>
         <p class="text-gray-700 dark:text-gray-200">
-          Choose when you'd like our professionals to clean your space.
+          Tell us which rooms need attention and add any optional extras.
         </p>
       </div>
 
@@ -303,10 +227,10 @@
           <span class="text-2xl font-bold">3</span>
         </div>
         <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-white">
-          Confirm & Pay
+          Pick a Date & Pay
         </h3>
         <p class="text-gray-700 dark:text-gray-200">
-          Review your booking details and make a secure payment.
+          Choose your preferred time and complete your secure payment.
         </p>
       </div>
 
@@ -321,7 +245,7 @@
           Enjoy a Clean Space
         </h3>
         <p class="text-gray-700 dark:text-gray-200">
-          Relax while our professionals make your space sparkle.
+          Relax while our professional cleaner makes your space sparkle.
         </p>
       </div>
     </div>
@@ -356,8 +280,8 @@
           The kitchen is the heart of your home, and we treat it that way. Our thorough cleaning covers every surface - from countertops and appliances to cabinets and floors. We ensure your kitchen is not just clean, but hygienic and welcoming.
         </p>
         <div>
-          <Button variant="outline" href="/services">
-            Learn More
+          <Button variant="outline" href="/book">
+            Book a Clean
           </Button>
         </div>
       </div>
@@ -391,16 +315,16 @@
           Your living room is where you relax and entertain. We dust every surface, vacuum thoroughly, and ensure your space feels fresh and inviting. From furniture to floors, we leave no corner untouched.
         </p>
         <div>
-          <Button variant="outline" href="/services">
-            Learn More
+          <Button variant="outline" href="/book">
+            Book a Clean
           </Button>
         </div>
       </div>
     </div>
 
     <div class="text-center">
-      <Button variant="primary" href="/services">
-        See All Our Services
+      <Button variant="primary" href="/book">
+        Build Your Booking
       </Button>
     </div>
   </div>
