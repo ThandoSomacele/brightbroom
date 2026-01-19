@@ -14,17 +14,12 @@
     Users,
     Wallet,
   } from "lucide-svelte";
-  import { onMount } from "svelte";
 
   // Get data from server
   export let data;
 
   // Extract metrics and filters from data
   let { metrics, period, dateRange } = data;
-
-  let revenueChartEl: HTMLCanvasElement;
-  let bookingsChartEl: HTMLCanvasElement;
-  let userGrowthChartEl: HTMLCanvasElement;
 
   let showDatePicker = false;
   let customStartDate = dateRange.startDate;
@@ -87,109 +82,64 @@
     showDatePicker = false;
   }
 
-  // Initialise charts after component is mounted
-  onMount(() => {
-    initRevenueChart();
-    initBookingsChart();
-    initUserGrowthChart();
-  });
-
-  // Initialise Revenue Chart
-  function initRevenueChart() {
-    if (!revenueChartEl) return;
-
-    // In a real implementation, you would use a library like Chart.js
-    // Here's an example of what it might look like with Chart.js
-    /*
-    import { Chart } from 'chart.js/auto';
-    
-    const revenueData = metrics.revenue.trend.map(item => item.value);
-    const revenueLabels = metrics.revenue.trend.map(item => {
-      const date = new Date(item.date);
-      return date.toLocaleDateString('en-ZA', { month: 'short', day: 'numeric' });
-    });
-    
-    new Chart(revenueChartEl, {
-      type: 'line',
-      data: {
-        labels: revenueLabels,
-        datasets: [{
-          label: 'Revenue',
-          data: revenueData,
-          borderColor: '#20C3AF',
-          backgroundColor: 'rgba(32, 195, 175, 0.1)',
-          tension: 0.4,
-          fill: true
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
-    });
-    */
-
-    // For the purposes of this example, we'll just show a placeholder
-    const ctx = revenueChartEl.getContext("2d");
-    if (ctx) {
-      ctx.fillStyle = "#f3f4f6";
-      ctx.fillRect(0, 0, revenueChartEl.width, revenueChartEl.height);
-
-      ctx.font = "14px Arial";
-      ctx.fillStyle = "#6b7280";
-      ctx.textAlign = "center";
-      ctx.fillText(
-        "Revenue Chart (Placeholder)",
-        revenueChartEl.width / 2,
-        revenueChartEl.height / 2,
-      );
-    }
+  // Format date for chart labels
+  function formatChartDate(dateStr: string): string {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-ZA", { month: "short", day: "numeric" });
   }
 
-  // Initialise Bookings Chart
-  function initBookingsChart() {
-    if (!bookingsChartEl) return;
+  // Generate SVG path for line chart
+  function generateLinePath(
+    data: { date: string; value: number }[],
+    width: number,
+    height: number,
+    padding: number,
+  ): string {
+    if (data.length === 0) return "";
 
-    // Placeholder for real chart implementation
-    const ctx = bookingsChartEl.getContext("2d");
-    if (ctx) {
-      ctx.fillStyle = "#f3f4f6";
-      ctx.fillRect(0, 0, bookingsChartEl.width, bookingsChartEl.height);
+    const maxValue = Math.max(...data.map((d) => d.value), 1);
+    const xStep = (width - padding * 2) / Math.max(data.length - 1, 1);
 
-      ctx.font = "14px Arial";
-      ctx.fillStyle = "#6b7280";
-      ctx.textAlign = "center";
-      ctx.fillText(
-        "Bookings Chart (Placeholder)",
-        bookingsChartEl.width / 2,
-        bookingsChartEl.height / 2,
-      );
-    }
+    return data
+      .map((point, i) => {
+        const x = padding + i * xStep;
+        const y = height - padding - (point.value / maxValue) * (height - padding * 2);
+        return `${i === 0 ? "M" : "L"} ${x} ${y}`;
+      })
+      .join(" ");
   }
 
-  // Initialise User Growth Chart
-  function initUserGrowthChart() {
-    if (!userGrowthChartEl) return;
+  // Generate SVG area path for filled chart
+  function generateAreaPath(
+    data: { date: string; value: number }[],
+    width: number,
+    height: number,
+    padding: number,
+  ): string {
+    if (data.length === 0) return "";
 
-    // Placeholder for real chart implementation
-    const ctx = userGrowthChartEl.getContext("2d");
-    if (ctx) {
-      ctx.fillStyle = "#f3f4f6";
-      ctx.fillRect(0, 0, userGrowthChartEl.width, userGrowthChartEl.height);
+    const maxValue = Math.max(...data.map((d) => d.value), 1);
+    const xStep = (width - padding * 2) / Math.max(data.length - 1, 1);
 
-      ctx.font = "14px Arial";
-      ctx.fillStyle = "#6b7280";
-      ctx.textAlign = "center";
-      ctx.fillText(
-        "User Growth Chart (Placeholder)",
-        userGrowthChartEl.width / 2,
-        userGrowthChartEl.height / 2,
-      );
-    }
+    const linePath = data
+      .map((point, i) => {
+        const x = padding + i * xStep;
+        const y = height - padding - (point.value / maxValue) * (height - padding * 2);
+        return `${i === 0 ? "M" : "L"} ${x} ${y}`;
+      })
+      .join(" ");
+
+    // Close the path to create a filled area
+    const lastX = padding + (data.length - 1) * xStep;
+    return `${linePath} L ${lastX} ${height - padding} L ${padding} ${height - padding} Z`;
+  }
+
+  // Get Y-axis labels
+  function getYAxisLabels(data: { value: number }[]): number[] {
+    if (data.length === 0) return [0];
+    const maxValue = Math.max(...data.map((d) => d.value), 1);
+    const step = Math.ceil(maxValue / 4);
+    return [0, step, step * 2, step * 3, Math.ceil(maxValue)];
   }
 </script>
 
@@ -463,7 +413,85 @@
       </h2>
     </div>
     <div class="p-4">
-      <canvas bind:this={revenueChartEl} width="400" height="200"></canvas>
+      {#if metrics.revenue.trend && metrics.revenue.trend.length > 0}
+        <svg viewBox="0 0 400 200" class="w-full h-48">
+          <!-- Grid lines -->
+          {#each [0, 1, 2, 3, 4] as i (i)}
+            <line
+              x1="50"
+              y1={180 - i * 35}
+              x2="380"
+              y2={180 - i * 35}
+              stroke="#e5e7eb"
+              stroke-width="1"
+            />
+          {/each}
+
+          <!-- Y-axis labels -->
+          {#each getYAxisLabels(metrics.revenue.trend) as label, i (i)}
+            <text
+              x="45"
+              y={183 - i * 35}
+              text-anchor="end"
+              class="text-xs fill-gray-500"
+              font-size="10"
+            >
+              {formatCurrency(label).replace("ZAR", "R")}
+            </text>
+          {/each}
+
+          <!-- Area fill -->
+          <path
+            d={generateAreaPath(metrics.revenue.trend, 400, 200, 50)}
+            fill="rgba(32, 195, 175, 0.1)"
+          />
+
+          <!-- Line -->
+          <path
+            d={generateLinePath(metrics.revenue.trend, 400, 200, 50)}
+            fill="none"
+            stroke="#20C3AF"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+
+          <!-- Data points -->
+          {#each metrics.revenue.trend as point, i (point.date)}
+            {@const maxValue = Math.max(...metrics.revenue.trend.map((d) => d.value), 1)}
+            {@const xStep = 300 / Math.max(metrics.revenue.trend.length - 1, 1)}
+            {@const x = 50 + i * xStep}
+            {@const y = 180 - (point.value / maxValue) * 140}
+            <circle
+              cx={x}
+              cy={y}
+              r="4"
+              fill="#20C3AF"
+              class="hover:r-6 transition-all"
+            />
+            <title>{formatChartDate(point.date)}: {formatCurrency(point.value)}</title>
+          {/each}
+
+          <!-- X-axis labels (show first, middle, last) -->
+          {#if metrics.revenue.trend.length > 0}
+            <text x="50" y="198" text-anchor="start" class="text-xs fill-gray-500" font-size="10">
+              {formatChartDate(metrics.revenue.trend[0].date)}
+            </text>
+            {#if metrics.revenue.trend.length > 2}
+              <text x="215" y="198" text-anchor="middle" class="text-xs fill-gray-500" font-size="10">
+                {formatChartDate(metrics.revenue.trend[Math.floor(metrics.revenue.trend.length / 2)].date)}
+              </text>
+            {/if}
+            <text x="380" y="198" text-anchor="end" class="text-xs fill-gray-500" font-size="10">
+              {formatChartDate(metrics.revenue.trend[metrics.revenue.trend.length - 1].date)}
+            </text>
+          {/if}
+        </svg>
+      {:else}
+        <div class="h-48 flex items-center justify-center text-gray-500 dark:text-gray-400">
+          <p>No revenue data available for this period</p>
+        </div>
+      {/if}
     </div>
   </div>
 
@@ -475,7 +503,74 @@
       </h2>
     </div>
     <div class="p-4">
-      <canvas bind:this={bookingsChartEl} width="400" height="200"></canvas>
+      {#if metrics.bookingTrend && metrics.bookingTrend.length > 0}
+        <svg viewBox="0 0 400 200" class="w-full h-48">
+          <!-- Grid lines -->
+          {#each [0, 1, 2, 3, 4] as i (i)}
+            <line
+              x1="40"
+              y1={180 - i * 35}
+              x2="380"
+              y2={180 - i * 35}
+              stroke="#e5e7eb"
+              stroke-width="1"
+            />
+          {/each}
+
+          <!-- Y-axis labels -->
+          {#each getYAxisLabels(metrics.bookingTrend) as label, i (i)}
+            <text
+              x="35"
+              y={183 - i * 35}
+              text-anchor="end"
+              class="text-xs fill-gray-500"
+              font-size="10"
+            >
+              {label}
+            </text>
+          {/each}
+
+          <!-- Bars -->
+          {#each metrics.bookingTrend as point, i (point.date)}
+            {@const maxValue = Math.max(...metrics.bookingTrend.map((d) => d.value), 1)}
+            {@const barWidth = Math.min(30, 300 / metrics.bookingTrend.length - 4)}
+            {@const xStep = 340 / metrics.bookingTrend.length}
+            {@const x = 40 + i * xStep + (xStep - barWidth) / 2}
+            {@const barHeight = (point.value / maxValue) * 140}
+            {@const y = 180 - barHeight}
+            <rect
+              x={x}
+              y={y}
+              width={barWidth}
+              height={barHeight}
+              fill="#3b82f6"
+              rx="2"
+              class="hover:fill-blue-600 transition-colors"
+            >
+              <title>{formatChartDate(point.date)}: {point.value} bookings</title>
+            </rect>
+          {/each}
+
+          <!-- X-axis labels (show first, middle, last) -->
+          {#if metrics.bookingTrend.length > 0}
+            <text x="40" y="198" text-anchor="start" class="text-xs fill-gray-500" font-size="10">
+              {formatChartDate(metrics.bookingTrend[0].date)}
+            </text>
+            {#if metrics.bookingTrend.length > 2}
+              <text x="210" y="198" text-anchor="middle" class="text-xs fill-gray-500" font-size="10">
+                {formatChartDate(metrics.bookingTrend[Math.floor(metrics.bookingTrend.length / 2)].date)}
+              </text>
+            {/if}
+            <text x="380" y="198" text-anchor="end" class="text-xs fill-gray-500" font-size="10">
+              {formatChartDate(metrics.bookingTrend[metrics.bookingTrend.length - 1].date)}
+            </text>
+          {/if}
+        </svg>
+      {:else}
+        <div class="h-48 flex items-center justify-center text-gray-500 dark:text-gray-400">
+          <p>No booking data available for this period</p>
+        </div>
+      {/if}
     </div>
   </div>
 </div>
@@ -505,15 +600,36 @@
     </div>
   </div>
 
-  <!-- User Growth Chart -->
+  <!-- User Growth Summary -->
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
     <div class="p-4 border-b border-gray-200 dark:border-gray-700">
       <h2 class="text-lg font-medium text-gray-900 dark:text-white">
         User Growth
       </h2>
     </div>
-    <div class="p-4">
-      <canvas bind:this={userGrowthChartEl} width="400" height="200"></canvas>
+    <div class="p-6 grid grid-cols-2 gap-6">
+      <div class="text-center">
+        <p class="text-3xl font-bold text-purple-600">
+          {formatNumber(
+            metrics.userGrowth.customers.reduce(
+              (sum: number, item: { value: number }) => sum + item.value,
+              0,
+            ),
+          )}
+        </p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">New Customers</p>
+      </div>
+      <div class="text-center">
+        <p class="text-3xl font-bold text-amber-600">
+          {formatNumber(
+            metrics.userGrowth.cleaners.reduce(
+              (sum: number, item: { value: number }) => sum + item.value,
+              0,
+            ),
+          )}
+        </p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">New Cleaners</p>
+      </div>
     </div>
   </div>
 </div>

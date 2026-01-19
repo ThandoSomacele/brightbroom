@@ -34,6 +34,9 @@ export const load: PageServerLoad = async ({ url, locals }) => {
     // Fetch booking metrics
     const bookingMetrics = await getBookingMetrics(startDateObj, endDateObj);
 
+    // Fetch booking trend data
+    const bookingTrend = await getBookingTrend(startDateObj, endDateObj);
+
     // Fetch booking insights (room configurations and addons)
     const bookingInsights = await getBookingInsights(startDateObj, endDateObj);
 
@@ -56,6 +59,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
       metrics: {
         revenue: revenueData,
         bookings: bookingMetrics,
+        bookingTrend,
         bookingInsights,
         userGrowth,
         cleanerPerformance,
@@ -84,6 +88,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
           pendingConfirmation: 0,
           conversionRate: 0,
         },
+        bookingTrend: [],
         bookingInsights: {
           roomConfigurations: [],
           popularAddons: [],
@@ -200,22 +205,59 @@ async function getRevenueTrend(
   endDate: Date,
   interval: string,
 ) {
-  // For simplicity during development, return mock data
-  // In a production environment, you would use a more sophisticated query
+  // Query real revenue data grouped by date
+  const results = await db
+    .select({
+      date: sql<string>`DATE(${payment.createdAt})`.mapWith(String),
+      value: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number),
+    })
+    .from(payment)
+    .where(
+      and(
+        eq(payment.status, "COMPLETED"),
+        gte(payment.createdAt, startDate),
+        lt(payment.createdAt, endDate),
+      ),
+    )
+    .groupBy(sql`DATE(${payment.createdAt})`)
+    .orderBy(sql`DATE(${payment.createdAt})`);
 
-  // Sample data with 7 data points
-  const dataPoints = 7;
-  const step = (endDate.getTime() - startDate.getTime()) / (dataPoints - 1);
-
-  const mockData = [];
-  for (let i = 0; i < dataPoints; i++) {
-    const date = new Date(startDate.getTime() + step * i);
-    // Random value between 1000 and 5000
-    const value = Math.floor(Math.random() * 4000) + 1000;
-    mockData.push({ date: date.toISOString(), value });
+  // If no data, return empty array
+  if (results.length === 0) {
+    return [];
   }
 
-  return mockData;
+  return results.map((r) => ({
+    date: r.date,
+    value: r.value,
+  }));
+}
+
+// Get booking trend data
+async function getBookingTrend(startDate: Date, endDate: Date) {
+  const results = await db
+    .select({
+      date: sql<string>`DATE(${booking.createdAt})`.mapWith(String),
+      value: sql<number>`count(*)`.mapWith(Number),
+    })
+    .from(booking)
+    .where(
+      and(
+        gte(booking.createdAt, startDate),
+        lt(booking.createdAt, endDate),
+      ),
+    )
+    .groupBy(sql`DATE(${booking.createdAt})`)
+    .orderBy(sql`DATE(${booking.createdAt})`);
+
+  if (results.length === 0) {
+    return [];
+  }
+
+  return results.map((r) => ({
+    date: r.date,
+    value: r.value,
+  }));
 }
 
 // Get booking metrics - simplify with drizzle builder
