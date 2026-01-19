@@ -3,10 +3,8 @@
   import {
     ArrowDown,
     ArrowUp,
-    BarChart,
     Calendar,
     CreditCard,
-    LineChart,
     Users,
   } from "lucide-svelte";
 
@@ -35,6 +33,65 @@
       month: "short",
       year: "numeric",
     });
+  }
+
+  // Format date for chart labels
+  function formatChartDate(dateStr: string): string {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-ZA", { month: "short", day: "numeric" });
+  }
+
+  // Generate SVG path for line chart
+  function generateLinePath(
+    chartData: { date: string; value: number }[],
+    width: number,
+    height: number,
+    padding: number,
+  ): string {
+    if (chartData.length === 0) return "";
+
+    const maxValue = Math.max(...chartData.map((d) => d.value), 1);
+    const xStep = (width - padding * 2) / Math.max(chartData.length - 1, 1);
+
+    return chartData
+      .map((point, i) => {
+        const x = padding + i * xStep;
+        const y = height - padding - (point.value / maxValue) * (height - padding * 2);
+        return `${i === 0 ? "M" : "L"} ${x} ${y}`;
+      })
+      .join(" ");
+  }
+
+  // Generate SVG area path for filled chart
+  function generateAreaPath(
+    chartData: { date: string; value: number }[],
+    width: number,
+    height: number,
+    padding: number,
+  ): string {
+    if (chartData.length === 0) return "";
+
+    const maxValue = Math.max(...chartData.map((d) => d.value), 1);
+    const xStep = (width - padding * 2) / Math.max(chartData.length - 1, 1);
+
+    const linePath = chartData
+      .map((point, i) => {
+        const x = padding + i * xStep;
+        const y = height - padding - (point.value / maxValue) * (height - padding * 2);
+        return `${i === 0 ? "M" : "L"} ${x} ${y}`;
+      })
+      .join(" ");
+
+    const lastX = padding + (chartData.length - 1) * xStep;
+    return `${linePath} L ${lastX} ${height - padding} L ${padding} ${height - padding} Z`;
+  }
+
+  // Get Y-axis labels
+  function getYAxisLabels(chartData: { value: number }[]): number[] {
+    if (chartData.length === 0) return [0];
+    const maxValue = Math.max(...chartData.map((d) => d.value), 1);
+    const step = Math.ceil(maxValue / 4);
+    return [0, step, step * 2, step * 3, Math.ceil(maxValue)];
   }
 </script>
 
@@ -260,36 +317,159 @@
   <!-- Booking Trends Chart -->
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
     <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-      Booking Trends
+      Booking Trends (Last 30 Days)
     </h2>
     <div class="h-64">
-      <!-- SVG Chart Placeholder - In a real app, you would use a chart library -->
-      <div
-        class="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-gray-700/50 rounded-lg"
-      >
-        <LineChart size={48} class="text-gray-400" />
-        <span class="ml-2 text-gray-500 dark:text-gray-400"
-          >Booking trends chart will appear here</span
-        >
-      </div>
+      {#if bookingTrends && bookingTrends.length > 0}
+        <svg viewBox="0 0 400 220" class="w-full h-full">
+          <!-- Grid lines -->
+          {#each [0, 1, 2, 3, 4] as i (i)}
+            <line
+              x1="40"
+              y1={190 - i * 40}
+              x2="380"
+              y2={190 - i * 40}
+              stroke="#e5e7eb"
+              stroke-width="1"
+            />
+          {/each}
+
+          <!-- Y-axis labels -->
+          {#each getYAxisLabels(bookingTrends) as label, i (i)}
+            <text
+              x="35"
+              y={193 - i * 40}
+              text-anchor="end"
+              class="text-xs fill-gray-500"
+              font-size="10"
+            >
+              {label}
+            </text>
+          {/each}
+
+          <!-- Area fill -->
+          <path
+            d={generateAreaPath(bookingTrends, 400, 220, 40)}
+            fill="rgba(59, 130, 246, 0.1)"
+          />
+
+          <!-- Line -->
+          <path
+            d={generateLinePath(bookingTrends, 400, 220, 40)}
+            fill="none"
+            stroke="#3b82f6"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+
+          <!-- Data points -->
+          {#each bookingTrends as point, i (point.date)}
+            {@const maxValue = Math.max(...bookingTrends.map((d) => d.value), 1)}
+            {@const xStep = 320 / Math.max(bookingTrends.length - 1, 1)}
+            {@const x = 40 + i * xStep}
+            {@const y = 190 - (point.value / maxValue) * 160}
+            <circle cx={x} cy={y} r="3" fill="#3b82f6" />
+            <title>{formatChartDate(point.date)}: {point.value} bookings</title>
+          {/each}
+
+          <!-- X-axis labels -->
+          {#if bookingTrends.length > 0}
+            <text x="40" y="210" text-anchor="start" class="text-xs fill-gray-500" font-size="9">
+              {formatChartDate(bookingTrends[0].date)}
+            </text>
+            {#if bookingTrends.length > 2}
+              <text x="210" y="210" text-anchor="middle" class="text-xs fill-gray-500" font-size="9">
+                {formatChartDate(bookingTrends[Math.floor(bookingTrends.length / 2)].date)}
+              </text>
+            {/if}
+            <text x="380" y="210" text-anchor="end" class="text-xs fill-gray-500" font-size="9">
+              {formatChartDate(bookingTrends[bookingTrends.length - 1].date)}
+            </text>
+          {/if}
+        </svg>
+      {:else}
+        <div class="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+          <span class="text-gray-500 dark:text-gray-400">No booking data available</span>
+        </div>
+      {/if}
     </div>
   </div>
 
   <!-- Revenue Chart -->
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
     <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-      Revenue
+      Revenue (Last 30 Days)
     </h2>
     <div class="h-64">
-      <!-- SVG Chart Placeholder - In a real app, you would use a chart library -->
-      <div
-        class="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-gray-700/50 rounded-lg"
-      >
-        <BarChart size={48} class="text-gray-400" />
-        <span class="ml-2 text-gray-500 dark:text-gray-400"
-          >Revenue chart will appear here</span
-        >
-      </div>
+      {#if revenueTrends && revenueTrends.length > 0}
+        <svg viewBox="0 0 400 220" class="w-full h-full">
+          <!-- Grid lines -->
+          {#each [0, 1, 2, 3, 4] as i (i)}
+            <line
+              x1="50"
+              y1={190 - i * 40}
+              x2="380"
+              y2={190 - i * 40}
+              stroke="#e5e7eb"
+              stroke-width="1"
+            />
+          {/each}
+
+          <!-- Y-axis labels -->
+          {#each getYAxisLabels(revenueTrends) as label, i (i)}
+            <text
+              x="45"
+              y={193 - i * 40}
+              text-anchor="end"
+              class="text-xs fill-gray-500"
+              font-size="9"
+            >
+              R{label >= 1000 ? (label / 1000).toFixed(0) + "k" : label}
+            </text>
+          {/each}
+
+          <!-- Bars -->
+          {#each revenueTrends as point, i (point.date)}
+            {@const maxValue = Math.max(...revenueTrends.map((d) => d.value), 1)}
+            {@const barWidth = Math.min(20, 300 / revenueTrends.length - 2)}
+            {@const xStep = 330 / revenueTrends.length}
+            {@const x = 50 + i * xStep + (xStep - barWidth) / 2}
+            {@const barHeight = (point.value / maxValue) * 160}
+            {@const y = 190 - barHeight}
+            <rect
+              x={x}
+              y={y}
+              width={barWidth}
+              height={barHeight}
+              fill="#20C3AF"
+              rx="2"
+              class="hover:fill-teal-600 transition-colors"
+            >
+              <title>{formatChartDate(point.date)}: {formatCurrency(point.value)}</title>
+            </rect>
+          {/each}
+
+          <!-- X-axis labels -->
+          {#if revenueTrends.length > 0}
+            <text x="50" y="210" text-anchor="start" class="text-xs fill-gray-500" font-size="9">
+              {formatChartDate(revenueTrends[0].date)}
+            </text>
+            {#if revenueTrends.length > 2}
+              <text x="215" y="210" text-anchor="middle" class="text-xs fill-gray-500" font-size="9">
+                {formatChartDate(revenueTrends[Math.floor(revenueTrends.length / 2)].date)}
+              </text>
+            {/if}
+            <text x="380" y="210" text-anchor="end" class="text-xs fill-gray-500" font-size="9">
+              {formatChartDate(revenueTrends[revenueTrends.length - 1].date)}
+            </text>
+          {/if}
+        </svg>
+      {:else}
+        <div class="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+          <span class="text-gray-500 dark:text-gray-400">No revenue data available</span>
+        </div>
+      {/if}
     </div>
   </div>
 </div>

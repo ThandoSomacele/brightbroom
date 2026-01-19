@@ -185,6 +185,34 @@ export const load: PageServerLoad = async ({ locals }) => {
       .limit(5);
 
 
+    // Get booking trends for the last 30 days
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const bookingTrendsResult = await db
+      .select({
+        date: sql<string>`DATE(${booking.createdAt})`.mapWith(String),
+        count: sql<number>`count(*)`.mapWith(Number),
+      })
+      .from(booking)
+      .where(gte(booking.createdAt, thirtyDaysAgo))
+      .groupBy(sql`DATE(${booking.createdAt})`)
+      .orderBy(sql`DATE(${booking.createdAt})`);
+
+    // Get revenue trends for the last 30 days
+    const revenueTrendsResult = await db
+      .select({
+        date: sql<string>`DATE(${payment.createdAt})`.mapWith(String),
+        value: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number),
+      })
+      .from(payment)
+      .where(
+        and(
+          eq(payment.status, "COMPLETED"),
+          gte(payment.createdAt, thirtyDaysAgo),
+        ),
+      )
+      .groupBy(sql`DATE(${payment.createdAt})`)
+      .orderBy(sql`DATE(${payment.createdAt})`);
+
     // Create mock data for recent activity (in a real app, this would come from a real activity log)
     const recentActivity = [
       {
@@ -230,8 +258,8 @@ export const load: PageServerLoad = async ({ locals }) => {
         pendingCleaners: pendingCleanersResult,
 
       },
-      bookingTrends: [], // This would be data for charts in a real app
-      revenueTrends: [], // This would be data for charts in a real app
+      bookingTrends: bookingTrendsResult.map((r) => ({ date: r.date, value: r.count })),
+      revenueTrends: revenueTrendsResult.map((r) => ({ date: r.date, value: r.value })),
       recentActivity,
     };
   } catch (error) {
