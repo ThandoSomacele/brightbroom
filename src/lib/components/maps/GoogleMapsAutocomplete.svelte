@@ -54,6 +54,7 @@
     },
     { name: "Diepsloot", lat: -25.9412555, lng: 27.96671, radius: 100 },
     { name: "Honeydew", lat: -26.0225, lng: 27.9475, radius: 30 },
+    { name: "Monaghan Farm, Centurion", lat: -25.904442, lng: 27.454882, radius: 15 },
   ];
 
   // Create custom dispatch events
