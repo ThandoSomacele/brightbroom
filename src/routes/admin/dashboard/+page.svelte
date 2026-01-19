@@ -1,5 +1,6 @@
 <!-- src/routes/admin/dashboard/+page.svelte -->
 <script lang="ts">
+  import { navigating } from "$app/stores";
   import {
     ArrowDown,
     ArrowUp,
@@ -10,7 +11,10 @@
 
   // Import data from server load function
   export let data;
-  const { metrics, bookingTrends, revenueTrends, recentActivity } = data;
+  $: ({ metrics, bookingTrends, revenueTrends, recentActivity } = data);
+
+  // Show skeleton when navigating to this page
+  $: isLoading = $navigating?.to?.route?.id === "/admin/dashboard";
 
   // Helper function to format currency
   function formatCurrency(amount: number): string {
@@ -116,26 +120,32 @@
         <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
           Total Bookings
         </p>
-        <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-          {metrics.totalBookings}
-        </p>
+        {#if isLoading}
+          <div class="h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1"></div>
+        {:else}
+          <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+            {metrics.totalBookings}
+          </p>
+        {/if}
       </div>
       <div class="bg-primary-100 dark:bg-primary-900/20 p-3 rounded-full">
         <Calendar class="text-primary h-6 w-6" />
       </div>
     </div>
     <div class="mt-4 flex items-center">
-      <span class={getTrendColor(metrics.bookingTrend)}>
-        {#if metrics.bookingTrend >= 0}
-          <ArrowUp class="inline h-4 w-4" />
-        {:else}
-          <ArrowDown class="inline h-4 w-4" />
-        {/if}
-        {Math.abs(metrics.bookingTrend)}%
-      </span>
-      <span class="text-gray-500 dark:text-gray-400 text-sm ml-2"
-        >from last month</span
-      >
+      {#if isLoading}
+        <div class="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+      {:else}
+        <span class={getTrendColor(metrics.bookingTrend)}>
+          {#if metrics.bookingTrend >= 0}
+            <ArrowUp class="inline h-4 w-4" />
+          {:else}
+            <ArrowDown class="inline h-4 w-4" />
+          {/if}
+          {Math.abs(metrics.bookingTrend)}%
+        </span>
+        <span class="text-gray-500 dark:text-gray-400 text-sm ml-2">from last month</span>
+      {/if}
     </div>
   </div>
 
@@ -146,26 +156,32 @@
         <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
           Total Revenue
         </p>
-        <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-          {formatCurrency(metrics.totalRevenue)}
-        </p>
+        {#if isLoading}
+          <div class="h-8 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1"></div>
+        {:else}
+          <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+            {formatCurrency(metrics.totalRevenue)}
+          </p>
+        {/if}
       </div>
       <div class="bg-green-100 dark:bg-green-900/20 p-3 rounded-full">
         <CreditCard class="text-green-500 h-6 w-6" />
       </div>
     </div>
     <div class="mt-4 flex items-center">
-      <span class={getTrendColor(metrics.revenueTrend)}>
-        {#if metrics.revenueTrend >= 0}
-          <ArrowUp class="inline h-4 w-4" />
-        {:else}
-          <ArrowDown class="inline h-4 w-4" />
-        {/if}
-        {Math.abs(metrics.revenueTrend)}%
-      </span>
-      <span class="text-gray-500 dark:text-gray-400 text-sm ml-2"
-        >from last month</span
-      >
+      {#if isLoading}
+        <div class="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+      {:else}
+        <span class={getTrendColor(metrics.revenueTrend)}>
+          {#if metrics.revenueTrend >= 0}
+            <ArrowUp class="inline h-4 w-4" />
+          {:else}
+            <ArrowDown class="inline h-4 w-4" />
+          {/if}
+          {Math.abs(metrics.revenueTrend)}%
+        </span>
+        <span class="text-gray-500 dark:text-gray-400 text-sm ml-2">from last month</span>
+      {/if}
     </div>
   </div>
 
@@ -176,26 +192,32 @@
         <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
           Active Cleaners
         </p>
-        <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-          {metrics.activeCleaners}
-        </p>
+        {#if isLoading}
+          <div class="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1"></div>
+        {:else}
+          <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+            {metrics.activeCleaners}
+          </p>
+        {/if}
       </div>
       <div class="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-full">
         <Users class="text-blue-500 h-6 w-6" />
       </div>
     </div>
     <div class="mt-4 flex items-center">
-      <span class={getTrendColor(metrics.cleanerTrend)}>
-        {#if metrics.cleanerTrend >= 0}
-          <ArrowUp class="inline h-4 w-4" />
-        {:else}
-          <ArrowDown class="inline h-4 w-4" />
-        {/if}
-        {Math.abs(metrics.cleanerTrend)}%
-      </span>
-      <span class="text-gray-500 dark:text-gray-400 text-sm ml-2"
-        >from last month</span
-      >
+      {#if isLoading}
+        <div class="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+      {:else}
+        <span class={getTrendColor(metrics.cleanerTrend)}>
+          {#if metrics.cleanerTrend >= 0}
+            <ArrowUp class="inline h-4 w-4" />
+          {:else}
+            <ArrowDown class="inline h-4 w-4" />
+          {/if}
+          {Math.abs(metrics.cleanerTrend)}%
+        </span>
+        <span class="text-gray-500 dark:text-gray-400 text-sm ml-2">from last month</span>
+      {/if}
     </div>
   </div>
 
@@ -206,9 +228,13 @@
         <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
           Pending Bookings
         </p>
-        <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-          {metrics.pendingBookings}
-        </p>
+        {#if isLoading}
+          <div class="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1"></div>
+        {:else}
+          <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+            {metrics.pendingBookings}
+          </p>
+        {/if}
       </div>
       <div class="bg-yellow-100 dark:bg-yellow-900/20 p-3 rounded-full">
         <Calendar class="text-yellow-500 h-6 w-6" />
@@ -320,7 +346,23 @@
       Booking Trends (Last 30 Days)
     </h2>
     <div class="h-64">
-      {#if bookingTrends && bookingTrends.length > 0}
+      {#if isLoading}
+        <div class="w-full h-full flex flex-col justify-end p-4">
+          <div class="flex items-end justify-between gap-2 h-40">
+            {#each Array(10) as _, i (i)}
+              <div
+                class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-t animate-pulse"
+                style="height: {20 + Math.random() * 60}%"
+              ></div>
+            {/each}
+          </div>
+          <div class="flex justify-between mt-2">
+            <div class="h-3 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <div class="h-3 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <div class="h-3 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          </div>
+        </div>
+      {:else if bookingTrends && bookingTrends.length > 0}
         <svg viewBox="0 0 400 220" class="w-full h-full">
           <!-- Grid lines -->
           {#each [0, 1, 2, 3, 4] as i (i)}
@@ -402,7 +444,23 @@
       Revenue (Last 30 Days)
     </h2>
     <div class="h-64">
-      {#if revenueTrends && revenueTrends.length > 0}
+      {#if isLoading}
+        <div class="w-full h-full flex flex-col justify-end p-4">
+          <div class="flex items-end justify-between gap-2 h-40">
+            {#each Array(10) as _, i (i)}
+              <div
+                class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-t animate-pulse"
+                style="height: {20 + Math.random() * 60}%"
+              ></div>
+            {/each}
+          </div>
+          <div class="flex justify-between mt-2">
+            <div class="h-3 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <div class="h-3 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <div class="h-3 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          </div>
+        </div>
+      {:else if revenueTrends && revenueTrends.length > 0}
         <svg viewBox="0 0 400 220" class="w-full h-full">
           <!-- Grid lines -->
           {#each [0, 1, 2, 3, 4] as i (i)}
