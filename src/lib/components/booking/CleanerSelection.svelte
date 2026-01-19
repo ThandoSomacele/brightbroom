@@ -87,7 +87,7 @@
       case "CATS":
         return "🐈";
       case "BOTH":
-        return "🐕🐈";
+        return "🐕 🐈";
       default:
         return "";
     }
@@ -178,7 +178,7 @@
 
             <div class="flex items-center gap-3 mb-3 text-sm">
               {#if cleaner.petCompatibility !== "NONE"}
-                <span title="Pet friendly"
+                <span title="Pet friendly" class="text-xl"
                   >{getPetIcon(cleaner.petCompatibility)}</span
                 >
               {/if}
