@@ -100,11 +100,12 @@
       on:select={handleCleanerSelect}
     />
 
-    <!-- Optional Selection -->
-    <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-      <p class="text-sm text-blue-800">
-        <strong>Note:</strong> Selecting a cleaner is optional. If you skip this
-        step, we'll automatically assign the best available cleaner for your booking.
+    <!-- Preference Notice -->
+    <div class="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
+      <p class="text-sm text-amber-800">
+        <strong>Please note:</strong> Your cleaner selection is a <strong>preference</strong>, not a guarantee.
+        Due to scheduling and transport logistics, a different cleaner may be assigned to your booking.
+        If this happens, we'll notify you via email before your appointment.
       </p>
     </div>
 

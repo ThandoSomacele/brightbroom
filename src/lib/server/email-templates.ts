@@ -3330,3 +3330,269 @@ This email was sent to ${recipientEmail}.
     text,
   };
 }
+
+/**
+ * Generate a cleaner changed notification email template
+ * Sent when a different cleaner is assigned than the customer's preference
+ */
+export function getCleanerChangedTemplate(
+  recipientEmail: string,
+  booking: {
+    id: string;
+    service: {
+      name: string;
+    };
+    scheduledDate: string;
+    address: { street: string; city: string; state: string; zipCode: string };
+    originalCleaner: {
+      firstName: string;
+      lastName: string;
+    } | null;
+    newCleaner: {
+      firstName: string;
+      lastName: string;
+      profileImageUrl?: string;
+    };
+  },
+  data: EmailTemplateData,
+): { subject: string; html: string; text: string } {
+  const bookingUrl = `${data.appUrl}/profile/bookings/${booking.id}`;
+  const escapedEmail = escapeHtml(recipientEmail);
+
+  // Parse without timezone conversion
+  const scheduledDate = parseDateTimeString(booking.scheduledDate);
+
+  // Format date
+  const dateString = scheduledDate.toLocaleDateString("en-ZA", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  // Format time
+  const timeString = scheduledDate.toLocaleTimeString("en-ZA", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  const originalCleanerName = booking.originalCleaner
+    ? `${booking.originalCleaner.firstName} ${booking.originalCleaner.lastName}`
+    : "your preferred cleaner";
+
+  const newCleanerName = `${booking.newCleaner.firstName} ${booking.newCleaner.lastName}`;
+
+  // Default avatar SVG for cleaners without profile images
+  const defaultAvatarSvg = `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="30" cy="30" r="30" fill="#E5E7EB"/>
+    <path d="M30 15C25.0294 15 21 19.0294 21 24C21 28.9706 25.0294 33 30 33C34.9706 33 39 28.9706 39 24C39 19.0294 34.9706 15 30 15ZM30 39C22.5 39 15 42.5147 15 48V51H45V48C45 42.5147 37.5 39 30 39Z" fill="#9CA3AF"/>
+  </svg>`;
+
+  const profileImageUrl = booking.newCleaner.profileImageUrl;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cleaner Update for Your Booking</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background-color: ${data.primaryColor};
+    }
+    .content {
+      padding: 30px 20px;
+      background-color: #ffffff;
+    }
+    .notice-box {
+      background-color: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .notice-box p {
+      margin: 0;
+      color: #92400e;
+    }
+    .cleaner-box {
+      background-color: #f0fdf4;
+      border: 1px solid #22c55e;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    .cleaner-image {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 10px;
+      object-fit: cover;
+      border: 3px solid ${data.primaryColor};
+    }
+    .booking-details {
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .booking-detail {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #eeeeee;
+      padding-bottom: 10px;
+    }
+    .booking-detail:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .label {
+      font-weight: bold;
+      color: #666666;
+    }
+    .footer {
+      font-size: 12px;
+      text-align: center;
+      color: #888888;
+      padding: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: ${data.primaryColor};
+      color: #ffffff !important;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+    @media only screen and (max-width: 480px) {
+      .email-container {
+        padding: 10px;
+      }
+      .content {
+        padding: 20px 15px;
+      }
+      .btn {
+        display: block;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1 style="color: #ffffff; margin: 0;">${data.brandName}</h1>
+    </div>
+    <div class="content">
+      <h2>Cleaner Update for Your Booking</h2>
+      <p>Hello,</p>
+
+      <div class="notice-box">
+        <p><strong>Important:</strong> Due to scheduling and transport logistics, we've assigned a different cleaner to your upcoming booking.</p>
+      </div>
+
+      <p>We understand you requested <strong>${originalCleanerName}</strong>, but they are unfortunately unavailable for this appointment. We've assigned another excellent cleaner who will take great care of your home.</p>
+
+      <div class="cleaner-box">
+        <h3 style="margin-top: 0; color: #166534;">Your Assigned Cleaner</h3>
+        ${
+          profileImageUrl
+            ? `<img src="${profileImageUrl}" alt="${newCleanerName}" class="cleaner-image" />`
+            : `<div style="width: 80px; height: 80px; margin: 0 auto 10px; border-radius: 50%; overflow: hidden;">${defaultAvatarSvg}</div>`
+        }
+        <p style="font-size: 18px; font-weight: bold; margin: 10px 0 0;">${newCleanerName}</p>
+      </div>
+
+      <div class="booking-details">
+        <h3 style="margin-top: 0; color: #333333;">Booking Details</h3>
+        <div class="booking-detail">
+          <span class="label">Service:</span>
+          <span>${booking.service.name}</span>
+        </div>
+        <div class="booking-detail">
+          <span class="label">Date:</span>
+          <span>${dateString}</span>
+        </div>
+        <div class="booking-detail">
+          <span class="label">Time:</span>
+          <span>${timeString}</span>
+        </div>
+        <div class="booking-detail">
+          <span class="label">Address:</span>
+          <span>${booking.address.street}, ${booking.address.city}</span>
+        </div>
+      </div>
+
+      <p>All our cleaners are thoroughly vetted and trained to the same high standards, so you can expect the same quality service.</p>
+
+      <div style="text-align: center;">
+        <a href="${bookingUrl}" class="btn">View Booking Details</a>
+      </div>
+
+      <p>If you have any questions or concerns, please don't hesitate to contact us.</p>
+
+      <p>Thank you for your understanding,<br>The ${data.brandName} Team</p>
+    </div>
+    <div class="footer">
+      <p>This email was sent to ${escapedEmail}.</p>
+      <p>&copy; ${new Date().getFullYear()} ${data.brandName}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const text = `
+Cleaner Update for Your Booking - ${data.brandName}
+
+Hello,
+
+IMPORTANT: Due to scheduling and transport logistics, we've assigned a different cleaner to your upcoming booking.
+
+We understand you requested ${originalCleanerName}, but they are unfortunately unavailable for this appointment. We've assigned another excellent cleaner who will take great care of your home.
+
+YOUR ASSIGNED CLEANER: ${newCleanerName}
+
+BOOKING DETAILS:
+- Service: ${booking.service.name}
+- Date: ${dateString}
+- Time: ${timeString}
+- Address: ${booking.address.street}, ${booking.address.city}
+
+All our cleaners are thoroughly vetted and trained to the same high standards, so you can expect the same quality service.
+
+View booking details: ${bookingUrl}
+
+If you have any questions or concerns, please don't hesitate to contact us.
+
+Thank you for your understanding,
+The ${data.brandName} Team
+
+This email was sent to ${recipientEmail}.
+© ${new Date().getFullYear()} ${data.brandName}. All rights reserved.
+`;
+
+  return {
+    subject: `Cleaner Update for Your Booking - ${data.brandName}`,
+    html,
+    text,
+  };
+}

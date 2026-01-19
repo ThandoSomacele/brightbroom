@@ -91,7 +91,8 @@
 </script>
 
 <div class="cleaner-selection">
-  <h2 class="text-2xl font-bold mb-6">Choose Your Cleaner</h2>
+  <h2 class="text-2xl font-bold mb-2">Choose Your Preferred Cleaner</h2>
+  <p class="text-gray-600 mb-6">Select your preference - we'll do our best to match you with this cleaner.</p>
   
   {#if loading}
     <div class="flex justify-center items-center py-12">
@@ -187,7 +188,7 @@
     
     <div class="mt-6 p-4 bg-gray-50 rounded-lg">
       <p class="text-sm text-gray-600">
-        💡 <strong>Tip:</strong> All our cleaners are thoroughly vetted, insured, and trained to our high standards. Choose the one that best fits your needs!
+        💡 <strong>Tip:</strong> All our cleaners are thoroughly vetted and trained to our high standards. Your selection helps us understand your preferences!
       </p>
     </div>
   {/if}
