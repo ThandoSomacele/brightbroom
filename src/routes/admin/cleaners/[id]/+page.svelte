@@ -73,21 +73,21 @@
     { id: "CARE_GIVING", label: "Care Giving" },
   ];
 
-  // Initialize availableDays if data exists
+  // Initialise availableDays if data exists
   if (cleaner.cleanerProfile?.availableDays) {
     cleaner.cleanerProfile.availableDays.forEach((day) => {
       availableDays[day] = true;
     });
   }
 
-  // Initialize selected experience types
+  // Initialise selected experience types
   let selectedExperienceTypes: string[] =
     cleaner.cleanerProfile?.experienceTypes || [];
 
   // Track specialisations
   let selectedSpecialisations = new Map();
 
-  // Initialize selected specialisations
+  // Initialise selected specialisations
   if (cleaner.specialisations) {
     cleaner.specialisations.forEach((spec) => {
       selectedSpecialisations.set(spec.serviceId, {
@@ -163,7 +163,7 @@
         });
       }
 
-      // Initialize missing services
+      // Initialise missing services
       services.forEach((service) => {
         if (!selectedSpecialisations.has(service.id)) {
           selectedSpecialisations.set(service.id, {

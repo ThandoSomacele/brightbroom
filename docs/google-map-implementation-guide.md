@@ -47,7 +47,7 @@ The solution consists of several components:
 ### Booking Flow Integration
 
 1. Replace or update `src/routes/book/address/+page.svelte` with the modified version
-2. Make sure the address store is properly initialized in the booking flow
+2. Make sure the address store is properly Initialised in the booking flow
 
 ### Profile Address Management Integration
 
@@ -122,7 +122,7 @@ An address is considered within a service area if its distance to at least one s
 ### Google Maps Integration
 
 1. The `GoogleMapsAutocomplete` component lazy-loads the Google Maps JavaScript API
-2. It initializes a Places Autocomplete instance with South Africa country restriction
+2. It Initialises a Places Autocomplete instance with South Africa country restriction
 3. It further biases results toward the Gauteng region for better suggestions
 4. When an address is selected, it's validated against service areas
 

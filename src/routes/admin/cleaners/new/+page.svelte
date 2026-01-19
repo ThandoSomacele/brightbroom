@@ -12,7 +12,7 @@
   let isLoading = false;
   let selectedServices = new Map();
 
-  // Initialize service selection
+  // Initialise service selection
   $: {
     if (data.services) {
       data.services.forEach((service) => {

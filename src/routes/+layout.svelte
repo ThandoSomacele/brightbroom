@@ -1,14 +1,14 @@
 <!-- src/routes/+layout.svelte -->
 <script lang="ts">
-  import { page } from "$app/stores";
   import { browser } from "$app/environment";
-  import { beforeNavigate, afterNavigate } from "$app/navigation";
-  import posthog from "posthog-js";
+  import { afterNavigate, beforeNavigate } from "$app/navigation";
+  import { page } from "$app/stores";
+  import CookieConsentBanner from "$lib/components/CookieConsentBanner.svelte";
+  import ErrorBoundary from "$lib/components/ErrorBoundary.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import LoadingIndicator from "$lib/components/ui/LoadingIndicator.svelte";
-  import ErrorBoundary from "$lib/components/ErrorBoundary.svelte";
-  import CookieConsentBanner from "$lib/components/CookieConsentBanner.svelte";
   import { performanceMonitor } from "$lib/utils/performance";
+  import posthog from "posthog-js";
   import { onMount } from "svelte";
   import "../app.css";
 
@@ -20,7 +20,7 @@
   $: canonicalUrl = `${siteUrl}${$page.url.pathname}`;
 
   // Check if current page is in booking flow (hide footer on mobile for these)
-  $: isBookingFlow = $page.url.pathname.startsWith('/book');
+  $: isBookingFlow = $page.url.pathname.startsWith("/book");
 
   let isMenuOpen = false;
 
@@ -32,21 +32,21 @@
     isMenuOpen = false;
   }
 
-  // Initialize performance monitoring and GTM
+  // Initialise performance monitoring and GTM
   onMount(() => {
-    // Initialize Google Tag Manager
-    if (typeof window !== 'undefined') {
+    // Initialise Google Tag Manager
+    if (typeof window !== "undefined") {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
-        'gtm.start': new Date().getTime(),
-        event: 'gtm.js'
+        "gtm.start": new Date().getTime(),
+        event: "gtm.js",
       });
-      
-      const script = document.createElement('script');
+
+      const script = document.createElement("script");
       script.async = true;
-      script.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-WSXMSVZT';
-      
-      const firstScript = document.getElementsByTagName('script')[0];
+      script.src = "https://www.googletagmanager.com/gtm.js?id=GTM-WSXMSVZT";
+
+      const firstScript = document.getElementsByTagName("script")[0];
       firstScript.parentNode.insertBefore(script, firstScript);
     }
 
@@ -58,8 +58,8 @@
 
   // PostHog pageview & pageleave tracking
   if (browser) {
-    beforeNavigate(() => posthog.capture('$pageleave'));
-    afterNavigate(() => posthog.capture('$pageview'));
+    beforeNavigate(() => posthog.capture("$pageleave"));
+    afterNavigate(() => posthog.capture("$pageview"));
   }
 </script>
 
@@ -75,16 +75,23 @@
 </svelte:head>
 
 <!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WSXMSVZT"
-height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Manager"></iframe></noscript>
+<noscript
+  ><iframe
+    src="https://www.googletagmanager.com/ns.html?id=GTM-WSXMSVZT"
+    height="0"
+    width="0"
+    style="display:none;visibility:hidden"
+    title="Google Tag Manager"
+  ></iframe></noscript
+>
 <!-- End Google Tag Manager (noscript) -->
 
 <!-- Global loading indicator for page navigation -->
 <LoadingIndicator />
 
 <!-- Skip link for accessibility -->
-<a 
-  href="#main-content" 
+<a
+  href="#main-content"
   class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-primary text-white p-3 z-50 focus:z-50"
 >
   Skip to main content
@@ -96,7 +103,11 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
     <div class="flex h-16 items-center justify-between">
       <!-- Logo and site name -->
       <div class="flex flex-shrink-0 items-center">
-        <a href="/" class="flex items-center" aria-label="BrightBroom home page">
+        <a
+          href="/"
+          class="flex items-center"
+          aria-label="BrightBroom home page"
+        >
           <span class="text-2xl font-bold text-primary">BrightBroom</span>
         </a>
       </div>
@@ -319,7 +330,11 @@ height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Ma
 </ErrorBoundary>
 
 <!-- Footer - hidden on mobile during booking flow since we have fixed bottom bar -->
-<footer class="bg-gray-50 py-8 dark:bg-gray-900 {isBookingFlow ? 'hidden lg:block' : ''}">
+<footer
+  class="bg-gray-50 py-8 dark:bg-gray-900 {isBookingFlow
+    ? 'hidden lg:block'
+    : ''}"
+>
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="md:flex md:items-center md:justify-between">
       <div class="mb-6 md:mb-0">

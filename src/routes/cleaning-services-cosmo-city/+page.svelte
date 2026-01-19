@@ -333,7 +333,7 @@
             Move In/Move Out Cleaning
           </h3>
           <p class="text-gray-600 mb-4">
-            Specialized cleaning for tenants and landlords in Cosmo City,
+            Specialised cleaning for tenants and landlords in Cosmo City,
             ensuring properties are spotless for new occupants.
           </p>
           <ul class="space-y-2 text-gray-600">

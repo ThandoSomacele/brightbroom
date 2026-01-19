@@ -19,7 +19,7 @@ import {
   getWelcomeEmailTemplate,
 } from "./email-templates";
 
-// Initialize Resend with API key from environment variable
+// Initialise Resend with API key from environment variable
 const RESEND_API_KEY = env.RESEND_API_KEY;
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
@@ -53,7 +53,7 @@ const EMAIL_CONFIG = {
 };
 
 // Log configuration for debugging
-console.log(`Email Service initialized with app URL: ${APP_URL}`);
+console.log(`Email Service Initialised with app URL: ${APP_URL}`);
 console.log(`Resend API key available: ${!!RESEND_API_KEY}`);
 
 /**
@@ -148,15 +148,12 @@ export async function sendBookingConfirmationEmail(
   bookingDetails: any,
 ): Promise<boolean> {
   try {
-    console.log(
-      '[EMAIL SERVICE] Preparing confirmation email for booking',
-      {
-        bookingId: bookingDetails.id,
-        paymentStatus: bookingDetails.paymentStatus || "Not provided",
-        bookingStatus: bookingDetails.status,
-        email: email,
-      },
-    );
+    console.log("[EMAIL SERVICE] Preparing confirmation email for booking", {
+      bookingId: bookingDetails.id,
+      paymentStatus: bookingDetails.paymentStatus || "Not provided",
+      bookingStatus: bookingDetails.status,
+      email: email,
+    });
 
     // Check if the booking is cancelled - don't send confirmation for cancelled bookings
     if (bookingDetails.status === "CANCELLED") {
@@ -384,13 +381,10 @@ export async function sendWelcomeEmail(
       return false;
     }
 
-    console.log(
-      'Welcome email sent successfully:',
-      {
-        role: user.role || "customer",
-        userId: data.id
-      }
-    );
+    console.log("Welcome email sent successfully:", {
+      role: user.role || "customer",
+      userId: data.id,
+    });
     return true;
   } catch (error) {
     console.error("Error sending welcome email:", error);
@@ -652,7 +646,9 @@ export async function sendCleanerJobAssignmentEmail(
       return false;
     }
 
-    console.log(`Preparing job assignment email for cleaner - booking ${bookingDetails.id}`);
+    console.log(
+      `Preparing job assignment email for cleaner - booking ${bookingDetails.id}`,
+    );
 
     // Generate the assignment template for cleaner
     const template = getCleanerJobAssignmentTemplate(
@@ -695,7 +691,11 @@ export async function sendCleanerChangedEmail(
     scheduledDate: string;
     address: { street: string; city: string; state: string; zipCode: string };
     originalCleaner: { firstName: string; lastName: string } | null;
-    newCleaner: { firstName: string; lastName: string; profileImageUrl?: string };
+    newCleaner: {
+      firstName: string;
+      lastName: string;
+      profileImageUrl?: string;
+    };
   },
 ): Promise<boolean> {
   try {
@@ -704,7 +704,9 @@ export async function sendCleanerChangedEmail(
       return false;
     }
 
-    console.log(`Preparing cleaner changed notification for booking ${bookingDetails.id}`);
+    console.log(
+      `Preparing cleaner changed notification for booking ${bookingDetails.id}`,
+    );
 
     // Generate the cleaner changed template
     const template = getCleanerChangedTemplate(
@@ -727,7 +729,10 @@ export async function sendCleanerChangedEmail(
       return false;
     }
 
-    console.log("Cleaner changed notification email sent successfully:", data.id);
+    console.log(
+      "Cleaner changed notification email sent successfully:",
+      data.id,
+    );
     return true;
   } catch (error) {
     console.error("Error sending cleaner changed notification email:", error);

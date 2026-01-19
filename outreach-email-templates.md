@@ -10,7 +10,7 @@ Dear [Agent Name],
 
 I noticed you specialize in properties in the [Fourways/Bryanston/Randburg/Midrand] area, and I'd love to support your clients during their moves.
 
-I'm [Your Name] from BrightBroom, a local professional cleaning service. We help make property transitions smoother with our specialized move-in/move-out cleaning services.
+I'm [Your Name] from BrightBroom, a local professional cleaning service. We help make property transitions smoother with our specialised move-in/move-out cleaning services.
 
 I'd like to offer you complimentary cleaning vouchers (worth R200 each) that you can gift to your clients as a closing gift or moving incentive. This adds value to your service at no cost to you.
 

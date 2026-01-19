@@ -3,7 +3,7 @@
 /**
  * Service category type
  */
-export type ServiceCategory = 'residential' | 'commercial' | 'specialized';
+export type ServiceCategory = 'residential' | 'commercial' | 'specialised';
 
 /**
  * Service type (level of cleaning)

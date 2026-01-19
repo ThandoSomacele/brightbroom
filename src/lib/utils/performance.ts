@@ -19,14 +19,19 @@ export class PerformanceMonitor {
 
   private initializeMetrics() {
     // Only run in browser
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     // Basic load metrics
-    window.addEventListener('load', () => {
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+    window.addEventListener("load", () => {
+      const navigation = performance.getEntriesByType(
+        "navigation",
+      )[0] as PerformanceNavigationTiming;
       if (navigation) {
-        this.metrics.loadTime = navigation.loadEventEnd - navigation.loadEventStart;
-        this.metrics.domContentLoaded = navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart;
+        this.metrics.loadTime =
+          navigation.loadEventEnd - navigation.loadEventStart;
+        this.metrics.domContentLoaded =
+          navigation.domContentLoadedEventEnd -
+          navigation.domContentLoadedEventStart;
       }
     });
 
@@ -35,19 +40,19 @@ export class PerformanceMonitor {
   }
 
   private observeWebVitals() {
-    if (typeof window === 'undefined' || !window.PerformanceObserver) return;
+    if (typeof window === "undefined" || !window.PerformanceObserver) return;
 
     try {
       // First Contentful Paint
       const paintObserver = new PerformanceObserver((entryList) => {
         const entries = entryList.getEntries();
         for (const entry of entries) {
-          if (entry.name === 'first-contentful-paint') {
+          if (entry.name === "first-contentful-paint") {
             this.metrics.firstContentfulPaint = entry.startTime;
           }
         }
       });
-      paintObserver.observe({ entryTypes: ['paint'] });
+      paintObserver.observe({ entryTypes: ["paint"] });
       this.observers.push(paintObserver);
 
       // Largest Contentful Paint
@@ -58,7 +63,7 @@ export class PerformanceMonitor {
           this.metrics.largestContentfulPaint = lastEntry.startTime;
         }
       });
-      lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+      lcpObserver.observe({ entryTypes: ["largest-contentful-paint"] });
       this.observers.push(lcpObserver);
 
       // Cumulative Layout Shift
@@ -71,20 +76,21 @@ export class PerformanceMonitor {
         }
         this.metrics.cumulativeLayoutShift = clsValue;
       });
-      clsObserver.observe({ entryTypes: ['layout-shift'] });
+      clsObserver.observe({ entryTypes: ["layout-shift"] });
       this.observers.push(clsObserver);
 
       // First Input Delay
       const fidObserver = new PerformanceObserver((entryList) => {
         const entries = entryList.getEntries();
         for (const entry of entries) {
-          this.metrics.firstInputDelay = entry.processingStart - entry.startTime;
+          this.metrics.firstInputDelay =
+            entry.processingStart - entry.startTime;
         }
       });
-      fidObserver.observe({ entryTypes: ['first-input'] });
+      fidObserver.observe({ entryTypes: ["first-input"] });
       this.observers.push(fidObserver);
     } catch (error) {
-      console.warn('Performance monitoring setup failed:', error);
+      console.warn("Performance monitoring setup failed:", error);
     }
   }
 
@@ -94,7 +100,7 @@ export class PerformanceMonitor {
 
   public reportMetrics() {
     const metrics = this.getMetrics();
-    
+
     // Log to console in development
     if (import.meta.env.DEV) {
       console.table(metrics);
@@ -102,12 +108,12 @@ export class PerformanceMonitor {
 
     // In production, you would send this to your analytics service
     // Example: analytics.track('performance_metrics', metrics);
-    
+
     return metrics;
   }
 
   public disconnect() {
-    this.observers.forEach(observer => observer.disconnect());
+    this.observers.forEach((observer) => observer.disconnect());
     this.observers = [];
   }
 }
@@ -125,17 +131,20 @@ export function measureOperation<T>(name: string, operation: () => T): T {
   const start = performance.now();
   const result = operation();
   const end = performance.now();
-  
+
   console.log(`${name} took ${end - start} milliseconds`);
   return result;
 }
 
 // Helper function to measure async operations
-export async function measureAsyncOperation<T>(name: string, operation: () => Promise<T>): Promise<T> {
+export async function measureAsyncOperation<T>(
+  name: string,
+  operation: () => Promise<T>,
+): Promise<T> {
   const start = performance.now();
   const result = await operation();
   const end = performance.now();
-  
+
   console.log(`${name} took ${end - start} milliseconds`);
   return result;
 }

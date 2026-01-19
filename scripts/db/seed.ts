@@ -469,7 +469,7 @@ async function seedUsers(db: any) {
         workRadius: 10.0,
         petCompatibility: "BOTH",
         availableDays: ["TUESDAY", "THURSDAY", "SATURDAY", "SUNDAY"],
-        bio: "Detail-oriented and efficient. Specialized in extended cleaning.",
+        bio: "Detail-oriented and efficient. specialised in extended cleaning.",
         rating: 4.9,
         isAvailable: true,
       })

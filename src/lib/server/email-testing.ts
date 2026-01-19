@@ -2,7 +2,7 @@
 import { Resend } from "resend";
 import { RESEND_API_KEY } from "./env";
 
-// Initialize Resend with API key from environment variable
+// Initialise Resend with API key from environment variable
 // Add a fallback for development if needed
 const apiKey = RESEND_API_KEY;
 const resend = new Resend(apiKey);

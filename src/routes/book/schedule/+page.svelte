@@ -1,46 +1,33 @@
 <!-- src/routes/book/schedule/+page.svelte -->
 <script lang="ts">
   import { goto } from "$app/navigation";
+  import RecurringOptions from "$lib/components/booking/RecurringOptions.svelte";
   import StepTracker from "$lib/components/booking/StepTracker.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import RecurringOptions from "$lib/components/booking/RecurringOptions.svelte";
-  import { Calendar, Clock, ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, RotateCw } from "lucide-svelte";
-  import { format, parse, isEqual, isSameDay, isToday, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, endOfWeek, startOfWeek, isSameMonth } from "date-fns";
-  
-  // Get data from the server load function
-  export let data;
-  const { availableDates, timeSlots, selectedService } = data;
-  
-  // Track selected date and time
-  let selectedDate = "";
-  let selectedTime = "";
-
-  // Recurring booking state
-  let isRecurring = false;
-  let recurringFrequency = "";
-  let recurringDays: string[] = [];
-  let recurringMonthlyDates: number[] = [];
-  let recurringTimeSlot = "";
-  let basePrice = 0;
-  let finalPrice = 0;
-  let discountPercentage = 0;
-  
-  // Calendar state
-  let currentMonth = new Date();
-  let calendarDays: Array<{ date: Date; isAvailable: boolean; isSelected: boolean; isCurrentMonth: boolean }> = [];
-  
-  // Available dates as Date objects for easier comparison
-  let availableDateObjects: Date[] = [];
-  
-  // Add loading state
-  let isLoading = false;
-  
-  // Get previous selections from localStorage
-  let selectedServiceId = "";
-  let selectedAddress = "";
-  let accessInstructions = "";
-
-  // Initialize data from localStorage on mount
+  import {
+    addMonths,
+    eachDayOfInterval,
+    endOfMonth,
+    endOfWeek,
+    format,
+    isSameDay,
+    isSameMonth,
+    isToday,
+    parse,
+    startOfMonth,
+    startOfWeek,
+    subMonths,
+  } from "date-fns";
+  import {
+    ArrowLeft,
+    ArrowRight,
+    Calendar,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    RotateCw,
+  } from "lucide-svelte";
+  // Initialise data from localStorage on mount
   import { onMount } from "svelte";
 
   onMount(() => {
@@ -69,7 +56,9 @@
     }
 
     // Parse available dates into Date objects
-    availableDateObjects = availableDates.map(d => parse(d.date, 'yyyy-MM-dd', new Date()));
+    availableDateObjects = availableDates.map((d) =>
+      parse(d.date, "yyyy-MM-dd", new Date()),
+    );
 
     // Default to first available date if we have any
     if (availableDates.length > 0 && !selectedDate) {
@@ -79,7 +68,7 @@
     // Generate calendar days for the current month
     generateCalendarDays();
   });
-  
+
   // Generate calendar days for the current month view
   function generateCalendarDays() {
     // Start of the month
@@ -90,62 +79,72 @@
     const startDate = startOfWeek(monthStart);
     // End of the last week of the month
     const endDate = endOfWeek(monthEnd);
-    
+
     // Get all days in this calendar view (including days from prev/next months)
     const days = eachDayOfInterval({ start: startDate, end: endDate });
-    
+
     // Map each date to calendar day objects with additional info
-    calendarDays = days.map(date => {
+    calendarDays = days.map((date) => {
       // Check if this date is available
-      const isAvailable = availableDateObjects.some(d => isSameDay(d, date));
-      
+      const isAvailable = availableDateObjects.some((d) => isSameDay(d, date));
+
       // Is this date selected?
-      const isSelected = selectedDate ? isSameDay(date, parse(selectedDate, 'yyyy-MM-dd', new Date())) : false;
-      
+      const isSelected = selectedDate
+        ? isSameDay(date, parse(selectedDate, "yyyy-MM-dd", new Date()))
+        : false;
+
       // Is this date in the current month?
       const isCurrentMonth = isSameMonth(date, currentMonth);
-      
+
       return {
         date,
         isAvailable,
         isSelected,
-        isCurrentMonth
+        isCurrentMonth,
       };
     });
   }
-  
+
   // Previous month handler
   function previousMonth() {
     currentMonth = subMonths(currentMonth, 1);
     generateCalendarDays();
   }
-  
+
   // Next month handler
   function nextMonth() {
     currentMonth = addMonths(currentMonth, 1);
     generateCalendarDays();
   }
-  
+
   // Date selection handler
-  function selectCalendarDate(day: { date: Date; isAvailable: boolean; isSelected: boolean }) {
+  function selectCalendarDate(day: {
+    date: Date;
+    isAvailable: boolean;
+    isSelected: boolean;
+  }) {
     if (!day.isAvailable) return;
-    
+
     // Format the date to match expected format
-    selectedDate = format(day.date, 'yyyy-MM-dd');
-    
+    selectedDate = format(day.date, "yyyy-MM-dd");
+
     // Update calendar days to reflect selection
     generateCalendarDays();
   }
-  
+
   // Continue to next step
   async function continueToNext() {
     // Validate based on booking type
     if (isRecurring) {
-      const isValidRecurring = recurringFrequency && recurringTimeSlot &&
-        ((recurringFrequency === 'WEEKLY' && recurringDays.length === 1) ||
-         (recurringFrequency === 'BIWEEKLY' && recurringDays.length === 1) ||
-         (recurringFrequency === 'TWICE_WEEKLY' && recurringDays.length === 2) ||
-         (recurringFrequency === 'TWICE_MONTHLY' && recurringMonthlyDates.length === 2));
+      const isValidRecurring =
+        recurringFrequency &&
+        recurringTimeSlot &&
+        ((recurringFrequency === "WEEKLY" && recurringDays.length === 1) ||
+          (recurringFrequency === "BIWEEKLY" && recurringDays.length === 1) ||
+          (recurringFrequency === "TWICE_WEEKLY" &&
+            recurringDays.length === 2) ||
+          (recurringFrequency === "TWICE_MONTHLY" &&
+            recurringMonthlyDates.length === 2));
 
       if (!isValidRecurring) {
         alert("Please complete all recurring booking options");
@@ -159,10 +158,19 @@
         // Store recurring booking data
         localStorage.setItem("booking_is_recurring", "true");
         localStorage.setItem("booking_recurring_frequency", recurringFrequency);
-        localStorage.setItem("booking_recurring_days", JSON.stringify(recurringDays));
-        localStorage.setItem("booking_recurring_monthly_dates", JSON.stringify(recurringMonthlyDates));
+        localStorage.setItem(
+          "booking_recurring_days",
+          JSON.stringify(recurringDays),
+        );
+        localStorage.setItem(
+          "booking_recurring_monthly_dates",
+          JSON.stringify(recurringMonthlyDates),
+        );
         localStorage.setItem("booking_recurring_time_slot", recurringTimeSlot);
-        localStorage.setItem("booking_discount_percentage", discountPercentage.toString());
+        localStorage.setItem(
+          "booking_discount_percentage",
+          discountPercentage.toString(),
+        );
         localStorage.setItem("booking_final_price", finalPrice.toString());
 
         // For recurring bookings, we'll use the start date as the first occurrence
@@ -201,7 +209,11 @@
   }
 
   // Handle recurring booking events (Svelte 5 callback props)
-  function handleFrequencyChange(data: { frequency: string; discountPercentage: number; finalPrice: number }) {
+  function handleFrequencyChange(data: {
+    frequency: string;
+    discountPercentage: number;
+    finalPrice: number;
+  }) {
     recurringFrequency = data.frequency;
     discountPercentage = data.discountPercentage;
     finalPrice = data.finalPrice;
@@ -218,7 +230,7 @@
   function handleTimeSlotChange(data: { timeSlot: string }) {
     recurringTimeSlot = data.timeSlot;
   }
-  
+
   // Go back to previous step
   async function goToPrevious() {
     isLoading = true;
@@ -229,7 +241,7 @@
       isLoading = false;
     }
   }
-  
+
   // Track changes to selectedDate and update the calendar
   $: if (selectedDate) {
     generateCalendarDays();
@@ -268,8 +280,10 @@
         <div class="flex gap-4">
           <button
             type="button"
-            on:click={() => isRecurring = false}
-            class="flex-1 p-4 border-2 rounded-lg transition-all {!isRecurring ? 'border-teal-500 bg-teal-50' : 'border-gray-200 hover:border-gray-300'}"
+            on:click={() => (isRecurring = false)}
+            class="flex-1 p-4 border-2 rounded-lg transition-all {!isRecurring
+              ? 'border-teal-500 bg-teal-50'
+              : 'border-gray-200 hover:border-gray-300'}"
           >
             <p class="font-semibold">One-Time Cleaning</p>
             <p class="text-sm text-gray-600">Book a single cleaning session</p>
@@ -277,15 +291,21 @@
 
           <button
             type="button"
-            on:click={() => isRecurring = true}
-            class="flex-1 p-4 border-2 rounded-lg transition-all {isRecurring ? 'border-teal-500 bg-teal-50' : 'border-gray-200 hover:border-gray-300'}"
+            on:click={() => (isRecurring = true)}
+            class="flex-1 p-4 border-2 rounded-lg transition-all {isRecurring
+              ? 'border-teal-500 bg-teal-50'
+              : 'border-gray-200 hover:border-gray-300'}"
           >
             <div class="flex justify-between items-start">
               <div class="text-left">
                 <p class="font-semibold">Recurring Cleaning</p>
-                <p class="text-sm text-gray-600">Regular scheduled cleaning with discounts</p>
+                <p class="text-sm text-gray-600">
+                  Regular scheduled cleaning with discounts
+                </p>
               </div>
-              <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+              <span
+                class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded"
+              >
                 Save up to 15%
               </span>
             </div>
@@ -316,104 +336,114 @@
 
     <!-- Date and time selection (for one-time bookings) -->
     {#if !isRecurring}
-    <div class="grid gap-8 md:grid-cols-2">
-      <!-- Calendar Date Picker -->
-      <div>
-        <h2
-          class="mb-4 flex items-center text-xl font-semibold text-gray-900 dark:text-white"
-        >
-          <Calendar size={20} class="mr-2 text-primary" />
-          Select a Date
-        </h2>
+      <div class="grid gap-8 md:grid-cols-2">
+        <!-- Calendar Date Picker -->
+        <div>
+          <h2
+            class="mb-4 flex items-center text-xl font-semibold text-gray-900 dark:text-white"
+          >
+            <Calendar size={20} class="mr-2 text-primary" />
+            Select a Date
+          </h2>
 
-        <div class="rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
-          <!-- Calendar Header - Month Navigation -->
-          <div class="mb-4 flex items-center justify-between">
-            <button
-              type="button"
-              class="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-              on:click={previousMonth}
-            >
-              <ChevronLeft size={18} />
-            </button>
-            
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              {format(currentMonth, 'MMMM yyyy')}
-            </h3>
-            
-            <button
-              type="button"
-              class="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-              on:click={nextMonth}
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
-          
-          <!-- Calendar Days of Week Headers -->
-          <div class="mb-2 grid grid-cols-7 text-center">
-            {#each ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as day}
-              <div class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                {day}
-              </div>
-            {/each}
-          </div>
-          
-          <!-- Calendar Days Grid -->
-          <div class="grid grid-cols-7 gap-1">
-            {#each calendarDays as day}
+          <div class="rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
+            <!-- Calendar Header - Month Navigation -->
+            <div class="mb-4 flex items-center justify-between">
               <button
                 type="button"
-                class={`
-                  flex h-10 w-full items-center justify-center rounded-lg p-1
-                  text-sm
-                  ${day.isCurrentMonth ? 'font-medium' : 'text-gray-400 dark:text-gray-600'}
-                  ${day.isSelected ? 'bg-primary text-white hover:bg-primary-600' : ''}
-                  ${day.isAvailable && !day.isSelected 
-                      ? 'bg-primary-50 text-primary hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/30' 
-                      : !day.isAvailable 
-                          ? 'cursor-not-allowed opacity-50' 
-                          : 'hover:bg-gray-100 dark:hover:bg-gray-700'}
-                  ${isToday(day.date) && !day.isSelected ? 'border border-primary' : ''}
-                `}
-                disabled={!day.isAvailable}
-                on:click={() => selectCalendarDate(day)}
+                class="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                on:click={previousMonth}
               >
-                {format(day.date, 'd')}
+                <ChevronLeft size={18} />
               </button>
-            {/each}
-          </div>
-          
-          <!-- Legend -->
-          <div class="mt-4 flex justify-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
-            <div class="flex items-center">
-              <div class="mr-1.5 h-3 w-3 rounded bg-primary-50 dark:bg-primary-900/20"></div>
-              <span>Available</span>
-            </div>
-            <div class="flex items-center">
-              <div class="mr-1.5 h-3 w-3 rounded bg-primary"></div>
-              <span>Selected</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Time selection -->
-      <div>
-        <h2
-          class="mb-4 flex items-center text-xl font-semibold text-gray-900 dark:text-white"
-        >
-          <Clock size={20} class="mr-2 text-primary" />
-          Select a Time
-        </h2>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                {format(currentMonth, "MMMM yyyy")}
+              </h3>
 
-        <div class="rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
-          {#if timeSlots.length > 0}
-            <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3">
-              {#each timeSlots as slot}
+              <button
+                type="button"
+                class="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                on:click={nextMonth}
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+
+            <!-- Calendar Days of Week Headers -->
+            <div class="mb-2 grid grid-cols-7 text-center">
+              {#each ["S", "M", "T", "W", "T", "F", "S"] as day}
+                <div
+                  class="text-xs font-medium text-gray-500 dark:text-gray-400"
+                >
+                  {day}
+                </div>
+              {/each}
+            </div>
+
+            <!-- Calendar Days Grid -->
+            <div class="grid grid-cols-7 gap-1">
+              {#each calendarDays as day}
                 <button
                   type="button"
                   class={`
+                  flex h-10 w-full items-center justify-center rounded-lg p-1
+                  text-sm
+                  ${day.isCurrentMonth ? "font-medium" : "text-gray-400 dark:text-gray-600"}
+                  ${day.isSelected ? "bg-primary text-white hover:bg-primary-600" : ""}
+                  ${
+                    day.isAvailable && !day.isSelected
+                      ? "bg-primary-50 text-primary hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/30"
+                      : !day.isAvailable
+                        ? "cursor-not-allowed opacity-50"
+                        : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }
+                  ${isToday(day.date) && !day.isSelected ? "border border-primary" : ""}
+                `}
+                  disabled={!day.isAvailable}
+                  on:click={() => selectCalendarDate(day)}
+                >
+                  {format(day.date, "d")}
+                </button>
+              {/each}
+            </div>
+
+            <!-- Legend -->
+            <div
+              class="mt-4 flex justify-center space-x-4 text-xs text-gray-500 dark:text-gray-400"
+            >
+              <div class="flex items-center">
+                <div
+                  class="mr-1.5 h-3 w-3 rounded bg-primary-50 dark:bg-primary-900/20"
+                ></div>
+                <span>Available</span>
+              </div>
+              <div class="flex items-center">
+                <div class="mr-1.5 h-3 w-3 rounded bg-primary"></div>
+                <span>Selected</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Time selection -->
+        <div>
+          <h2
+            class="mb-4 flex items-center text-xl font-semibold text-gray-900 dark:text-white"
+          >
+            <Clock size={20} class="mr-2 text-primary" />
+            Select a Time
+          </h2>
+
+          <div class="rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
+            {#if timeSlots.length > 0}
+              <div
+                class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3"
+              >
+                {#each timeSlots as slot}
+                  <button
+                    type="button"
+                    class={`
                     py-3 px-3 text-center rounded-md border transition-colors cursor-pointer
                     ${
                       selectedTime === slot.time
@@ -421,42 +451,43 @@
                         : "border-gray-200 hover:border-primary-200 dark:border-gray-700 dark:hover:border-primary-700"
                     }
                   `}
-                  on:click={() => (selectedTime = slot.time)}
-                >
-                  <span
-                    class="text-sm font-medium text-gray-900 dark:text-white"
-                    >{slot.displayTime}</span
+                    on:click={() => (selectedTime = slot.time)}
                   >
-                </button>
-              {/each}
-            </div>
-          {:else}
-            <p class="text-center text-gray-500 dark:text-gray-400">
-              No available time slots
-            </p>
-          {/if}
+                    <span
+                      class="text-sm font-medium text-gray-900 dark:text-white"
+                      >{slot.displayTime}</span
+                    >
+                  </button>
+                {/each}
+              </div>
+            {:else}
+              <p class="text-center text-gray-500 dark:text-gray-400">
+                No available time slots
+              </p>
+            {/if}
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Selected date and time summary (for one-time booking) -->
-    {#if selectedDate && selectedTime}
-      <div class="mt-8 rounded-lg bg-primary-50 p-4 dark:bg-primary-900/20">
-        <h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">
-          Your Selected Time
-        </h3>
+      <!-- Selected date and time summary (for one-time booking) -->
+      {#if selectedDate && selectedTime}
+        <div class="mt-8 rounded-lg bg-primary-50 p-4 dark:bg-primary-900/20">
+          <h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">
+            Your Selected Time
+          </h3>
 
-        <p class="flex items-center text-gray-700 dark:text-gray-300">
-          <Calendar size={18} class="mr-2 text-primary" />
-          {availableDates.find((d) => d.date === selectedDate)?.fullDisplayDate}
-        </p>
+          <p class="flex items-center text-gray-700 dark:text-gray-300">
+            <Calendar size={18} class="mr-2 text-primary" />
+            {availableDates.find((d) => d.date === selectedDate)
+              ?.fullDisplayDate}
+          </p>
 
-        <p class="mt-2 flex items-center text-gray-700 dark:text-gray-300">
-          <Clock size={18} class="mr-2 text-primary" />
-          {timeSlots.find((t) => t.time === selectedTime)?.displayTime}
-        </p>
-      </div>
-    {/if}
+          <p class="mt-2 flex items-center text-gray-700 dark:text-gray-300">
+            <Clock size={18} class="mr-2 text-primary" />
+            {timeSlots.find((t) => t.time === selectedTime)?.displayTime}
+          </p>
+        </div>
+      {/if}
     {/if}
 
     <!-- Summary for recurring booking -->
@@ -468,33 +499,44 @@
 
         <p class="text-gray-700 dark:text-gray-300">
           <strong>Frequency:</strong>
-          {recurringFrequency === 'WEEKLY' ? 'Weekly (52 times/year)' :
-           recurringFrequency === 'BIWEEKLY' ? 'Every 2 Weeks (26 times/year)' :
-           recurringFrequency === 'TWICE_WEEKLY' ? 'Twice Weekly (~104 times/year)' :
-           recurringFrequency === 'TWICE_MONTHLY' ? 'Twice Monthly (24 times/year)' : ''}
+          {recurringFrequency === "WEEKLY"
+            ? "Weekly (52 times/year)"
+            : recurringFrequency === "BIWEEKLY"
+              ? "Every 2 Weeks (26 times/year)"
+              : recurringFrequency === "TWICE_WEEKLY"
+                ? "Twice Weekly (~104 times/year)"
+                : recurringFrequency === "TWICE_MONTHLY"
+                  ? "Twice Monthly (24 times/year)"
+                  : ""}
         </p>
 
         {#if recurringDays.length > 0}
           <p class="mt-2 text-gray-700 dark:text-gray-300">
-            <strong>Days:</strong> {recurringDays.join(', ')}
+            <strong>Days:</strong>
+            {recurringDays.join(", ")}
           </p>
         {/if}
 
         {#if recurringMonthlyDates.length > 0}
           <p class="mt-2 text-gray-700 dark:text-gray-300">
-            <strong>Monthly dates:</strong> {recurringMonthlyDates.map(d => `${d}${d === 1 ? 'st' : 'th'}`).join(' and ')}
+            <strong>Monthly dates:</strong>
+            {recurringMonthlyDates
+              .map((d) => `${d}${d === 1 ? "st" : "th"}`)
+              .join(" and ")}
           </p>
         {/if}
 
         {#if recurringTimeSlot}
           <p class="mt-2 text-gray-700 dark:text-gray-300">
-            <strong>Time slot:</strong> {recurringTimeSlot}
+            <strong>Time slot:</strong>
+            {recurringTimeSlot}
           </p>
         {/if}
 
         {#if finalPrice > 0}
           <p class="mt-2 text-green-600 dark:text-green-400 font-semibold">
-            Price per clean: R{finalPrice.toFixed(2)} ({discountPercentage}% discount)
+            Price per clean: R{finalPrice.toFixed(2)} ({discountPercentage}%
+            discount)
           </p>
         {/if}
       </div>
@@ -534,11 +576,18 @@
       <Button
         variant="primary"
         on:click={continueToNext}
-        disabled={isLoading || (!isRecurring && (!selectedDate || !selectedTime)) ||
-                  (isRecurring && (!recurringFrequency || !recurringTimeSlot ||
-                    (((recurringFrequency === 'WEEKLY' || recurringFrequency === 'BIWEEKLY') && recurringDays.length !== 1) ||
-                     (recurringFrequency === 'TWICE_WEEKLY' && recurringDays.length !== 2) ||
-                     (recurringFrequency === 'TWICE_MONTHLY' && recurringMonthlyDates.length !== 2))))}
+        disabled={isLoading ||
+          (!isRecurring && (!selectedDate || !selectedTime)) ||
+          (isRecurring &&
+            (!recurringFrequency ||
+              !recurringTimeSlot ||
+              ((recurringFrequency === "WEEKLY" ||
+                recurringFrequency === "BIWEEKLY") &&
+                recurringDays.length !== 1) ||
+              (recurringFrequency === "TWICE_WEEKLY" &&
+                recurringDays.length !== 2) ||
+              (recurringFrequency === "TWICE_MONTHLY" &&
+                recurringMonthlyDates.length !== 2)))}
       >
         {#if isLoading}
           <svg

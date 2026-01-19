@@ -59,7 +59,7 @@
     placeName: "",
   };
 
-  // Initialize data from localStorage on mount
+  // Initialise data from localStorage on mount
   onMount(() => {
     // Rest of your code remains the same
     selectedService = localStorage.getItem("booking_service") || "";
@@ -306,8 +306,10 @@
         </button>
         <div>
           <p class="text-blue-800 dark:text-blue-300">
-            You are using <span class="font-semibold">{addresses.length}</span> of
-            <span class="font-semibold">{MAX_ADDRESSES}</span> available address slots.
+            You are using <span class="font-semibold">{addresses.length}</span>
+            of
+            <span class="font-semibold">{MAX_ADDRESSES}</span> available address
+            slots.
           </p>
           {#if hasReachedLimit}
             <p class="text-sm text-blue-700 dark:text-blue-400 mt-1">

@@ -16,12 +16,22 @@
     RotateCw,
     WalletIcon,
   } from "lucide-svelte";
-  import { calculateCleaningPrice, type PriceBreakdown } from "$lib/utils/pricing";
+  import {
+    calculateCleaningPrice,
+    type PriceBreakdown,
+  } from "$lib/utils/pricing";
   import type { PageData, ActionData } from "./$types";
 
   // Get data from the server load function using Svelte 5 props
   let { data, form }: { data: PageData; form: ActionData } = $props();
-  const { user, addresses, pricingConfig, addons, isAuthenticated, guestBookingData } = data;
+  const {
+    user,
+    addresses,
+    pricingConfig,
+    addons,
+    isAuthenticated,
+    guestBookingData,
+  } = data;
 
   // Track booking data using $state for reactivity
   let selectedService = $state("");
@@ -55,21 +65,26 @@
   let isLoading = $state(false);
 
   // Computed values using $derived
-  let addressDetails = $derived(addresses.find((a) => a.id === selectedAddress));
-  let scheduledDateTime = $derived(
-    selectedDate && selectedTime ? `${selectedDate}T${selectedTime}` : ""
+  let addressDetails = $derived(
+    addresses.find((a) => a.id === selectedAddress),
   );
-  let selectedAddonsComputed = $derived(addons.filter((a) => selectedAddonIds.includes(a.id)));
+  let scheduledDateTime = $derived(
+    selectedDate && selectedTime ? `${selectedDate}T${selectedTime}` : "",
+  );
+  let selectedAddonsComputed = $derived(
+    addons.filter((a) => selectedAddonIds.includes(a.id)),
+  );
 
   // Recalculate final price for recurring bookings using $effect
   $effect(() => {
     if (isRecurring && priceBreakdown && discountPercentage > 0) {
-      const discountAmount = (priceBreakdown.totalPrice * discountPercentage) / 100;
+      const discountAmount =
+        (priceBreakdown.totalPrice * discountPercentage) / 100;
       finalPrice = priceBreakdown.totalPrice - discountAmount;
     }
   });
 
-  // Initialize data from localStorage on mount
+  // Initialise data from localStorage on mount
   import { onMount } from "svelte";
   import { parse, format } from "date-fns";
 
@@ -79,7 +94,8 @@
 
     if (isRecurring) {
       // Get recurring booking data
-      recurringFrequency = localStorage.getItem("booking_recurring_frequency") || "";
+      recurringFrequency =
+        localStorage.getItem("booking_recurring_frequency") || "";
 
       const daysStr = localStorage.getItem("booking_recurring_days");
       if (daysStr) {
@@ -99,11 +115,16 @@
         }
       }
 
-      recurringTimeSlot = localStorage.getItem("booking_recurring_time_slot") || "";
-      discountPercentage = parseFloat(localStorage.getItem("booking_discount_percentage") || "0");
+      recurringTimeSlot =
+        localStorage.getItem("booking_recurring_time_slot") || "";
+      discountPercentage = parseFloat(
+        localStorage.getItem("booking_discount_percentage") || "0",
+      );
 
       // Get the stored final price first
-      finalPrice = parseFloat(localStorage.getItem("booking_final_price") || "0");
+      finalPrice = parseFloat(
+        localStorage.getItem("booking_final_price") || "0",
+      );
 
       startDate = localStorage.getItem("booking_start_date") || "";
     } else {
@@ -116,8 +137,14 @@
     selectedService = localStorage.getItem("booking_service") || "";
 
     // Get room-based pricing data
-    bedroomCount = parseInt(localStorage.getItem("booking_bedroom_count") || "1", 10);
-    bathroomCount = parseInt(localStorage.getItem("booking_bathroom_count") || "1", 10);
+    bedroomCount = parseInt(
+      localStorage.getItem("booking_bedroom_count") || "1",
+      10,
+    );
+    bathroomCount = parseInt(
+      localStorage.getItem("booking_bathroom_count") || "1",
+      10,
+    );
 
     const addonIdsStr = localStorage.getItem("booking_addon_ids");
     if (addonIdsStr) {
@@ -130,16 +157,19 @@
     }
 
     // Calculate price breakdown using server-provided config
-    const selectedAddonsForCalc = addons.filter((a) => selectedAddonIds.includes(a.id));
+    const selectedAddonsForCalc = addons.filter((a) =>
+      selectedAddonIds.includes(a.id),
+    );
     priceBreakdown = calculateCleaningPrice(
       pricingConfig,
       { bedroomCount, bathroomCount },
-      selectedAddonsForCalc
+      selectedAddonsForCalc,
     );
 
     // Recalculate final price for recurring if needed
     if (isRecurring && discountPercentage > 0) {
-      const discountAmount = (priceBreakdown.totalPrice * discountPercentage) / 100;
+      const discountAmount =
+        (priceBreakdown.totalPrice * discountPercentage) / 100;
       finalPrice = priceBreakdown.totalPrice - discountAmount;
     }
 
@@ -179,19 +209,17 @@
     }
 
     // Validation based on user type
-    const hasValidAddressData = isAuthenticated ? selectedAddress : guestAddress;
+    const hasValidAddressData = isAuthenticated
+      ? selectedAddress
+      : guestAddress;
 
     // Check if we have valid scheduling data
     const hasValidSchedule = isRecurring
-      ? (recurringFrequency && recurringTimeSlot)
-      : (selectedDate && selectedTime);
+      ? recurringFrequency && recurringTimeSlot
+      : selectedDate && selectedTime;
 
     // If required information is missing, redirect back
-    if (
-      !selectedService ||
-      !hasValidSchedule ||
-      !hasValidAddressData
-    ) {
+    if (!selectedService || !hasValidSchedule || !hasValidAddressData) {
       goto("/book");
     }
   });
@@ -235,14 +263,10 @@
 
     // Check if we have valid scheduling data
     const hasValidSchedule = isRecurring
-      ? (recurringFrequency && recurringTimeSlot)
-      : (selectedDate && selectedTime);
+      ? recurringFrequency && recurringTimeSlot
+      : selectedDate && selectedTime;
 
-    if (
-      !selectedService ||
-      !hasValidAddress ||
-      !hasValidSchedule
-    ) {
+    if (!selectedService || !hasValidAddress || !hasValidSchedule) {
       return;
     }
 
@@ -257,7 +281,7 @@
       createSubscription();
     } else if (result.requiresAuth) {
       // Guest user needs to authenticate for recurring booking
-      goto('/book/payment');
+      goto("/book/payment");
     } else if (result.bookingId) {
       // Clear localStorage booking data
       clearBookingData();
@@ -278,8 +302,8 @@
     isLoading = true;
 
     try {
-      const response = await fetch('/api/subscription/create', {
-        method: 'POST',
+      const response = await fetch("/api/subscription/create", {
+        method: "POST",
         headers: getAPIHeaders(),
         body: JSON.stringify({
           serviceId: selectedService,
@@ -297,8 +321,8 @@
           // Room-based pricing data
           bedroomCount,
           bathroomCount,
-          addonIds: selectedAddonIds
-        })
+          addonIds: selectedAddonIds,
+        }),
       });
 
       const data = await response.json();
@@ -310,12 +334,12 @@
         // Redirect to PayFast for subscription setup
         window.location.href = data.redirectUrl;
       } else {
-        alert('Failed to create subscription. Please try again.');
+        alert("Failed to create subscription. Please try again.");
         isLoading = false;
       }
     } catch (error) {
-      console.error('Error creating subscription:', error);
-      alert('An error occurred. Please try again.');
+      console.error("Error creating subscription:", error);
+      alert("An error occurred. Please try again.");
       isLoading = false;
     }
   }
@@ -413,12 +437,19 @@
                 class="mr-3 mt-0.5 flex-shrink-0 text-primary"
               />
               <div>
-                <p class="font-medium text-gray-900 dark:text-white">Recurring Schedule</p>
+                <p class="font-medium text-gray-900 dark:text-white">
+                  Recurring Schedule
+                </p>
                 <p class="text-gray-600 dark:text-gray-300">
-                  {recurringFrequency === 'WEEKLY' ? 'Weekly (52 times/year)' :
-                   recurringFrequency === 'BIWEEKLY' ? 'Every 2 Weeks (26 times/year)' :
-                   recurringFrequency === 'TWICE_WEEKLY' ? 'Twice Weekly (~104 times/year)' :
-                   recurringFrequency === 'TWICE_MONTHLY' ? 'Twice Monthly (24 times/year)' : ''}
+                  {recurringFrequency === "WEEKLY"
+                    ? "Weekly (52 times/year)"
+                    : recurringFrequency === "BIWEEKLY"
+                      ? "Every 2 Weeks (26 times/year)"
+                      : recurringFrequency === "TWICE_WEEKLY"
+                        ? "Twice Weekly (~104 times/year)"
+                        : recurringFrequency === "TWICE_MONTHLY"
+                          ? "Twice Monthly (24 times/year)"
+                          : ""}
                 </p>
               </div>
             </div>
@@ -430,9 +461,11 @@
                   class="mr-3 mt-0.5 flex-shrink-0 text-primary"
                 />
                 <div>
-                  <p class="font-medium text-gray-900 dark:text-white">Preferred Days</p>
+                  <p class="font-medium text-gray-900 dark:text-white">
+                    Preferred Days
+                  </p>
                   <p class="text-gray-600 dark:text-gray-300">
-                    {recurringDays.join(', ')}
+                    {recurringDays.join(", ")}
                   </p>
                 </div>
               </div>
@@ -445,9 +478,15 @@
                   class="mr-3 mt-0.5 flex-shrink-0 text-primary"
                 />
                 <div>
-                  <p class="font-medium text-gray-900 dark:text-white">Monthly Dates</p>
+                  <p class="font-medium text-gray-900 dark:text-white">
+                    Monthly Dates
+                  </p>
                   <p class="text-gray-600 dark:text-gray-300">
-                    {recurringMonthlyDates.map(d => `${d}${d === 1 ? 'st' : d === 15 ? 'th' : 'th'}`).join(' and ')}
+                    {recurringMonthlyDates
+                      .map(
+                        (d) => `${d}${d === 1 ? "st" : d === 15 ? "th" : "th"}`,
+                      )
+                      .join(" and ")}
                   </p>
                 </div>
               </div>
@@ -456,7 +495,9 @@
             <div class="flex items-start">
               <Clock size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
               <div>
-                <p class="font-medium text-gray-900 dark:text-white">Time Slot</p>
+                <p class="font-medium text-gray-900 dark:text-white">
+                  Time Slot
+                </p>
                 <p class="text-gray-600 dark:text-gray-300">
                   {recurringTimeSlot}
                 </p>
@@ -465,9 +506,14 @@
 
             {#if priceBreakdown}
               <div class="flex items-start">
-                <WalletIcon size={20} class="mr-3 mt-0.5 flex-shrink-0 text-green-600" />
+                <WalletIcon
+                  size={20}
+                  class="mr-3 mt-0.5 flex-shrink-0 text-green-600"
+                />
                 <div>
-                  <p class="font-medium text-gray-900 dark:text-white">Price per Clean</p>
+                  <p class="font-medium text-gray-900 dark:text-white">
+                    Price per Clean
+                  </p>
                   {#if discountPercentage > 0}
                     <p class="text-green-600 dark:text-green-400 font-semibold">
                       R{finalPrice.toFixed(2)} ({discountPercentage}% discount)
@@ -540,8 +586,7 @@
                 <p class="text-gray-600 dark:text-gray-300">
                   {guestAddress.street}
                   {#if guestAddress.streetNumber}, {guestAddress.streetNumber}{/if}
-                  {#if guestAddress.aptUnit}, {guestAddress.aptUnit}{/if}<br
-                  />
+                  {#if guestAddress.aptUnit}, {guestAddress.aptUnit}{/if}<br />
                   {guestAddress.city}, {guestAddress.state}
                   {guestAddress.zipCode}
                 </p>
@@ -562,14 +607,16 @@
         <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
           Your Cleaner
         </h2>
-        
+
         <div class="flex items-center space-x-4">
           <img
-            src={selectedCleanerData.profileImageUrl || '/images/default-avatar.svg'}
+            src={selectedCleanerData.profileImageUrl ||
+              "/images/default-avatar.svg"}
             alt={selectedCleanerData.name}
             class="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
             onerror={(e: Event) => {
-              (e.currentTarget as HTMLImageElement).src = '/images/default-avatar.svg';
+              (e.currentTarget as HTMLImageElement).src =
+                "/images/default-avatar.svg";
             }}
           />
           <div class="flex-1">
@@ -578,12 +625,20 @@
             </h3>
             {#if selectedCleanerData.rating}
               <div class="flex items-center gap-1 mt-1">
-                <span class="text-yellow-500">{'★'.repeat(Math.floor(selectedCleanerData.rating))}{'☆'.repeat(5 - Math.floor(selectedCleanerData.rating))}</span>
-                <span class="text-sm text-gray-600">({selectedCleanerData.rating})</span>
+                <span class="text-yellow-500"
+                  >{"★".repeat(
+                    Math.floor(selectedCleanerData.rating),
+                  )}{"☆".repeat(
+                    5 - Math.floor(selectedCleanerData.rating),
+                  )}</span
+                >
+                <span class="text-sm text-gray-600"
+                  >({selectedCleanerData.rating})</span
+                >
               </div>
             {/if}
             <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
-              {selectedCleanerData.bio || 'Professional cleaner'}
+              {selectedCleanerData.bio || "Professional cleaner"}
             </p>
           </div>
         </div>
@@ -603,7 +658,6 @@
         <p class="text-gray-700 dark:text-gray-300">{notes}</p>
       </div>
     {/if}
-
 
     <!-- Total and payment -->
     <div class="mb-8 rounded-lg bg-primary-50 p-6 dark:bg-primary-900/20">
@@ -625,10 +679,15 @@
               <div class="flex justify-between text-green-600 font-medium">
                 <span>Recurring discount ({discountPercentage}%):</span>
                 <span>
-                  - R{(priceBreakdown.totalPrice * discountPercentage / 100).toFixed(2)}
+                  - R{(
+                    (priceBreakdown.totalPrice * discountPercentage) /
+                    100
+                  ).toFixed(2)}
                 </span>
               </div>
-              <div class="flex justify-between font-bold text-lg pt-3 border-t border-primary-100">
+              <div
+                class="flex justify-between font-bold text-lg pt-3 border-t border-primary-100"
+              >
                 <span>Total per clean:</span>
                 <span class="text-primary">R{finalPrice.toFixed(2)}</span>
               </div>
@@ -636,7 +695,9 @@
           {:else}
             <div class="flex justify-between font-bold text-lg">
               <span>Total per clean:</span>
-              <span class="text-primary">R{priceBreakdown.totalPrice.toFixed(2)}</span>
+              <span class="text-primary"
+                >R{priceBreakdown.totalPrice.toFixed(2)}</span
+              >
             </div>
           {/if}
         </div>
@@ -658,8 +719,8 @@
 
       <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
         {#if isRecurring}
-          Recurring subscription will be processed securely via PayFast.
-          You can cancel or pause anytime with 48 hours notice.
+          Recurring subscription will be processed securely via PayFast. You can
+          cancel or pause anytime with 48 hours notice.
         {:else}
           Prices include VAT. Payment will be processed securely via PayFast.
         {/if}
@@ -675,14 +736,17 @@
 
         // Add recurring booking data if applicable
         if (isRecurring) {
-          formData.set('isRecurring', 'true');
-          formData.set('recurringFrequency', recurringFrequency);
-          formData.set('recurringDays', JSON.stringify(recurringDays));
-          formData.set('recurringMonthlyDates', JSON.stringify(recurringMonthlyDates));
-          formData.set('recurringTimeSlot', recurringTimeSlot);
-          formData.set('discountPercentage', discountPercentage.toString());
-          formData.set('finalPrice', finalPrice.toString());
-          formData.set('startDate', startDate);
+          formData.set("isRecurring", "true");
+          formData.set("recurringFrequency", recurringFrequency);
+          formData.set("recurringDays", JSON.stringify(recurringDays));
+          formData.set(
+            "recurringMonthlyDates",
+            JSON.stringify(recurringMonthlyDates),
+          );
+          formData.set("recurringTimeSlot", recurringTimeSlot);
+          formData.set("discountPercentage", discountPercentage.toString());
+          formData.set("finalPrice", finalPrice.toString());
+          formData.set("startDate", startDate);
         }
 
         return async ({ result, update }) => {
@@ -707,14 +771,22 @@
       <!-- Room-based pricing fields -->
       <input type="hidden" name="bedroomCount" value={bedroomCount} />
       <input type="hidden" name="bathroomCount" value={bathroomCount} />
-      <input type="hidden" name="addonIds" value={JSON.stringify(selectedAddonIds)} />
+      <input
+        type="hidden"
+        name="addonIds"
+        value={JSON.stringify(selectedAddonIds)}
+      />
 
       {#if isAuthenticated}
         <!-- Authenticated user fields -->
         <input type="hidden" name="addressId" value={selectedAddress} />
       {:else}
         <!-- Guest user fields - only address data needed -->
-        <input type="hidden" name="guestAddress" value={JSON.stringify(guestAddress || {})} />
+        <input
+          type="hidden"
+          name="guestAddress"
+          value={JSON.stringify(guestAddress || {})}
+        />
       {/if}
 
       <!-- Navigation buttons -->

@@ -333,7 +333,7 @@
             Post-Construction Cleaning
           </h3>
           <p class="text-gray-600 mb-4">
-            Specialized cleaning for newly built or renovated properties in
+            Specialised cleaning for newly built or renovated properties in
             North Riding and surrounding developments.
           </p>
           <ul class="space-y-2 text-gray-600">

@@ -1,7 +1,6 @@
 <!-- src/lib/components/booking/BookingForm.svelte -->
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { formatDate, formatTime, parseDateTimeString } from "$lib/utils/date-utils";
   import ServiceDetailsModal from "$lib/components/booking/ServiceDetailsModal.svelte";
   import {
     fetchServices,
@@ -11,14 +10,7 @@
   } from "$lib/stores/services";
   import type { Service } from "@prisma/client";
   import { format } from "date-fns";
-  import {
-    Calendar,
-    Clock,
-    CreditCard,
-    Home,
-    Info,
-    MapPin,
-  } from "lucide-svelte";
+  import { Calendar, Clock, CreditCard, Home, MapPin } from "lucide-svelte";
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
 
@@ -53,7 +45,7 @@
   // Available time slots (would come from API in real app)
   let timeSlots = ["08:00", "09:00", "10:00", "11:00", "12:00"];
 
-  // Initialize form with today's date
+  // Initialise form with today's date
   onMount(async () => {
     const today = new Date();
     selectedDate = format(today, "yyyy-MM-dd");
@@ -98,7 +90,7 @@
       // When sending date to the server, ensure we format it consistently
       // This will ensure the "09:00" time is correctly preserved
       const formattedDateTime = `${selectedDate}T${selectedTime}:00`;
-      
+
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: {
@@ -263,9 +255,24 @@
                     showDetails(service)}
                   class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-primary-50 hover:bg-primary-100 hover:text-primary-700 rounded-md transition-colors dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40"
                 >
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  <svg
+                    class="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
                   </svg>
                   View Details
                 </button>

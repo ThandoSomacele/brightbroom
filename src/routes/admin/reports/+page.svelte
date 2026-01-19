@@ -87,14 +87,14 @@
     showDatePicker = false;
   }
 
-  // Initialize charts after component is mounted
+  // Initialise charts after component is mounted
   onMount(() => {
     initRevenueChart();
     initBookingsChart();
     initUserGrowthChart();
   });
 
-  // Initialize Revenue Chart
+  // Initialise Revenue Chart
   function initRevenueChart() {
     if (!revenueChartEl) return;
 
@@ -150,7 +150,7 @@
     }
   }
 
-  // Initialize Bookings Chart
+  // Initialise Bookings Chart
   function initBookingsChart() {
     if (!bookingsChartEl) return;
 
@@ -171,7 +171,7 @@
     }
   }
 
-  // Initialize User Growth Chart
+  // Initialise User Growth Chart
   function initUserGrowthChart() {
     if (!userGrowthChartEl) return;
 

@@ -221,7 +221,7 @@
     };
   }
 
-  // Initialize Google Maps Places Autocomplete
+  // Initialise Google Maps Places Autocomplete
   function initAutocomplete() {
     if (
       !inputElement ||
@@ -233,7 +233,7 @@
     }
 
     try {
-      // Initialize the autocomplete with geocode type (includes addresses, establishments, and points of interest)
+      // Initialise the autocomplete with geocode type (includes addresses, establishments, and points of interest)
       autocomplete = new google.maps.places.Autocomplete(inputElement, {
         componentRestrictions: { country: "za" },
         fields: [
@@ -259,7 +259,7 @@
       isGoogleMapsLoaded = true;
       isScriptLoading = false;
       console.log(
-        "Google Maps Autocomplete initialized successfully (Legacy API)",
+        "Google Maps Autocomplete initialised successfully (Legacy API)",
       );
     } catch (initError) {
       console.error("Error initializing autocomplete:", initError);

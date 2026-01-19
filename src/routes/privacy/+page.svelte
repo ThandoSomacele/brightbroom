@@ -4,7 +4,6 @@
   // State for collapsible sections
   let expandedSections = {};
 
-
   // Define all sections for the Privacy Policy
   const sections = [
     { id: "introduction", title: "1. Introduction" },
@@ -25,7 +24,7 @@
     { id: "contact", title: "16. Contact Details" },
   ];
 
-  // Initialize all sections as collapsed
+  // Initialise all sections as collapsed
   onMount(() => {
     sections.forEach((section) => {
       expandedSections[section.id] = false;
