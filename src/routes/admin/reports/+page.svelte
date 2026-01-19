@@ -1,7 +1,7 @@
 <!-- src/routes/admin/reports/+page.svelte -->
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
+  import { navigating, page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
   import {
     BarChart,
@@ -19,7 +19,10 @@
   export let data;
 
   // Extract metrics and filters from data
-  let { metrics, period, dateRange } = data;
+  $: ({ metrics, period, dateRange } = data);
+
+  // Show skeleton when navigating to this page
+  $: isLoading = $navigating?.to?.route?.id === "/admin/reports";
 
   let showDatePicker = false;
   let customStartDate = dateRange.startDate;
@@ -285,26 +288,32 @@
         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
           Total Revenue
         </p>
-        <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-          {formatCurrency(metrics.revenue.total)}
-        </p>
+        {#if isLoading}
+          <div class="h-8 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1"></div>
+        {:else}
+          <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+            {formatCurrency(metrics.revenue.total)}
+          </p>
+        {/if}
       </div>
       <div class="p-2 rounded-full bg-green-100 dark:bg-green-900/20">
         <Wallet size={20} class="text-green-600 dark:text-green-400" />
       </div>
     </div>
     <div class="mt-4 flex items-center">
-      <svelte:component
-        this={getTrendIcon(metrics.revenue.percentageChange)}
-        size={16}
-        class={getTrendClass(metrics.revenue.percentageChange)}
-      />
-      <span class={`ml-1 ${getTrendClass(metrics.revenue.percentageChange)}`}
-        >{formatPercentage(Math.abs(metrics.revenue.percentageChange))}</span
-      >
-      <span class="ml-1 text-gray-500 dark:text-gray-400 text-sm"
-        >vs previous period</span
-      >
+      {#if isLoading}
+        <div class="h-4 w-36 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+      {:else}
+        <svelte:component
+          this={getTrendIcon(metrics.revenue.percentageChange)}
+          size={16}
+          class={getTrendClass(metrics.revenue.percentageChange)}
+        />
+        <span class={`ml-1 ${getTrendClass(metrics.revenue.percentageChange)}`}
+          >{formatPercentage(Math.abs(metrics.revenue.percentageChange))}</span
+        >
+        <span class="ml-1 text-gray-500 dark:text-gray-400 text-sm">vs previous period</span>
+      {/if}
     </div>
   </div>
 
@@ -315,24 +324,33 @@
         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
           Total Bookings
         </p>
-        <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-          {formatNumber(metrics.bookings.total)}
-        </p>
+        {#if isLoading}
+          <div class="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1"></div>
+        {:else}
+          <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+            {formatNumber(metrics.bookings.total)}
+          </p>
+        {/if}
       </div>
       <div class="p-2 rounded-full bg-blue-100 dark:bg-blue-900/20">
         <Calendar size={20} class="text-blue-600 dark:text-blue-400" />
       </div>
     </div>
     <div class="mt-4 flex items-center">
-      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-        <div
-          class="bg-primary h-2 rounded-full"
-          style="width: {metrics.bookings.conversionRate}%"
-        ></div>
-      </div>
-      <span class="ml-2 text-gray-700 dark:text-gray-300 text-sm"
-        >{metrics.bookings.conversionRate.toFixed(1)}% completion</span
-      >
+      {#if isLoading}
+        <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
+        <div class="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ml-2"></div>
+      {:else}
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+          <div
+            class="bg-primary h-2 rounded-full"
+            style="width: {metrics.bookings.conversionRate}%"
+          ></div>
+        </div>
+        <span class="ml-2 text-gray-700 dark:text-gray-300 text-sm"
+          >{metrics.bookings.conversionRate.toFixed(1)}% completion</span
+        >
+      {/if}
     </div>
   </div>
 
@@ -343,24 +361,28 @@
         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
           New Customers
         </p>
-        <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-          {formatNumber(
-            metrics.userGrowth.customers.reduce(
-              (sum, item) => sum + item.value,
-              0,
-            ),
-          )}
-        </p>
+        {#if isLoading}
+          <div class="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1"></div>
+        {:else}
+          <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+            {formatNumber(
+              metrics.userGrowth.customers.reduce(
+                (sum, item) => sum + item.value,
+                0,
+              ),
+            )}
+          </p>
+        {/if}
       </div>
       <div class="p-2 rounded-full bg-purple-100 dark:bg-purple-900/20">
         <Users size={20} class="text-purple-600 dark:text-purple-400" />
       </div>
     </div>
     <div class="mt-4 grid grid-cols-7 gap-1">
-      {#each Array(7) as _, i}
+      {#each Array(7) as _, i (i)}
         <div
-          class="h-8 bg-purple-100 dark:bg-purple-900/20 rounded"
-          style="opacity: {0.3 + i * 0.1};"
+          class="h-8 rounded {isLoading ? 'bg-gray-200 dark:bg-gray-700 animate-pulse' : 'bg-purple-100 dark:bg-purple-900/20'}"
+          style="opacity: {isLoading ? 1 : 0.3 + i * 0.1};"
         ></div>
       {/each}
     </div>
@@ -373,14 +395,18 @@
         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
           Active Cleaners
         </p>
-        <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-          {formatNumber(
-            metrics.userGrowth.cleaners.reduce(
-              (sum, item) => sum + item.value,
-              0,
-            ),
-          )}
-        </p>
+        {#if isLoading}
+          <div class="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1"></div>
+        {:else}
+          <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+            {formatNumber(
+              metrics.userGrowth.cleaners.reduce(
+                (sum, item) => sum + item.value,
+                0,
+              ),
+            )}
+          </p>
+        {/if}
       </div>
       <div class="p-2 rounded-full bg-amber-100 dark:bg-amber-900/20">
         <Briefcase size={20} class="text-amber-600 dark:text-amber-400" />
@@ -413,7 +439,23 @@
       </h2>
     </div>
     <div class="p-4">
-      {#if metrics.revenue.trend && metrics.revenue.trend.length > 0}
+      {#if isLoading}
+        <div class="h-48 flex flex-col justify-end">
+          <div class="flex items-end justify-between gap-2 h-36 px-4">
+            {#each Array(8) as _, i (i)}
+              <div
+                class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-t animate-pulse"
+                style="height: {25 + Math.random() * 55}%"
+              ></div>
+            {/each}
+          </div>
+          <div class="flex justify-between mt-3 px-4">
+            <div class="h-3 w-14 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <div class="h-3 w-14 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <div class="h-3 w-14 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          </div>
+        </div>
+      {:else if metrics.revenue.trend && metrics.revenue.trend.length > 0}
         <svg viewBox="0 0 400 200" class="w-full h-48">
           <!-- Grid lines -->
           {#each [0, 1, 2, 3, 4] as i (i)}
@@ -503,7 +545,23 @@
       </h2>
     </div>
     <div class="p-4">
-      {#if metrics.bookingTrend && metrics.bookingTrend.length > 0}
+      {#if isLoading}
+        <div class="h-48 flex flex-col justify-end">
+          <div class="flex items-end justify-between gap-2 h-36 px-4">
+            {#each Array(8) as _, i (i)}
+              <div
+                class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-t animate-pulse"
+                style="height: {25 + Math.random() * 55}%"
+              ></div>
+            {/each}
+          </div>
+          <div class="flex justify-between mt-3 px-4">
+            <div class="h-3 w-14 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <div class="h-3 w-14 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <div class="h-3 w-14 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          </div>
+        </div>
+      {:else if metrics.bookingTrend && metrics.bookingTrend.length > 0}
         <svg viewBox="0 0 400 200" class="w-full h-48">
           <!-- Grid lines -->
           {#each [0, 1, 2, 3, 4] as i (i)}
@@ -586,15 +644,23 @@
     </div>
     <div class="p-6 grid grid-cols-2 gap-6">
       <div class="text-center">
-        <p class="text-3xl font-bold text-primary">
-          {Math.floor((metrics.bookingInsights?.averageDuration || 0) / 60)}h {(metrics.bookingInsights?.averageDuration || 0) % 60}m
-        </p>
+        {#if isLoading}
+          <div class="h-9 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mx-auto"></div>
+        {:else}
+          <p class="text-3xl font-bold text-primary">
+            {Math.floor((metrics.bookingInsights?.averageDuration || 0) / 60)}h {(metrics.bookingInsights?.averageDuration || 0) % 60}m
+          </p>
+        {/if}
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Avg Duration</p>
       </div>
       <div class="text-center">
-        <p class="text-3xl font-bold text-primary">
-          {formatCurrency(metrics.bookingInsights?.averagePrice || 0)}
-        </p>
+        {#if isLoading}
+          <div class="h-9 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mx-auto"></div>
+        {:else}
+          <p class="text-3xl font-bold text-primary">
+            {formatCurrency(metrics.bookingInsights?.averagePrice || 0)}
+          </p>
+        {/if}
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Avg Price</p>
       </div>
     </div>
@@ -609,25 +675,33 @@
     </div>
     <div class="p-6 grid grid-cols-2 gap-6">
       <div class="text-center">
-        <p class="text-3xl font-bold text-purple-600">
-          {formatNumber(
-            metrics.userGrowth.customers.reduce(
-              (sum: number, item: { value: number }) => sum + item.value,
-              0,
-            ),
-          )}
-        </p>
+        {#if isLoading}
+          <div class="h-9 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mx-auto"></div>
+        {:else}
+          <p class="text-3xl font-bold text-purple-600">
+            {formatNumber(
+              metrics.userGrowth.customers.reduce(
+                (sum: number, item: { value: number }) => sum + item.value,
+                0,
+              ),
+            )}
+          </p>
+        {/if}
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">New Customers</p>
       </div>
       <div class="text-center">
-        <p class="text-3xl font-bold text-amber-600">
-          {formatNumber(
-            metrics.userGrowth.cleaners.reduce(
-              (sum: number, item: { value: number }) => sum + item.value,
-              0,
-            ),
-          )}
-        </p>
+        {#if isLoading}
+          <div class="h-9 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mx-auto"></div>
+        {:else}
+          <p class="text-3xl font-bold text-amber-600">
+            {formatNumber(
+              metrics.userGrowth.cleaners.reduce(
+                (sum: number, item: { value: number }) => sum + item.value,
+                0,
+              ),
+            )}
+          </p>
+        {/if}
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">New Cleaners</p>
       </div>
     </div>
@@ -676,7 +750,27 @@
         <tbody
           class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
         >
-          {#if metrics.bookingInsights?.roomConfigurations && metrics.bookingInsights.roomConfigurations.length > 0}
+          {#if isLoading}
+            {#each Array(3) as _, i (i)}
+              <tr class={i % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-700"}>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
+                    <div class="h-4 w-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ml-2"></div>
+                  </div>
+                </td>
+              </tr>
+            {/each}
+          {:else if metrics.bookingInsights?.roomConfigurations && metrics.bookingInsights.roomConfigurations.length > 0}
             {#each metrics.bookingInsights.roomConfigurations as config, i (config.configuration)}
               <tr
                 class={i % 2 === 0
@@ -770,7 +864,21 @@
         <tbody
           class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
         >
-          {#if metrics.bookingInsights?.popularAddons && metrics.bookingInsights.popularAddons.length > 0}
+          {#if isLoading}
+            {#each Array(3) as _, i (i)}
+              <tr class={i % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-700"}>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="h-4 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                </td>
+              </tr>
+            {/each}
+          {:else if metrics.bookingInsights?.popularAddons && metrics.bookingInsights.popularAddons.length > 0}
             {#each metrics.bookingInsights.popularAddons as addon, i (addon.addonId)}
               <tr
                 class={i % 2 === 0
@@ -862,7 +970,36 @@
       <tbody
         class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
       >
-        {#if metrics.cleanerPerformance && metrics.cleanerPerformance.length > 0}
+        {#if isLoading}
+          {#each Array(5) as _, i (i)}
+            <tr class={i % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-700"}>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                  <div class="ml-4">
+                    <div class="h-4 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                    <div class="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1"></div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="h-4 w-14 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                  <div class="h-4 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ml-1"></div>
+                </div>
+              </td>
+            </tr>
+          {/each}
+        {:else if metrics.cleanerPerformance && metrics.cleanerPerformance.length > 0}
           {#each metrics.cleanerPerformance as cleaner, i}
             <tr
               class={i % 2 === 0
