@@ -1,9 +1,9 @@
 <!-- src/routes/contact/+page.svelte -->
 <script lang="ts">
   import { enhance } from "$app/forms";
-  import Button from "$lib/components/ui/Button.svelte";
   import HoneypotField from "$lib/components/forms/HoneypotField.svelte";
-  
+  import Button from "$lib/components/ui/Button.svelte";
+
   import {
     ExternalLink,
     Mail,
@@ -30,17 +30,23 @@
     name="description"
     content="Get in touch with BrightBroom cleaning services for questions, support, or to join our team of professional cleaners."
   />
-  
+
   <!-- Open Graph -->
   <meta property="og:title" content="Contact Us | BrightBroom" />
-  <meta property="og:description" content="Get in touch with BrightBroom cleaning services for questions, support, or to join our team of professional cleaners." />
+  <meta
+    property="og:description"
+    content="Get in touch with BrightBroom cleaning services for questions, support, or to join our team of professional cleaners."
+  />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://brightbroom.com/contact" />
-  
+
   <!-- Twitter -->
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Contact Us | BrightBroom" />
-  <meta name="twitter:description" content="Get in touch with BrightBroom cleaning services for questions, support, or to join our team of professional cleaners." />
+  <meta
+    name="twitter:description"
+    content="Get in touch with BrightBroom cleaning services for questions, support, or to join our team of professional cleaners."
+  />
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 py-12 dark:bg-gray-900">
@@ -122,7 +128,7 @@
                 </div>
                 <div>
                   <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                    Visit Us
+                    Address
                   </h3>
                   <p class="mt-1 text-gray-600 dark:text-gray-300">
                     0B Cedar Avenue West<br />
@@ -227,7 +233,7 @@
                   };
                 }}
               >
-              <HoneypotField fieldPrefix="contact" />
+                <HoneypotField fieldPrefix="contact" />
                 <!-- Name Fields (2 columns) -->
                 <div class="mb-6 grid gap-4 md:grid-cols-2">
                   <div>
