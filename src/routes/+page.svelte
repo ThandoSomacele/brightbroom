@@ -5,6 +5,7 @@
   import heroImage from "$lib/image-assets/hero.webp";
   import kitchenImage from "$lib/image-assets/kitchen.webp";
   import livingRoomImage from "$lib/image-assets/living-room.webp";
+  import { Clock, Home, CalendarCheck, Sparkles } from "lucide-svelte";
 
   // Get user data from loader
   export let data;
@@ -194,7 +195,7 @@
         <div
           class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-primary"
         >
-          <span class="text-2xl font-bold">1</span>
+          <Clock class="h-8 w-8" />
         </div>
         <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-white">
           Choose Your Hours
@@ -209,7 +210,7 @@
         <div
           class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-primary"
         >
-          <span class="text-2xl font-bold">2</span>
+          <Home class="h-8 w-8" />
         </div>
         <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-white">
           Select Rooms & Extras
@@ -224,7 +225,7 @@
         <div
           class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-primary"
         >
-          <span class="text-2xl font-bold">3</span>
+          <CalendarCheck class="h-8 w-8" />
         </div>
         <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-white">
           Pick a Date & Pay
@@ -239,7 +240,7 @@
         <div
           class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-primary"
         >
-          <span class="text-2xl font-bold">4</span>
+          <Sparkles class="h-8 w-8" />
         </div>
         <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-white">
           Enjoy a Clean Space
