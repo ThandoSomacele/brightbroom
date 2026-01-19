@@ -178,7 +178,7 @@
 
             <div class="flex items-center gap-3 mb-3 text-sm">
               {#if cleaner.petCompatibility !== "NONE"}
-                <span title="Pet friendly" class="text-xl"
+                <span title="Pet friendly" class="text-2xl"
                   >{getPetIcon(cleaner.petCompatibility)}</span
                 >
               {/if}
