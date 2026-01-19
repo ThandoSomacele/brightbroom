@@ -10,6 +10,7 @@ import {
   service,
   user,
 } from "$lib/server/db/schema";
+import { sendCleanerChangedEmail } from "$lib/server/email-service";
 import { cleanerAssignmentService } from "$lib/server/services/cleaner-assignment.service";
 import { sendCleanerAssignmentNotifications } from "$lib/server/services/notification.service";
 import { error, fail, redirect } from "@sveltejs/kit";
@@ -605,6 +606,145 @@ export const actions: Actions = {
       return fail(500, {
         error: "Failed to auto-assign cleaner",
       });
+    }
+  },
+
+  // Action to send cleaner changed notification email
+  sendCleanerChangeNotification: async ({ params, request, locals }) => {
+    // Verify admin role
+    if (!locals.user || locals.user.role !== "ADMIN") {
+      return fail(403, { error: "Unauthorized" });
+    }
+
+    const bookingId = params.id;
+    const formData = await request.formData();
+    const originalCleanerFirstName = formData.get("originalCleanerFirstName")?.toString() || null;
+    const originalCleanerLastName = formData.get("originalCleanerLastName")?.toString() || null;
+
+    if (!bookingId) {
+      return fail(400, { error: "Missing booking ID" });
+    }
+
+    try {
+      // Get booking details with customer, cleaner, service, and address
+      const bookingData = await db
+        .select({
+          id: booking.id,
+          scheduledDate: booking.scheduledDate,
+          customer: {
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          },
+          cleanerId: booking.cleanerId,
+          serviceId: booking.serviceId,
+          addressId: booking.addressId,
+        })
+        .from(booking)
+        .leftJoin(user, eq(booking.userId, user.id))
+        .where(eq(booking.id, bookingId))
+        .limit(1);
+
+      if (bookingData.length === 0) {
+        return fail(404, { error: "Booking not found" });
+      }
+
+      const bookingInfo = bookingData[0];
+
+      if (!bookingInfo.cleanerId) {
+        return fail(400, { error: "No cleaner assigned to this booking" });
+      }
+
+      // Get cleaner details
+      const cleanerData = await db
+        .select({
+          firstName: user.firstName,
+          lastName: user.lastName,
+          profileImageUrl: cleanerProfile.profileImageUrl,
+        })
+        .from(user)
+        .leftJoin(cleanerProfile, eq(user.id, cleanerProfile.userId))
+        .where(eq(user.id, bookingInfo.cleanerId))
+        .limit(1);
+
+      if (cleanerData.length === 0) {
+        return fail(404, { error: "Cleaner not found" });
+      }
+
+      // Get service details
+      const serviceData = await db
+        .select({ name: service.name })
+        .from(service)
+        .where(eq(service.id, bookingInfo.serviceId))
+        .limit(1);
+
+      // Get address details
+      const addressData = await db
+        .select({
+          street: address.street,
+          city: address.city,
+          state: address.state,
+          zipCode: address.zipCode,
+        })
+        .from(address)
+        .where(eq(address.id, bookingInfo.addressId))
+        .limit(1);
+
+      // Prepare email data
+      const emailData = {
+        id: bookingInfo.id,
+        service: { name: serviceData[0]?.name || "Cleaning Service" },
+        scheduledDate: bookingInfo.scheduledDate.toISOString(),
+        address: addressData[0] || { street: "", city: "", state: "", zipCode: "" },
+        originalCleaner: originalCleanerFirstName && originalCleanerLastName
+          ? { firstName: originalCleanerFirstName, lastName: originalCleanerLastName }
+          : null,
+        newCleaner: {
+          firstName: cleanerData[0].firstName,
+          lastName: cleanerData[0].lastName,
+          profileImageUrl: cleanerData[0].profileImageUrl || undefined,
+        },
+      };
+
+      // Send the email
+      const emailSent = await sendCleanerChangedEmail(
+        bookingInfo.customer.email,
+        emailData,
+      );
+
+      if (!emailSent) {
+        return fail(500, { error: "Failed to send notification email" });
+      }
+
+      // Add admin note about the notification
+      await db.insert(adminNote).values({
+        id: crypto.randomUUID(),
+        bookingId: bookingId,
+        content: `Cleaner change notification sent to customer. New cleaner: ${cleanerData[0].firstName} ${cleanerData[0].lastName}`,
+        addedBy: `${locals.user.firstName} ${locals.user.lastName}`,
+        createdAt: new Date(),
+      });
+
+      // Add to communication log
+      await db.insert(communicationLog).values({
+        id: crypto.randomUUID(),
+        bookingId: bookingId,
+        type: "EMAIL",
+        content: `Cleaner change notification - New cleaner: ${cleanerData[0].firstName} ${cleanerData[0].lastName}`,
+        subject: "Cleaner Update for Your Booking",
+        sentTo: bookingInfo.customer.email,
+        sentBy: `${locals.user.firstName} ${locals.user.lastName}`,
+        direction: "OUTGOING",
+        createdAt: new Date(),
+      });
+
+      return {
+        success: true,
+        message: "Cleaner change notification sent successfully",
+      };
+    } catch (err) {
+      console.error("Error sending cleaner change notification:", err);
+      return fail(500, { error: "Failed to send notification" });
     }
   },
 };

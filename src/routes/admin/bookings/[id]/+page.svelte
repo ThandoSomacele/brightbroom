@@ -18,6 +18,7 @@
     MapPin,
     MessageSquare,
     Phone,
+    Send,
     User,
   } from "lucide-svelte";
 
@@ -37,11 +38,15 @@
   let showCleanerAssignModal = false;
   let showAddNoteModal = false;
   let showAddCommentModal = false;
+  let showCleanerChangeNotifyModal = false;
   let selectedStatus = booking.status;
   let selectedCleaner = booking.cleaner?.id || "";
   let isUpdateLoading = false;
+  let isSendingNotification = false;
   let newNote = "";
   let newComment = "";
+  let originalCleanerFirstName = "";
+  let originalCleanerLastName = "";
 
   // Format date function
   function formatDate(dateString: string): string {
@@ -168,6 +173,7 @@
       showCleanerAssignModal = false;
       showAddNoteModal = false;
       showAddCommentModal = false;
+      showCleanerChangeNotifyModal = false;
     }
   }
 
@@ -594,8 +600,19 @@
           {/if}
 
           <div
-            class="flex justify-end pt-2 border-t border-gray-200 dark:border-gray-700"
+            class="flex justify-end gap-2 pt-2 border-t border-gray-200 dark:border-gray-700"
           >
+            <Button
+              variant="outline"
+              size="sm"
+              on:click={() => (showCleanerChangeNotifyModal = true)}
+              disabled={booking.status === "CANCELLED" ||
+                booking.status === "COMPLETED" ||
+                isPastBooking()}
+            >
+              <Send size={14} class="mr-1" />
+              Notify Change
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -1232,6 +1249,125 @@
               Sending...
             {:else}
               Send Message
+            {/if}
+          </Button>
+        </div>
+      </form>
+    </div>
+  </div>
+{/if}
+
+<!-- Cleaner Change Notification Modal -->
+{#if showCleanerChangeNotifyModal}
+  <div
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+  >
+    <div
+      class="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full p-6"
+    >
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+        Send Cleaner Change Notification
+      </h3>
+
+      <p class="text-gray-600 dark:text-gray-300 mb-4">
+        This will send an email to the customer notifying them that a different cleaner
+        ({booking.cleaner?.firstName} {booking.cleaner?.lastName}) has been assigned to their booking.
+      </p>
+
+      <form
+        method="POST"
+        action="?/sendCleanerChangeNotification"
+        use:enhance={() => {
+          isSendingNotification = true;
+
+          return async ({ result, update }) => {
+            isSendingNotification = false;
+            showCleanerChangeNotifyModal = false;
+            originalCleanerFirstName = "";
+            originalCleanerLastName = "";
+
+            await update();
+            await invalidateAll();
+          };
+        }}
+      >
+        <div class="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+          <p class="text-sm text-amber-800 dark:text-amber-300">
+            <strong>Optional:</strong> If the customer originally requested a specific cleaner,
+            enter their name below to include it in the notification.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label
+              for="originalCleanerFirstName"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Original Cleaner First Name
+            </label>
+            <input
+              type="text"
+              id="originalCleanerFirstName"
+              name="originalCleanerFirstName"
+              bind:value={originalCleanerFirstName}
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              placeholder="First name"
+            />
+          </div>
+          <div>
+            <label
+              for="originalCleanerLastName"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Original Cleaner Last Name
+            </label>
+            <input
+              type="text"
+              id="originalCleanerLastName"
+              name="originalCleanerLastName"
+              bind:value={originalCleanerLastName}
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              placeholder="Last name"
+            />
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <Button
+            type="button"
+            variant="outline"
+            on:click={() => (showCleanerChangeNotifyModal = false)}
+          >
+            Cancel
+          </Button>
+
+          <Button type="submit" variant="primary" disabled={isSendingNotification}>
+            {#if isSendingNotification}
+              <svg
+                class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Sending...
+            {:else}
+              <Send size={16} class="mr-1" />
+              Send Notification
             {/if}
           </Button>
         </div>

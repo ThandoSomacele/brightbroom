@@ -9,6 +9,7 @@ import {
   getBookingReminderTemplate,
   getCleanerApplicationTemplate,
   getCleanerAssignmentTemplate,
+  getCleanerChangedTemplate,
   getCleanerJobAssignmentTemplate,
   getCleanerWelcomeEmailTemplate,
   getContactFormTemplate,
@@ -678,6 +679,58 @@ export async function sendCleanerJobAssignmentEmail(
     return true;
   } catch (error) {
     console.error("Error sending cleaner job assignment email:", error);
+    return false;
+  }
+}
+
+/**
+ * Send cleaner changed notification email to customer
+ * Used when a different cleaner is assigned than the customer's preference
+ */
+export async function sendCleanerChangedEmail(
+  email: string,
+  bookingDetails: {
+    id: string;
+    service: { name: string };
+    scheduledDate: string;
+    address: { street: string; city: string; state: string; zipCode: string };
+    originalCleaner: { firstName: string; lastName: string } | null;
+    newCleaner: { firstName: string; lastName: string; profileImageUrl?: string };
+  },
+): Promise<boolean> {
+  try {
+    if (!resend) {
+      console.error("Resend API key not configured");
+      return false;
+    }
+
+    console.log(`Preparing cleaner changed notification for booking ${bookingDetails.id}`);
+
+    // Generate the cleaner changed template
+    const template = getCleanerChangedTemplate(
+      email,
+      bookingDetails,
+      EMAIL_CONFIG,
+    );
+
+    // Send email with Resend
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+
+    if (error) {
+      console.error("Resend API error:", error);
+      return false;
+    }
+
+    console.log("Cleaner changed notification email sent successfully:", data.id);
+    return true;
+  } catch (error) {
+    console.error("Error sending cleaner changed notification email:", error);
     return false;
   }
 }
