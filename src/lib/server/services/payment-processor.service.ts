@@ -3,6 +3,11 @@ import { db } from "$lib/server/db";
 import { booking, payment } from "$lib/server/db/schema";
 import { eq } from "drizzle-orm";
 import { cleanerEarningsService } from "./cleaner-earnings.service";
+import {
+  calculatePayout,
+  PLATFORM_COMMISSION_RATE,
+  type PaymentMethodType
+} from "$lib/utils/payout-calculator";
 
 interface ProcessPaymentResult {
   success: boolean;
@@ -12,10 +17,15 @@ interface ProcessPaymentResult {
 
 /**
  * Service for processing payments and calculating commissions
+ *
+ * Commission calculation (as of update):
+ * 1. PayFast fee is deducted from booking amount
+ * 2. Platform commission (15%) is calculated on net amount after fees
+ * 3. Cleaner receives 85% of net amount
  */
 export const paymentProcessorService = {
-  // Default commission rate (25%)
-  DEFAULT_COMMISSION_RATE: 25.0,
+  // Default commission rate (15% - platform takes 15%, cleaner gets 85% of net)
+  DEFAULT_COMMISSION_RATE: PLATFORM_COMMISSION_RATE * 100, // 15.0 as percentage
   
   /**
    * Process a successful payment for a booking
@@ -62,12 +72,19 @@ export const paymentProcessorService = {
         };
       }
       
-      // Calculate platform commission and cleaner payout
-      const platformCommissionRate = this.DEFAULT_COMMISSION_RATE; // 25%
-      const platformCommissionAmount = (paymentData.amount * platformCommissionRate) / 100;
-      const cleanerPayoutAmount = paymentData.amount - platformCommissionAmount;
+      // Map external payment method to internal type for fee calculation
+      const paymentMethodForCalc = this.mapPaymentMethod(paymentData.paymentMethod) as PaymentMethodType;
+
+      // Calculate payout breakdown including PayFast fees
+      // Formula: PayFast fee deducted first, then 15% commission on net amount
+      const payoutBreakdown = calculatePayout(paymentData.amount, paymentMethodForCalc);
+
+      const platformCommissionRate = payoutBreakdown.commissionRate * 100; // Store as percentage (15.00)
+      const platformCommissionAmount = payoutBreakdown.commissionAmount;
+      const cleanerPayoutAmount = payoutBreakdown.cleanerPayout;
+      const payFastFeeAmount = payoutBreakdown.payFastFee;
       
-      // Create new payment record
+      // Create new payment record with PayFast fee tracking
       const paymentId = crypto.randomUUID();
       const [newPayment] = await db
         .insert(payment)
@@ -75,11 +92,12 @@ export const paymentProcessorService = {
           id: paymentId,
           bookingId: bookingId,
           userId: bookingDetails.userId,
-          amount: paymentData.amount,
+          amount: paymentData.amount.toString(),
           status: "COMPLETED",
-          paymentMethod: this.mapPaymentMethod(paymentData.paymentMethod),
+          paymentMethod: paymentMethodForCalc,
           platformCommissionRate: platformCommissionRate.toString(),
           platformCommissionAmount: platformCommissionAmount.toString(),
+          payFastFeeAmount: payFastFeeAmount.toString(),
           cleanerPayoutAmount: cleanerPayoutAmount.toString(),
           isPaidToProvider: false, // Will be marked as paid when cleaner is paid out
           payFastId: paymentData.transactionId || null,
@@ -100,7 +118,7 @@ export const paymentProcessorService = {
         
       // If there's a cleaner assigned, update their earnings summary
       if (bookingDetails.cleanerId) {
-        await cleanerEarningsService.updateCleanerEarningsSummary(bookingDetails.cleanerId);
+        await cleanerEarningsService.getCleanerEarningsSummary(bookingDetails.cleanerId);
       }
       
       return { success: true, paymentId: newPayment.id };
@@ -136,7 +154,7 @@ export const paymentProcessorService = {
       }
       
       // Update the cleaner's earnings summary
-      await cleanerEarningsService.updateCleanerEarningsSummary(bookingDetails.cleanerId);
+      await cleanerEarningsService.getCleanerEarningsSummary(bookingDetails.cleanerId);
       
       return true;
     } catch (error) {
@@ -147,16 +165,25 @@ export const paymentProcessorService = {
   
   /**
    * Map external payment method to internal enum
+   * Supports PayFast payment method codes and internal method names
    */
-  mapPaymentMethod(externalMethod: string): "CREDIT_CARD" | "DEBIT_CARD" | "EFT" | "OTHER" {
-    const methodMap: Record<string, "CREDIT_CARD" | "DEBIT_CARD" | "EFT" | "OTHER"> = {
+  mapPaymentMethod(externalMethod: string): PaymentMethodType {
+    const methodMap: Record<string, PaymentMethodType> = {
+      // PayFast payment method codes
       "cc": "CREDIT_CARD",
       "dc": "DEBIT_CARD",
       "eft": "EFT",
+      "mp": "MOBICRED", // Mobicred
+      "ss": "SNAPSCAN", // SnapScan
+      "zp": "ZAPPER",   // Zapper
+      // Internal method names (already uppercase)
       "credit_card": "CREDIT_CARD",
       "debit_card": "DEBIT_CARD",
+      "mobicred": "MOBICRED",
+      "snapscan": "SNAPSCAN",
+      "zapper": "ZAPPER",
     };
-    
+
     return methodMap[externalMethod.toLowerCase()] || "OTHER";
   }
 };

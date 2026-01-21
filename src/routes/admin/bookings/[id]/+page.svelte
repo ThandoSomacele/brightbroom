@@ -735,7 +735,7 @@
             <span class="text-gray-600 dark:text-gray-300">Payment Status:</span
             >
             <span
-              class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+              class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
               ${
                 booking.payment.status === "COMPLETED"
                   ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
@@ -787,6 +787,90 @@
         </div>
       {/if}
     </div>
+
+    <!-- Payout Breakdown (only shown when payment exists and cleaner is assigned) -->
+    {#if booking.payment && booking.payment.status === "COMPLETED"}
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          Payout Breakdown
+        </h2>
+
+        <div class="space-y-3">
+          <!-- Booking Total -->
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600 dark:text-gray-300">Booking Total:</span>
+            <span class="font-medium text-gray-900 dark:text-white">
+              {formatPrice(booking.payment.amount)}
+            </span>
+          </div>
+
+          <!-- PayFast Fee -->
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600 dark:text-gray-300">PayFast Fee:</span>
+            <span class="text-red-600 dark:text-red-400">
+              -{formatPrice(booking.payment.payFastFeeAmount || 0)}
+            </span>
+          </div>
+
+          <!-- Net After Fees -->
+          <div class="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
+            <span class="text-gray-600 dark:text-gray-300">Net After Fees:</span>
+            <span class="font-medium text-gray-900 dark:text-white">
+              {formatPrice(Number(booking.payment.amount) - Number(booking.payment.payFastFeeAmount || 0))}
+            </span>
+          </div>
+
+          <!-- Platform Commission -->
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600 dark:text-gray-300">
+              BrightBroom Commission ({booking.payment.platformCommissionRate || 15}%):
+            </span>
+            <span class="text-red-600 dark:text-red-400">
+              -{formatPrice(booking.payment.platformCommissionAmount || 0)}
+            </span>
+          </div>
+
+          <!-- Cleaner Payout -->
+          <div class="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
+            <span class="font-medium text-gray-900 dark:text-white">Cleaner Payout:</span>
+            <span class="font-bold text-lg text-primary">
+              {formatPrice(booking.payment.cleanerPayoutAmount || 0)}
+            </span>
+          </div>
+
+          <!-- Payout Status -->
+          <div class="flex justify-between items-center pt-3 mt-3 border-t border-gray-200 dark:border-gray-700">
+            <span class="text-gray-600 dark:text-gray-300">Payout Status:</span>
+            <span
+              class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                booking.payment.isPaidToProvider
+                  ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                  : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
+              }`}
+            >
+              {booking.payment.isPaidToProvider ? "Paid" : "Pending"}
+            </span>
+          </div>
+
+          {#if booking.payment.isPaidToProvider && booking.payment.providerPayoutDate}
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600 dark:text-gray-300">Paid On:</span>
+              <span class="text-gray-900 dark:text-white">
+                {formatDate(booking.payment.providerPayoutDate)}
+              </span>
+            </div>
+          {/if}
+        </div>
+
+        {#if !booking.cleaner}
+          <div class="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+            <p class="text-sm text-amber-800 dark:text-amber-300">
+              No cleaner assigned yet. Payout will be processed once a cleaner completes this booking.
+            </p>
+          </div>
+        {/if}
+      </div>
+    {/if}
 
     <!-- Booking timeline -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
