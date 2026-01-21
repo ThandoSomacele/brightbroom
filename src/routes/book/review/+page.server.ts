@@ -371,6 +371,12 @@ export const actions: Actions = {
           zipCode: addressData!.zipCode
         };
 
+        // Build add-ons data for email
+        const emailAddons = selectedAddons.map(a => ({
+          name: a.name,
+          price: parseFloat(a.price)
+        }));
+
         const bookingDataForEmail = {
           id: newBooking.id,
           service: {
@@ -379,7 +385,18 @@ export const actions: Actions = {
           },
           scheduledDate: scheduledDateObj.toISOString(),
           price: newBooking.price,
-          address: emailAddress
+          address: emailAddress,
+          // Room-based pricing details
+          bedroomCount,
+          bathroomCount,
+          // Add-ons with names and prices
+          addons: emailAddons,
+          // Duration in minutes
+          durationMinutes: priceBreakdown.totalDurationMinutes,
+          // Special instructions
+          notes: notes || undefined,
+          // Cleaner info will be added when assigned
+          cleaner: null
         };
 
         sendBookingConfirmationEmail(locals.user.email, bookingDataForEmail)

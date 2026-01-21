@@ -290,10 +290,27 @@ export function getBookingConfirmationTemplate(
   recipientEmail: string,
   booking: {
     id: string;
-    service: { name: string };
+    service: { name: string; description?: string };
     scheduledDate: string;
     address: { street: string; city: string; state: string; zipCode: string };
     price: number | string;
+    // Room-based pricing details
+    bedroomCount?: number;
+    bathroomCount?: number;
+    // Add-ons
+    addons?: Array<{ name: string; price: number | string }>;
+    // Duration in minutes
+    durationMinutes?: number;
+    // Cleaner info
+    cleaner?: { firstName: string; lastName: string } | null;
+    // Special instructions
+    notes?: string;
+    // Recurring booking details
+    isRecurring?: boolean;
+    recurringFrequency?: string;
+    recurringDays?: string[];
+    recurringTimeSlot?: string;
+    discountPercentage?: number;
   },
   data: EmailTemplateData,
 ): { subject: string; html: string; text: string } {
@@ -323,6 +340,47 @@ export function getBookingConfirmationTemplate(
     minute: "2-digit",
     hour12: false,
   });
+
+  // Format duration
+  const formatDuration = (minutes: number): string => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours === 0) return `${mins} min`;
+    if (mins === 0) return `${hours} hr${hours > 1 ? 's' : ''}`;
+    return `${hours} hr${hours > 1 ? 's' : ''} ${mins} min`;
+  };
+
+  // Format recurring frequency
+  const formatFrequency = (freq: string): string => {
+    switch (freq) {
+      case 'WEEKLY': return 'Weekly';
+      case 'BIWEEKLY': return 'Every 2 Weeks';
+      case 'TWICE_WEEKLY': return 'Twice Weekly';
+      case 'TWICE_MONTHLY': return 'Twice Monthly';
+      default: return freq;
+    }
+  };
+
+  // Build room description
+  const roomDescription = booking.bedroomCount && booking.bathroomCount
+    ? `${booking.bedroomCount} bedroom${booking.bedroomCount > 1 ? 's' : ''}, ${booking.bathroomCount} bathroom${booking.bathroomCount > 1 ? 's' : ''}`
+    : null;
+
+  // Build add-ons HTML
+  const addonsHtml = booking.addons && booking.addons.length > 0
+    ? booking.addons.map(addon => {
+        const addonPrice = typeof addon.price === 'number' ? addon.price.toFixed(2) : addon.price;
+        return `<li style="margin-bottom: 4px;">${escapeHtml(addon.name)} (+R${addonPrice})</li>`;
+      }).join('')
+    : null;
+
+  // Build add-ons text
+  const addonsText = booking.addons && booking.addons.length > 0
+    ? booking.addons.map(addon => {
+        const addonPrice = typeof addon.price === 'number' ? addon.price.toFixed(2) : addon.price;
+        return `  - ${addon.name} (+R${addonPrice})`;
+      }).join('\n')
+    : null;
 
   // HTML Email template
   const html = `
@@ -416,8 +474,8 @@ export function getBookingConfirmationTemplate(
       <h2>Booking Confirmation</h2>
       <p>Hello,</p>
       <p>Thank you for booking with ${data.brandName}! Your cleaning service has been confirmed.</p>
-      <p>You you will shortly recieve notification of your assigned clearner and their details.</p>
-      
+      ${booking.cleaner ? `<p>Your cleaner <strong>${escapeHtml(booking.cleaner.firstName)} ${escapeHtml(booking.cleaner.lastName)}</strong> has been assigned to your booking.</p>` : `<p>You will shortly receive notification of your assigned cleaner and their details.</p>`}
+
       <div class="booking-details">
         <div class="booking-detail">
           <span class="label">Booking Reference:</span>
@@ -427,6 +485,36 @@ export function getBookingConfirmationTemplate(
           <span class="label">Service:</span>
           <span>${booking.service.name}</span>
         </div>
+        ${roomDescription ? `
+        <div class="booking-detail">
+          <span class="label">Rooms:</span>
+          <span>${roomDescription}</span>
+        </div>
+        ` : ''}
+        ${addonsHtml ? `
+        <div class="booking-detail">
+          <span class="label">Add-ons:</span>
+          <ul style="margin: 5px 0 0 0; padding-left: 20px;">${addonsHtml}</ul>
+        </div>
+        ` : ''}
+        ${booking.durationMinutes ? `
+        <div class="booking-detail">
+          <span class="label">Estimated Duration:</span>
+          <span>${formatDuration(booking.durationMinutes)}</span>
+        </div>
+        ` : ''}
+        ${booking.isRecurring && booking.recurringFrequency ? `
+        <div class="booking-detail">
+          <span class="label">Schedule:</span>
+          <span>${formatFrequency(booking.recurringFrequency)}${booking.recurringDays && booking.recurringDays.length > 0 ? ` on ${booking.recurringDays.join(', ')}` : ''}${booking.recurringTimeSlot ? ` at ${booking.recurringTimeSlot}` : ''}</span>
+        </div>
+        ${booking.discountPercentage ? `
+        <div class="booking-detail">
+          <span class="label">Recurring Discount:</span>
+          <span style="color: #22c55e; font-weight: bold;">${booking.discountPercentage}% off</span>
+        </div>
+        ` : ''}
+        ` : `
         <div class="booking-detail">
           <span class="label">Date:</span>
           <span>${dateString}</span>
@@ -435,26 +523,34 @@ export function getBookingConfirmationTemplate(
           <span class="label">Time:</span>
           <span>${timeString}</span>
         </div>
+        `}
         <div class="booking-detail">
           <span class="label">Location:</span>
           <span>${booking.address.street}, ${booking.address.city}, ${booking.address.state}, ${booking.address.zipCode}</span>
         </div>
         <div class="booking-detail">
           <span class="label">Total:</span>
-          <span>R${formattedPrice}</span>
+          <span style="font-weight: bold; font-size: 1.1em;">R${formattedPrice}</span>
         </div>
       </div>
-      
+
+      ${booking.notes ? `
+      <div style="background-color: #fef3c7; border-radius: 4px; padding: 15px; margin: 20px 0;">
+        <p style="margin: 0; font-weight: bold; color: #92400e;">Special Instructions:</p>
+        <p style="margin: 8px 0 0 0; color: #78350f;">${escapeHtml(booking.notes)}</p>
+      </div>
+      ` : ''}
+
       <p>You can view your booking details by clicking the button below:</p>
-      
+
       <div style="text-align: center;">
         <a href="${bookingUrl}" class="btn">View Booking</a>
       </div>
-      
+
       <p>If you have any questions or need to make changes to your booking, please contact our support team.</p>
-      
+
       <p>Thank you for choosing ${data.brandName}!</p>
-      
+
       <p>Best regards,<br>The ${data.brandName} Team</p>
     </div>
     <div class="footer">
@@ -472,15 +568,15 @@ Booking Confirmation - ${data.brandName}
 Hello,
 
 Thank you for booking with ${data.brandName}! Your cleaning service has been confirmed.
+${booking.cleaner ? `\nYour cleaner ${booking.cleaner.firstName} ${booking.cleaner.lastName} has been assigned to your booking.` : '\nYou will shortly receive notification of your assigned cleaner and their details.'}
 
 Booking Details:
+----------------
 Booking Reference: #${getBookingReference(booking.id)}
 Service: ${booking.service.name}
-Date: ${dateString}
-Time: ${timeString}
-Location: ${booking.address.street}, ${booking.address.city}, ${booking.address.state}, ${booking.address.zipCode}
+${roomDescription ? `Rooms: ${roomDescription}\n` : ''}${addonsText ? `Add-ons:\n${addonsText}\n` : ''}${booking.durationMinutes ? `Estimated Duration: ${formatDuration(booking.durationMinutes)}\n` : ''}${booking.isRecurring && booking.recurringFrequency ? `Schedule: ${formatFrequency(booking.recurringFrequency)}${booking.recurringDays && booking.recurringDays.length > 0 ? ` on ${booking.recurringDays.join(', ')}` : ''}${booking.recurringTimeSlot ? ` at ${booking.recurringTimeSlot}` : ''}\n${booking.discountPercentage ? `Recurring Discount: ${booking.discountPercentage}% off\n` : ''}` : `Date: ${dateString}\nTime: ${timeString}\n`}Location: ${booking.address.street}, ${booking.address.city}, ${booking.address.state}, ${booking.address.zipCode}
 Total: R${formattedPrice}
-
+${booking.notes ? `\nSpecial Instructions:\n${booking.notes}\n` : ''}
 You can view your booking details and manage your appointment at:
 ${bookingUrl}
 
@@ -2459,6 +2555,16 @@ export function getSubscriptionActivatedTemplate(
     preferredDays?: string[];
     preferredTimeSlot?: string;
     nextBillingDate?: string;
+    // Room-based pricing details
+    bedroomCount?: number;
+    bathroomCount?: number;
+    // Add-ons
+    addons?: Array<{ name: string; price: number | string }>;
+    // Duration in minutes
+    durationMinutes?: number;
+    // Discount info
+    discountPercentage?: number;
+    basePrice?: number | string;
   },
   data: EmailTemplateData,
 ): { subject: string; html: string; text: string } {
@@ -2476,13 +2582,20 @@ export function getSubscriptionActivatedTemplate(
 
   // Format days
   const daysDisplay = subscription.preferredDays && subscription.preferredDays.length > 0
-    ? subscription.preferredDays.map(d => d.charAt(0) + d.slice(1).toLowerCase()).join(', ')
+    ? subscription.preferredDays.map((d: string) => d.charAt(0) + d.slice(1).toLowerCase()).join(', ')
     : '';
 
   // Format price
   const formattedPrice = typeof subscription.finalPrice === 'number'
     ? subscription.finalPrice.toFixed(2)
     : subscription.finalPrice.toString();
+
+  // Format base price (before discount)
+  const formattedBasePrice = subscription.basePrice
+    ? typeof subscription.basePrice === 'number'
+      ? subscription.basePrice.toFixed(2)
+      : subscription.basePrice.toString()
+    : null;
 
   // Format next billing date
   const nextBillingDisplay = subscription.nextBillingDate
@@ -2493,6 +2606,36 @@ export function getSubscriptionActivatedTemplate(
         day: 'numeric',
       })
     : 'Will be scheduled after first cleaning';
+
+  // Format duration
+  const formatDuration = (minutes: number): string => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours === 0) return `${mins} min`;
+    if (mins === 0) return `${hours} hr${hours > 1 ? 's' : ''}`;
+    return `${hours} hr${hours > 1 ? 's' : ''} ${mins} min`;
+  };
+
+  // Build room description
+  const roomDescription = subscription.bedroomCount && subscription.bathroomCount
+    ? `${subscription.bedroomCount} bedroom${subscription.bedroomCount > 1 ? 's' : ''}, ${subscription.bathroomCount} bathroom${subscription.bathroomCount > 1 ? 's' : ''}`
+    : null;
+
+  // Build add-ons HTML
+  const addonsHtml = subscription.addons && subscription.addons.length > 0
+    ? subscription.addons.map(addon => {
+        const addonPrice = typeof addon.price === 'number' ? addon.price.toFixed(2) : addon.price;
+        return `<li style="margin-bottom: 4px;">${escapeHtml(addon.name)} (+R${addonPrice})</li>`;
+      }).join('')
+    : null;
+
+  // Build add-ons text
+  const addonsText = subscription.addons && subscription.addons.length > 0
+    ? subscription.addons.map(addon => {
+        const addonPrice = typeof addon.price === 'number' ? addon.price.toFixed(2) : addon.price;
+        return `  - ${addon.name} (+R${addonPrice})`;
+      }).join('\n')
+    : null;
 
   const html = `
 <!DOCTYPE html>
@@ -2602,6 +2745,24 @@ export function getSubscriptionActivatedTemplate(
           <span class="label">Service:</span>
           <span>${subscription.service.name}</span>
         </div>
+        ${roomDescription ? `
+        <div class="detail-row">
+          <span class="label">Rooms:</span>
+          <span>${roomDescription}</span>
+        </div>
+        ` : ''}
+        ${addonsHtml ? `
+        <div class="detail-row">
+          <span class="label">Add-ons:</span>
+          <ul style="margin: 5px 0 0 0; padding-left: 20px;">${addonsHtml}</ul>
+        </div>
+        ` : ''}
+        ${subscription.durationMinutes ? `
+        <div class="detail-row">
+          <span class="label">Estimated Duration:</span>
+          <span>${formatDuration(subscription.durationMinutes)}</span>
+        </div>
+        ` : ''}
         <div class="detail-row">
           <span class="label">Frequency:</span>
           <span>${frequencyDisplay}${daysDisplay ? ` (${daysDisplay})` : ''}</span>
@@ -2613,7 +2774,13 @@ export function getSubscriptionActivatedTemplate(
         </div>` : ''}
         <div class="detail-row">
           <span class="label">Price per cleaning:</span>
-          <span>R${formattedPrice}</span>
+          ${subscription.discountPercentage && formattedBasePrice ? `
+          <span>
+            <span style="text-decoration: line-through; color: #999;">R${formattedBasePrice}</span>
+            <span style="font-weight: bold;">R${formattedPrice}</span>
+            <span style="color: #22c55e; font-weight: bold;">(${subscription.discountPercentage}% off)</span>
+          </span>
+          ` : `<span style="font-weight: bold;">R${formattedPrice}</span>`}
         </div>
         <div class="detail-row">
           <span class="label">Next billing date:</span>
@@ -2655,9 +2822,10 @@ Hello,
 Great news! Your recurring cleaning service subscription has been activated. Your first payment has been processed successfully.
 
 Subscription Details:
+---------------------
 - Service: ${subscription.service.name}
-- Frequency: ${frequencyDisplay}${daysDisplay ? ` (${daysDisplay})` : ''}
-${subscription.preferredTimeSlot ? `- Time: ${subscription.preferredTimeSlot}\n` : ''}- Price per cleaning: R${formattedPrice}
+${roomDescription ? `- Rooms: ${roomDescription}\n` : ''}${addonsText ? `- Add-ons:\n${addonsText}\n` : ''}${subscription.durationMinutes ? `- Estimated Duration: ${formatDuration(subscription.durationMinutes)}\n` : ''}- Frequency: ${frequencyDisplay}${daysDisplay ? ` (${daysDisplay})` : ''}
+${subscription.preferredTimeSlot ? `- Time: ${subscription.preferredTimeSlot}\n` : ''}- Price per cleaning: ${subscription.discountPercentage && formattedBasePrice ? `R${formattedBasePrice} → R${formattedPrice} (${subscription.discountPercentage}% off)` : `R${formattedPrice}`}
 - Next billing date: ${nextBillingDisplay}
 
 What happens next?

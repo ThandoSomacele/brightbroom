@@ -4,6 +4,8 @@ import {
   address,
   adminNote,
   booking,
+  bookingAddon,
+  addon,
   service,
   user,
 } from "$lib/server/db/schema";
@@ -111,7 +113,7 @@ export const postPaymentHooks = {
         return true;
       }
 
-      // Get booking details with user email
+      // Get booking details with user email and enhanced data
       const results = await db
         .select({
           booking: {
@@ -119,6 +121,10 @@ export const postPaymentHooks = {
             status: booking.status,
             scheduledDate: booking.scheduledDate,
             price: booking.price,
+            bedroomCount: booking.bedroomCount,
+            bathroomCount: booking.bathroomCount,
+            duration: booking.duration,
+            notes: booking.notes,
           },
           user: {
             email: user.email,
@@ -157,12 +163,27 @@ export const postPaymentHooks = {
         return true; // Return true to indicate we handled this correctly (by not sending)
       }
 
+      // Fetch booking add-ons with their names and prices
+      const bookingAddons = await db
+        .select({
+          name: addon.name,
+          price: bookingAddon.priceAtBooking,
+        })
+        .from(bookingAddon)
+        .innerJoin(addon, eq(bookingAddon.addonId, addon.id))
+        .where(eq(bookingAddon.bookingId, bookingId));
+
+      // Format add-ons for email
+      const emailAddons = bookingAddons.map(a => ({
+        name: a.name,
+        price: parseFloat(a.price)
+      }));
+
       console.log(
         `[POST-PAYMENT HOOKS] Sending confirmation email with explicit payment status: ${paymentStatus}`,
       );
 
-      // Send the confirmation email with the explicit payment status
-      // This is the key fix - we're passing the payment status directly instead of querying it again
+      // Send the confirmation email with the explicit payment status and full booking details
       const success = await sendBookingConfirmationEmail(
         bookingData.user.email,
         {
@@ -173,6 +194,12 @@ export const postPaymentHooks = {
           address: bookingData.address,
           price: bookingData.booking.price,
           paymentStatus: paymentStatus, // Pass the payment status directly and explicitly
+          // Enhanced booking details
+          bedroomCount: bookingData.booking.bedroomCount || undefined,
+          bathroomCount: bookingData.booking.bathroomCount || undefined,
+          addons: emailAddons.length > 0 ? emailAddons : undefined,
+          durationMinutes: bookingData.booking.duration || undefined,
+          notes: bookingData.booking.notes || undefined,
         },
       );
 
