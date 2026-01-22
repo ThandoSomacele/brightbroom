@@ -34,12 +34,12 @@
   export let form;
 
   // Environment variables
-  const { cleaner, services, bookings, earnings, upcomingEarnings } = data;
+  const { cleaner, bookings, earnings, upcomingEarnings } = data;
 
   // Mode tracking
   let isPersonalInfoEditMode = false;
   let isProfileEditMode = false;
-  let isSpecialisationsEditMode = false;
+  let isTrainingEditMode = false;
   let isPayoutEditMode = false;
   let isLoading = false;
 
@@ -108,17 +108,9 @@
   let selectedExperienceTypes: string[] =
     cleaner.cleanerProfile?.experienceTypes || [];
 
-  // Track specialisations
-  let selectedSpecialisations = new Map();
-
-  // Initialise selected specialisations
-  if (cleaner.specialisations) {
-    cleaner.specialisations.forEach((spec) => {
-      selectedSpecialisations.set(spec.serviceId, {
-        selected: true,
-      });
-    });
-  }
+  // Track training status
+  let homeTrainingCompleted = cleaner.cleanerProfile?.trainingCompleted?.includes("HOME") || false;
+  let officeTrainingCompleted = cleaner.cleanerProfile?.trainingCompleted?.includes("OFFICE") || false;
 
   // Format date function
   function formatDate(dateString: string): string {
@@ -170,31 +162,14 @@
     }
   }
 
-  // Toggle specialisations edit mode
-  function toggleSpecialisationsEdit() {
-    isSpecialisationsEditMode = !isSpecialisationsEditMode;
+  // Toggle training edit mode
+  function toggleTrainingEdit() {
+    isTrainingEditMode = !isTrainingEditMode;
 
-    if (isSpecialisationsEditMode) {
-      // Reset selected specialisations
-      selectedSpecialisations = new Map();
-
-      // Set from cleaner data
-      if (cleaner.specialisations) {
-        cleaner.specialisations.forEach((spec) => {
-          selectedSpecialisations.set(spec.serviceId, {
-            selected: true,
-          });
-        });
-      }
-
-      // Initialise missing services
-      services.forEach((service) => {
-        if (!selectedSpecialisations.has(service.id)) {
-          selectedSpecialisations.set(service.id, {
-            selected: false,
-          });
-        }
-      });
+    if (isTrainingEditMode) {
+      // Reset to current values
+      homeTrainingCompleted = cleaner.cleanerProfile?.trainingCompleted?.includes("HOME") || false;
+      officeTrainingCompleted = cleaner.cleanerProfile?.trainingCompleted?.includes("OFFICE") || false;
     }
   }
 
@@ -221,38 +196,11 @@
     }
   }
 
-  // Toggle service selection
-  function toggleServiceSelection(serviceId) {
-    if (selectedSpecialisations.has(serviceId)) {
-      const currentValue = selectedSpecialisations.get(serviceId);
-      selectedSpecialisations.set(serviceId, {
-        ...currentValue,
-        selected: !currentValue.selected,
-      });
-      // Force Svelte reactivity by creating a new Map with the same entries
-      selectedSpecialisations = new Map(selectedSpecialisations);
-    }
-  }
-
   // Convert available days to array for form submission
   function getAvailableDaysArray() {
     return Object.entries(availableDays)
       .filter(([_, isSelected]) => isSelected)
       .map(([day, _]) => day);
-  }
-
-  // Get selected specialisations for form submission
-  function getSelectedSpecialisations() {
-    const result = [];
-    selectedSpecialisations.forEach((value, serviceId) => {
-      if (value.selected) {
-        result.push({
-          serviceId,
-          experience: 0, // Default to 0 since we're removing the field
-        });
-      }
-    });
-    return JSON.stringify(result);
   }
 
   // Function to handle form submission
@@ -1520,19 +1468,19 @@
       </div>
     </div>
 
-    <!-- Service Specialisations Section -->
+    <!-- Training Status Section -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
       <div class="p-6">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-            Service Specialisations
+            Training Status
           </h2>
           <Button
             variant="ghost"
             size="sm"
-            on:click={toggleSpecialisationsEdit}
+            on:click={toggleTrainingEdit}
           >
-            {#if isSpecialisationsEditMode}
+            {#if isTrainingEditMode}
               <X size={16} class="mr-1" />
               Cancel
             {:else}
@@ -1542,10 +1490,10 @@
           </Button>
         </div>
 
-        {#if isSpecialisationsEditMode}
+        {#if isTrainingEditMode}
           <form
             method="POST"
-            action="?/updateSpecialisations"
+            action="?/updateTraining"
             use:enhance={() => {
               isLoading = true;
 
@@ -1553,12 +1501,11 @@
                 isLoading = false;
 
                 if (result.type === "success") {
-                  isSpecialisationsEditMode = false;
+                  isTrainingEditMode = false;
                 }
 
                 await update();
 
-                // Then invalidate all data to force a refresh of the page data
                 if (result.type === "success") {
                   await invalidateAll();
                 }
@@ -1566,39 +1513,46 @@
             }}
           >
             <div class="space-y-4">
-              {#each services as service}
-                <div
-                  class="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-                >
-                  <div class="flex items-start">
-                    <input
-                      type="checkbox"
-                      id={`service-${service.id}`}
-                      checked={selectedSpecialisations.get(service.id)
-                        ?.selected || false}
-                      on:change={() => toggleServiceSelection(service.id)}
-                      class="h-4 w-4 mt-1 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
-                    <div class="ml-3 flex-1">
-                      <label
-                        for={`service-${service.id}`}
-                        class="text-gray-900 dark:text-white font-medium"
-                      >
-                        {service.name}
-                      </label>
-                      <p class="text-sm text-gray-500 dark:text-gray-400">
-                        {service.description}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              {/each}
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Select the training programs this cleaner has completed:
+              </p>
 
-              <input
-                type="hidden"
-                name="specialisations"
-                value={getSelectedSpecialisations()}
-              />
+              <div class="space-y-3">
+                <label class="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <input
+                    type="checkbox"
+                    name="homeTraining"
+                    value="true"
+                    bind:checked={homeTrainingCompleted}
+                    class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <div class="ml-3">
+                    <span class="text-gray-900 dark:text-white font-medium">Home Cleaning Training</span>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      Trained for residential home cleaning services
+                    </p>
+                  </div>
+                </label>
+
+                <label class="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <input
+                    type="checkbox"
+                    name="officeTraining"
+                    value="true"
+                    bind:checked={officeTrainingCompleted}
+                    class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <div class="ml-3">
+                    <span class="text-gray-900 dark:text-white font-medium">Office Cleaning Training</span>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      Trained for commercial office cleaning services
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              <input type="hidden" name="homeTraining" value={homeTrainingCompleted ? "true" : "false"} />
+              <input type="hidden" name="officeTraining" value={officeTrainingCompleted ? "true" : "false"} />
 
               <div class="pt-2">
                 <Button
@@ -1631,32 +1585,48 @@
                     Saving...
                   {:else}
                     <Save size={16} class="mr-2" />
-                    Save Specialisations
+                    Save Training Status
                   {/if}
                 </Button>
               </div>
             </div>
           </form>
-        {:else if cleaner.specialisations && cleaner.specialisations.length > 0}
+        {:else}
           <div class="space-y-3">
-            {#each cleaner.specialisations as specialisation}
-              <div class="flex items-start">
-                <Briefcase
-                  class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3"
-                />
-                <div>
-                  <p class="font-medium text-gray-900 dark:text-white">
-                    {services.find((s) => s.id === specialisation.serviceId)
-                      ?.name || "Unknown Service"}
+            {#if cleaner.cleanerProfile?.trainingCompleted && cleaner.cleanerProfile.trainingCompleted.length > 0}
+              {#each cleaner.cleanerProfile.trainingCompleted as training}
+                <div class="flex items-center p-3 rounded-lg {training === 'HOME' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}">
+                  <div class="h-8 w-8 rounded-full flex items-center justify-center {training === 'HOME' ? 'bg-green-100 dark:bg-green-800' : 'bg-blue-100 dark:bg-blue-800'}">
+                    <Briefcase class="h-4 w-4 {training === 'HOME' ? 'text-green-600 dark:text-green-300' : 'text-blue-600 dark:text-blue-300'}" />
+                  </div>
+                  <div class="ml-3">
+                    <p class="font-medium {training === 'HOME' ? 'text-green-800 dark:text-green-300' : 'text-blue-800 dark:text-blue-300'}">
+                      {training === 'HOME' ? 'Home Cleaning' : 'Office Cleaning'} Training
+                    </p>
+                    <p class="text-sm {training === 'HOME' ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}">
+                      Completed
+                    </p>
+                  </div>
+                </div>
+              {/each}
+            {:else}
+              <div class="flex items-center p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20">
+                <div class="h-8 w-8 rounded-full flex items-center justify-center bg-amber-100 dark:bg-amber-800">
+                  <svg class="h-4 w-4 text-amber-600 dark:text-amber-300" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="font-medium text-amber-800 dark:text-amber-300">
+                    No Training Completed
+                  </p>
+                  <p class="text-sm text-amber-600 dark:text-amber-400">
+                    This cleaner needs to complete training before taking bookings
                   </p>
                 </div>
               </div>
-            {/each}
+            {/if}
           </div>
-        {:else}
-          <p class="py-4 text-center text-gray-500 dark:text-gray-400">
-            No specialisations added yet
-          </p>
         {/if}
       </div>
     </div>

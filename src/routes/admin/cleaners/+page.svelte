@@ -10,7 +10,7 @@
   // Local state for filters
   let searchTerm = filters.search || "";
   let availabilityFilter = filters.availability || "ALL";
-  let specialisationFilter = filters.specialisation || "";
+  let trainingFilter = filters.training || "";
   let statusFilter = filters.status || "ALL";
   let showFilters = false;
 
@@ -26,6 +26,14 @@
     { value: "ALL", label: "All Statuses" },
     { value: "ACTIVE", label: "Active" },
     { value: "INACTIVE", label: "Inactive" },
+  ];
+
+  // Training options
+  const trainingOptions = [
+    { value: "", label: "All Training Status" },
+    { value: "NONE", label: "Needs Training" },
+    { value: "HOME", label: "Home Trained" },
+    { value: "OFFICE", label: "Office Trained" },
   ];
 
   // Format date function
@@ -59,8 +67,8 @@
     if (searchTerm) searchParams.set("search", searchTerm);
     if (availabilityFilter && availabilityFilter !== "ALL")
       searchParams.set("availability", availabilityFilter);
-    if (specialisationFilter)
-      searchParams.set("specialisation", specialisationFilter);
+    if (trainingFilter)
+      searchParams.set("training", trainingFilter);
     if (statusFilter && statusFilter !== "ALL")
       searchParams.set("status", statusFilter);
 
@@ -78,7 +86,7 @@
   function resetFilters() {
     searchTerm = "";
     availabilityFilter = "ALL";
-    specialisationFilter = "";
+    trainingFilter = "";
     statusFilter = "ALL";
     window.location.href = "/admin/cleaners";
   }
@@ -168,22 +176,19 @@
 
     <div>
       <label
-        for="specialisation"
+        for="training"
         class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
       >
-        Specialisation
+        Training Status
       </label>
       <select
-        id="specialisation"
-        bind:value={specialisationFilter}
+        id="training"
+        bind:value={trainingFilter}
         class="w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
       >
-        <option value="">All Specialisations</option>
-        {#if data.specialisations}
-          {#each data.specialisations as spec}
-            <option value={spec.id}>{spec.name}</option>
-          {/each}
-        {/if}
+        {#each trainingOptions as option}
+          <option value={option.value}>{option.label}</option>
+        {/each}
       </select>
     </div>
 
@@ -221,7 +226,7 @@
             scope="col"
             class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
           >
-            Specialisations
+            Training
           </th>
           <th
             scope="col"
@@ -309,18 +314,20 @@
               </td>
               <td class="px-6 py-4">
                 <div class="flex flex-wrap gap-1">
-                  {#if cleaner.specialisations && cleaner.specialisations.length > 0}
-                    {#each cleaner.specialisations as spec}
+                  {#if cleaner.cleanerProfile?.trainingCompleted && cleaner.cleanerProfile.trainingCompleted.length > 0}
+                    {#each cleaner.cleanerProfile.trainingCompleted as training}
                       <span
-                        class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+                        class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {training === 'HOME' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300'}"
                       >
-                        {spec.name}
+                        {training === 'HOME' ? 'Home' : 'Office'}
                       </span>
                     {/each}
                   {:else}
-                    <span class="text-sm text-gray-500 dark:text-gray-400"
-                      >None</span
+                    <span
+                      class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
                     >
+                      Needs Training
+                    </span>
                   {/if}
                 </div>
               </td>

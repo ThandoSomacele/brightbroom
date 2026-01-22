@@ -4,13 +4,11 @@ import {
   applicationNote,
   cleanerApplication,
   cleanerProfile,
-  cleanerSpecialisation,
-  service,
   user,
 } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
 import { error, fail } from "@sveltejs/kit";
-import { desc, eq } from "drizzle-orm"; // Added desc import for sorting
+import { desc, eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -185,57 +183,17 @@ export const actions: Actions = {
           workAddress: application.formattedAddress || application.city,
           // Use actual coordinates from application if available
           workLocationLat: application.latitude || -26.0274, // Default to Fourways
-          workLocationLng: application.longitude || 28.0106, // Fixed: Correct longitude for Fourways
+          workLocationLng: application.longitude || 28.0106, // Correct longitude for Fourways
           workRadius: 10, // Default radius in km
           bio: "", // Empty bio initially
           petCompatibility: "NONE", // Default to no pet compatibility
           availableDays: availabilityArray, // Use availability days from application
-          experienceTypes: [], // Experience types can be set after onboarding
+          trainingCompleted: [], // No training completed yet - admin will update after onboarding
           isAvailable: false, // Start as unavailable until fully onboarded
           profileImageUrl: application.profileImageUrl, // Transfer profile image if any
           createdAt: new Date(),
           updatedAt: new Date(),
         });
-
-        // Create specializations for all services
-        try {
-          // Fetch all active services
-          const services = await db
-            .select({ id: service.id })
-            .from(service)
-            .where(eq(service.isActive, true));
-
-          // Create specializations for each service
-          if (services.length > 0) {
-            const specializations = services.map((svc) => ({
-              id: crypto.randomUUID(),
-              cleanerProfileId: profileId,
-              serviceId: svc.id,
-              experience: 0, // Default to 0 months experience
-            }));
-
-            // Insert all specializations in a single query
-            await db.insert(cleanerSpecialisation).values(specializations);
-
-            console.log(
-              `Added ${specializations.length} default service specializations for cleaner ${userId}`,
-            );
-          }
-        } catch (specializationError) {
-          console.error(
-            "Error adding default service specializations:",
-            specializationError,
-          );
-          // Continue execution even if adding specializations fails - we can fix it later
-          // Add note about the specialization error
-          await db.insert(applicationNote).values({
-            id: crypto.randomUUID(),
-            applicationId,
-            content: `WARNING: Error adding default service specializations: ${specializationError.message || "Unknown error"}. Please add them manually.`,
-            addedBy: `System`,
-            createdAt: new Date(),
-          });
-        }
 
         console.log(`Successfully created cleaner profile for user ${userId}`);
       } catch (profileError) {

@@ -366,7 +366,9 @@ export const cleanerProfile = pgTable("cleaner_profile", {
     .notNull(),
   availableDays: text("available_days").array(), // Using array of text for the enum array
   rating: decimal("rating", { precision: 3, scale: 1 }),
-  experienceTypes: json("experience_types").$type<string[]>().default([]),
+  // Training status - which training programs the cleaner has completed
+  // Values: 'HOME' (home cleaning), 'OFFICE' (office cleaning)
+  trainingCompleted: text("training_completed").array().default([]),
   isAvailable: boolean("is_available").default(true).notNull(),
   profileImageUrl: text("profile_image_url"),
 
@@ -436,16 +438,9 @@ export const applicationNote = pgTable("application_note", {
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
-export const cleanerSpecialisation = pgTable("cleaner_specialisation", {
-  id: text("id").primaryKey().notNull(),
-  cleanerProfileId: text("cleaner_profile_id")
-    .notNull()
-    .references(() => cleanerProfile.id, { onDelete: "cascade" }),
-  serviceId: text("service_id")
-    .notNull()
-    .references(() => service.id),
-  experience: integer("experience").notNull(), // In months
-});
+// DEPRECATED: cleanerSpecialisation table removed - replaced by trainingCompleted field on cleanerProfile
+// Keeping comment for migration reference
+// export const cleanerSpecialisation = pgTable("cleaner_specialisation", { ... });
 
 // New table for admin notes
 export const adminNote = pgTable("admin_note", {
@@ -643,9 +638,8 @@ export type NewApplicationNote = typeof applicationNote.$inferInsert;
 export type ExperienceType =
   (typeof EXPERIENCE_TYPES)[keyof typeof EXPERIENCE_TYPES];
 
-export type CleanerSpecialisation = typeof cleanerSpecialisation.$inferSelect;
-export type NewCleanerSpecialisation =
-  typeof cleanerSpecialisation.$inferInsert;
+// Training types for cleaner profile
+export type TrainingType = "HOME" | "OFFICE";
 
 export type AdminNote = typeof adminNote.$inferSelect;
 export type NewAdminNote = typeof adminNote.$inferInsert;

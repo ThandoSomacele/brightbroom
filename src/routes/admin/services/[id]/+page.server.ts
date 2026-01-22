@@ -1,6 +1,6 @@
 // src/routes/admin/services/[id]/+page.server.ts
 import { db } from "$lib/server/db";
-import { service, booking, cleanerSpecialisation, user } from "$lib/server/db/schema";
+import { service, booking, user } from "$lib/server/db/schema";
 import { error, redirect } from "@sveltejs/kit";
 import { eq, and, desc } from "drizzle-orm";
 import { sql } from "drizzle-orm";
@@ -80,21 +80,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       .orderBy(desc(booking.scheduledDate))
       .limit(10);
 
-    // 5. Cleaners specializing in this service
-    const specialisingCleaners = await db
-      .select({
-        cleanerId: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        experience: cleanerSpecialisation.experience
-      })
-      .from(cleanerSpecialisation)
-      .innerJoin(user, eq(cleanerSpecialisation.cleanerProfileId, user.id))
-      .where(eq(cleanerSpecialisation.serviceId, serviceId))
-      .orderBy(desc(cleanerSpecialisation.experience));
-
-    // 6. Monthly booking trends (last 6 months)
+    // 5. Monthly booking trends (last 6 months)
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
     
@@ -122,8 +108,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         statusBreakdown: statusBreakdownResult,
         monthlyTrends: monthlyTrendsResult
       },
-      recentBookings,
-      specialisingCleaners
+      recentBookings
     };
   } catch (err) {
     console.error("Error loading service details:", err);

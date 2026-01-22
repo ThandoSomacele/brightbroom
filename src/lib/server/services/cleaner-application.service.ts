@@ -3,13 +3,11 @@ import { db } from "$lib/server/db";
 import {
   cleanerApplication,
   cleanerProfile,
-  cleanerSpecialisation,
-  service,
   user,
 } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
 import { generateStrongPassword } from "$lib/utils/auth-utils";
-import { eq, like, or } from "drizzle-orm"; // Make sure or is imported here
+import { eq, like, or } from "drizzle-orm";
 
 /**
  * Service for managing cleaner applications
@@ -93,9 +91,8 @@ export const cleanerApplicationService = {
    * This function handles:
    * 1. Creating a user account
    * 2. Creating a cleaner profile with all application data
-   * 3. Setting up default specialisations (residential cleaning)
-   * 4. Updating the application status
-   * 5. Sending a welcome email
+   * 3. Updating the application status
+   * 4. Sending a welcome email
    */
   async approveApplication(
     applicationId: string,
@@ -199,38 +196,18 @@ export const cleanerApplicationService = {
           workRadius: application.workRadius || 20, // Default 20km radius
           bio: application.bio || "",
           taxNumber: application.taxNumber || null,
-          bankAccount: application.bankAccount || null,
           petCompatibility: application.petCompatibility || "NONE",
           availableDays: availableDays,
-          experienceTypes: application.experienceTypes,
+          trainingCompleted: [], // No training completed yet - admin will update after onboarding
           rating: null, // No ratings yet
-          isAvailable: true, // Set as available by default
+          isAvailable: false, // Start as unavailable until fully onboarded
           profileImageUrl: application.profileImageUrl,
           createdAt: new Date(),
           updatedAt: new Date(),
         })
         .returning();
 
-      // 3. Set up default specialisations (ALL services)
-      // Get all active services
-      const allServices = await db
-        .select()
-        .from(service)
-        .where(eq(service.isActive, true)); // FIXED: Using eq operator correctly
-
-      // Create specialisations for ALL services
-      const specialisationInserts = allServices.map((svc) => ({
-        id: crypto.randomUUID(),
-        cleanerProfileId: profileId,
-        serviceId: svc.id,
-        experience: 0, // Default experience (in months)
-      }));
-
-      if (specialisationInserts.length > 0) {
-        await db.insert(cleanerSpecialisation).values(specialisationInserts);
-      }
-
-      // 4. Update application status to APPROVED
+      // 3. Update application status to APPROVED
       await db
         .update(cleanerApplication)
         .set({

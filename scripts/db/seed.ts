@@ -105,15 +105,14 @@ async function seedDatabase() {
   const { client, db } = createDbConnection();
   
   // Get references to schema tables directly from the imported schema, not from db.schema
-  const { 
-    service, 
-    user, 
-    cleanerProfile, 
-    cleanerSpecialisation, 
-    address, 
-    booking, 
-    payment, 
-    key 
+  const {
+    service,
+    user,
+    cleanerProfile,
+    address,
+    booking,
+    payment,
+    key
   } = schema;
 
   try {
@@ -156,9 +155,6 @@ async function seedDatabase() {
             console.log("Deleted associated bookings");
           }
           
-          // Delete specialisations
-          await db.delete(cleanerSpecialisation);
-          
           // Now safe to delete services
           await db.delete(service);
         }
@@ -193,7 +189,6 @@ async function seedDatabase() {
           // Delete in order of dependencies
           await db.delete(payment);
           await db.delete(booking);
-          await db.delete(cleanerSpecialisation);
           await db.delete(cleanerProfile);
           await db.delete(address);
           await db.delete(key);
@@ -431,6 +426,7 @@ async function seedUsers(db: any) {
         bio: "Experienced cleaner with 5 years of professional experience.",
         rating: 4.8,
         isAvailable: true,
+        trainingCompleted: ["HOME"], // Home cleaning trained
       })
       .returning();
 
@@ -469,49 +465,17 @@ async function seedUsers(db: any) {
         workRadius: 10.0,
         petCompatibility: "BOTH",
         availableDays: ["TUESDAY", "THURSDAY", "SATURDAY", "SUNDAY"],
-        bio: "Detail-oriented and efficient. specialised in extended cleaning.",
+        bio: "Detail-oriented and efficient. Specialised in extended cleaning.",
         rating: 4.9,
         isAvailable: true,
+        trainingCompleted: ["HOME", "OFFICE"], // Both trainings completed
       })
       .returning();
 
-    // Add specialisations
-    console.log("Creating specialisations...");
-    
-    // Get services
+    // Get services for bookings
     const services = await db.select().from(schema.service);
-    
-    // Find services by name
     const regularCleaning = services.find(s => s.name === "Regular Cleaning");
     const extendedCleaning = services.find(s => s.name === "Extended Cleaning");
-    const officeCleaning = services.find(s => s.name === "Office Cleaning");
-    
-    if (regularCleaning) {
-      await db.insert(schema.cleanerSpecialisation).values({
-        id: crypto.randomUUID(),
-        cleanerProfileId: johnProfile.id,
-        serviceId: regularCleaning.id,
-        experience: 60,
-      });
-    }
-
-    if (extendedCleaning) {
-      await db.insert(schema.cleanerSpecialisation).values({
-        id: crypto.randomUUID(),
-        cleanerProfileId: sarahProfile.id,
-        serviceId: extendedCleaning.id,
-        experience: 48,
-      });
-    }
-
-    if (officeCleaning) {
-      await db.insert(schema.cleanerSpecialisation).values({
-        id: crypto.randomUUID(),
-        cleanerProfileId: sarahProfile.id,
-        serviceId: officeCleaning.id,
-        experience: 36,
-      });
-    }
 
     // Create some bookings
     console.log("Creating sample bookings...");
