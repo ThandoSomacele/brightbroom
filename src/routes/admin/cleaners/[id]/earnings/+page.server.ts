@@ -3,7 +3,7 @@ import { db } from "$lib/server/db";
 import { booking, payment, user } from "$lib/server/db/schema";
 import { cleanerEarningsService } from "$lib/server/services/cleaner-earnings.service";
 import { error, fail, redirect } from "@sveltejs/kit";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -34,13 +34,18 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     // Get earnings summary
     const earningsSummary = await cleanerEarningsService.getCleanerEarningsSummary(cleanerId);
 
-    // Get payment history
+    // Get upcoming/potential earnings
+    const upcomingEarnings = await cleanerEarningsService.getUpcomingEarnings(cleanerId);
+
+    // Get payment history with PayFast fee
     const paymentHistory = await db
       .select({
         id: payment.id,
         bookingId: payment.bookingId,
         amount: payment.amount,
+        payFastFee: payment.payFastFeeAmount,
         commission: payment.platformCommissionAmount,
+        commissionRate: payment.platformCommissionRate,
         payout: payment.cleanerPayoutAmount,
         status: payment.status,
         isPaid: payment.isPaidToProvider,
@@ -76,6 +81,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     return {
       cleaner: cleanerData,
       earnings: earningsSummary,
+      upcomingEarnings,
       paymentHistory,
       pendingPayouts,
     };
@@ -117,7 +123,7 @@ export const actions: Actions = {
         })
         .from(payment)
         .where(and(
-          payment.id.in(paymentIds),
+          inArray(payment.id, paymentIds),
           eq(payment.status, "COMPLETED"),
           eq(payment.isPaidToProvider, false)
         ));

@@ -86,6 +86,10 @@ export const load: PageServerLoad = async ({ params }) => {
     const earningsData =
       await cleanerEarningsService.getCleanerEarningsSummary(cleanerId);
 
+    // Fetch upcoming/potential earnings
+    const upcomingEarningsData =
+      await cleanerEarningsService.getUpcomingEarnings(cleanerId);
+
     // Combine data
     return {
       cleaner: {
@@ -96,6 +100,7 @@ export const load: PageServerLoad = async ({ params }) => {
       services,
       bookings: recentBookings,
       earnings: earningsData,
+      upcomingEarnings: upcomingEarningsData,
     };
   } catch (err) {
     console.error("Error loading cleaner details:", err);

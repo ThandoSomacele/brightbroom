@@ -16,7 +16,7 @@
 
   // Get data from server
   export let data;
-  const { cleaner, earnings, paymentHistory, pendingPayouts } = data;
+  const { cleaner, earnings, upcomingEarnings, paymentHistory, pendingPayouts } = data;
   export let form;
 
   // Local state
@@ -137,33 +137,42 @@
         </h2>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-          <!-- Total Earnings -->
-          <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Total Earnings
-            </p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">
-              {formatCurrency(earnings.totalEarnings)}
+          <!-- Total Payout (Earned) -->
+          <div class="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg">
+            <p class="text-sm text-gray-500 dark:text-gray-400">Total Earned</p>
+            <p class="text-2xl font-bold text-primary">
+              {formatCurrency(earnings.totalPayout)}
             </p>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {earnings.completedBookings} completed bookings
             </p>
           </div>
 
-          <!-- Total Payout -->
-          <div class="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg">
-            <p class="text-sm text-gray-500 dark:text-gray-400">Total Payout</p>
-            <p class="text-2xl font-bold text-primary">
-              {formatCurrency(earnings.totalPayout)}
+          <!-- Incoming Earnings -->
+          <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+            <p class="text-sm text-gray-500 dark:text-gray-400">Incoming</p>
+            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              {formatCurrency(upcomingEarnings.potentialEarnings)}
             </p>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              After {earnings.totalCommission > 0
-                ? (
-                    (earnings.totalCommission / earnings.totalEarnings) *
-                    100
-                  ).toFixed(1)
-                : "25.0"}% commission
+              {upcomingEarnings.upcomingBookingsCount} upcoming booking{upcomingEarnings.upcomingBookingsCount !== 1 ? 's' : ''}
             </p>
+          </div>
+        </div>
+
+        <!-- Gross vs Net breakdown -->
+        <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg mb-4">
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-gray-600 dark:text-gray-400">Gross Bookings</span>
+            <span class="text-gray-900 dark:text-white">{formatCurrency(earnings.totalEarnings)}</span>
+          </div>
+          <div class="flex justify-between items-center text-sm mt-1">
+            <span class="text-gray-600 dark:text-gray-400">Platform Fee (20%)</span>
+            <span class="text-red-600 dark:text-red-400">-{formatCurrency(earnings.totalCommission)}</span>
+          </div>
+          <div class="flex justify-between items-center text-sm mt-1 pt-1 border-t border-gray-200 dark:border-gray-600">
+            <span class="font-medium text-gray-700 dark:text-gray-300">Net Payout</span>
+            <span class="font-medium text-primary">{formatCurrency(earnings.totalPayout)}</span>
           </div>
         </div>
 
@@ -218,7 +227,7 @@
           <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
             <div class="flex justify-between items-center mb-2">
               <span class="text-sm text-gray-600 dark:text-gray-400">Rate</span>
-              <span class="font-medium text-gray-900 dark:text-white">25%</span>
+              <span class="font-medium text-gray-900 dark:text-white">20%</span>
             </div>
 
             <div class="flex justify-between items-center">
@@ -230,6 +239,10 @@
               </span>
             </div>
           </div>
+
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            Commission is calculated on the net amount after PayFast transaction fees.
+          </p>
         </div>
       </div>
     </div>
@@ -404,7 +417,13 @@
                     scope="col"
                     class="px-3 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
                   >
-                    Amount
+                    Gross
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-3 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+                  >
+                    PayFast
                   </th>
                   <th
                     scope="col"
@@ -416,7 +435,7 @@
                     scope="col"
                     class="px-3 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
                   >
-                    Payout
+                    Net Payout
                   </th>
                   <th
                     scope="col"
@@ -452,14 +471,19 @@
                       {formatCurrency(payment.amount)}
                     </td>
                     <td
-                      class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 text-right"
+                      class="px-3 py-4 whitespace-nowrap text-sm text-red-500 dark:text-red-400 text-right"
                     >
-                      {formatCurrency(payment.commission)}
+                      -{formatCurrency(payment.payFastFee || 0)}
                     </td>
                     <td
-                      class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white text-right"
+                      class="px-3 py-4 whitespace-nowrap text-sm text-red-500 dark:text-red-400 text-right"
                     >
-                      {formatCurrency(payment.payout)}
+                      -{formatCurrency(payment.commission || 0)}
+                    </td>
+                    <td
+                      class="px-3 py-4 whitespace-nowrap text-sm font-medium text-primary text-right"
+                    >
+                      {formatCurrency(payment.payout || 0)}
                     </td>
                     <td class="px-3 py-4 whitespace-nowrap text-center">
                       {#if payment.isPaid}

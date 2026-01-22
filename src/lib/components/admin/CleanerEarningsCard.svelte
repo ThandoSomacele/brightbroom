@@ -1,12 +1,13 @@
 <!-- src/lib/components/admin/CleanerEarningsCard.svelte -->
 <script lang="ts">
-  import { DollarSign, Calendar, TrendingUp, ArrowUpRight, Wallet } from "lucide-svelte";
+  import { Calendar, TrendingUp, ArrowUpRight, Wallet, Clock } from "lucide-svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  
+
   // Props
   export let cleanerId: string;
   export let earnings = {
     totalEarnings: 0,
+    totalPayFastFees: 0,
     totalCommission: 0,
     totalPayout: 0,
     pendingPayout: 0,
@@ -16,14 +17,18 @@
     lastPayoutAmount: 0,
     lastPayoutDate: null as Date | null,
   };
+  export let upcomingEarnings = {
+    potentialEarnings: 0,
+    upcomingBookingsCount: 0,
+  };
   export let isLoading = false;
   export let error: string | null = null;
-  
+
   // Format currency function
   function formatCurrency(amount: number): string {
     return `R${amount.toFixed(2)}`;
   }
-  
+
   // Format date function
   function formatDate(date: Date | null): string {
     if (!date) return "Never";
@@ -33,11 +38,9 @@
       day: "numeric"
     });
   }
-  
-  // Calculate commission percentage
-  $: commissionPercentage = earnings.totalEarnings > 0 
-    ? ((earnings.totalCommission / earnings.totalEarnings) * 100).toFixed(1)
-    : "25.0";
+
+  // Calculate net after PayFast fees
+  $: netAfterPayFast = earnings.totalEarnings - earnings.totalPayFastFees;
 </script>
 
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
@@ -65,18 +68,47 @@
     {:else}
       <!-- Summary cards grid -->
       <div class="grid grid-cols-2 gap-4 mb-6">
-        <!-- Total Earnings -->
-        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-          <p class="text-sm text-gray-500 dark:text-gray-400">Total Earnings</p>
-          <p class="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(earnings.totalEarnings)}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Before {commissionPercentage}% commission</p>
-        </div>
-        
-        <!-- Total Payout -->
+        <!-- Total Payout (Earned) -->
         <div class="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg">
-          <p class="text-sm text-gray-500 dark:text-gray-400">Total Payout</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Total Earned</p>
           <p class="text-2xl font-bold text-primary">{formatCurrency(earnings.totalPayout)}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">After platform commission</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">From completed bookings</p>
+        </div>
+
+        <!-- Potential Earnings (Upcoming) -->
+        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+          <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+            <Clock size={14} class="mr-1" />
+            Incoming
+          </p>
+          <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{formatCurrency(upcomingEarnings.potentialEarnings)}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {upcomingEarnings.upcomingBookingsCount} upcoming booking{upcomingEarnings.upcomingBookingsCount !== 1 ? 's' : ''}
+          </p>
+        </div>
+      </div>
+
+      <!-- Payout breakdown -->
+      <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg mb-4">
+        <div class="flex justify-between items-center text-sm">
+          <span class="text-gray-600 dark:text-gray-400">Gross Bookings</span>
+          <span class="text-gray-900 dark:text-white">{formatCurrency(earnings.totalEarnings)}</span>
+        </div>
+        <div class="flex justify-between items-center text-sm mt-1">
+          <span class="text-gray-600 dark:text-gray-400">PayFast Fees</span>
+          <span class="text-red-600 dark:text-red-400">-{formatCurrency(earnings.totalPayFastFees)}</span>
+        </div>
+        <div class="flex justify-between items-center text-sm mt-1">
+          <span class="text-gray-600 dark:text-gray-400">Net After Fees</span>
+          <span class="text-gray-900 dark:text-white">{formatCurrency(netAfterPayFast)}</span>
+        </div>
+        <div class="flex justify-between items-center text-sm mt-1">
+          <span class="text-gray-600 dark:text-gray-400">Platform Commission (20%)</span>
+          <span class="text-red-600 dark:text-red-400">-{formatCurrency(earnings.totalCommission)}</span>
+        </div>
+        <div class="flex justify-between items-center text-sm mt-1 pt-1 border-t border-gray-200 dark:border-gray-600">
+          <span class="font-medium text-gray-700 dark:text-gray-300">Cleaner Payout</span>
+          <span class="font-medium text-primary">{formatCurrency(earnings.totalPayout)}</span>
         </div>
       </div>
       

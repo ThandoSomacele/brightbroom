@@ -31,7 +31,7 @@
   export let form;
 
   // Environment variables
-  const { cleaner, services, bookings, earnings } = data;
+  const { cleaner, services, bookings, earnings, upcomingEarnings } = data;
 
   // Mode tracking
   let isPersonalInfoEditMode = false;
@@ -1146,6 +1146,7 @@
       cleanerId={cleaner.id}
       earnings={{
         totalEarnings: earnings.totalEarnings,
+        totalPayFastFees: earnings.totalPayFastFees,
         totalCommission: earnings.totalCommission,
         totalPayout: earnings.totalPayout,
         pendingPayout: earnings.pendingPayout,
@@ -1154,6 +1155,10 @@
         yearToDateEarnings: earnings.yearToDateEarnings,
         lastPayoutAmount: earnings.lastPayoutAmount,
         lastPayoutDate: earnings.lastPayoutDate,
+      }}
+      upcomingEarnings={{
+        potentialEarnings: upcomingEarnings.potentialEarnings,
+        upcomingBookingsCount: upcomingEarnings.upcomingBookingsCount,
       }}
     />
 

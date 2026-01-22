@@ -1,7 +1,8 @@
 // src/lib/server/services/cleaner-earnings.service.ts
 import { db } from "$lib/server/db";
 import { booking, cleanerPayoutSummary, payment } from "$lib/server/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, sql, or, inArray } from "drizzle-orm";
+import { calculatePayout, type PaymentMethodType } from "$lib/utils/payout-calculator";
 
 /**
  * Service for managing cleaner earnings and payouts
@@ -13,6 +14,7 @@ export const cleanerEarningsService = {
    */
   async getCleanerEarningsSummary(cleanerId: string): Promise<{
     totalEarnings: number;
+    totalPayFastFees: number;
     totalCommission: number;
     totalPayout: number;
     pendingPayout: number;
@@ -24,34 +26,7 @@ export const cleanerEarningsService = {
     lastPayoutDate: Date | null;
   }> {
     try {
-      // First, check if we have a summary record in cleanerPayoutSummary
-      const summaryRecords = await db
-        .select()
-        .from(cleanerPayoutSummary)
-        .where(eq(cleanerPayoutSummary.cleanerId, cleanerId))
-        .limit(1);
-
-      if (summaryRecords && summaryRecords.length > 0) {
-        // Return data from the summary table
-        const summary = summaryRecords[0];
-
-        return {
-          totalEarnings: Number(summary.totalEarnings) || 0,
-          totalCommission: Number(summary.totalCommission) || 0,
-          totalPayout: Number(summary.totalPayout) || 0,
-          pendingPayout: Number(summary.pendingPayout) || 0,
-          completedBookings: 0, // This might need to be calculated separately
-          currentMonthEarnings: Number(summary.totalEarningsCurrentMonth) || 0,
-          lastMonthEarnings: Number(summary.totalEarningsLastMonth) || 0,
-          yearToDateEarnings: Number(summary.totalEarningsThisYear) || 0,
-          lastPayoutAmount: summary.lastPayoutAmount
-            ? Number(summary.lastPayoutAmount)
-            : null,
-          lastPayoutDate: summary.lastPayoutDate || null,
-        };
-      }
-
-      // If no summary exists, calculate from payment records
+      // Always calculate from payment records to ensure fresh data
       // Get completed bookings associated with this cleaner
       const completedBookings = await db
         .select()
@@ -70,6 +45,7 @@ export const cleanerEarningsService = {
       if (bookingIds.length === 0) {
         return {
           totalEarnings: 0,
+          totalPayFastFees: 0,
           totalCommission: 0,
           totalPayout: 0,
           pendingPayout: 0,
@@ -88,19 +64,21 @@ export const cleanerEarningsService = {
         .from(payment)
         .where(
           and(
-            payment.bookingId.in(bookingIds),
+            inArray(payment.bookingId, bookingIds),
             eq(payment.status, "COMPLETED"),
           ),
         );
 
       // Calculate totals
       let totalEarnings = 0;
+      let totalPayFastFees = 0;
       let totalCommission = 0;
       let totalPayout = 0;
       let pendingPayout = 0;
 
       for (const pymt of payments) {
         totalEarnings += Number(pymt.amount) || 0;
+        totalPayFastFees += Number(pymt.payFastFeeAmount) || 0;
         totalCommission += Number(pymt.platformCommissionAmount) || 0;
         totalPayout += Number(pymt.cleanerPayoutAmount) || 0;
 
@@ -234,6 +212,7 @@ export const cleanerEarningsService = {
 
       return {
         totalEarnings,
+        totalPayFastFees,
         totalCommission,
         totalPayout,
         pendingPayout,
@@ -250,6 +229,7 @@ export const cleanerEarningsService = {
       // Return default values if there's an error
       return {
         totalEarnings: 0,
+        totalPayFastFees: 0,
         totalCommission: 0,
         totalPayout: 0,
         pendingPayout: 0,
@@ -285,7 +265,7 @@ export const cleanerEarningsService = {
           isPaidToProvider: true,
           providerPayoutDate: now,
         })
-        .where(and(payment.id.in(paymentIds), eq(payment.status, "COMPLETED")));
+        .where(and(inArray(payment.id, paymentIds), eq(payment.status, "COMPLETED")));
 
       // 2. Update the cleaner payout summary if it exists
       const summaryRecords = await db
@@ -309,6 +289,75 @@ export const cleanerEarningsService = {
     } catch (error) {
       console.error("Error recording cleaner payout:", error);
       return false;
+    }
+  },
+
+  /**
+   * Get potential earnings from upcoming/scheduled bookings
+   * These are bookings that are CONFIRMED, PENDING, or IN_PROGRESS but not yet COMPLETED
+   * @param cleanerId The cleaner's user ID
+   */
+  async getUpcomingEarnings(cleanerId: string): Promise<{
+    potentialEarnings: number;
+    upcomingBookingsCount: number;
+    upcomingBookings: Array<{
+      id: string;
+      scheduledDate: Date;
+      price: number;
+      status: string;
+      estimatedPayout: number;
+    }>;
+  }> {
+    try {
+      // Get upcoming bookings (CONFIRMED, PENDING, or IN_PROGRESS)
+      const upcomingBookings = await db
+        .select({
+          id: booking.id,
+          scheduledDate: booking.scheduledDate,
+          price: booking.price,
+          status: booking.status,
+        })
+        .from(booking)
+        .where(
+          and(
+            eq(booking.cleanerId, cleanerId),
+            or(
+              eq(booking.status, "CONFIRMED"),
+              eq(booking.status, "PENDING"),
+              eq(booking.status, "IN_PROGRESS")
+            )
+          )
+        );
+
+      // Calculate potential earnings using the payout calculator
+      let potentialEarnings = 0;
+      const bookingsWithEstimates = upcomingBookings.map((b) => {
+        const price = Number(b.price) || 0;
+        // Use credit card as default payment method for estimates
+        const payout = calculatePayout(price, "CREDIT_CARD" as PaymentMethodType);
+        potentialEarnings += payout.cleanerPayout;
+
+        return {
+          id: b.id,
+          scheduledDate: b.scheduledDate,
+          price: price,
+          status: b.status,
+          estimatedPayout: payout.cleanerPayout,
+        };
+      });
+
+      return {
+        potentialEarnings,
+        upcomingBookingsCount: upcomingBookings.length,
+        upcomingBookings: bookingsWithEstimates,
+      };
+    } catch (error) {
+      console.error("Error getting upcoming earnings:", error);
+      return {
+        potentialEarnings: 0,
+        upcomingBookingsCount: 0,
+        upcomingBookings: [],
+      };
     }
   },
 };
