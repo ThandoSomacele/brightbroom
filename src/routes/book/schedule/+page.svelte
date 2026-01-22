@@ -27,8 +27,32 @@
     Clock,
     RotateCw,
   } from "lucide-svelte";
-  // Initialise data from localStorage on mount
   import { onMount } from "svelte";
+
+  // Props from server load
+  let { data } = $props();
+  const { availableDates, timeSlots, selectedService } = data;
+
+  // Component state
+  let selectedServiceId = $state("");
+  let selectedAddress = $state("");
+  let accessInstructions = $state("");
+  let basePrice = $state(0);
+  let selectedDate = $state("");
+  let selectedTime = $state("");
+  let currentMonth = $state(new Date());
+  let calendarDays = $state<Array<{ date: Date; isAvailable: boolean; isSelected: boolean; isCurrentMonth: boolean }>>([]);
+  let availableDateObjects = $state<Date[]>([]);
+  let isLoading = $state(false);
+  let isRecurring = $state(false);
+
+  // Recurring booking state
+  let recurringFrequency = $state("");
+  let recurringDays = $state<string[]>([]);
+  let recurringMonthlyDates = $state<number[]>([]);
+  let recurringTimeSlot = $state("");
+  let discountPercentage = $state(0);
+  let finalPrice = $state(0);
 
   onMount(() => {
     // Get previous selections
@@ -243,9 +267,11 @@
   }
 
   // Track changes to selectedDate and update the calendar
-  $: if (selectedDate) {
-    generateCalendarDays();
-  }
+  $effect(() => {
+    if (selectedDate) {
+      generateCalendarDays();
+    }
+  });
 </script>
 
 <svelte:head>
