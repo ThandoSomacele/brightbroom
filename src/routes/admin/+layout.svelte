@@ -32,6 +32,7 @@
   import UpdateStatusIndicator from "$lib/components/admin/UpdateStatusIndicator.svelte";
   import {
     Banknote,
+    BanknoteArrowDown,
     Calendar,
     ChartNoAxesColumnIncreasing,
     FileText,
@@ -40,7 +41,6 @@
     Settings,
     User,
     Users,
-    Wallet,
     X,
   } from "lucide-svelte";
 
@@ -52,8 +52,8 @@
     { label: "Applications", href: "/admin/applications", icon: FileText },
     { label: "Cleaners", href: "/admin/cleaners", icon: Users },
     { label: "Users", href: "/admin/users", icon: User },
-    { label: "Pricing", href: "/admin/pricing", icon: Wallet },
-    { label: "Payouts", href: "/admin/payouts", icon: Banknote },
+    { label: "Pricing", href: "/admin/pricing", icon: Banknote },
+    { label: "Payouts", href: "/admin/payouts", icon: BanknoteArrowDown },
     { label: "Services", href: "/admin/services", icon: Settings },
     {
       label: "Reports",

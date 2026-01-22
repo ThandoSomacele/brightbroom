@@ -25,8 +25,8 @@
   $: isLoading = $navigating?.to?.route?.id === "/admin/reports";
 
   let showDatePicker = false;
-  let customStartDate = dateRange.startDate;
-  let customEndDate = dateRange.endDate;
+  let customStartDate = data.dateRange?.startDate ?? "";
+  let customEndDate = data.dateRange?.endDate ?? "";
 
   // Format currency
   function formatCurrency(amount: number): string {
