@@ -154,6 +154,15 @@ Executed in sequence:
 - Post-payment hooks in `src/lib/server/hooks/post-payment-hooks.ts`
 - Payment validation in `src/lib/server/payment.ts`
 - Subscription payments handled via `/api/subscriptions/process-recurring`
+- Payout calculation in `src/lib/utils/payout-calculator.ts` (PayFast fees, commission split)
+
+#### Payout System
+
+- Platform commission: 15% of net amount (after PayFast fees)
+- PayFast fees by method: Credit cards (3.5% + R2), EFT (2% min R2), SnapScan/Zapper (2.5%)
+- Cleaner earnings tracked in `cleanerPayoutSummary` table
+- Payment processor: `src/lib/server/services/payment-processor.service.ts`
+- Earnings service: `src/lib/server/services/cleaner-earnings.service.ts`
 
 #### PostHog Analytics
 
@@ -193,9 +202,11 @@ Key environment variables (see .env.example):
 - Maintain TypeScript strict mode compliance
 - Follow existing component patterns when creating new features
 - Server-side code must stay in `src/lib/server/` or `+page.server.ts` files
-- Client-side environment variables must be prefixed with `VITE_`
+- Client-side environment variables must be prefixed with `VITE_` or `PUBLIC_`
 - Use existing email templates and extend as needed
 - Validate all user input on the server side
+- Decimal/money fields stored as strings in DB, convert with `Number()` when calculating
+- Use `db:push` for dev schema changes, `db:generate` + `db:migrate` for production migrations
 
 ## Netlify Deployment Notes
 
