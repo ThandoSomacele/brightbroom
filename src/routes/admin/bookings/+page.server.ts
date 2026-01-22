@@ -1,6 +1,6 @@
 // src/routes/admin/bookings/+page.server.ts
 import { db } from '$lib/server/db';
-import { booking, service, user, address, payment } from '$lib/server/db/schema';
+import { booking, user, address, payment } from '$lib/server/db/schema';
 import { eq, and, gte, lte, like, or, desc } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
@@ -24,10 +24,8 @@ export const load: PageServerLoad = async ({ url }) => {
       createdAt: booking.createdAt,
       price: booking.price,
       cleanerId: booking.cleanerId,
-      service: {
-        id: service.id,
-        name: service.name,
-      },
+      bedroomCount: booking.bedroomCount,
+      bathroomCount: booking.bathroomCount,
       customer: {
         id: user.id,
         firstName: user.firstName,
@@ -41,7 +39,6 @@ export const load: PageServerLoad = async ({ url }) => {
       paymentStatus: payment.status
     })
     .from(booking)
-    .innerJoin(service, eq(booking.serviceId, service.id))
     .innerJoin(user, eq(booking.userId, user.id))
     .innerJoin(address, eq(booking.addressId, address.id))
     .leftJoin(payment, eq(booking.id, payment.bookingId));
@@ -53,7 +50,6 @@ export const load: PageServerLoad = async ({ url }) => {
           like(user.firstName, `%${search}%`),
           like(user.lastName, `%${search}%`),
           like(user.email, `%${search}%`),
-          like(service.name, `%${search}%`),
           like(address.street, `%${search}%`),
           like(address.city, `%${search}%`)
         )
@@ -82,10 +78,9 @@ export const load: PageServerLoad = async ({ url }) => {
       count: sql<number>`count(*)`.mapWith(Number)
     })
     .from(booking)
-    .innerJoin(service, eq(booking.serviceId, service.id))
     .innerJoin(user, eq(booking.userId, user.id))
     .innerJoin(address, eq(booking.addressId, address.id));
-    
+
     // Apply the same filters to the count query
     if (search) {
       countQuery.where(
@@ -93,7 +88,6 @@ export const load: PageServerLoad = async ({ url }) => {
           like(user.firstName, `%${search}%`),
           like(user.lastName, `%${search}%`),
           like(user.email, `%${search}%`),
-          like(service.name, `%${search}%`),
           like(address.street, `%${search}%`),
           like(address.city, `%${search}%`)
         )

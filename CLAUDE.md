@@ -106,6 +106,7 @@ src/
 #### Server Hooks (hooks.server.ts)
 
 Executed in sequence:
+
 1. `handlePostHogProxy` - Reverse proxy for analytics (bypasses auth/CSRF)
 2. `handleAuth` - Session validation and user loading
 3. `handleCSRF` - Token generation and validation
@@ -221,3 +222,7 @@ Key environment variables (see .env.example):
 - Custom 404 page is located at `/static/404.html`
 - Uses inline CSS styles (no Tailwind CDN to avoid production warnings)
 - Automatically served by Netlify for non-existent routes
+
+## Instructions
+
+- Don't commit or push until I give you the go ahead

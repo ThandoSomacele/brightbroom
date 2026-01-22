@@ -2,8 +2,10 @@
 import { db } from "$lib/server/db";
 import {
   address,
+  addon,
   adminNote,
   booking,
+  bookingAddon,
   cleanerProfile,
   communicationLog,
   payment,
@@ -45,6 +47,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         cleanerId: booking.cleanerId,
         serviceId: booking.serviceId,
         addressId: booking.addressId,
+        bedroomCount: booking.bedroomCount,
+        bathroomCount: booking.bathroomCount,
       })
       .from(booking)
       .where(eq(booking.id, bookingId))
@@ -57,8 +61,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     const bookingData = bookingResult[0];
 
     // Step 2: Fetch related entities separately
-    const [serviceData, addressData, paymentData] = await Promise.all([
-      // Get service info
+    const [serviceData, addressData, paymentData, bookingAddons] = await Promise.all([
+      // Get service info (for backward compatibility)
       db
         .select()
         .from(service)
@@ -81,6 +85,23 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         .where(eq(payment.bookingId, bookingId))
         .limit(1)
         .then((results) => results[0] || null),
+
+      // Get booking addons with addon details
+      db
+        .select({
+          id: bookingAddon.id,
+          addonId: bookingAddon.addonId,
+          priceAtBooking: bookingAddon.priceAtBooking,
+          durationAtBooking: bookingAddon.durationAtBooking,
+          addon: {
+            id: addon.id,
+            name: addon.name,
+            description: addon.description,
+          },
+        })
+        .from(bookingAddon)
+        .leftJoin(addon, eq(bookingAddon.addonId, addon.id))
+        .where(eq(bookingAddon.bookingId, bookingId)),
     ]);
 
     // Step 3: Fetch customer info
@@ -134,17 +155,14 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         id: booking.id,
         status: booking.status,
         scheduledDate: booking.scheduledDate,
-        service: {
-          id: service.id,
-          name: service.name,
-        },
+        bedroomCount: booking.bedroomCount,
+        bathroomCount: booking.bathroomCount,
       })
       .from(booking)
-      .innerJoin(service, eq(booking.serviceId, service.id))
       .where(
         and(
           eq(booking.userId, bookingData.userId),
-          booking.id !== bookingId, // Exclude current booking
+          sql`${booking.id} != ${bookingId}`, // Exclude current booking
         ),
       )
       .orderBy(desc(booking.scheduledDate))
@@ -191,6 +209,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       service: serviceData,
       address: addressData,
       payment: paymentData,
+      addons: bookingAddons,
       customer: {
         ...customerData,
         bookingsCount: bookingsCount,

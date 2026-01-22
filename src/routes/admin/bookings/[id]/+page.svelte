@@ -345,7 +345,7 @@
     <!-- Service details -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-        Service Details
+        Cleaning Details
       </h2>
 
       <div class="space-y-4">
@@ -353,18 +353,36 @@
           <Home size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
           <div>
             <p class="font-medium text-gray-900 dark:text-white">
-              Service Type
+              General Clean
             </p>
             <p class="text-gray-600 dark:text-gray-300">
-              {booking.service.name}
+              {booking.bedroomCount || 1} bedroom{(booking.bedroomCount || 1) > 1 ? 's' : ''},
+              {booking.bathroomCount || 1} bathroom{(booking.bathroomCount || 1) > 1 ? 's' : ''}
             </p>
-            {#if booking.service.description}
-              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {booking.service.description}
-              </p>
-            {/if}
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Living room & kitchen included
+            </p>
           </div>
         </div>
+
+        {#if booking.addons && booking.addons.length > 0}
+          <div class="flex items-start">
+            <svg class="mr-3 mt-0.5 flex-shrink-0 text-primary w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <div>
+              <p class="font-medium text-gray-900 dark:text-white">Add-ons</p>
+              <ul class="text-gray-600 dark:text-gray-300 text-sm mt-1 space-y-1">
+                {#each booking.addons as bookingAddon}
+                  <li class="flex justify-between">
+                    <span>{bookingAddon.addon?.name || 'Add-on'}</span>
+                    <span class="text-gray-500">R{parseFloat(bookingAddon.priceAtBooking || '0').toFixed(2)}</span>
+                  </li>
+                {/each}
+              </ul>
+            </div>
+          </div>
+        {/if}
 
         <div class="flex items-start">
           <Calendar size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
@@ -1002,10 +1020,10 @@
               <div class="flex justify-between items-center">
                 <div class="flex-1">
                   <div class="text-gray-900 dark:text-white font-medium">
-                    {related.service.name}
+                    General Clean
                   </div>
                   <div class="text-sm text-gray-500 dark:text-gray-400">
-                    {formatDate(related.scheduledDate)}
+                    {related.bedroomCount || 1} bed, {related.bathroomCount || 1} bath • {formatDate(related.scheduledDate)}
                   </div>
                 </div>
 
