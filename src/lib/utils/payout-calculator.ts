@@ -26,9 +26,9 @@ export interface PayoutBreakdown {
 }
 
 /**
- * Platform commission rate (15% of net after PayFast fees)
+ * Platform commission rate (20% of net after PayFast fees)
  */
-export const PLATFORM_COMMISSION_RATE = 0.15;
+export const PLATFORM_COMMISSION_RATE = 0.20;
 
 /**
  * PayFast payout fee (R10.01 incl. VAT per payout)
@@ -78,19 +78,19 @@ export function calculatePayFastFee(amount: number, paymentMethod: PaymentMethod
  * 1. Customer pays booking amount
  * 2. PayFast deducts transaction fee
  * 3. Net after fees = booking amount - PayFast fee
- * 4. BrightBroom commission = 15% of net after fees
+ * 4. BrightBroom commission = 20% of net after fees
  * 5. Cleaner payout = net after fees - commission
  *
  * Example with R500 credit card payment:
  *   Booking amount:                  R500.00
  *   PayFast fee (3.5% + R2):        -R19.50
  *   Net after fees:                  R480.50
- *   BrightBroom commission (15%):   -R72.08
- *   Cleaner payout:                  R408.42
+ *   BrightBroom commission (20%):   -R96.10
+ *   Cleaner payout:                  R384.40
  *
  * @param bookingAmount - The booking amount in Rands
  * @param paymentMethod - The payment method used
- * @param customCommissionRate - Optional custom commission rate (defaults to 15%)
+ * @param customCommissionRate - Optional custom commission rate (defaults to 20%)
  * @returns PayoutBreakdown with all calculated values
  */
 export function calculatePayout(
@@ -120,7 +120,7 @@ export function calculatePayout(
  *
  * @param bookingAmount - The booking amount
  * @param payFastFee - The already-calculated PayFast fee
- * @param customCommissionRate - Optional custom commission rate (defaults to 15%)
+ * @param customCommissionRate - Optional custom commission rate (defaults to 20%)
  * @returns PayoutBreakdown with all calculated values
  */
 export function calculatePayoutFromStoredFee(

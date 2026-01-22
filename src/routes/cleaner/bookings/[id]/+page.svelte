@@ -52,9 +52,9 @@
     }).format(amount);
   }
 
-  // Get cleaner earnings (85% of booking price after fees)
+  // Get cleaner earnings (80% of booking price after fees)
   function getCleanerEarnings(price: number): number {
-    return price * 0.85;
+    return price * 0.80;
   }
 
   // Get status badge class
@@ -670,10 +670,10 @@
 
           <div class="flex justify-between items-center">
             <span class="text-gray-600 dark:text-gray-400"
-              >Platform fee (15%):</span
+              >Platform fee (20%):</span
             >
             <span class="text-gray-900 dark:text-white"
-              >{formatCurrency(bookingDetails.booking.price * 0.15)}</span
+              >{formatCurrency(bookingDetails.booking.price * 0.20)}</span
             >
           </div>
 

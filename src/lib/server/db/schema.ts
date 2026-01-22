@@ -305,7 +305,7 @@ export const payment = pgTable("payment", {
     precision: 5,
     scale: 2,
   })
-    .default("15.00")
+    .default("20.00")
     .notNull(),
   platformCommissionAmount: decimal("platform_commission_amount", {
     precision: 10,

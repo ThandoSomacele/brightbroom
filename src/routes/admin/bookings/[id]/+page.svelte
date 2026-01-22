@@ -857,7 +857,7 @@
         <!-- Platform Commission -->
         <div class="flex justify-between items-center">
           <span class="text-gray-600 dark:text-gray-300">
-            BrightBroom Commission ({hasCompletedPayment ? (booking.payment.platformCommissionRate || 15) : 15}%):
+            BrightBroom Commission ({hasCompletedPayment ? (booking.payment.platformCommissionRate || 20) : 20}%):
           </span>
           <span class="text-red-600 dark:text-red-400">
             -{formatPrice(hasCompletedPayment ? (booking.payment.platformCommissionAmount || 0) : estimatedPayout.commissionAmount)}

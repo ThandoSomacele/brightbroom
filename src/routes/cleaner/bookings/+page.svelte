@@ -301,7 +301,7 @@
               <div class="mt-4 lg:mt-0 lg:ml-4 flex flex-col items-start lg:items-end">
                 <div class="flex items-center">
                   <span class="text-lg font-semibold text-gray-900 dark:text-white mr-3">
-                    {formatCurrency(booking.price * 0.85)}
+                    {formatCurrency(booking.price * 0.80)}
                   </span>
                   <span class={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(booking.status)}`}>
                     {booking.status}

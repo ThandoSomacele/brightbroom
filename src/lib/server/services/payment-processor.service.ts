@@ -20,12 +20,12 @@ interface ProcessPaymentResult {
  *
  * Commission calculation (as of update):
  * 1. PayFast fee is deducted from booking amount
- * 2. Platform commission (15%) is calculated on net amount after fees
- * 3. Cleaner receives 85% of net amount
+ * 2. Platform commission (20%) is calculated on net amount after fees
+ * 3. Cleaner receives 80% of net amount
  */
 export const paymentProcessorService = {
-  // Default commission rate (15% - platform takes 15%, cleaner gets 85% of net)
-  DEFAULT_COMMISSION_RATE: PLATFORM_COMMISSION_RATE * 100, // 15.0 as percentage
+  // Default commission rate (20% - platform takes 20%, cleaner gets 80% of net)
+  DEFAULT_COMMISSION_RATE: PLATFORM_COMMISSION_RATE * 100, // 20.0 as percentage
   
   /**
    * Process a successful payment for a booking
@@ -76,10 +76,10 @@ export const paymentProcessorService = {
       const paymentMethodForCalc = this.mapPaymentMethod(paymentData.paymentMethod) as PaymentMethodType;
 
       // Calculate payout breakdown including PayFast fees
-      // Formula: PayFast fee deducted first, then 15% commission on net amount
+      // Formula: PayFast fee deducted first, then 20% commission on net amount
       const payoutBreakdown = calculatePayout(paymentData.amount, paymentMethodForCalc);
 
-      const platformCommissionRate = payoutBreakdown.commissionRate * 100; // Store as percentage (15.00)
+      const platformCommissionRate = payoutBreakdown.commissionRate * 100; // Store as percentage (20.00)
       const platformCommissionAmount = payoutBreakdown.commissionAmount;
       const cleanerPayoutAmount = payoutBreakdown.cleanerPayout;
       const payFastFeeAmount = payoutBreakdown.payFastFee;
