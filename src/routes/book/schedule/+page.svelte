@@ -321,10 +321,10 @@
           <RecurringOptions
             {basePrice}
             serviceDuration={selectedService.durationHours}
-            bind:selectedFrequency={recurringFrequency}
-            bind:selectedDays={recurringDays}
-            bind:selectedMonthlyDates={recurringMonthlyDates}
-            bind:preferredTimeSlot={recurringTimeSlot}
+            selectedFrequency={recurringFrequency}
+            selectedDays={recurringDays}
+            selectedMonthlyDates={recurringMonthlyDates}
+            preferredTimeSlot={recurringTimeSlot}
             onfrequencychange={handleFrequencyChange}
             ondayschange={handleDaysChange}
             onmonthlydateschange={handleMonthlyDatesChange}
