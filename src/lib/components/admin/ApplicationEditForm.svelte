@@ -244,29 +244,6 @@
       </div>
     </div>
 
-    <!-- Documents Status -->
-    <div>
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-        Documents Status
-      </h3>
-
-      <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
-        <label class="flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            bind:checked={editableApplication.documentsPending}
-            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-          />
-          <span class="ml-2 text-gray-700 dark:text-gray-300">
-            Documents Pending
-          </span>
-        </label>
-        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          Check this if the applicant still needs to submit required documents.
-        </p>
-      </div>
-    </div>
-
     <!-- Availability -->
     <div>
       <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
@@ -343,6 +320,23 @@
             on:success={handleDocumentsUpdate}
             on:error={handleDocumentsError}
           />
+
+          <div class="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
+            <label class="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={!editableApplication.documentsPending}
+                on:change={(e) => editableApplication.documentsPending = !e.currentTarget.checked}
+                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              <span class="ml-2 text-gray-700 dark:text-gray-300">
+                All required documents have been uploaded
+              </span>
+            </label>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Check this when the applicant has submitted all required documents.
+            </p>
+          </div>
         </div>
 
       </div>
