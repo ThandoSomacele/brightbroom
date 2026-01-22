@@ -28,8 +28,8 @@
   ];
 
   // Format date function
-  function formatDate(dateString: string): string {
-    const date = new Date(parseDateTimeString(dateString));
+  function formatDate(dateValue: string | Date): string {
+    const date = dateValue instanceof Date ? dateValue : new Date(parseDateTimeString(dateValue));
     return date.toLocaleDateString("en-ZA", {
       year: "numeric",
       month: "short",
@@ -170,7 +170,7 @@
             scope="col"
             class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
           >
-            Experience
+            Documents
           </th>
           <th
             scope="col"
@@ -251,9 +251,21 @@
                 {/if}
               </td>
               <td
-                class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white"
+                class="whitespace-nowrap px-6 py-4 text-sm"
               >
-                {application.experience}
+                {#if application.documentsPending}
+                  <span
+                    class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+                  >
+                    Pending
+                  </span>
+                {:else}
+                  <span
+                    class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                  >
+                    Complete
+                  </span>
+                {/if}
               </td>
               <td
                 class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white"

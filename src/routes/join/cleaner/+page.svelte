@@ -42,9 +42,6 @@
   let addressError = "";
   let isOutOfServiceArea = false;
 
-  // Change experience from string to array of selected types
-  let experienceTypes: string[] = [];
-
   let availability: string[] = [];
   let ownTransport = false;
   let whatsApp = false;
@@ -52,13 +49,6 @@
   let idNumber = "";
   let hearAboutUs = "";
   let documents: File[] = [];
-
-  // Experience types
-  const EXPERIENCE_TYPES = [
-    { id: "GUEST_HOUSE", label: "Cleaning Guest house/Hotel/BnB" },
-    { id: "OFFICE", label: "Cleaning Offices" },
-    { id: "CARE_GIVING", label: "Care Giving" },
-  ];
 
   // Reset form after submission
   function resetForm() {
@@ -81,7 +71,6 @@
     };
     addressError = "";
     isOutOfServiceArea = false;
-    experienceTypes = [];
     availability = [];
     ownTransport = false;
     whatsApp = false;
@@ -148,8 +137,8 @@
       // We'll still allow applications from outside service areas, but with a warning
       return true;
     } else if (step === 2) {
-      // Make sure at least one experience type is selected
-      return experienceTypes.length > 0 && availability.length > 0;
+      // Make sure at least one day of availability is selected
+      return availability.length > 0;
     } else {
       return true;
     }
@@ -523,7 +512,7 @@
                       {i === 0
                         ? "Personal Info"
                         : i === 1
-                          ? "Work Experience"
+                          ? "Availability"
                           : "Additional Details"}
                     </div>
                     {#if i < totalSteps - 1}
@@ -717,52 +706,16 @@
                 </div>
               {/if}
 
-              <!-- Step 2: Work Experience -->
+              <!-- Step 2: Availability -->
               {#if step === 2}
                 <div class="space-y-6">
                   <h3
                     class="text-xl font-semibold text-gray-900 dark:text-white"
                   >
-                    Work Experience
+                    Availability & Work Preferences
                   </h3>
 
-                  <!-- Experience Types - Replace the old dropdown with checkboxes -->
-                  <div>
-                    <p
-                      id="experience-types-label"
-                      class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
-                      What types of cleaning experience do you have? <span
-                        class="text-red-500">*</span
-                      >
-                    </p>
-                    <div
-                      class="space-y-2"
-                      aria-labelledby="experience-types-label"
-                    >
-                      {#each EXPERIENCE_TYPES as expType}
-                        <label class="flex items-center">
-                          <input
-                            type="checkbox"
-                            name="experienceTypes"
-                            value={expType.id}
-                            bind:group={experienceTypes}
-                            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                          />
-                          <span class="ml-2 text-gray-700 dark:text-gray-300"
-                            >{expType.label}</span
-                          >
-                        </label>
-                      {/each}
-                    </div>
-                    {#if experienceTypes.length === 0}
-                      <p class="mt-1 text-xs text-red-500">
-                        Please select at least one type of experience
-                      </p>
-                    {/if}
-                  </div>
-
-                  <!-- Availability section remains the same -->
+                  <!-- Availability -->
                   <div>
                     <p
                       id="availability-label"
@@ -920,14 +873,6 @@
                   />
 
                   <!-- For checkbox arrays, we need to handle each item -->
-                  {#each experienceTypes as expType}
-                    <input
-                      type="hidden"
-                      name="experienceTypes"
-                      value={expType}
-                    />
-                  {/each}
-
                   {#each availability as day}
                     <input type="hidden" name="availability" value={day} />
                   {/each}
@@ -980,6 +925,116 @@
                         class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                         required
                       />
+                    </div>
+                  </div>
+
+                  <!-- Bank Details Section -->
+                  <div class="border-t border-gray-200 dark:border-gray-600 pt-6">
+                    <h4
+                      class="text-lg font-medium text-gray-900 dark:text-white mb-4"
+                    >
+                      Bank Details (for payment)
+                    </h4>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                      We need your bank details to pay you for completed jobs. If
+                      you don't have a bank account, you can leave this blank and
+                      we'll discuss alternative payment options.
+                    </p>
+
+                    <div class="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <label
+                          for="bankName"
+                          class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          Bank Name
+                        </label>
+                        <select
+                          id="bankName"
+                          name="bankName"
+                          class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                        >
+                          <option value="">Select bank...</option>
+                          <option value="ABSA">ABSA</option>
+                          <option value="Capitec">Capitec</option>
+                          <option value="FNB">First National Bank (FNB)</option>
+                          <option value="Nedbank">Nedbank</option>
+                          <option value="Standard Bank">Standard Bank</option>
+                          <option value="African Bank">African Bank</option>
+                          <option value="Investec">Investec</option>
+                          <option value="TymeBank">TymeBank</option>
+                          <option value="Discovery Bank">Discovery Bank</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label
+                          for="bankAccountType"
+                          class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          Account Type
+                        </label>
+                        <select
+                          id="bankAccountType"
+                          name="bankAccountType"
+                          class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                        >
+                          <option value="">Select type...</option>
+                          <option value="SAVINGS">Savings</option>
+                          <option value="CHEQUE">Cheque/Current</option>
+                          <option value="TRANSMISSION">Transmission</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label
+                          for="bankAccountNumber"
+                          class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          Account Number
+                        </label>
+                        <input
+                          type="text"
+                          id="bankAccountNumber"
+                          name="bankAccountNumber"
+                          class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                          placeholder="Enter account number"
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          for="bankBranchCode"
+                          class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          Branch Code
+                        </label>
+                        <input
+                          type="text"
+                          id="bankBranchCode"
+                          name="bankBranchCode"
+                          class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                          placeholder="6-digit branch code"
+                          maxlength="6"
+                        />
+                      </div>
+
+                      <div class="md:col-span-2">
+                        <label
+                          for="bankAccountHolder"
+                          class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          Account Holder Name
+                        </label>
+                        <input
+                          type="text"
+                          id="bankAccountHolder"
+                          name="bankAccountHolder"
+                          class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                          placeholder="Name as it appears on your bank account"
+                        />
+                      </div>
                     </div>
                   </div>
 

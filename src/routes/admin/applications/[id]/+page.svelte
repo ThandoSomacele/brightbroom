@@ -31,7 +31,8 @@
   let successMessage: string | null = null;
 
   // Format date function
-  function formatDate(dateString: string): string {
+  function formatDate(dateValue: string | Date): string {
+    const dateString = dateValue instanceof Date ? dateValue.toISOString() : dateValue;
     const date = new Date(dateString);
     return date.toLocaleDateString("en-ZA", {
       year: "numeric",
@@ -67,18 +68,6 @@
     }
   }
 
-  // Format experience types
-  function formatExperienceTypes(types: string[]): string {
-    if (!types || types.length === 0) return "None specified";
-
-    const typeLabels = {
-      GUEST_HOUSE: "Cleaning Guest house/Hotel/BnB",
-      OFFICE: "Cleaning Offices",
-      CARE_GIVING: "Care Giving",
-    };
-
-    return types.map((type) => typeLabels[type] || type).join(", ");
-  }
 
   // Handle edit mode
   function startEditing() {
@@ -413,39 +402,35 @@
         </div>
       </div>
 
-      <!-- Experience & Availability -->
+      <!-- Documents & Availability -->
       <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
         <h2
           class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center"
         >
           <Briefcase class="mr-2 text-primary" size={20} />
-          Work Experience & Availability
+          Documents & Availability
         </h2>
 
         <div class="space-y-4">
           <div>
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Experience Types
+              Documents Status
             </p>
-            <div class="mt-1 flex flex-wrap gap-2">
-              {#if application.experienceTypes && application.experienceTypes.length > 0}
-                {#each application.experienceTypes as expType}
-                  <span
-                    class="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary dark:bg-primary-900/20"
-                  >
-                    {expType === "GUEST_HOUSE"
-                      ? "Cleaning Guest house/Hotel/BnB"
-                      : expType === "OFFICE"
-                        ? "Cleaning Offices"
-                        : expType === "CARE_GIVING"
-                          ? "Care Giving"
-                          : expType}
-                  </span>
-                {/each}
-              {:else}
-                <span class="text-gray-600 dark:text-gray-400"
-                  >No experience types specified</span
+            <div class="mt-1">
+              {#if application.documentsPending}
+                <span
+                  class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
                 >
+                  <X class="mr-1 h-3 w-3" />
+                  Documents Pending
+                </span>
+              {:else}
+                <span
+                  class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                >
+                  <Check class="mr-1 h-3 w-3" />
+                  Documents Complete
+                </span>
               {/if}
             </div>
           </div>
@@ -523,20 +508,63 @@
               </p>
             </div>
 
-            <div>
-              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                Bank Account Details
-              </p>
-              {#if application.bankAccount}
-                <div class="mt-1 p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
-                  {#each application.bankAccount.split("\n") as line}
-                    <p class="text-gray-900 dark:text-white">{line}</p>
-                  {/each}
+          </div>
+
+          <!-- Bank Account Details Section -->
+          <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <h4
+              class="text-md font-medium text-gray-900 dark:text-white mb-3"
+            >
+              Bank Account Details
+            </h4>
+            {#if application.bankName || application.bankAccountNumber}
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Bank Name
+                  </p>
+                  <p class="text-gray-900 dark:text-white">
+                    {application.bankName || "Not provided"}
+                  </p>
                 </div>
-              {:else}
-                <p class="text-gray-900 dark:text-white">Not provided</p>
-              {/if}
-            </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Account Type
+                  </p>
+                  <p class="text-gray-900 dark:text-white">
+                    {application.bankAccountType || "Not provided"}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Account Number
+                  </p>
+                  <p class="text-gray-900 dark:text-white font-mono">
+                    {application.bankAccountNumber || "Not provided"}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Branch Code
+                  </p>
+                  <p class="text-gray-900 dark:text-white font-mono">
+                    {application.bankBranchCode || "Not provided"}
+                  </p>
+                </div>
+                <div class="md:col-span-2">
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Account Holder
+                  </p>
+                  <p class="text-gray-900 dark:text-white">
+                    {application.bankAccountHolder || "Not provided"}
+                  </p>
+                </div>
+              </div>
+            {:else}
+              <p class="text-gray-500 dark:text-gray-400 italic">
+                No bank details provided
+              </p>
+            {/if}
           </div>
 
           <!-- Other existing fields like referralSource and bio -->
@@ -651,7 +679,7 @@
                 variant="outline"
                 class="w-full"
               >
-                <Mail size={16} class="mr-2" />
+                <Mail size={14} class="mr-2" />
                 Email Applicant
               </Button>
 
@@ -661,7 +689,7 @@
                   variant="outline"
                   class="w-full"
                 >
-                  <Phone size={16} class="mr-2" />
+                  <Phone size={14} class="mr-2" />
                   Call Applicant
                 </Button>
               {/if}

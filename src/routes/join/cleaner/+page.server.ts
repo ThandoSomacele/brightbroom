@@ -1,4 +1,5 @@
 // src/routes/join/cleaner/+page.server.ts
+import { eq } from "drizzle-orm";
 import { db } from "$lib/server/db";
 import { cleanerApplication } from "$lib/server/db/schema";
 import { sendCleanerApplicationEmail } from "$lib/server/email-service";
@@ -8,14 +9,14 @@ import { fail } from "@sveltejs/kit";
 import { z } from "zod";
 import type { Actions } from "./$types";
 
-// Update form validation schema to include experienceTypes
+// Form validation schema
 const joinApplicationSchema = z.object({
   // Step 1: Personal Information
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().min(1, "Phone number is required"),
-  
+
   // Address Information - enhanced to store for work location
   street: z.string().optional(),
   city: z.string().min(1, "City/Area is required"),
@@ -24,29 +25,32 @@ const joinApplicationSchema = z.object({
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   formattedAddress: z.string().optional(),
-  
+
   // Work radius can be set with default later
   workRadius: z.number().default(20), // Default 20km work radius
-  
-  // Step 2: Work Experience
-  experienceTypes: z
-    .array(z.string())
-    .min(1, "Please select at least one type of experience"),
 
+  // Step 2: Work Experience & Availability
   availability: z
     .array(z.string())
     .min(1, "Please select at least one day of availability"),
   ownTransport: z.string().optional(),
   whatsApp: z.string().optional(),
-  
+
   // Step 3: Additional Details
   idType: z.string().min(1, "ID type is required"),
   idNumber: z.string().min(1, "ID number is required"),
   taxNumber: z.string().optional(),
-  bankAccount: z.string().optional(),
   bio: z.string().optional(),
   petCompatibility: z.string().default("NONE"),
   hearAboutUs: z.string().optional(),
+
+  // Bank details - all optional (can be provided later)
+  bankName: z.string().optional(),
+  bankAccountNumber: z.string().optional(),
+  bankBranchCode: z.string().optional(),
+  bankAccountType: z.string().optional(),
+  bankAccountHolder: z.string().optional(),
+
   terms: z.literal("on", {
     errorMap: () => ({ message: "You must accept the Terms of Service" }),
   }),
@@ -85,9 +89,6 @@ export const actions: Actions = {
       ? parseFloat(formData.get("workRadius")?.toString() || "20")
       : 20;
 
-    // Experience types - handle multiple selections
-    const experienceTypes = formData.getAll("experienceTypes") as string[];
-
     // Availability - handle multiple days
     const availability = formData.getAll("availability") as string[];
 
@@ -98,10 +99,17 @@ export const actions: Actions = {
     const idType = formData.get("idType")?.toString();
     const idNumber = formData.get("idNumber")?.toString();
     const taxNumber = formData.get("taxNumber")?.toString() || null;
-    const bankAccount = formData.get("bankAccount")?.toString() || null;
     const bio = formData.get("bio")?.toString() || null;
     const petCompatibility = formData.get("petCompatibility")?.toString() || "NONE";
     const hearAboutUs = formData.get("hearAboutUs")?.toString();
+
+    // Structured bank details
+    const bankName = formData.get("bankName")?.toString() || null;
+    const bankAccountNumber = formData.get("bankAccountNumber")?.toString() || null;
+    const bankBranchCode = formData.get("bankBranchCode")?.toString() || null;
+    const bankAccountType = formData.get("bankAccountType")?.toString() || null;
+    const bankAccountHolder = formData.get("bankAccountHolder")?.toString() || null;
+
     const terms = formData.get("terms");
 
     // Helper function to create form data object for returns
@@ -118,17 +126,20 @@ export const actions: Actions = {
       longitude,
       formattedAddress,
       workRadius,
-      experienceTypes,
       availability,
       ownTransport: ownTransport ? "yes" : "no",
       whatsApp: whatsApp ? "yes" : "no",
       idType,
       idNumber,
       taxNumber,
-      bankAccount,
       bio,
       petCompatibility,
       hearAboutUs,
+      bankName,
+      bankAccountNumber,
+      bankBranchCode,
+      bankAccountType,
+      bankAccountHolder,
       terms
     });
 
@@ -147,17 +158,20 @@ export const actions: Actions = {
         longitude,
         formattedAddress,
         workRadius,
-        experienceTypes,
         availability,
         ownTransport: ownTransport ? "yes" : undefined,
         whatsApp: whatsApp ? "yes" : undefined,
         idType,
         idNumber,
         taxNumber,
-        bankAccount,
         bio,
         petCompatibility,
         hearAboutUs,
+        bankName: bankName || undefined,
+        bankAccountNumber: bankAccountNumber || undefined,
+        bankBranchCode: bankBranchCode || undefined,
+        bankAccountType: bankAccountType || undefined,
+        bankAccountHolder: bankAccountHolder || undefined,
         terms,
       });
 
@@ -236,25 +250,28 @@ export const actions: Actions = {
         lastName: lastName!,
         email: email!,
         phone: phone!,
-        street,
         city: city!,
-        state: state || "Gauteng", // Default for South Africa
-        zipCode,
-        latitude: latitude || 0,
-        longitude: longitude || 0,
+        latitude: latitude ? String(latitude) : null,
+        longitude: longitude ? String(longitude) : null,
         formattedAddress,
-        workRadius,
-        experienceTypes: JSON.stringify(experienceTypes),
+        workRadius: String(workRadius),
         availability: JSON.stringify(availability),
         ownTransport,
         whatsApp,
         idType: idType!,
         idNumber: idNumber!,
         taxNumber,
-        bankAccount,
         bio,
-        petCompatibility: petCompatibility as "LOW" | "MEDIUM" | "HIGH" | "NONE",
-        hearAboutUs,
+        petCompatibility,
+        referralSource: hearAboutUs,
+        // Structured bank details
+        bankName,
+        bankAccountNumber,
+        bankBranchCode,
+        bankAccountType,
+        bankAccountHolder,
+        // Default values
+        documentsPending: true,
         status: "PENDING" as const,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -276,7 +293,6 @@ export const actions: Actions = {
       try {
         const emailSent = await sendCleanerApplicationEmail({
           ...applicationData,
-          experience: experienceTypes.join(", "), // Convert array to string for email
         });
 
         if (!emailSent) {

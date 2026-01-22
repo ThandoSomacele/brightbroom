@@ -19,17 +19,6 @@
   let addressError = "";
   let isOutOfServiceArea = false;
 
-  // For the experience types checkboxes
-  const EXPERIENCE_TYPES = [
-    { id: "GUEST_HOUSE", label: "Cleaning Guest house/Hotel/BnB" },
-    { id: "OFFICE", label: "Cleaning Offices" },
-    { id: "CARE_GIVING", label: "Care Giving" },
-  ];
-
-  // To track which experience types are selected
-  let selectedExperienceTypes: string[] =
-    (editableApplication?.experienceTypes || []) as string[];
-
   // Google Maps API key
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -80,8 +69,7 @@
 
   // Then in your handleSave function, make sure to stringify it back
   function handleSave() {
-    // Update experience types and availability
-    editableApplication.experienceTypes = selectedExperienceTypes;
+    // Update availability
     editableApplication.availability = JSON.stringify(availabilityDays);
 
     dispatch("save", { updatedApplication: editableApplication });
@@ -256,26 +244,26 @@
       </div>
     </div>
 
-    <!-- Experience Types -->
+    <!-- Documents Status -->
     <div>
       <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-        Experience Types
+        Documents Status
       </h3>
 
-      <div class="space-y-2 bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
-        {#each EXPERIENCE_TYPES as expType}
-          <label class="flex items-center">
-            <input
-              type="checkbox"
-              value={expType.id}
-              bind:group={selectedExperienceTypes}
-              class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-            />
-            <span class="ml-2 text-gray-700 dark:text-gray-300">
-              {expType.label}
-            </span>
-          </label>
-        {/each}
+      <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
+        <label class="flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            bind:checked={editableApplication.documentsPending}
+            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+          />
+          <span class="ml-2 text-gray-700 dark:text-gray-300">
+            Documents Pending
+          </span>
+        </label>
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          Check this if the applicant still needs to submit required documents.
+        </p>
       </div>
     </div>
 
@@ -357,24 +345,107 @@
           />
         </div>
 
-        <div>
-          <label
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-          >
-            Bank Account Details (Optional)
-          </label>
-          <textarea
-            bind:value={editableApplication.bankAccount}
-            rows="3"
-            class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            placeholder="Bank name
-        Account number
-        Branch code"
-          ></textarea>
-          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Bank account details for receiving payments. If no bank account,
-            please specify alternative payment method.
-          </p>
+      </div>
+
+      <!-- Bank Details Section -->
+      <div class="mt-6">
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+          Bank Details
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label
+              for="bankName"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Bank Name
+            </label>
+            <select
+              id="bankName"
+              bind:value={editableApplication.bankName}
+              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            >
+              <option value="">Select bank...</option>
+              <option value="ABSA">ABSA</option>
+              <option value="Capitec">Capitec</option>
+              <option value="FNB">First National Bank (FNB)</option>
+              <option value="Nedbank">Nedbank</option>
+              <option value="Standard Bank">Standard Bank</option>
+              <option value="African Bank">African Bank</option>
+              <option value="Investec">Investec</option>
+              <option value="TymeBank">TymeBank</option>
+              <option value="Discovery Bank">Discovery Bank</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              for="bankAccountType"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Account Type
+            </label>
+            <select
+              id="bankAccountType"
+              bind:value={editableApplication.bankAccountType}
+              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            >
+              <option value="">Select type...</option>
+              <option value="SAVINGS">Savings</option>
+              <option value="CHEQUE">Cheque/Current</option>
+              <option value="TRANSMISSION">Transmission</option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              for="bankAccountNumber"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Account Number
+            </label>
+            <input
+              type="text"
+              id="bankAccountNumber"
+              bind:value={editableApplication.bankAccountNumber}
+              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              placeholder="Enter account number"
+            />
+          </div>
+
+          <div>
+            <label
+              for="bankBranchCode"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Branch Code
+            </label>
+            <input
+              type="text"
+              id="bankBranchCode"
+              bind:value={editableApplication.bankBranchCode}
+              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              placeholder="6-digit branch code"
+              maxlength="6"
+            />
+          </div>
+
+          <div class="md:col-span-2">
+            <label
+              for="bankAccountHolder"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Account Holder Name
+            </label>
+            <input
+              type="text"
+              id="bankAccountHolder"
+              bind:value={editableApplication.bankAccountHolder}
+              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              placeholder="Name as it appears on bank account"
+            />
+          </div>
         </div>
       </div>
 

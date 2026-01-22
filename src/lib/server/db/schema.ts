@@ -400,10 +400,16 @@ export const cleanerApplication = pgTable("cleaner_application", {
   workRadius: decimal("work_radius", { precision: 10, scale: 2 }).default("20"),
   bio: text("bio"),
   taxNumber: text("tax_number"),
-  bankAccount: text("bank_account"),
   petCompatibility: text("pet_compatibility").default("NONE"),
 
-  experienceTypes: json("experience_types").$type<string[]>().default([]),
+  // Structured bank account fields for batch payment export
+  bankName: text("bank_name"),
+  bankAccountNumber: text("bank_account_number"),
+  bankBranchCode: text("bank_branch_code"),
+  bankAccountType: text("bank_account_type"), // SAVINGS, CHEQUE, TRANSMISSION
+  bankAccountHolder: text("bank_account_holder"),
+
+  documentsPending: boolean("documents_pending").default(true).notNull(),
   availability: text("availability").notNull(), // JSON string of days
   ownTransport: boolean("own_transport").default(false).notNull(),
   whatsApp: boolean("whats_app").default(false).notNull(),

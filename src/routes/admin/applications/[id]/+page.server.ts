@@ -190,7 +190,7 @@ export const actions: Actions = {
           bio: "", // Empty bio initially
           petCompatibility: "NONE", // Default to no pet compatibility
           availableDays: availabilityArray, // Use availability days from application
-          experienceTypes: application.experienceTypes || [], // Use experience types from application
+          experienceTypes: [], // Experience types can be set after onboarding
           isAvailable: false, // Start as unavailable until fully onboarded
           profileImageUrl: application.profileImageUrl, // Transfer profile image if any
           createdAt: new Date(),
