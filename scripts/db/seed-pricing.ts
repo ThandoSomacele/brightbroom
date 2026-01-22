@@ -92,14 +92,12 @@ const DEFAULT_ADDONS = [
 async function seedPricing() {
   const { isProduction } = logDbInfo();
 
-  if (isProduction && !options.confirm) {
-    const proceed = await confirmAction(
-      "You are about to seed pricing data in what appears to be a production database. Continue?"
+  if (isProduction) {
+    console.error(
+      "\x1b[31m%s\x1b[0m",
+      "Cannot seed pricing data in production!"
     );
-    if (!proceed) {
-      console.log("Operation cancelled");
-      process.exit(0);
-    }
+    process.exit(1);
   }
 
   const { client, db } = createDbConnection();
