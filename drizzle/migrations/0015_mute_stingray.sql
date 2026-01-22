@@ -1,0 +1,1 @@
+ALTER TABLE "payment" ALTER COLUMN "platform_commission_rate" SET DEFAULT '20.00';
