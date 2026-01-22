@@ -380,17 +380,10 @@
               <p class="font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Add-ons
               </p>
-              <ul class="space-y-2">
+              <ul class="space-y-1">
                 {#each bookingDetails.addons as bookingAddon}
-                  <li class="flex justify-between items-center text-sm">
-                    <span class="text-gray-900 dark:text-white">
-                      {bookingAddon.addon?.name || 'Unknown add-on'}
-                    </span>
-                    {#if bookingAddon.durationAtBooking}
-                      <span class="text-gray-500 dark:text-gray-400">
-                        +{bookingAddon.durationAtBooking} min
-                      </span>
-                    {/if}
+                  <li class="text-sm text-gray-900 dark:text-white">
+                    {bookingAddon.addon?.name || 'Unknown add-on'}
                   </li>
                 {/each}
               </ul>

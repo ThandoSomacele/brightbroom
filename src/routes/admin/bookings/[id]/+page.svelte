@@ -374,10 +374,7 @@
               <p class="font-medium text-gray-900 dark:text-white">Add-ons</p>
               <ul class="text-gray-600 dark:text-gray-300 text-sm mt-1 space-y-1">
                 {#each booking.addons as bookingAddon}
-                  <li class="flex justify-between">
-                    <span>{bookingAddon.addon?.name || 'Add-on'}</span>
-                    <span class="text-gray-500">R{parseFloat(bookingAddon.priceAtBooking || '0').toFixed(2)}</span>
-                  </li>
+                  <li>{bookingAddon.addon?.name || 'Add-on'}</li>
                 {/each}
               </ul>
             </div>

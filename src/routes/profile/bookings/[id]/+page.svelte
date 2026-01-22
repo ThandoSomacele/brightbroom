@@ -194,11 +194,8 @@
                   <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Add-ons:</span>
                   <ul class="mt-2 space-y-1">
                     {#each booking.addons as bookingAddon}
-                      <li class="flex justify-between text-sm">
-                        <span class="text-gray-900 dark:text-white">{bookingAddon.addon?.name || 'Unknown add-on'}</span>
-                        {#if bookingAddon.durationAtBooking}
-                          <span class="text-gray-500 dark:text-gray-400">+{bookingAddon.durationAtBooking} min</span>
-                        {/if}
+                      <li class="text-sm text-gray-900 dark:text-white">
+                        {bookingAddon.addon?.name || 'Unknown add-on'}
                       </li>
                     {/each}
                   </ul>

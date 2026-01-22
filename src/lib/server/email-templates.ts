@@ -369,16 +369,14 @@ export function getBookingConfirmationTemplate(
   // Build add-ons HTML
   const addonsHtml = booking.addons && booking.addons.length > 0
     ? booking.addons.map(addon => {
-        const addonPrice = typeof addon.price === 'number' ? addon.price.toFixed(2) : addon.price;
-        return `<li style="margin-bottom: 4px;">${escapeHtml(addon.name)} (+R${addonPrice})</li>`;
+        return `<li style="margin-bottom: 4px;">${escapeHtml(addon.name)}</li>`;
       }).join('')
     : null;
 
   // Build add-ons text
   const addonsText = booking.addons && booking.addons.length > 0
     ? booking.addons.map(addon => {
-        const addonPrice = typeof addon.price === 'number' ? addon.price.toFixed(2) : addon.price;
-        return `  - ${addon.name} (+R${addonPrice})`;
+        return `  - ${addon.name}`;
       }).join('\n')
     : null;
 
@@ -2624,16 +2622,14 @@ export function getSubscriptionActivatedTemplate(
   // Build add-ons HTML
   const addonsHtml = subscription.addons && subscription.addons.length > 0
     ? subscription.addons.map(addon => {
-        const addonPrice = typeof addon.price === 'number' ? addon.price.toFixed(2) : addon.price;
-        return `<li style="margin-bottom: 4px;">${escapeHtml(addon.name)} (+R${addonPrice})</li>`;
+        return `<li style="margin-bottom: 4px;">${escapeHtml(addon.name)}</li>`;
       }).join('')
     : null;
 
   // Build add-ons text
   const addonsText = subscription.addons && subscription.addons.length > 0
     ? subscription.addons.map(addon => {
-        const addonPrice = typeof addon.price === 'number' ? addon.price.toFixed(2) : addon.price;
-        return `  - ${addon.name} (+R${addonPrice})`;
+        return `  - ${addon.name}`;
       }).join('\n')
     : null;
 
