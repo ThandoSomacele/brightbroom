@@ -13,14 +13,17 @@
     isWithinServiceArea,
   } from "$lib/utils/serviceAreaValidator";
   import {
+    Banknote,
     Briefcase,
     Calendar,
     ChevronLeft,
+    CreditCard,
     Mail,
     MapPin,
     PenTool,
     Phone,
     Save,
+    Smartphone,
     User,
     X,
   } from "lucide-svelte";
@@ -37,6 +40,7 @@
   let isPersonalInfoEditMode = false;
   let isProfileEditMode = false;
   let isSpecialisationsEditMode = false;
+  let isPayoutEditMode = false;
   let isLoading = false;
 
   // Personal info form values
@@ -54,6 +58,26 @@
   let idType = cleaner.cleanerProfile?.idType || "SOUTH_AFRICAN_ID";
   let idNumber = cleaner.cleanerProfile?.idNumber || "";
   let taxNumber = cleaner.cleanerProfile?.taxNumber || "";
+
+  // Payout settings form values
+  let payoutMethod = cleaner.cleanerProfile?.payoutMethod || "INSTANT_MONEY";
+  let bankName = cleaner.cleanerProfile?.bankName || "";
+  let bankAccountNumber = cleaner.cleanerProfile?.bankAccountNumber || "";
+  let bankBranchCode = cleaner.cleanerProfile?.bankBranchCode || "";
+  let bankAccountType = cleaner.cleanerProfile?.bankAccountType || "SAVINGS";
+  let bankAccountHolder = cleaner.cleanerProfile?.bankAccountHolder || "";
+
+  // Common South African banks
+  const BANKS = [
+    { code: "051001", name: "Standard Bank" },
+    { code: "250655", name: "FNB" },
+    { code: "470010", name: "Capitec" },
+    { code: "632005", name: "ABSA" },
+    { code: "198765", name: "Nedbank" },
+    { code: "430000", name: "African Bank" },
+    { code: "580105", name: "TymeBank" },
+    { code: "678910", name: "Discovery Bank" },
+  ];
 
   // Track available days (convert from array to object for easier handling)
   let availableDays = {
@@ -171,6 +195,29 @@
           });
         }
       });
+    }
+  }
+
+  // Toggle payout settings edit mode
+  function togglePayoutEdit() {
+    isPayoutEditMode = !isPayoutEditMode;
+
+    if (isPayoutEditMode) {
+      // Reset to current values
+      payoutMethod = cleaner.cleanerProfile?.payoutMethod || "INSTANT_MONEY";
+      bankName = cleaner.cleanerProfile?.bankName || "";
+      bankAccountNumber = cleaner.cleanerProfile?.bankAccountNumber || "";
+      bankBranchCode = cleaner.cleanerProfile?.bankBranchCode || "";
+      bankAccountType = cleaner.cleanerProfile?.bankAccountType || "SAVINGS";
+      bankAccountHolder = cleaner.cleanerProfile?.bankAccountHolder || "";
+    }
+  }
+
+  // Handle bank selection - auto-fill branch code
+  function handleBankSelect(event: Event) {
+    const selectedBank = BANKS.find(b => b.name === bankName);
+    if (selectedBank) {
+      bankBranchCode = selectedBank.code;
     }
   }
 
@@ -1161,6 +1208,317 @@
         upcomingBookingsCount: upcomingEarnings.upcomingBookingsCount,
       }}
     />
+
+    <!-- Payout Settings Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Payout Settings
+          </h2>
+          <Button variant="ghost" size="sm" on:click={togglePayoutEdit}>
+            {#if isPayoutEditMode}
+              <X size={16} class="mr-1" />
+              Cancel
+            {:else}
+              <PenTool size={16} class="mr-1" />
+              Edit
+            {/if}
+          </Button>
+        </div>
+
+        {#if !cleaner.cleanerProfile}
+          <div class="text-center py-4">
+            <p class="text-gray-500 dark:text-gray-400">
+              Please save cleaner profile details first before setting up payout options.
+            </p>
+          </div>
+        {:else if isPayoutEditMode}
+          <form
+            method="POST"
+            action="?/updatePayoutSettings"
+            use:enhance={() => {
+              isLoading = true;
+
+              return async ({ result, update }) => {
+                isLoading = false;
+
+                if (result.type === "success") {
+                  isPayoutEditMode = false;
+                }
+
+                await update();
+
+                if (result.type === "success") {
+                  await invalidateAll();
+                }
+              };
+            }}
+          >
+            <div class="space-y-4">
+              <!-- Payout Method Selection -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Payout Method
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    class="flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-colors {payoutMethod === 'EFT'
+                      ? 'border-primary bg-primary-50 dark:bg-primary-900/20'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-primary/50'}"
+                    on:click={() => payoutMethod = 'EFT'}
+                  >
+                    <CreditCard class="h-8 w-8 mb-2 {payoutMethod === 'EFT' ? 'text-primary' : 'text-gray-400'}" />
+                    <span class="text-sm font-medium {payoutMethod === 'EFT' ? 'text-primary' : 'text-gray-700 dark:text-gray-300'}">
+                      Bank Transfer (EFT)
+                    </span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Direct to bank account
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    class="flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-colors {payoutMethod === 'INSTANT_MONEY'
+                      ? 'border-primary bg-primary-50 dark:bg-primary-900/20'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-primary/50'}"
+                    on:click={() => payoutMethod = 'INSTANT_MONEY'}
+                  >
+                    <Smartphone class="h-8 w-8 mb-2 {payoutMethod === 'INSTANT_MONEY' ? 'text-primary' : 'text-gray-400'}" />
+                    <span class="text-sm font-medium {payoutMethod === 'INSTANT_MONEY' ? 'text-primary' : 'text-gray-700 dark:text-gray-300'}">
+                      Instant Money
+                    </span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Cash at ATM/store
+                    </span>
+                  </button>
+                </div>
+                <input type="hidden" name="payoutMethod" value={payoutMethod} />
+              </div>
+
+              <!-- EFT Bank Details (shown only when EFT is selected) -->
+              {#if payoutMethod === 'EFT'}
+                <div class="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Bank Account Details
+                  </h3>
+
+                  <!-- Bank Name -->
+                  <div>
+                    <label for="bankName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Bank Name
+                    </label>
+                    <select
+                      id="bankName"
+                      name="bankName"
+                      bind:value={bankName}
+                      on:change={handleBankSelect}
+                      required
+                      class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    >
+                      <option value="">Select a bank</option>
+                      {#each BANKS as bank}
+                        <option value={bank.name}>{bank.name}</option>
+                      {/each}
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <!-- Branch Code -->
+                  <div>
+                    <label for="bankBranchCode" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Branch Code
+                    </label>
+                    <input
+                      type="text"
+                      id="bankBranchCode"
+                      name="bankBranchCode"
+                      bind:value={bankBranchCode}
+                      required
+                      placeholder="e.g. 051001"
+                      class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Auto-filled when selecting a bank above
+                    </p>
+                  </div>
+
+                  <!-- Account Number -->
+                  <div>
+                    <label for="bankAccountNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Account Number
+                    </label>
+                    <input
+                      type="text"
+                      id="bankAccountNumber"
+                      name="bankAccountNumber"
+                      bind:value={bankAccountNumber}
+                      required
+                      placeholder="e.g. 1234567890"
+                      class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+
+                  <!-- Account Type -->
+                  <div>
+                    <label for="bankAccountType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Account Type
+                    </label>
+                    <select
+                      id="bankAccountType"
+                      name="bankAccountType"
+                      bind:value={bankAccountType}
+                      required
+                      class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    >
+                      <option value="SAVINGS">Savings</option>
+                      <option value="CHEQUE">Cheque/Current</option>
+                      <option value="TRANSMISSION">Transmission</option>
+                    </select>
+                  </div>
+
+                  <!-- Account Holder Name -->
+                  <div>
+                    <label for="bankAccountHolder" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Account Holder Name
+                    </label>
+                    <input
+                      type="text"
+                      id="bankAccountHolder"
+                      name="bankAccountHolder"
+                      bind:value={bankAccountHolder}
+                      required
+                      placeholder="Name as it appears on the account"
+                      class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              {:else}
+                <!-- Instant Money info -->
+                <div class="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4">
+                  <div class="flex">
+                    <div class="flex-shrink-0">
+                      <Smartphone class="h-5 w-5 text-blue-400" />
+                    </div>
+                    <div class="ml-3">
+                      <h3 class="text-sm font-medium text-blue-800 dark:text-blue-300">
+                        Instant Money
+                      </h3>
+                      <div class="mt-2 text-sm text-blue-700 dark:text-blue-200">
+                        <p>
+                          Payouts will be sent via Standard Bank Instant Money to the cleaner's registered phone number ({cleaner.phone || 'No phone number on file'}).
+                        </p>
+                        <p class="mt-1">
+                          They can withdraw cash at any Standard Bank ATM or participating retail stores.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {/if}
+
+              <!-- Submit button -->
+              <div class="pt-2">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={isLoading}
+                  class="w-full"
+                >
+                  {#if isLoading}
+                    <svg
+                      class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                      ></circle>
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Saving...
+                  {:else}
+                    <Save size={16} class="mr-2" />
+                    Save Payout Settings
+                  {/if}
+                </Button>
+              </div>
+            </div>
+          </form>
+        {:else}
+          <!-- Display mode for payout settings -->
+          <div class="space-y-4">
+            <div class="flex items-center">
+              {#if cleaner.cleanerProfile?.payoutMethod === 'EFT'}
+                <CreditCard class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+              {:else}
+                <Smartphone class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+              {/if}
+              <div>
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Payout Method
+                </p>
+                <p class="text-gray-900 dark:text-white">
+                  {cleaner.cleanerProfile?.payoutMethod === 'EFT' ? 'Bank Transfer (EFT)' : 'Instant Money'}
+                </p>
+              </div>
+            </div>
+
+            {#if cleaner.cleanerProfile?.payoutMethod === 'EFT' && cleaner.cleanerProfile?.bankName}
+              <div class="flex items-start">
+                <Banknote class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-1" />
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Bank Details
+                  </p>
+                  <p class="text-gray-900 dark:text-white">
+                    {cleaner.cleanerProfile.bankName}
+                  </p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Account: ****{cleaner.cleanerProfile.bankAccountNumber?.slice(-4) || '****'}
+                  </p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Branch: {cleaner.cleanerProfile.bankBranchCode || 'Not set'}
+                  </p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Type: {cleaner.cleanerProfile.bankAccountType === 'SAVINGS' ? 'Savings' : cleaner.cleanerProfile.bankAccountType === 'CHEQUE' ? 'Cheque/Current' : 'Transmission'}
+                  </p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Holder: {cleaner.cleanerProfile.bankAccountHolder || 'Not set'}
+                  </p>
+                </div>
+              </div>
+            {:else if cleaner.cleanerProfile?.payoutMethod === 'INSTANT_MONEY'}
+              <div class="flex items-start">
+                <Phone class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-1" />
+                <div>
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Phone for Instant Money
+                  </p>
+                  <p class="text-gray-900 dark:text-white">
+                    {cleaner.phone || 'No phone number on file'}
+                  </p>
+                </div>
+              </div>
+            {:else}
+              <p class="text-sm text-amber-600 dark:text-amber-400">
+                {cleaner.cleanerProfile?.payoutMethod === 'EFT' ? 'Bank details not yet configured' : 'Phone number required for Instant Money payouts'}
+              </p>
+            {/if}
+          </div>
+        {/if}
+      </div>
+    </div>
 
     <!-- Service Specialisations Section -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">

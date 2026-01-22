@@ -387,4 +387,63 @@ export const actions: Actions = {
       return fail(500, { error: "Failed to update cleaner profile" });
     }
   },
+
+  // Update payout settings
+  updatePayoutSettings: async ({ params, request }) => {
+    const cleanerId = params.id;
+
+    if (!cleanerId) {
+      return fail(400, { error: "Cleaner ID is required" });
+    }
+
+    const formData = await request.formData();
+    const payoutMethod = formData.get("payoutMethod")?.toString() as "EFT" | "INSTANT_MONEY";
+    const bankName = formData.get("bankName")?.toString() || null;
+    const bankAccountNumber = formData.get("bankAccountNumber")?.toString() || null;
+    const bankBranchCode = formData.get("bankBranchCode")?.toString() || null;
+    const bankAccountType = formData.get("bankAccountType")?.toString() as "SAVINGS" | "CHEQUE" | "TRANSMISSION" | null;
+    const bankAccountHolder = formData.get("bankAccountHolder")?.toString() || null;
+
+    // Validate EFT details if EFT is selected
+    if (payoutMethod === "EFT") {
+      if (!bankName || !bankAccountNumber || !bankBranchCode || !bankAccountType || !bankAccountHolder) {
+        return fail(400, { error: "All bank details are required for EFT payout method" });
+      }
+    }
+
+    try {
+      // Check if cleaner profile exists
+      const profileResults = await db
+        .select()
+        .from(cleanerProfile)
+        .where(eq(cleanerProfile.userId, cleanerId))
+        .limit(1);
+
+      if (profileResults.length === 0) {
+        return fail(400, { error: "Cleaner profile not found. Please save profile details first." });
+      }
+
+      // Update payout settings
+      await db
+        .update(cleanerProfile)
+        .set({
+          payoutMethod: payoutMethod as any,
+          bankName,
+          bankAccountNumber,
+          bankBranchCode,
+          bankAccountType: bankAccountType as any,
+          bankAccountHolder,
+          updatedAt: new Date(),
+        })
+        .where(eq(cleanerProfile.userId, cleanerId));
+
+      return {
+        success: true,
+        message: "Payout settings updated successfully",
+      };
+    } catch (err) {
+      console.error("Error updating payout settings:", err);
+      return fail(500, { error: "Failed to update payout settings" });
+    }
+  },
 };

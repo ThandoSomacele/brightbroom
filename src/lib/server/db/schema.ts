@@ -87,6 +87,17 @@ export const applicationStatusEnum = pgEnum("ApplicationStatus", [
   "REJECTED",
 ]);
 
+export const payoutMethodEnum = pgEnum("PayoutMethod", [
+  "EFT",
+  "INSTANT_MONEY",
+]);
+
+export const bankAccountTypeEnum = pgEnum("BankAccountType", [
+  "SAVINGS",
+  "CHEQUE",
+  "TRANSMISSION",
+]);
+
 export const EXPERIENCE_TYPES = {
   GUEST_HOUSE: "Cleaning Guest house/Hotel/BnB",
   OFFICE: "Cleaning Offices",
@@ -357,7 +368,16 @@ export const cleanerProfile = pgTable("cleaner_profile", {
   rating: decimal("rating", { precision: 3, scale: 1 }),
   experienceTypes: json("experience_types").$type<string[]>().default([]),
   isAvailable: boolean("is_available").default(true).notNull(),
-  profileImageUrl: text("profile_image_url"), // New field for profile image URL
+  profileImageUrl: text("profile_image_url"),
+
+  // Payout settings
+  payoutMethod: payoutMethodEnum("payout_method").default("INSTANT_MONEY"),
+  bankName: text("bank_name"),
+  bankAccountNumber: text("bank_account_number"),
+  bankBranchCode: text("bank_branch_code"),
+  bankAccountType: bankAccountTypeEnum("bank_account_type"),
+  bankAccountHolder: text("bank_account_holder"), // Name on the account
+
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });

@@ -31,6 +31,7 @@
   import { page } from "$app/stores";
   import UpdateStatusIndicator from "$lib/components/admin/UpdateStatusIndicator.svelte";
   import {
+    Banknote,
     Calendar,
     ChartNoAxesColumnIncreasing,
     FileText,
@@ -52,6 +53,7 @@
     { label: "Cleaners", href: "/admin/cleaners", icon: Users },
     { label: "Users", href: "/admin/users", icon: User },
     { label: "Pricing", href: "/admin/pricing", icon: Wallet },
+    { label: "Payouts", href: "/admin/payouts", icon: Banknote },
     { label: "Services", href: "/admin/services", icon: Settings },
     {
       label: "Reports",
