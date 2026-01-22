@@ -1,6 +1,6 @@
 // src/routes/profile/bookings/+page.server.ts
 import { db } from '$lib/server/db';
-import { booking, service, address, payment } from '$lib/server/db/schema';
+import { booking, address, payment } from '$lib/server/db/schema';
 import { error, redirect } from '@sveltejs/kit';
 import { eq, desc } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
@@ -22,11 +22,8 @@ export const load: PageServerLoad = async ({ locals }) => {
       notes: booking.notes,
       createdAt: booking.createdAt,
       guestAddress: booking.guestAddress, // For former guest bookings
-      service: {
-        id: service.id,
-        name: service.name,
-        description: service.description,
-      },
+      bedroomCount: booking.bedroomCount,
+      bathroomCount: booking.bathroomCount,
       address: {
         id: address.id,
         street: address.street,
@@ -41,7 +38,6 @@ export const load: PageServerLoad = async ({ locals }) => {
       }
     })
     .from(booking)
-    .innerJoin(service, eq(booking.serviceId, service.id))
     .leftJoin(address, eq(booking.addressId, address.id)) // Changed to leftJoin to include guest bookings
     .leftJoin(payment, eq(booking.id, payment.bookingId))
     .where(eq(booking.userId, locals.user.id))

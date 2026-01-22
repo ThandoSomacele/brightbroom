@@ -175,16 +175,35 @@
         <!-- Left column -->
         <div class="space-y-6">
           <div>
-            <h3 class="mb-3 font-medium text-gray-700 dark:text-gray-300">Service Details</h3>
+            <h3 class="mb-3 font-medium text-gray-700 dark:text-gray-300">Cleaning Details</h3>
             <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/30">
-              <p class="mb-1 text-lg font-semibold text-gray-900 dark:text-white">{booking.service.name}</p>
-              <p class="text-sm text-gray-600 dark:text-gray-300">{booking.service.description}</p>
+              <p class="mb-1 text-lg font-semibold text-gray-900 dark:text-white">General Clean</p>
+              <p class="text-sm text-gray-600 dark:text-gray-300">
+                {booking.bedroomCount} bedroom{booking.bedroomCount !== 1 ? 's' : ''},
+                {booking.bathroomCount} bathroom{booking.bathroomCount !== 1 ? 's' : ''}
+              </p>
               <div class="mt-3 flex justify-between border-t border-gray-200 pt-3 dark:border-gray-600">
                 <span class="text-gray-600 dark:text-gray-300">Duration:</span>
                 <span class="font-medium text-gray-900 dark:text-white">
                   {booking.duration / 60} {booking.duration / 60 === 1 ? 'hour' : 'hours'}
                 </span>
               </div>
+
+              {#if booking.addons && booking.addons.length > 0}
+                <div class="mt-3 border-t border-gray-200 pt-3 dark:border-gray-600">
+                  <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Add-ons:</span>
+                  <ul class="mt-2 space-y-1">
+                    {#each booking.addons as bookingAddon}
+                      <li class="flex justify-between text-sm">
+                        <span class="text-gray-900 dark:text-white">{bookingAddon.addon?.name || 'Unknown add-on'}</span>
+                        {#if bookingAddon.durationAtBooking}
+                          <span class="text-gray-500 dark:text-gray-400">+{bookingAddon.durationAtBooking} min</span>
+                        {/if}
+                      </li>
+                    {/each}
+                  </ul>
+                </div>
+              {/if}
             </div>
           </div>
           

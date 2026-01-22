@@ -1,7 +1,7 @@
 // src/routes/cleaner/bookings/+page.server.ts
 import { db } from '$lib/server/db';
-import { booking, service, address, user } from '$lib/server/db/schema';
-import { eq, and, like, or, desc, gte, lte } from 'drizzle-orm';
+import { booking, address, user } from '$lib/server/db/schema';
+import { eq, like, or, desc, gte, lte, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
@@ -23,9 +23,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       status: booking.status,
       scheduledDate: booking.scheduledDate,
       price: booking.price,
-      service: {
-        name: service.name,
-      },
+      bedroomCount: booking.bedroomCount,
+      bathroomCount: booking.bathroomCount,
       address: {
         street: address.street,
         city: address.city,
@@ -40,7 +39,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       }
     })
     .from(booking)
-    .innerJoin(service, eq(booking.serviceId, service.id))
     .innerJoin(address, eq(booking.addressId, address.id))
     .innerJoin(user, eq(booking.userId, user.id))
     .where(eq(booking.cleanerId, cleanerId));
@@ -55,7 +53,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       or(
         like(user.firstName, `%${search}%`),
         like(user.lastName, `%${search}%`),
-        like(service.name, `%${search}%`),
         like(address.street, `%${search}%`),
         like(address.city, `%${search}%`)
       )
@@ -89,7 +86,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       or(
         like(user.firstName, `%${search}%`),
         like(user.lastName, `%${search}%`),
-        like(service.name, `%${search}%`),
         like(address.street, `%${search}%`),
         like(address.city, `%${search}%`)
       )

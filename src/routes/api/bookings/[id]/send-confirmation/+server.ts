@@ -2,8 +2,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
-import { booking, service, address, user } from '$lib/server/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { booking, address, user } from '$lib/server/db/schema';
+import { eq } from 'drizzle-orm';
 import { sendBookingConfirmationEmail } from '$lib/server/email-service';
 
 export const POST: RequestHandler = async ({ params, request, locals }) => {
@@ -22,10 +22,6 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     // Get booking details along with all required information for the email
     const results = await db.select({
       booking: booking,
-      service: {
-        name: service.name,
-        description: service.description
-      },
       address: {
         street: address.street,
         city: address.city,
@@ -40,7 +36,6 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     })
     .from(booking)
     .where(eq(booking.id, bookingId))
-    .innerJoin(service, eq(booking.serviceId, service.id))
     .innerJoin(address, eq(booking.addressId, address.id))
     .innerJoin(user, eq(booking.userId, user.id))
     .limit(1);
@@ -54,10 +49,12 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     // Prepare email data
     const bookingData = {
       id: result.booking.id,
-      service: result.service,
+      service: { name: "General Clean" },
       scheduledDate: result.booking.scheduledDate.toISOString(),
       address: result.address,
-      price: result.booking.price
+      price: result.booking.price,
+      bedroomCount: result.booking.bedroomCount || undefined,
+      bathroomCount: result.booking.bathroomCount || undefined,
     };
     
     // Use override email if provided, otherwise use user's email

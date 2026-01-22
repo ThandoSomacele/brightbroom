@@ -3,8 +3,9 @@ import { db } from "$lib/server/db";
 import {
   address,
   booking,
+  bookingAddon,
+  addon,
   payment,
-  service,
   user,
 } from "$lib/server/db/schema";
 import { error, redirect } from "@sveltejs/kit";
@@ -34,11 +35,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         notes: booking.notes,
         createdAt: booking.createdAt,
         guestAddress: booking.guestAddress,
-        service: {
-          id: service.id,
-          name: service.name,
-          description: service.description,
-        },
+        bedroomCount: booking.bedroomCount,
+        bathroomCount: booking.bathroomCount,
         address: {
           id: address.id,
           street: address.street,
@@ -61,7 +59,6 @@ export const load: PageServerLoad = async ({ params, locals }) => {
           : null,
       })
       .from(booking)
-      .innerJoin(service, eq(booking.serviceId, service.id))
       .leftJoin(address, eq(booking.addressId, address.id)) // Changed to leftJoin for guest bookings
       .leftJoin(payment, eq(booking.id, payment.bookingId))
       .leftJoin(
@@ -77,8 +74,27 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
     const bookingDetail = results[0];
 
+    // Get booking addons
+    const addons = await db
+      .select({
+        id: bookingAddon.id,
+        priceAtBooking: bookingAddon.priceAtBooking,
+        durationAtBooking: bookingAddon.durationAtBooking,
+        addon: {
+          id: addon.id,
+          name: addon.name,
+          description: addon.description,
+        },
+      })
+      .from(bookingAddon)
+      .leftJoin(addon, eq(bookingAddon.addonId, addon.id))
+      .where(eq(bookingAddon.bookingId, bookingId));
+
     return {
-      booking: bookingDetail,
+      booking: {
+        ...bookingDetail,
+        addons,
+      },
     };
   } catch (err) {
     console.error("Error loading booking details:", err);

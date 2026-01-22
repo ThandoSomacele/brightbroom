@@ -292,7 +292,7 @@
                       {booking.address.street}, {booking.address.city}, {booking.address.state}
                     </p>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                      {booking.service.name}
+                      General Clean - {booking.bedroomCount} bed, {booking.bathroomCount} bath
                     </p>
                   </div>
                 </div>
@@ -301,7 +301,7 @@
               <div class="mt-4 lg:mt-0 lg:ml-4 flex flex-col items-start lg:items-end">
                 <div class="flex items-center">
                   <span class="text-lg font-semibold text-gray-900 dark:text-white mr-3">
-                    {formatCurrency(booking.price * 0.75)}
+                    {formatCurrency(booking.price * 0.85)}
                   </span>
                   <span class={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(booking.status)}`}>
                     {booking.status}

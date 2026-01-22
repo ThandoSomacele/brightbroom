@@ -6,7 +6,6 @@ import {
   booking,
   bookingAddon,
   addon,
-  service,
   user,
 } from "$lib/server/db/schema";
 import { sendBookingConfirmationEmail } from "$lib/server/email-service";
@@ -129,9 +128,6 @@ export const postPaymentHooks = {
           user: {
             email: user.email,
           },
-          service: {
-            name: service.name,
-          },
           address: {
             street: address.street,
             city: address.city,
@@ -140,7 +136,6 @@ export const postPaymentHooks = {
           },
         })
         .from(booking)
-        .innerJoin(service, eq(booking.serviceId, service.id))
         .innerJoin(address, eq(booking.addressId, address.id))
         .innerJoin(user, eq(booking.userId, user.id))
         .where(eq(booking.id, bookingId))
@@ -189,7 +184,7 @@ export const postPaymentHooks = {
         {
           id: bookingData.booking.id,
           status: bookingData.booking.status,
-          service: bookingData.service,
+          service: { name: "General Clean" },
           scheduledDate: bookingData.booking.scheduledDate,
           address: bookingData.address,
           price: bookingData.booking.price,

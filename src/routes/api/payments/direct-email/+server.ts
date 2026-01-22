@@ -1,6 +1,6 @@
 // src/routes/api/payments/direct-email/+server.ts
 import { db } from "$lib/server/db";
-import { address, booking, service, user, adminNote } from "$lib/server/db/schema";
+import { address, booking, user, adminNote } from "$lib/server/db/schema";
 import { sendBookingConfirmationEmail } from "$lib/server/email-service";
 import { json } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
@@ -52,15 +52,13 @@ export const POST: RequestHandler = async ({ request }) => {
           status: booking.status,
           scheduledDate: booking.scheduledDate,
           price: booking.price,
+          bedroomCount: booking.bedroomCount,
+          bathroomCount: booking.bathroomCount,
         },
         user: {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-        },
-        service: {
-          name: service.name,
-          description: service.description,
         },
         address: {
           street: address.street,
@@ -70,7 +68,6 @@ export const POST: RequestHandler = async ({ request }) => {
         },
       })
       .from(booking)
-      .innerJoin(service, eq(booking.serviceId, service.id))
       .innerJoin(address, eq(booking.addressId, address.id))
       .innerJoin(user, eq(booking.userId, user.id))
       .where(eq(booking.id, bookingId))
@@ -100,10 +97,12 @@ export const POST: RequestHandler = async ({ request }) => {
       {
         id: bookingData.booking.id,
         status: bookingData.booking.status,
-        service: bookingData.service,
+        service: { name: "General Clean" },
         scheduledDate: bookingData.booking.scheduledDate,
         address: bookingData.address,
         price: bookingData.booking.price,
+        bedroomCount: bookingData.booking.bedroomCount || undefined,
+        bathroomCount: bookingData.booking.bathroomCount || undefined,
         paymentStatus: "COMPLETED" // Force status to COMPLETED
       }
     );

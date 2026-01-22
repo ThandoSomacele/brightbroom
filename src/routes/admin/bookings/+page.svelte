@@ -540,13 +540,6 @@
             scope="col"
             class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
           >
-            Service
-          </th>
-
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-          >
             Scheduled Date
           </th>
           <th
@@ -590,10 +583,14 @@
         {:else}
           {#each bookings as booking}
             <tr
-              class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+              on:click={() => viewBookingDetails(booking.id)}
+              role="link"
+              tabindex="0"
+              on:keydown={(e) => e.key === 'Enter' && viewBookingDetails(booking.id)}
             >
               {#if showBulkActions}
-                <td class="px-3 py-4 whitespace-nowrap">
+                <td class="px-3 py-4 whitespace-nowrap" on:click|stopPropagation>
                   <input
                     type="checkbox"
                     checked={selectedBookings.has(booking.id)}
@@ -627,12 +624,6 @@
                   {booking.customer.email}
                 </div>
               </td>
-              <td
-                class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white"
-              >
-                {booking.service.name}
-              </td>
-
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-gray-900 dark:text-white">
                   {formatDate(booking.scheduledDate)}
@@ -641,7 +632,7 @@
                   {formatTime(booking.scheduledDate)}
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="px-6 py-4 whitespace-nowrap" on:click|stopPropagation>
                 <span
                   class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(booking.status)}`}
                 >
@@ -704,7 +695,7 @@
                   </span>
                 {/if}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="px-6 py-4 whitespace-nowrap" on:click|stopPropagation>
                 <span
                   class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     booking.cleanerId
@@ -731,6 +722,7 @@
               </td>
               <td
                 class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                on:click|stopPropagation
               >
                 <div class="flex justify-end gap-2">
                   <Button

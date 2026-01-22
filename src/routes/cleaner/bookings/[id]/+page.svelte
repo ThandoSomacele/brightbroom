@@ -52,9 +52,9 @@
     }).format(amount);
   }
 
-  // Get cleaner earnings (75% of booking price)
+  // Get cleaner earnings (85% of booking price after fees)
   function getCleanerEarnings(price: number): number {
-    return price * 0.75;
+    return price * 0.85;
   }
 
   // Get status badge class
@@ -310,7 +310,7 @@
       <!-- Service and location details -->
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
         <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-          Service Details
+          Cleaning Details
         </h2>
 
         <div class="space-y-4">
@@ -367,14 +367,35 @@
               Service Type
             </p>
             <p class="text-gray-900 dark:text-white">
-              {bookingDetails.service.name}
+              General Clean
             </p>
-            {#if bookingDetails.service.description}
-              <p class="mt-1 text-gray-600 dark:text-gray-400">
-                {bookingDetails.service.description}
-              </p>
-            {/if}
+            <p class="mt-1 text-gray-600 dark:text-gray-400">
+              {bookingDetails.booking.bedroomCount} bedroom{bookingDetails.booking.bedroomCount !== 1 ? 's' : ''},
+              {bookingDetails.booking.bathroomCount} bathroom{bookingDetails.booking.bathroomCount !== 1 ? 's' : ''}
+            </p>
           </div>
+
+          {#if bookingDetails.addons && bookingDetails.addons.length > 0}
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+              <p class="font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Add-ons
+              </p>
+              <ul class="space-y-2">
+                {#each bookingDetails.addons as bookingAddon}
+                  <li class="flex justify-between items-center text-sm">
+                    <span class="text-gray-900 dark:text-white">
+                      {bookingAddon.addon?.name || 'Unknown add-on'}
+                    </span>
+                    {#if bookingAddon.durationAtBooking}
+                      <span class="text-gray-500 dark:text-gray-400">
+                        +{bookingAddon.durationAtBooking} min
+                      </span>
+                    {/if}
+                  </li>
+                {/each}
+              </ul>
+            </div>
+          {/if}
 
           {#if bookingDetails.booking.notes}
             <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -656,10 +677,10 @@
 
           <div class="flex justify-between items-center">
             <span class="text-gray-600 dark:text-gray-400"
-              >Platform fee (25%):</span
+              >Platform fee (15%):</span
             >
             <span class="text-gray-900 dark:text-white"
-              >{formatCurrency(bookingDetails.booking.price * 0.25)}</span
+              >{formatCurrency(bookingDetails.booking.price * 0.15)}</span
             >
           </div>
 

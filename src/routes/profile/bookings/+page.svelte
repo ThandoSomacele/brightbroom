@@ -187,7 +187,10 @@
                 </div>
                 
                 <h2 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
-                  {booking.service.name}
+                  General Clean
+                  <span class="text-base font-normal text-gray-500 dark:text-gray-400">
+                    ({booking.bedroomCount} bed, {booking.bathroomCount} bath)
+                  </span>
                 </h2>
                 
                 <div class="space-y-2">

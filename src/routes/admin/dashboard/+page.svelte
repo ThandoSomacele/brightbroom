@@ -1,5 +1,6 @@
 <!-- src/routes/admin/dashboard/+page.svelte -->
 <script lang="ts">
+  import { goto } from "$app/navigation";
   import { navigating } from "$app/stores";
   import {
     ArrowDown,
@@ -302,7 +303,11 @@
         >
           {#each metrics.pendingCleaners as cleaner}
             <tr
-              class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+              onclick={() => goto(`/admin/cleaners/${cleaner.id}`)}
+              role="link"
+              tabindex="0"
+              onkeydown={(e) => e.key === 'Enter' && goto(`/admin/cleaners/${cleaner.id}`)}
             >
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm font-medium text-gray-900 dark:text-white">
@@ -326,6 +331,7 @@
                 <a
                   href={`/admin/cleaners/${cleaner.id}`}
                   class="text-primary hover:text-primary-600"
+                  onclick={(e) => e.stopPropagation()}
                 >
                   Review
                 </a>
@@ -575,11 +581,15 @@
         {#if recentActivity && recentActivity.length > 0}
           {#each recentActivity as activity}
             <tr
-              class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+              onclick={() => goto(activity.link)}
+              role="link"
+              tabindex="0"
+              onkeydown={(e) => e.key === 'Enter' && goto(activity.link)}
             >
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
-                  class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                  class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                   ${
                     activity.type === "BOOKING"
                       ? "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
@@ -610,6 +620,7 @@
                 <a
                   href={activity.link}
                   class="text-primary hover:text-primary-600"
+                  onclick={(e) => e.stopPropagation()}
                 >
                   View
                 </a>

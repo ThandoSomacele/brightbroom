@@ -1,7 +1,7 @@
 // src/routes/cleaner/bookings/[id]/+page.server.ts
 import { db } from '$lib/server/db';
-import { booking, service, address, user, adminNote, communicationLog } from '$lib/server/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { booking, address, user, adminNote, communicationLog, bookingAddon, addon } from '$lib/server/db/schema';
+import { eq, desc, and } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
@@ -21,11 +21,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
           notes: booking.notes,
           createdAt: booking.createdAt,
           updatedAt: booking.updatedAt,
-        },
-        service: {
-          id: service.id,
-          name: service.name,
-          description: service.description,
+          bedroomCount: booking.bedroomCount,
+          bathroomCount: booking.bathroomCount,
         },
         address: {
           street: address.street,
@@ -42,13 +39,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         }
       })
       .from(booking)
-      .innerJoin(service, eq(booking.serviceId, service.id))
       .innerJoin(address, eq(booking.addressId, address.id))
       .innerJoin(user, eq(booking.userId, user.id))
       .where(
         and(
           eq(booking.id, bookingId),
-          eq(booking.cleanerId, cleanerId) // Ensure cleaner can only view their own bookings
+          eq(booking.cleanerId, cleanerId!) // Ensure cleaner can only view their own bookings
         )
       )
       .limit(1);
@@ -56,16 +52,35 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     if (bookingDetails.length === 0) {
       throw error(404, 'Booking not found');
     }
-    
+
+    // Get booking addons
+    const bookingAddons = await db
+      .select({
+        id: bookingAddon.id,
+        priceAtBooking: bookingAddon.priceAtBooking,
+        durationAtBooking: bookingAddon.durationAtBooking,
+        addon: {
+          id: addon.id,
+          name: addon.name,
+          description: addon.description,
+        },
+      })
+      .from(bookingAddon)
+      .leftJoin(addon, eq(bookingAddon.addonId, addon.id))
+      .where(eq(bookingAddon.bookingId, bookingId));
+
     // Get communication history
     const communications = await db
       .select()
       .from(communicationLog)
       .where(eq(communicationLog.bookingId, bookingId))
       .orderBy(desc(communicationLog.createdAt));
-    
+
     return {
-      bookingDetails: bookingDetails[0],
+      bookingDetails: {
+        ...bookingDetails[0],
+        addons: bookingAddons,
+      },
       communications
     };
   } catch (err) {

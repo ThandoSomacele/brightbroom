@@ -1,6 +1,6 @@
 // src/routes/api/payments/ipn/+server.ts
 import { db } from "$lib/server/db";
-import { adminNote, booking, payment } from "$lib/server/db/schema";
+import { adminNote, booking, payment, address, user } from "$lib/server/db/schema";
 import { sendBookingConfirmationEmail } from "$lib/server/email-service";
 import { postPaymentHooks } from "$lib/server/hooks/post-payment-hooks";
 import { validateIpnRequest } from "$lib/server/payment";
@@ -143,12 +143,11 @@ export async function POST({ request }) {
                 status: booking.status,
                 scheduledDate: booking.scheduledDate,
                 price: booking.price,
+                bedroomCount: booking.bedroomCount,
+                bathroomCount: booking.bathroomCount,
               },
               user: {
                 email: user.email,
-              },
-              service: {
-                name: service.name,
               },
               address: {
                 street: address.street,
@@ -158,22 +157,23 @@ export async function POST({ request }) {
               },
             })
             .from(booking)
-            .innerJoin(service, eq(booking.serviceId, service.id))
             .innerJoin(address, eq(booking.addressId, address.id))
             .innerJoin(user, eq(booking.userId, user.id))
             .where(eq(booking.id, bookingId))
             .limit(1);
-            
+
             if (bookingDetails.length > 0) {
               const emailResult = await sendBookingConfirmationEmail(
-                bookingDetails[0].user.email, 
+                bookingDetails[0].user.email,
                 {
                   id: bookingDetails[0].booking.id,
                   status: bookingDetails[0].booking.status,
-                  service: bookingDetails[0].service,
+                  service: { name: "General Clean" },
                   scheduledDate: bookingDetails[0].booking.scheduledDate,
                   address: bookingDetails[0].address,
                   price: bookingDetails[0].booking.price,
+                  bedroomCount: bookingDetails[0].booking.bedroomCount || undefined,
+                  bathroomCount: bookingDetails[0].booking.bathroomCount || undefined,
                   paymentStatus: "COMPLETED" // Explicitly set
                 }
               );

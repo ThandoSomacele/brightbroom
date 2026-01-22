@@ -1,6 +1,6 @@
 // src/lib/server/services/email-recovery.service.ts
 import { db } from "$lib/server/db";
-import { adminNote, booking, payment, user, service, address } from "$lib/server/db/schema";
+import { adminNote, booking, payment, user, address } from "$lib/server/db/schema";
 import { sendBookingConfirmationEmail } from "$lib/server/email-service";
 import { eq, and, like, gte } from "drizzle-orm";
 
@@ -72,12 +72,11 @@ export const emailRecoveryService = {
               status: booking.status,
               scheduledDate: booking.scheduledDate,
               price: booking.price,
+              bedroomCount: booking.bedroomCount,
+              bathroomCount: booking.bathroomCount,
             },
             user: {
               email: user.email,
-            },
-            service: {
-              name: service.name,
             },
             address: {
               street: address.street,
@@ -87,7 +86,6 @@ export const emailRecoveryService = {
             }
           })
           .from(booking)
-          .innerJoin(service, eq(booking.serviceId, service.id))
           .innerJoin(address, eq(booking.addressId, address.id))
           .innerJoin(user, eq(booking.userId, user.id))
           .where(eq(booking.id, paymentData.bookingId))
@@ -104,10 +102,12 @@ export const emailRecoveryService = {
             {
               id: bookingDetails[0].booking.id,
               status: bookingDetails[0].booking.status,
-              service: bookingDetails[0].service,
+              service: { name: "General Clean" },
               scheduledDate: bookingDetails[0].booking.scheduledDate,
               address: bookingDetails[0].address,
               price: bookingDetails[0].booking.price,
+              bedroomCount: bookingDetails[0].booking.bedroomCount || undefined,
+              bathroomCount: bookingDetails[0].booking.bathroomCount || undefined,
               paymentStatus: "COMPLETED" // Explicitly set
             }
           );
