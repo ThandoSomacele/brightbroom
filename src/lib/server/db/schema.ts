@@ -98,6 +98,11 @@ export const bankAccountTypeEnum = pgEnum("BankAccountType", [
   "TRANSMISSION",
 ]);
 
+export const discountTypeEnum = pgEnum("DiscountType", [
+  "PERCENTAGE",
+  "FIXED_AMOUNT",
+]);
+
 export const EXPERIENCE_TYPES = {
   GUEST_HOUSE: "Cleaning Guest house/Hotel/BnB",
   OFFICE: "Cleaning Offices",
@@ -294,6 +299,11 @@ export const booking = pgTable("booking", {
   // Subscription reference - removed forward reference to avoid circular dependency
   subscriptionId: text("subscription_id"),
 
+  // Coupon fields
+  couponId: text("coupon_id"), // FK reference to coupon table
+  originalPrice: decimal("original_price", { precision: 10, scale: 2 }), // Price before discount
+  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }), // Actual discount applied
+
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
@@ -369,6 +379,9 @@ export const cleanerProfile = pgTable("cleaner_profile", {
   // Training status - which training programs the cleaner has completed
   // Values: 'HOME' (home cleaning), 'OFFICE' (office cleaning)
   trainingCompleted: text("training_completed").array().default([]),
+  // Experience types - what types of cleaning the cleaner has experience with
+  // Values: 'RESIDENTIAL', 'COMMERCIAL', 'DEEP_CLEANING', 'MOVE_IN_OUT', etc.
+  experienceTypes: text("experience_types").array().default([]),
   isAvailable: boolean("is_available").default(true).notNull(),
   profileImageUrl: text("profile_image_url"),
 
@@ -589,6 +602,41 @@ export const subscriptionPayment = pgTable("subscription_payment", {
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
+// Coupon table for discount codes
+export const coupon = pgTable("coupon", {
+  id: text("id").primaryKey().notNull(),
+  code: text("code").notNull().unique(), // e.g., "FIRST50", "BIGCLEAN10"
+  name: text("name").notNull(), // Display name for admin
+  description: text("description"),
+  discountType: discountTypeEnum("discount_type").notNull(), // PERCENTAGE or FIXED_AMOUNT
+  discountValue: decimal("discount_value", { precision: 10, scale: 2 }).notNull(), // Percentage or ZAR amount
+  minimumBookingAmount: decimal("minimum_booking_amount", { precision: 10, scale: 2 }).notNull(), // e.g., 350 or 500
+  requiresFirstBooking: boolean("requires_first_booking").default(false).notNull(), // True for first-time customer coupons
+  maxUsesTotal: integer("max_uses_total"), // Null = unlimited, or set global limit
+  usedCount: integer("used_count").default(0).notNull(), // Track total uses
+  validFrom: timestamp("valid_from", { mode: "date" }).notNull(),
+  validUntil: timestamp("valid_until", { mode: "date" }), // Null = no expiry
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Coupon usage tracking table
+export const couponUsage = pgTable("coupon_usage", {
+  id: text("id").primaryKey().notNull(),
+  couponId: text("coupon_id")
+    .notNull()
+    .references(() => coupon.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  bookingId: text("booking_id")
+    .notNull()
+    .references(() => booking.id, { onDelete: "cascade" }),
+  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).notNull(), // Actual discount applied
+  usedAt: timestamp("used_at", { mode: "date" }).defaultNow().notNull(),
+});
+
 // Define types
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
@@ -655,3 +703,9 @@ export type NewSubscription = typeof subscription.$inferInsert;
 
 export type SubscriptionPayment = typeof subscriptionPayment.$inferSelect;
 export type NewSubscriptionPayment = typeof subscriptionPayment.$inferInsert;
+
+export type Coupon = typeof coupon.$inferSelect;
+export type NewCoupon = typeof coupon.$inferInsert;
+
+export type CouponUsage = typeof couponUsage.$inferSelect;
+export type NewCouponUsage = typeof couponUsage.$inferInsert;

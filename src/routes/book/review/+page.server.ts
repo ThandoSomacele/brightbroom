@@ -6,6 +6,7 @@ import { eq, inArray, asc } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 import { sendBookingConfirmationEmail } from '$lib/server/email-service';
 import { addressService } from '$lib/server/services/address.service';
+import { couponService } from '$lib/server/services/coupon.service';
 import { parseDateTimeString } from '$lib/utils/date-utils';
 import { getGuestBookingData, storeGuestBookingData } from '$lib/server/guest-booking';
 import { calculateCleaningPrice, validateRoomSelection } from '$lib/utils/pricing';
@@ -117,6 +118,11 @@ export const actions: Actions = {
     const discountPercentage = formData.get('discountPercentage')?.toString();
     const clientFinalPrice = formData.get('finalPrice')?.toString();
     const startDate = formData.get('startDate')?.toString();
+
+    // Coupon data
+    const couponId = formData.get('couponId')?.toString();
+    const couponCode = formData.get('couponCode')?.toString();
+    const clientCouponDiscountAmount = formData.get('couponDiscountAmount')?.toString();
 
     // Guest booking data (contact info will be obtained during authentication)
     const guestAddressData = formData.get('guestAddress')?.toString();
@@ -303,10 +309,38 @@ export const actions: Actions = {
       // One-time booking logic - scheduledDate is guaranteed to exist here (validated above)
       const scheduledDateObj = new Date(parseDateTimeString(scheduledDate!));
 
+      // Validate and calculate coupon discount (only for authenticated users)
+      let validatedCouponId: string | null = null;
+      let couponDiscountAmount: number = 0;
+      let originalPrice: number | null = null;
+
+      if (couponId && locals.user) {
+        // Re-validate the coupon server-side (don't trust client data)
+        const couponValidation = await couponService.validateCoupon(
+          couponCode || '',
+          locals.user.id,
+          priceBreakdown.totalPrice
+        );
+
+        if (couponValidation.valid && couponValidation.coupon && couponValidation.coupon.id === couponId) {
+          validatedCouponId = couponValidation.coupon.id;
+          couponDiscountAmount = couponValidation.discountAmount || 0;
+          originalPrice = priceBreakdown.totalPrice;
+        } else {
+          // Coupon is no longer valid - log but continue without discount
+          console.warn(`Coupon ${couponCode} validation failed at booking creation: ${couponValidation.error}`);
+        }
+      }
+
+      // Calculate final price after coupon
+      const finalBookingPrice = validatedCouponId
+        ? priceBreakdown.totalPrice - couponDiscountAmount
+        : priceBreakdown.totalPrice;
+
       // Create booking ID
       const bookingId = crypto.randomUUID();
 
-      // Prepare booking data with room counts
+      // Prepare booking data with room counts and coupon fields
       const bookingData = {
         id: bookingId,
         userId: locals.user?.id || null,
@@ -316,12 +350,16 @@ export const actions: Actions = {
         status: 'PENDING' as const,
         scheduledDate: scheduledDateObj,
         duration: priceBreakdown.totalDurationMinutes,
-        price: priceBreakdown.totalPrice.toFixed(2),
+        price: finalBookingPrice.toFixed(2),
         bedroomCount,
         bathroomCount,
         notes: notes || null,
         // Guest booking fields - only address data (contact info obtained during authentication)
         guestAddress: locals.user ? null : guestAddress,
+        // Coupon fields
+        couponId: validatedCouponId,
+        originalPrice: originalPrice ? originalPrice.toFixed(2) : null,
+        discountAmount: couponDiscountAmount > 0 ? couponDiscountAmount.toFixed(2) : null,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -343,7 +381,19 @@ export const actions: Actions = {
         await db.insert(bookingAddon).values(bookingAddonRecords);
       }
 
-      console.log(`Created new booking: ${newBooking.id} (${bedroomCount} bedrooms, ${bathroomCount} bathrooms, ${selectedAddons.length} addons) for ${locals.user ? 'user: ' + locals.user.id : 'guest (contact info to be collected during authentication)'}`);
+      // Record coupon usage if a coupon was applied
+      if (validatedCouponId && locals.user) {
+        await couponService.applyCoupon(
+          validatedCouponId,
+          locals.user.id,
+          newBooking.id,
+          couponDiscountAmount
+        );
+        console.log(`Applied coupon ${couponCode} to booking ${newBooking.id}, discount: R${couponDiscountAmount.toFixed(2)}`);
+      }
+
+      const couponInfo = validatedCouponId ? `, coupon: ${couponCode} (-R${couponDiscountAmount.toFixed(2)})` : '';
+      console.log(`Created new booking: ${newBooking.id} (${bedroomCount} bedrooms, ${bathroomCount} bathrooms, ${selectedAddons.length} addons${couponInfo}) for ${locals.user ? 'user: ' + locals.user.id : 'guest (contact info to be collected during authentication)'}`);
 
       // Store guest booking data in session for potential future use
       if (!locals.user) {

@@ -1,6 +1,6 @@
 <!-- src/lib/components/booking/PriceSummary.svelte -->
 <script lang="ts">
-  import { Home, Bed, Bath, Sparkles, Tag, Clock, AlertCircle } from "lucide-svelte";
+  import { Home, Bed, Bath, Sparkles, Tag, Clock, AlertCircle, Ticket } from "lucide-svelte";
   import { formatPrice, formatDuration, MAX_BOOKING_DURATION_HOURS } from "$lib/utils/pricing";
   import type { PriceBreakdown } from "$lib/utils/pricing";
 
@@ -8,18 +8,30 @@
   interface Props {
     breakdown: PriceBreakdown;
     discountPercentage?: number;
+    couponDiscount?: {
+      code: string;
+      name: string;
+      discountType: "PERCENTAGE" | "FIXED_AMOUNT";
+      discountAmount: number;
+    } | null;
     compact?: boolean;
   }
 
   let {
     breakdown,
     discountPercentage = 0,
+    couponDiscount = null,
     compact = false,
   }: Props = $props();
 
-  // Calculate discount if applicable
-  let discountAmount = $derived((breakdown.totalPrice * discountPercentage) / 100);
-  let finalPrice = $derived(breakdown.totalPrice - discountAmount);
+  // Calculate recurring discount if applicable
+  let recurringDiscountAmount = $derived((breakdown.totalPrice * discountPercentage) / 100);
+
+  // Calculate coupon discount amount
+  let couponDiscountAmount = $derived(couponDiscount?.discountAmount || 0);
+
+  // Calculate final price after both discounts
+  let finalPrice = $derived(breakdown.totalPrice - recurringDiscountAmount - couponDiscountAmount);
 </script>
 
 {#if compact}
@@ -41,9 +53,15 @@
             <span class="text-amber-600 dark:text-amber-400">(max {MAX_BOOKING_DURATION_HOURS}h)</span>
           {/if}
         </p>
+        {#if couponDiscount}
+          <p class="mt-1 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+            <Ticket class="h-3 w-3" />
+            Coupon: {couponDiscount.code}
+          </p>
+        {/if}
       </div>
       <div class="text-right">
-        {#if discountPercentage > 0}
+        {#if discountPercentage > 0 || couponDiscount}
           <p class="text-sm text-gray-500 line-through">{formatPrice(breakdown.totalPrice)}</p>
           <p class="text-xl font-bold text-primary-600 dark:text-primary-400">{formatPrice(finalPrice)}</p>
         {:else}
@@ -124,20 +142,38 @@
 
       <!-- Total section -->
       <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
-        <!-- Discount if applicable -->
-        {#if discountPercentage > 0}
+        <!-- Show subtotal if any discount is applied -->
+        {#if discountPercentage > 0 || couponDiscount}
           <div class="mb-2 flex items-center justify-between">
             <span class="text-gray-600 dark:text-gray-400">Subtotal</span>
             <span class="text-gray-500 line-through">
               {formatPrice(breakdown.totalPrice)}
             </span>
           </div>
+        {/if}
+
+        <!-- Recurring discount if applicable -->
+        {#if discountPercentage > 0}
           <div class="mb-2 flex items-center justify-between text-green-600 dark:text-green-400">
             <span class="flex items-center gap-2">
               <Tag class="h-4 w-4" />
               Recurring Discount ({discountPercentage}%)
             </span>
-            <span>-{formatPrice(discountAmount)}</span>
+            <span>-{formatPrice(recurringDiscountAmount)}</span>
+          </div>
+        {/if}
+
+        <!-- Coupon discount if applicable -->
+        {#if couponDiscount}
+          <div class="mb-2 flex items-center justify-between text-green-600 dark:text-green-400">
+            <span class="flex items-center gap-2">
+              <Ticket class="h-4 w-4" />
+              Coupon ({couponDiscount.code})
+              {#if couponDiscount.discountType === "PERCENTAGE"}
+                ({couponDiscount.discountAmount / breakdown.totalPrice * 100}% off)
+              {/if}
+            </span>
+            <span>-{formatPrice(couponDiscountAmount)}</span>
           </div>
         {/if}
 
@@ -147,7 +183,7 @@
             {discountPercentage > 0 ? "Total (per clean)" : "Total"}
           </span>
           <span class="text-2xl font-bold text-primary-600 dark:text-primary-400">
-            {formatPrice(discountPercentage > 0 ? finalPrice : breakdown.totalPrice)}
+            {formatPrice(discountPercentage > 0 || couponDiscount ? finalPrice : breakdown.totalPrice)}
           </span>
         </div>
       </div>

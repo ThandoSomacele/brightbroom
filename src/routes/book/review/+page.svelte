@@ -15,6 +15,9 @@
     ArrowLeft,
     RotateCw,
     WalletIcon,
+    Tag,
+    X,
+    Check,
   } from "lucide-svelte";
   import {
     calculateCleaningPrice,
@@ -60,6 +63,19 @@
 
   // Guest user data
   let guestAddress: any = $state(null);
+
+  // Coupon state
+  let couponCode = $state("");
+  let couponLoading = $state(false);
+  let couponError = $state("");
+  let appliedCoupon: {
+    id: string;
+    code: string;
+    name: string;
+    discountType: "PERCENTAGE" | "FIXED_AMOUNT";
+    discountValue: number;
+    discountAmount: number;
+  } | null = $state(null);
 
   // Track loading state
   let isLoading = $state(false);
@@ -344,6 +360,70 @@
     }
   }
 
+  // Apply coupon code
+  async function applyCoupon() {
+    if (!couponCode.trim()) {
+      couponError = "Please enter a coupon code";
+      return;
+    }
+
+    if (!isAuthenticated) {
+      couponError = "Please log in to use coupon codes";
+      return;
+    }
+
+    if (!priceBreakdown) {
+      couponError = "Price not available";
+      return;
+    }
+
+    couponLoading = true;
+    couponError = "";
+
+    try {
+      const response = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: {
+          ...getAPIHeaders(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: couponCode.trim(),
+          bookingAmount: priceBreakdown.totalPrice,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.valid) {
+        appliedCoupon = {
+          id: result.coupon.id,
+          code: result.coupon.code,
+          name: result.coupon.name,
+          discountType: result.coupon.discountType,
+          discountValue: result.coupon.discountValue,
+          discountAmount: result.discountAmount,
+        };
+        couponCode = "";
+        couponError = "";
+      } else {
+        couponError = result.error || "Invalid coupon code";
+      }
+    } catch (error) {
+      console.error("Error validating coupon:", error);
+      couponError = "Failed to validate coupon. Please try again.";
+    } finally {
+      couponLoading = false;
+    }
+  }
+
+  // Remove applied coupon
+  function removeCoupon() {
+    appliedCoupon = null;
+    couponCode = "";
+    couponError = "";
+  }
+
   // Clear all booking data from localStorage
   function clearBookingData() {
     localStorage.removeItem("booking_service");
@@ -414,7 +494,84 @@
           <PriceSummary
             breakdown={priceBreakdown}
             discountPercentage={isRecurring ? discountPercentage : 0}
+            couponDiscount={appliedCoupon ? {
+              code: appliedCoupon.code,
+              name: appliedCoupon.name,
+              discountType: appliedCoupon.discountType,
+              discountAmount: appliedCoupon.discountAmount,
+            } : null}
           />
+
+          <!-- Coupon Input Section (only for one-time bookings) -->
+          {#if !isRecurring && isAuthenticated}
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                <Tag size={16} class="text-primary" />
+                Have a coupon code?
+              </h4>
+
+              {#if appliedCoupon}
+                <!-- Show applied coupon -->
+                <div class="flex items-center justify-between bg-green-50 dark:bg-green-900/20 p-3 rounded-md">
+                  <div class="flex items-center gap-2">
+                    <Check size={16} class="text-green-600 dark:text-green-400" />
+                    <div>
+                      <span class="font-mono font-semibold text-green-700 dark:text-green-300">{appliedCoupon.code}</span>
+                      <span class="text-sm text-green-600 dark:text-green-400 ml-2">
+                        -{appliedCoupon.discountType === "PERCENTAGE" ? `${appliedCoupon.discountValue}%` : `R${appliedCoupon.discountAmount.toFixed(2)}`}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onclick={removeCoupon}
+                    class="p-1 text-gray-500 hover:text-red-500 transition-colors"
+                    title="Remove coupon"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              {:else}
+                <!-- Coupon input form -->
+                <div class="flex gap-2">
+                  <input
+                    type="text"
+                    bind:value={couponCode}
+                    placeholder="Enter coupon code"
+                    class="flex-1 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white uppercase font-mono focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    onkeydown={(e) => e.key === "Enter" && (e.preventDefault(), applyCoupon())}
+                  />
+                  <button
+                    type="button"
+                    onclick={applyCoupon}
+                    disabled={couponLoading || !couponCode.trim()}
+                    class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {#if couponLoading}
+                      <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    {:else}
+                      Apply
+                    {/if}
+                  </button>
+                </div>
+                {#if couponError}
+                  <p class="mt-2 text-sm text-red-600 dark:text-red-400">{couponError}</p>
+                {/if}
+              {/if}
+            </div>
+          {/if}
+
+          {#if !isAuthenticated && !isRecurring}
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                <Tag size={14} />
+                Have a coupon code? Log in to apply it.
+              </p>
+            </div>
+          {/if}
         {:else}
           <p class="text-gray-500 dark:text-gray-400">
             Loading pricing information...
@@ -703,16 +860,41 @@
         </div>
       {:else}
         <!-- One-time Payment Display -->
-        <div class="flex items-center justify-between">
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-            Total
-          </h2>
-          {#if priceBreakdown}
-            <span class="text-2xl font-bold text-primary">
-              R{priceBreakdown.totalPrice.toFixed(2)}
-            </span>
+        <div>
+          {#if appliedCoupon && priceBreakdown}
+            <!-- Show original price and discount -->
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-gray-600 dark:text-gray-400">Subtotal</span>
+              <span class="text-gray-500 line-through">R{priceBreakdown.totalPrice.toFixed(2)}</span>
+            </div>
+            <div class="flex items-center justify-between mb-2 text-green-600 dark:text-green-400">
+              <span class="flex items-center gap-2">
+                <Tag size={16} />
+                Coupon ({appliedCoupon.code})
+              </span>
+              <span>-R{appliedCoupon.discountAmount.toFixed(2)}</span>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-primary-100 dark:border-primary-800">
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                Total
+              </h2>
+              <span class="text-2xl font-bold text-primary">
+                R{(priceBreakdown.totalPrice - appliedCoupon.discountAmount).toFixed(2)}
+              </span>
+            </div>
           {:else}
-            <span class="text-2xl font-bold text-primary">R0.00</span>
+            <div class="flex items-center justify-between">
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                Total
+              </h2>
+              {#if priceBreakdown}
+                <span class="text-2xl font-bold text-primary">
+                  R{priceBreakdown.totalPrice.toFixed(2)}
+                </span>
+              {:else}
+                <span class="text-2xl font-bold text-primary">R0.00</span>
+              {/if}
+            </div>
           {/if}
         </div>
       {/if}
@@ -776,6 +958,13 @@
         name="addonIds"
         value={JSON.stringify(selectedAddonIds)}
       />
+
+      <!-- Coupon fields -->
+      {#if appliedCoupon}
+        <input type="hidden" name="couponId" value={appliedCoupon.id} />
+        <input type="hidden" name="couponCode" value={appliedCoupon.code} />
+        <input type="hidden" name="couponDiscountAmount" value={appliedCoupon.discountAmount.toFixed(2)} />
+      {/if}
 
       {#if isAuthenticated}
         <!-- Authenticated user fields -->

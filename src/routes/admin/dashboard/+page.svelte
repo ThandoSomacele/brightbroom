@@ -187,7 +187,7 @@
         <span class={getTrendColor(metrics.cleanerTrend)}>
           {#if metrics.cleanerTrend >= 0}
             <ArrowUp class="inline h-4 w-4" />
-          {:else}
+          {:else} 
             <ArrowDown class="inline h-4 w-4" />
           {/if}
           {Math.abs(metrics.cleanerTrend)}%

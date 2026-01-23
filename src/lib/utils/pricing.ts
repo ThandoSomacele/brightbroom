@@ -266,3 +266,34 @@ export function createPriceRecord(breakdown: PriceBreakdown): {
     totalDurationMinutes: breakdown.totalDurationMinutes,
   };
 }
+
+/**
+ * Apply a coupon discount to a price breakdown
+ */
+export function applyCouponDiscount(
+  breakdown: PriceBreakdown,
+  coupon: { discountType: "PERCENTAGE" | "FIXED_AMOUNT"; discountValue: number }
+): {
+  originalPrice: number;
+  discountAmount: number;
+  finalPrice: number;
+} {
+  const originalPrice = breakdown.totalPrice;
+  let discountAmount: number;
+
+  if (coupon.discountType === "PERCENTAGE") {
+    // Percentage discount
+    discountAmount = Math.round((originalPrice * coupon.discountValue) / 100 * 100) / 100;
+  } else {
+    // Fixed amount discount (cap at original price)
+    discountAmount = Math.min(coupon.discountValue, originalPrice);
+  }
+
+  const finalPrice = originalPrice - discountAmount;
+
+  return {
+    originalPrice,
+    discountAmount,
+    finalPrice,
+  };
+}

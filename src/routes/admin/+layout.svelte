@@ -43,6 +43,7 @@
     Users,
     X,
     BrushCleaning,
+    Tag,
   } from "lucide-svelte";
 
   let showMobileMenu = false;
@@ -54,6 +55,7 @@
     { label: "Cleaners", href: "/admin/cleaners", icon: BrushCleaning },
     { label: "Users", href: "/admin/users", icon: User },
     { label: "Pricing", href: "/admin/pricing", icon: Banknote },
+    { label: "Coupons", href: "/admin/coupons", icon: Tag },
     { label: "Payouts", href: "/admin/payouts", icon: Landmark },
     { label: "Services", href: "/admin/services", icon: Settings },
     {
