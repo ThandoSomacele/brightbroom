@@ -123,7 +123,7 @@
             {metrics.totalBookings}
           </p>
         </div>
-        <div class="bg-primary-100 dark:bg-primary-900/20 p-3 rounded-full">
+        <div class="bg-primary-100 dark:bg-primary-900/20 w-12 h-12 rounded-full flex items-center justify-center">
           <Calendar class="text-primary h-6 w-6" />
         </div>
       </div>
@@ -151,7 +151,7 @@
             {formatCurrency(metrics.totalRevenue)}
           </p>
         </div>
-        <div class="bg-green-100 dark:bg-green-900/20 p-3 rounded-full">
+        <div class="bg-green-100 dark:bg-green-900/20 w-12 h-12 rounded-full flex items-center justify-center">
           <CreditCard class="text-green-500 h-6 w-6" />
         </div>
       </div>
@@ -179,7 +179,7 @@
             {metrics.activeCleaners}
           </p>
         </div>
-        <div class="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-full">
+        <div class="bg-blue-100 dark:bg-blue-900/20 w-12 h-12 rounded-full flex items-center justify-center">
           <Users class="text-blue-500 h-6 w-6" />
         </div>
       </div>
@@ -207,7 +207,7 @@
             {metrics.pendingBookings}
           </p>
         </div>
-        <div class="bg-yellow-100 dark:bg-yellow-900/20 p-3 rounded-full">
+        <div class="bg-yellow-100 dark:bg-yellow-900/20 w-12 h-12 rounded-full flex items-center justify-center">
           <Calendar class="text-yellow-500 h-6 w-6" />
         </div>
       </div>
