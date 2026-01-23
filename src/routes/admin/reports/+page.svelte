@@ -3,6 +3,7 @@
   import { goto } from "$app/navigation";
   import { navigating, page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
+  import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
   import {
     BarChart,
     Briefcase,
@@ -18,11 +19,34 @@
   // Get data from server
   export let data;
 
-  // Extract metrics and filters from data
-  $: ({ metrics, period, dateRange } = data);
+  // Extract filters from data (available immediately)
+  $: ({ period, dateRange } = data);
+
+  // Metrics will be streamed - provide defaults to prevent errors
+  let metrics: any = {
+    revenue: { total: 0, percentageChange: 0, trend: [] },
+    bookings: { total: 0, completed: 0, cancelled: 0, pendingConfirmation: 0, conversionRate: 0 },
+    bookingTrend: [],
+    bookingInsights: { roomConfigurations: [], popularAddons: [], averageDuration: 0, averagePrice: 0 },
+    userGrowth: { customers: [], cleaners: [] },
+    cleanerPerformance: [],
+  };
+  let metricsLoaded = false;
 
   // Show skeleton when navigating to this page
-  $: isLoading = $navigating?.to?.route?.id === "/admin/reports";
+  $: isLoading = !metricsLoaded || $navigating?.to?.route?.id === "/admin/reports";
+
+  // Load metrics when streamed data is available
+  $: if (data.streamed?.metrics) {
+    metricsLoaded = false;
+    data.streamed.metrics.then((m: any) => {
+      metrics = m;
+      metricsLoaded = true;
+    }).catch((err: Error) => {
+      console.error("Error loading metrics:", err);
+      metricsLoaded = true;
+    });
+  }
 
   let showDatePicker = false;
   let customStartDate = data.dateRange?.startDate ?? "";

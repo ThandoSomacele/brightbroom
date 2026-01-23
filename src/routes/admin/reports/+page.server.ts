@@ -5,6 +5,43 @@ import { redirect } from "@sveltejs/kit";
 import { and, eq, gte, lt, sql, desc } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
 
+// Helper function to fetch all report metrics
+async function getReportMetrics(startDateObj: Date, endDateObj: Date, period: string) {
+  // Fetch revenue metrics
+  const revenueData = await getRevenueMetrics(
+    startDateObj,
+    endDateObj,
+    period,
+  );
+
+  // Fetch booking metrics
+  const bookingMetrics = await getBookingMetrics(startDateObj, endDateObj);
+
+  // Fetch booking trend data
+  const bookingTrend = await getBookingTrend(startDateObj, endDateObj);
+
+  // Fetch booking insights (room configurations and addons)
+  const bookingInsights = await getBookingInsights(startDateObj, endDateObj);
+
+  // Fetch user growth data
+  const userGrowth = await getUserGrowth(startDateObj, endDateObj, period);
+
+  // Fetch cleaner performance data
+  const cleanerPerformance = await getCleanerPerformance(
+    startDateObj,
+    endDateObj,
+  );
+
+  return {
+    revenue: revenueData,
+    bookings: bookingMetrics,
+    bookingTrend,
+    bookingInsights,
+    userGrowth,
+    cleanerPerformance,
+  };
+}
+
 export const load: PageServerLoad = async ({ url, locals }) => {
   // Verify admin role
   if (!locals.user || locals.user.role !== "ADMIN") {
@@ -23,86 +60,16 @@ export const load: PageServerLoad = async ({ url, locals }) => {
   // Set end date to end of day
   endDateObj.setHours(23, 59, 59, 999);
 
-  try {
-    // Fetch revenue metrics
-    const revenueData = await getRevenueMetrics(
-      startDateObj,
-      endDateObj,
-      period,
-    );
-
-    // Fetch booking metrics
-    const bookingMetrics = await getBookingMetrics(startDateObj, endDateObj);
-
-    // Fetch booking trend data
-    const bookingTrend = await getBookingTrend(startDateObj, endDateObj);
-
-    // Fetch booking insights (room configurations and addons)
-    const bookingInsights = await getBookingInsights(startDateObj, endDateObj);
-
-    // Fetch user growth data
-    const userGrowth = await getUserGrowth(startDateObj, endDateObj, period);
-
-    // Fetch cleaner performance data
-    const cleanerPerformance = await getCleanerPerformance(
-      startDateObj,
-      endDateObj,
-    );
-
-    // Combine all data and return
-    return {
-      period,
-      dateRange: {
-        startDate,
-        endDate,
-      },
-      metrics: {
-        revenue: revenueData,
-        bookings: bookingMetrics,
-        bookingTrend,
-        bookingInsights,
-        userGrowth,
-        cleanerPerformance,
-      },
-    };
-  } catch (error) {
-    console.error("Error loading report data:", error);
-    return {
-      error: "Failed to load report data",
-      period,
-      dateRange: {
-        startDate,
-        endDate,
-      },
-      metrics: {
-        revenue: {
-          total: 0,
-          trend: [],
-          previousPeriodTotal: 0,
-          percentageChange: 0,
-        },
-        bookings: {
-          total: 0,
-          completed: 0,
-          cancelled: 0,
-          pendingConfirmation: 0,
-          conversionRate: 0,
-        },
-        bookingTrend: [],
-        bookingInsights: {
-          roomConfigurations: [],
-          popularAddons: [],
-          averageDuration: 0,
-          averagePrice: 0,
-        },
-        userGrowth: {
-          customers: [],
-          cleaners: [],
-        },
-        cleanerPerformance: [],
-      },
-    };
-  }
+  return {
+    period,
+    dateRange: {
+      startDate,
+      endDate,
+    },
+    streamed: {
+      metrics: getReportMetrics(startDateObj, endDateObj, period),
+    },
+  };
 };
 
 // Helper function to get default start date based on period

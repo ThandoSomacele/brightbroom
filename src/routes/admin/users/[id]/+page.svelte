@@ -2,7 +2,8 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
-    import { parseDateTimeString } from "$lib/utils/date-utils";
+  import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
+  import { parseDateTimeString } from "$lib/utils/date-utils";
   import { showSuccess, showError } from "../../+layout.svelte";
   import {
     BookOpen,
@@ -19,16 +20,22 @@
   export let data;
   export let form;
 
-  const { user, addresses, bookings, stats, recentActivity } = data;
-
   let isEditMode = false;
   let isUpdateLoading = false;
 
-  // Form values for editing
-  let editFirstName = user.firstName;
-  let editLastName = user.lastName;
-  let editPhone = user.phone || "";
-  let editRole = user.role;
+  // Form values for editing - will be initialized when data loads
+  let editFirstName = "";
+  let editLastName = "";
+  let editPhone = "";
+  let editRole = "";
+
+  // Initialize form values when user data loads
+  function initializeFormValues(user: any) {
+    editFirstName = user.firstName;
+    editLastName = user.lastName;
+    editPhone = user.phone || "";
+    editRole = user.role;
+  }
 
   // Format date function
   function formatDate(dateString: string): string {
@@ -100,12 +107,12 @@
     }
   }
 
-  // Toggle edit mode
-  function toggleEditMode() {
+  // Toggle edit mode - user parameter passed from template
+  function toggleEditMode(user?: any) {
     isEditMode = !isEditMode;
 
     // Reset form values when toggling edit mode
-    if (isEditMode) {
+    if (isEditMode && user) {
       editFirstName = user.firstName;
       editLastName = user.lastName;
       editPhone = user.phone || "";
@@ -114,14 +121,24 @@
   }
 
   // Navigate to user's bookings
-  function viewAllBookings() {
-    window.location.href = `/admin/bookings?search=${user.email}`;
+  function viewAllBookings(userEmail: string) {
+    window.location.href = `/admin/bookings?search=${userEmail}`;
   }
 </script>
 
 <svelte:head>
   <title>User Details | BrightBroom Admin</title>
 </svelte:head>
+
+{#await data.streamed.userData}
+  <DetailPageSkeleton variant="user" />
+{:then userData}
+  {@const user = userData.user}
+  {@const addresses = userData.addresses}
+  {@const bookings = userData.bookings}
+  {@const stats = userData.stats}
+  {@const recentActivity = userData.recentActivity}
+  {(() => { initializeFormValues(user); return ''; })()}
 
 <!-- Page header with back button -->
 <div class="mb-6 flex items-center">
@@ -331,7 +348,7 @@
         </div>
 
         <div class="mt-6">
-          <Button variant="outline" class="w-full" on:click={toggleEditMode}>
+          <Button variant="outline" class="w-full" on:click={() => toggleEditMode(user)}>
             Edit User
           </Button>
         </div>
@@ -433,7 +450,7 @@
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
           Recent Bookings
         </h3>
-        <Button variant="outline" size="sm" on:click={viewAllBookings}>
+        <Button variant="outline" size="sm" on:click={() => viewAllBookings(user.email)}>
           View All
         </Button>
       </div>
@@ -552,3 +569,9 @@
     </div>
   </div>
 </div>
+
+{:catch error}
+  <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-6 text-center">
+    <p class="text-red-600 dark:text-red-400">Failed to load user details. Please refresh the page.</p>
+  </div>
+{/await}

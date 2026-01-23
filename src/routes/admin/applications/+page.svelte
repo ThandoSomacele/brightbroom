@@ -1,6 +1,7 @@
 <!-- src/routes/admin/applications/+page.svelte -->
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
+  import { TableSkeleton } from "$lib/components/ui/skeletons";
   import { parseDateTimeString } from "$lib/utils/date-utils.js";
   import {
     ArrowLeft,
@@ -12,7 +13,7 @@
   } from "lucide-svelte";
 
   export let data;
-  let { applications, pagination, filters } = data;
+  let { filters } = data;
 
   // Local state for filters
   let searchTerm = filters.search || "";
@@ -44,12 +45,6 @@
     if (searchTerm) searchParams.set("search", searchTerm);
     if (statusFilter !== "ALL") searchParams.set("status", statusFilter);
 
-    // Add current page if it's not the first page
-    if (pagination.page > 1) {
-      searchParams.set("page", pagination.page.toString());
-    }
-
-    // Navigate to the same page with filters applied
     const url = searchParams.toString() ? `?${searchParams.toString()}` : "";
     window.location.href = `/admin/applications${url}`;
   }
@@ -62,8 +57,8 @@
   }
 
   // Navigate to a specific page
-  function goToPage(page: number) {
-    if (page < 1 || page > pagination.totalPages) return;
+  function goToPage(page: number, totalPages: number) {
+    if (page < 1 || page > totalPages) return;
 
     const searchParams = new URLSearchParams(window.location.search);
     searchParams.set("page", page.toString());
@@ -148,229 +143,240 @@
   {/if}
 </div>
 
-<!-- Applications table -->
-<div class="mb-6 overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-  <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-      <thead class="bg-gray-50 dark:bg-gray-700">
-        <tr>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
-          >
-            Applicant
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
-          >
-            Contact
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
-          >
-            Documents
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
-          >
-            Application Date
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
-          >
-            Status
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
-          >
-            Actions
-          </th>
-        </tr>
-      </thead>
-      <tbody
-        class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"
-      >
-        {#if applications.length === 0}
+<!-- Applications table with streaming -->
+{#await data.streamed.applicationsData}
+  <TableSkeleton rows={10} columns={6} />
+{:then applicationsData}
+  {@const applications = applicationsData.applications}
+  {@const pagination = applicationsData.pagination}
+
+  <div class="mb-6 overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-700">
           <tr>
-            <td
-              colspan="6"
-              class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
             >
-              No applications found
-            </td>
+              Applicant
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+            >
+              Contact
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+            >
+              Documents
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+            >
+              Application Date
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+            >
+              Status
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+            >
+              Actions
+            </th>
           </tr>
-        {:else}
-          {#each applications as application}
-            <tr
-              class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              <td class="whitespace-nowrap px-6 py-4">
-                <div class="flex items-center">
-                  <div
-                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700"
-                  >
-                    {#if application.profileImageUrl}
-                      <img
-                        src={application.profileImageUrl}
-                        alt="{application.firstName} {application.lastName}"
-                        class="h-full w-full object-cover"
-                      />
-                    {:else}
-                      <User
-                        size={20}
-                        class="text-gray-500 dark:text-gray-400"
-                      />
-                    {/if}
-                  </div>
-                  <div class="ml-4">
-                    <div
-                      class="text-sm font-medium text-gray-900 dark:text-white"
-                    >
-                      {application.firstName}
-                      {application.lastName}
-                    </div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                      {application.city}
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td class="whitespace-nowrap px-6 py-4">
-                <div class="text-sm text-gray-900 dark:text-white">
-                  {application.email}
-                </div>
-                {#if application.phone}
-                  <div class="text-sm text-gray-500 dark:text-gray-400">
-                    {application.phone}
-                  </div>
-                {/if}
-              </td>
+        </thead>
+        <tbody
+          class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"
+        >
+          {#if applications.length === 0}
+            <tr>
               <td
-                class="whitespace-nowrap px-6 py-4 text-sm"
+                colspan="6"
+                class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
               >
-                {#if application.documentsPending}
-                  <span
-                    class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
-                  >
-                    Pending
-                  </span>
-                {:else}
-                  <span
-                    class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
-                  >
-                    Complete
-                  </span>
-                {/if}
-              </td>
-              <td
-                class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white"
-              >
-                {formatDate(application.createdAt)}
-              </td>
-              <td class="whitespace-nowrap px-6 py-4">
-                {#if application.status === "PENDING"}
-                  <span
-                    class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
-                  >
-                    Pending Review
-                  </span>
-                {:else if application.status === "APPROVED"}
-                  <span
-                    class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
-                  >
-                    Approved
-                  </span>
-                {:else if application.status === "REJECTED"}
-                  <span
-                    class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/20 dark:text-red-300"
-                  >
-                    Rejected
-                  </span>
-                {/if}
-              </td>
-              <td
-                class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium"
-              >
-                <div class="flex justify-end">
-                  <a
-                    href={`/admin/applications/${application.id}`}
-                    class="text-primary hover:text-primary-600"
-                  >
-                    <Button variant="ghost" size="sm">
-                      <Eye size={16} />
-                      <span class="ml-1">View</span>
-                    </Button>
-                  </a>
-                </div>
+                No applications found
               </td>
             </tr>
-          {/each}
-        {/if}
-      </tbody>
-    </table>
-  </div>
-
-  {#if pagination.totalPages > 1}
-    <div
-      class="border-t border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800"
-    >
-      <div class="flex items-center justify-between">
-        <div class="text-sm text-gray-700 dark:text-gray-300">
-          Showing <span class="font-medium"
-            >{(pagination.page - 1) * pagination.limit + 1}</span
-          >
-          to
-          <span class="font-medium"
-            >{Math.min(
-              pagination.page * pagination.limit,
-              pagination.total,
-            )}</span
-          >
-          of <span class="font-medium">{pagination.total}</span> applications
-        </div>
-
-        <div class="flex space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={pagination.page === 1}
-            on:click={() => goToPage(pagination.page - 1)}
-          >
-            <ArrowLeft size={16} />
-          </Button>
-
-          {#each Array(pagination.totalPages) as _, i}
-            {#if pagination.totalPages <= 7 || i + 1 === 1 || i + 1 === pagination.totalPages || (i + 1 >= pagination.page - 1 && i + 1 <= pagination.page + 1)}
-              <Button
-                variant={pagination.page === i + 1 ? "primary" : "outline"}
-                size="sm"
-                on:click={() => goToPage(i + 1)}
+          {:else}
+            {#each applications as application}
+              <tr
+                class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
               >
-                {i + 1}
-              </Button>
-            {:else if i + 1 === 2 || i + 1 === pagination.totalPages - 1}
-              <span
-                class="inline-flex h-8 w-8 items-center justify-center text-gray-500 dark:text-gray-400"
-                >...</span
-              >
-            {/if}
-          {/each}
+                <td class="whitespace-nowrap px-6 py-4">
+                  <div class="flex items-center">
+                    <div
+                      class="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700"
+                    >
+                      {#if application.profileImageUrl}
+                        <img
+                          src={application.profileImageUrl}
+                          alt="{application.firstName} {application.lastName}"
+                          class="h-full w-full object-cover"
+                        />
+                      {:else}
+                        <User
+                          size={20}
+                          class="text-gray-500 dark:text-gray-400"
+                        />
+                      {/if}
+                    </div>
+                    <div class="ml-4">
+                      <div
+                        class="text-sm font-medium text-gray-900 dark:text-white"
+                      >
+                        {application.firstName}
+                        {application.lastName}
+                      </div>
+                      <div class="text-sm text-gray-500 dark:text-gray-400">
+                        {application.city}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4">
+                  <div class="text-sm text-gray-900 dark:text-white">
+                    {application.email}
+                  </div>
+                  {#if application.phone}
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                      {application.phone}
+                    </div>
+                  {/if}
+                </td>
+                <td
+                  class="whitespace-nowrap px-6 py-4 text-sm"
+                >
+                  {#if application.documentsPending}
+                    <span
+                      class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+                    >
+                      Pending
+                    </span>
+                  {:else}
+                    <span
+                      class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                    >
+                      Complete
+                    </span>
+                  {/if}
+                </td>
+                <td
+                  class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white"
+                >
+                  {formatDate(application.createdAt)}
+                </td>
+                <td class="whitespace-nowrap px-6 py-4">
+                  {#if application.status === "PENDING"}
+                    <span
+                      class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+                    >
+                      Pending Review
+                    </span>
+                  {:else if application.status === "APPROVED"}
+                    <span
+                      class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                    >
+                      Approved
+                    </span>
+                  {:else if application.status === "REJECTED"}
+                    <span
+                      class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/20 dark:text-red-300"
+                    >
+                      Rejected
+                    </span>
+                  {/if}
+                </td>
+                <td
+                  class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium"
+                >
+                  <div class="flex justify-end">
+                    <a
+                      href={`/admin/applications/${application.id}`}
+                      class="text-primary hover:text-primary-600"
+                    >
+                      <Button variant="ghost" size="sm">
+                        <Eye size={16} />
+                        <span class="ml-1">View</span>
+                      </Button>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {/each}
+          {/if}
+        </tbody>
+      </table>
+    </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={pagination.page === pagination.totalPages}
-            on:click={() => goToPage(pagination.page + 1)}
-          >
-            <ArrowRight size={16} />
-          </Button>
+    {#if pagination.totalPages > 1}
+      <div
+        class="border-t border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800"
+      >
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-700 dark:text-gray-300">
+            Showing <span class="font-medium"
+              >{(pagination.page - 1) * pagination.limit + 1}</span
+            >
+            to
+            <span class="font-medium"
+              >{Math.min(
+                pagination.page * pagination.limit,
+                pagination.total,
+              )}</span
+            >
+            of <span class="font-medium">{pagination.total}</span> applications
+          </div>
+
+          <div class="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pagination.page === 1}
+              on:click={() => goToPage(pagination.page - 1, pagination.totalPages)}
+            >
+              <ArrowLeft size={16} />
+            </Button>
+
+            {#each Array(pagination.totalPages) as _, i}
+              {#if pagination.totalPages <= 7 || i + 1 === 1 || i + 1 === pagination.totalPages || (i + 1 >= pagination.page - 1 && i + 1 <= pagination.page + 1)}
+                <Button
+                  variant={pagination.page === i + 1 ? "primary" : "outline"}
+                  size="sm"
+                  on:click={() => goToPage(i + 1, pagination.totalPages)}
+                >
+                  {i + 1}
+                </Button>
+              {:else if i + 1 === 2 || i + 1 === pagination.totalPages - 1}
+                <span
+                  class="inline-flex h-8 w-8 items-center justify-center text-gray-500 dark:text-gray-400"
+                  >...</span
+                >
+              {/if}
+            {/each}
+
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pagination.page === pagination.totalPages}
+              on:click={() => goToPage(pagination.page + 1, pagination.totalPages)}
+            >
+              <ArrowRight size={16} />
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
-  {/if}
-</div>
+    {/if}
+  </div>
+{:catch error}
+  <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-6 text-center">
+    <p class="text-red-600 dark:text-red-400">Failed to load applications. Please refresh the page.</p>
+  </div>
+{/await}

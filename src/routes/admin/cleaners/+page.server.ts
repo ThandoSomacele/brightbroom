@@ -8,19 +8,15 @@ import { redirect } from "@sveltejs/kit";
 import { desc, eq, like, or, sql } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ url, locals }) => {
-  // Verify admin role
-  if (!locals.user || locals.user.role !== "ADMIN") {
-    throw redirect(302, "/auth/login?redirectTo=/admin/cleaners");
-  }
-
-  // Get query parameters for filtering and pagination
-  const search = url.searchParams.get("search") || "";
-  const availability = url.searchParams.get("availability") || "";
-  const training = url.searchParams.get("training") || ""; // HOME, OFFICE, or NONE
-  const status = url.searchParams.get("status") || "";
-  const page = parseInt(url.searchParams.get("page") || "1");
-  const limit = 10; // Number of items per page
+// Helper function to fetch cleaners with filters
+async function getCleaners(
+  search: string,
+  availability: string,
+  training: string,
+  status: string,
+  page: number,
+  limit: number
+) {
   const offset = (page - 1) * limit;
 
   try {
@@ -120,13 +116,11 @@ export const load: PageServerLoad = async ({ url, locals }) => {
     // Apply training filter if provided (filter in-memory since it's an array field)
     if (training) {
       if (training === "NONE") {
-        // Filter for cleaners with no training completed
         cleaners = cleaners.filter((c) => {
           const trainingArr = c.cleanerProfile?.trainingCompleted || [];
           return trainingArr.length === 0;
         });
       } else {
-        // Filter for cleaners with specific training (HOME or OFFICE)
         cleaners = cleaners.filter((c) => {
           const trainingArr = c.cleanerProfile?.trainingCompleted || [];
           return trainingArr.includes(training);
@@ -146,12 +140,6 @@ export const load: PageServerLoad = async ({ url, locals }) => {
         total,
         totalPages,
       },
-      filters: {
-        search,
-        availability,
-        training,
-        status,
-      },
     };
   } catch (error) {
     console.error("Error loading cleaners:", error);
@@ -163,12 +151,36 @@ export const load: PageServerLoad = async ({ url, locals }) => {
         total: 0,
         totalPages: 0,
       },
-      filters: {
-        search,
-        availability,
-        training,
-        status,
-      },
     };
   }
+}
+
+export const load: PageServerLoad = async ({ url, locals }) => {
+  // Verify admin role
+  if (!locals.user || locals.user.role !== "ADMIN") {
+    throw redirect(302, "/auth/login?redirectTo=/admin/cleaners");
+  }
+
+  // Get query parameters for filtering and pagination
+  const search = url.searchParams.get("search") || "";
+  const availability = url.searchParams.get("availability") || "";
+  const training = url.searchParams.get("training") || "";
+  const status = url.searchParams.get("status") || "";
+  const page = parseInt(url.searchParams.get("page") || "1");
+  const limit = 10;
+
+  // Return filters immediately, stream the data
+  return {
+    filters: {
+      search,
+      availability,
+      training,
+      status,
+    },
+    currentPage: page,
+    // Stream the cleaners data
+    streamed: {
+      cleanersData: getCleaners(search, availability, training, status, page, limit),
+    },
+  };
 };

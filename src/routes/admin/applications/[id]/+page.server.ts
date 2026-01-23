@@ -11,6 +11,32 @@ import { error, fail } from "@sveltejs/kit";
 import { desc, eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
+// Helper function to fetch application data
+async function getApplicationData(applicationId: string) {
+  // Fetch the application details
+  const [application] = await db
+    .select()
+    .from(cleanerApplication)
+    .where(eq(cleanerApplication.id, applicationId))
+    .limit(1);
+
+  if (!application) {
+    throw error(404, "Application not found");
+  }
+
+  // Fetch notes for this application
+  const notes = await db
+    .select()
+    .from(applicationNote)
+    .where(eq(applicationNote.applicationId, applicationId))
+    .orderBy(desc(applicationNote.createdAt)); // Most recent first
+
+  return {
+    application,
+    notes,
+  };
+}
+
 export const load: PageServerLoad = async ({ params }) => {
   const applicationId = params.id;
 
@@ -18,33 +44,12 @@ export const load: PageServerLoad = async ({ params }) => {
     throw error(404, "Application not found");
   }
 
-  try {
-    // Fetch the application details
-    const [application] = await db
-      .select()
-      .from(cleanerApplication)
-      .where(eq(cleanerApplication.id, applicationId))
-      .limit(1);
-
-    if (!application) {
-      throw error(404, "Application not found");
-    }
-
-    // Fetch notes for this application
-    const notes = await db
-      .select()
-      .from(applicationNote)
-      .where(eq(applicationNote.applicationId, applicationId))
-      .orderBy(desc(applicationNote.createdAt)); // Most recent first
-
-    return {
-      application,
-      notes,
-    };
-  } catch (err) {
-    console.error("Error loading application details:", err);
-    throw error(500, "Error loading application details");
-  }
+  return {
+    applicationId,
+    streamed: {
+      applicationData: getApplicationData(applicationId),
+    },
+  };
 };
 
 export const actions: Actions = {

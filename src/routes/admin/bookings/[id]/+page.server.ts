@@ -19,21 +19,10 @@ import { error, fail, redirect } from "@sveltejs/kit";
 import { and, desc, eq, sql } from "drizzle-orm"; // Added sql import
 import type { Actions, PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ params, locals }) => {
-  const bookingId = params.id;
-
-  // Make sure the current user is an admin
-  if (!locals.user || locals.user.role !== "ADMIN") {
-    throw redirect(302, "/auth/login?redirectTo=/admin");
-  }
-
-  if (!bookingId) {
-    throw error(404, "Booking not found");
-  }
-
-  try {
-    // Step 1: Fetch the basic booking information
-    const bookingResult = await db
+// Helper function to fetch all booking data
+async function getBookingData(bookingId: string) {
+  // Step 1: Fetch the basic booking information
+  const bookingResult = await db
       .select({
         id: booking.id,
         status: booking.status,
@@ -229,10 +218,26 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       communicationLog: communications,
       relatedBookings,
     };
-  } catch (err) {
-    console.error("Error loading booking details:", err);
-    throw error(500, "Error loading booking details");
+}
+
+export const load: PageServerLoad = async ({ params, locals }) => {
+  const bookingId = params.id;
+
+  // Make sure the current user is an admin
+  if (!locals.user || locals.user.role !== "ADMIN") {
+    throw redirect(302, "/auth/login?redirectTo=/admin");
   }
+
+  if (!bookingId) {
+    throw error(404, "Booking not found");
+  }
+
+  return {
+    bookingId,
+    streamed: {
+      bookingData: getBookingData(bookingId),
+    },
+  };
 };
 
 export const actions: Actions = {

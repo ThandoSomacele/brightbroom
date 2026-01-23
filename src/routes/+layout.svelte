@@ -6,8 +6,7 @@
   import CookieConsentBanner from "$lib/components/CookieConsentBanner.svelte";
   import ErrorBoundary from "$lib/components/ErrorBoundary.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import LoadingIndicator from "$lib/components/ui/LoadingIndicator.svelte";
-  import { performanceMonitor } from "$lib/utils/performance";
+    import { performanceMonitor } from "$lib/utils/performance";
   import posthog from "posthog-js";
   import { onMount } from "svelte";
   import "../app.css";
@@ -86,8 +85,6 @@
 >
 <!-- End Google Tag Manager (noscript) -->
 
-<!-- Global loading indicator for page navigation -->
-<LoadingIndicator />
 
 <!-- Skip link for accessibility -->
 <a

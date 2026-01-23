@@ -5,39 +5,37 @@ import { error, fail } from "@sveltejs/kit";
 import { desc, eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
-/**
- * Server load function that fetches all available services
- * This function runs on the server when the page is requested
- */
+// Helper function to fetch services
+async function getServices() {
+  try {
+    const services = await db
+      .select()
+      .from(service)
+      .orderBy(desc(service.createdAt));
+    return services;
+  } catch (err) {
+    console.error("Error loading services:", err);
+    return [];
+  }
+}
+
 export const load: PageServerLoad = async ({ locals }) => {
   // Check if user is authenticated and is an admin
   if (!locals.user || locals.user.role !== "ADMIN") {
     throw error(403, "Unauthorized");
   }
 
-  try {
-    // Fetch all services from the database, ordered by creation date
-    const services = await db
-      .select()
-      .from(service)
-      .orderBy(desc(service.createdAt));
-
-    return {
-      services,
-    };
-  } catch (err) {
-    console.error("Error loading services:", err);
-    throw error(500, "Failed to load services");
-  }
+  // Return streamed data
+  return {
+    streamed: {
+      services: getServices(),
+    },
+  };
 };
 
-/**
- * Form actions to handle service creation, updates, and deletion
- */
 export const actions: Actions = {
   // Create a new service
   create: async ({ request, locals }) => {
-    // Check if user is authenticated and is an admin
     if (!locals.user || locals.user.role !== "ADMIN") {
       return fail(403, { error: "Unauthorized" });
     }
@@ -48,7 +46,6 @@ export const actions: Actions = {
     const basePrice = formData.get("basePrice")?.toString();
     const durationHours = formData.get("durationHours")?.toString();
 
-    // Validate the form data
     if (!name || !description || !basePrice || !durationHours) {
       return fail(400, {
         error: "All fields are required",
@@ -57,7 +54,6 @@ export const actions: Actions = {
     }
 
     try {
-      // Parse numeric values
       const parsedBasePrice = parseFloat(basePrice);
       const parsedDurationHours = parseInt(durationHours);
 
@@ -68,7 +64,6 @@ export const actions: Actions = {
         });
       }
 
-      // Create a new service record
       await db.insert(service).values({
         id: crypto.randomUUID(),
         name,
@@ -94,7 +89,6 @@ export const actions: Actions = {
 
   // Update an existing service
   update: async ({ request, locals }) => {
-    // Check if user is authenticated and is an admin
     if (!locals.user || locals.user.role !== "ADMIN") {
       return fail(403, { error: "Unauthorized" });
     }
@@ -106,7 +100,6 @@ export const actions: Actions = {
     const basePrice = formData.get("basePrice")?.toString();
     const durationHours = formData.get("durationHours")?.toString();
 
-    // Validate the form data
     if (!id || !name || !description || !basePrice || !durationHours) {
       return fail(400, {
         error: "All fields are required",
@@ -115,7 +108,6 @@ export const actions: Actions = {
     }
 
     try {
-      // Parse numeric values
       const parsedBasePrice = parseFloat(basePrice);
       const parsedDurationHours = parseInt(durationHours);
 
@@ -126,7 +118,6 @@ export const actions: Actions = {
         });
       }
 
-      // Update the service record
       await db
         .update(service)
         .set({
@@ -153,7 +144,6 @@ export const actions: Actions = {
 
   // Delete a service
   delete: async ({ request, locals }) => {
-    // Check if user is authenticated and is an admin
     if (!locals.user || locals.user.role !== "ADMIN") {
       return fail(403, { error: "Unauthorized" });
     }
@@ -166,7 +156,6 @@ export const actions: Actions = {
     }
 
     try {
-      // Delete the service record
       await db.delete(service).where(eq(service.id, id));
 
       return {

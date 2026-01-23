@@ -5,6 +5,7 @@
   import AutoAssignCleanerButton from "$lib/components/admin/AutoAssignCleanerButton.svelte";
   import CleanerAssignmentDialog from "$lib/components/admin/CleanerAssignmentDialog.svelte";
   import Button from "$lib/components/ui/Button.svelte";
+  import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
   import { calculatePayout } from "$lib/utils/payout-calculator";
   import {
     AlertTriangle,
@@ -26,13 +27,30 @@
   export let data;
   export let form;
 
-  const {
-    booking,
-    availableCleaners,
-    communicationLog,
-    adminNotes,
-    relatedBookings,
-  } = data;
+  // Data will be loaded from streamed promise
+  let booking: any = null;
+  let availableCleaners: any[] = [];
+  let communicationLog: any[] = [];
+  let adminNotes: any[] = [];
+  let relatedBookings: any[] = [];
+  let dataLoaded = false;
+
+  // Load streamed data
+  $: if (data.streamed?.bookingData) {
+    data.streamed.bookingData.then((d: any) => {
+      booking = d.booking;
+      availableCleaners = d.availableCleaners;
+      communicationLog = d.communicationLog;
+      adminNotes = d.adminNotes;
+      relatedBookings = d.relatedBookings;
+      selectedStatus = d.booking.status;
+      selectedCleaner = d.booking.cleaner?.id || "";
+      dataLoaded = true;
+    }).catch((err: Error) => {
+      console.error("Error loading booking data:", err);
+      dataLoaded = true;
+    });
+  }
 
   // Local state
   let showStatusChangeModal = false;
@@ -40,8 +58,8 @@
   let showAddNoteModal = false;
   let showAddCommentModal = false;
   let showCleanerChangeNotifyModal = false;
-  let selectedStatus = booking.status;
-  let selectedCleaner = booking.cleaner?.id || "";
+  let selectedStatus = "";
+  let selectedCleaner = "";
   let isUpdateLoading = false;
   let isSendingNotification = false;
   let newNote = "";
@@ -50,13 +68,13 @@
   let originalCleanerLastName = "";
 
   // Calculate estimated payout (used when payment is not yet completed)
-  $: estimatedPayout = calculatePayout(
+  $: estimatedPayout = booking ? calculatePayout(
     Number(booking.price),
     booking.payment?.paymentMethod || "CREDIT_CARD"
-  );
+  ) : { totalFees: 0, platformCommission: 0, cleanerPayout: 0 };
 
   // Determine if we have actual payment data or using estimates
-  $: hasCompletedPayment = booking.payment?.status === "COMPLETED";
+  $: hasCompletedPayment = booking?.payment?.status === "COMPLETED";
 
   // Format date function
   function formatDate(dateString: string): string {
@@ -257,20 +275,27 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<!-- Page header with back button -->
-<div class="mb-6 flex items-center">
-  <a
-    href="/admin/bookings"
-    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 mr-3"
-  >
-    <ChevronLeft size={20} />
-  </a>
-  <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-    Booking Details
-  </h1>
-</div>
+{#if !dataLoaded}
+  <DetailPageSkeleton variant="booking" />
+{:else if !booking}
+  <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-6 text-center">
+    <p class="text-red-600 dark:text-red-400">Failed to load booking details. Please refresh the page.</p>
+  </div>
+{:else}
+  <!-- Page header with back button -->
+  <div class="mb-6 flex items-center">
+    <a
+      href="/admin/bookings"
+      class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 mr-3"
+    >
+      <ChevronLeft size={20} />
+    </a>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+      Booking Details
+    </h1>
+  </div>
 
-<!-- Status message if form action was performed -->
+  <!-- Status message if form action was performed -->
 {#if form?.success}
   <div
     class="mb-6 bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300 p-4 rounded-md"
@@ -1502,4 +1527,5 @@
       </form>
     </div>
   </div>
+{/if}
 {/if}

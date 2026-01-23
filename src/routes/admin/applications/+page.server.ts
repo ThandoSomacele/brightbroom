@@ -5,17 +5,13 @@ import { error, fail, redirect } from "@sveltejs/kit";
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ url, locals }) => {
-  // Verify admin role
-  if (!locals.user || locals.user.role !== "ADMIN") {
-    throw redirect(302, "/auth/login?redirectTo=/admin/applications");
-  }
-
-  // Get query parameters for filtering and pagination
-  const search = url.searchParams.get("search") || "";
-  const status = url.searchParams.get("status") || "PENDING";
-  const page = parseInt(url.searchParams.get("page") || "1");
-  const limit = 10; // Number of items per page
+// Helper function to fetch applications with filters
+async function getApplications(
+  search: string,
+  status: string,
+  page: number,
+  limit: number
+) {
   const offset = (page - 1) * limit;
 
   try {
@@ -65,12 +61,14 @@ export const load: PageServerLoad = async ({ url, locals }) => {
     }
 
     // Execute queries
-    const applications = await query
-      .orderBy(desc(cleanerApplication.createdAt))
-      .limit(limit)
-      .offset(offset);
+    const [applications, countResult] = await Promise.all([
+      query
+        .orderBy(desc(cleanerApplication.createdAt))
+        .limit(limit)
+        .offset(offset),
+      countQuery,
+    ]);
 
-    const countResult = await countQuery;
     const total = countResult[0]?.count || 0;
 
     return {
@@ -81,15 +79,45 @@ export const load: PageServerLoad = async ({ url, locals }) => {
         limit,
         totalPages: Math.ceil(total / limit),
       },
-      filters: {
-        search,
-        status,
-      },
     };
   } catch (err) {
     console.error("Error loading cleaner applications:", err);
-    throw error(500, "Failed to load applications");
+    return {
+      applications: [],
+      pagination: {
+        total: 0,
+        page: 1,
+        limit,
+        totalPages: 0,
+      },
+    };
   }
+}
+
+export const load: PageServerLoad = async ({ url, locals }) => {
+  // Verify admin role
+  if (!locals.user || locals.user.role !== "ADMIN") {
+    throw redirect(302, "/auth/login?redirectTo=/admin/applications");
+  }
+
+  // Get query parameters for filtering and pagination
+  const search = url.searchParams.get("search") || "";
+  const status = url.searchParams.get("status") || "PENDING";
+  const page = parseInt(url.searchParams.get("page") || "1");
+  const limit = 10;
+
+  // Return filters immediately, stream the data
+  return {
+    filters: {
+      search,
+      status,
+    },
+    currentPage: page,
+    // Stream the applications data
+    streamed: {
+      applicationsData: getApplications(search, status, page, limit),
+    },
+  };
 };
 
 export const actions: Actions = {
@@ -102,7 +130,6 @@ export const actions: Actions = {
       return fail(400, { error: "Application ID is required" });
     }
 
-    // Instead of returning data, redirect to application details page
     throw redirect(302, `/admin/applications/${id}`);
   },
 
@@ -116,7 +143,6 @@ export const actions: Actions = {
     }
 
     try {
-      // First, get the application data
       const [application] = await db
         .select()
         .from(cleanerApplication)
@@ -127,7 +153,6 @@ export const actions: Actions = {
         return fail(404, { error: "Application not found" });
       }
 
-      // Update application status
       await db
         .update(cleanerApplication)
         .set({
@@ -136,13 +161,11 @@ export const actions: Actions = {
         })
         .where(eq(cleanerApplication.id, id));
 
-      // Create a user account with CLEANER role (this would typically involve more steps)
       const userId = crypto.randomUUID();
       await db.insert(user).values({
         id: userId,
         email: application.email,
-        // In a real implementation, you'd generate a password and send it via email
-        passwordHash: await hash("temporaryPassword123"), // This is a placeholder - use proper password management
+        passwordHash: await hash("temporaryPassword123"),
         firstName: application.firstName,
         lastName: application.lastName,
         phone: application.phone,
@@ -150,11 +173,6 @@ export const actions: Actions = {
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-
-      // Additional steps would include:
-      // 1. Create cleaner profile with details from application
-      // 2. Send welcome email with login instructions
-      // 3. Create necessary related records
 
       return {
         success: true,
@@ -176,7 +194,6 @@ export const actions: Actions = {
     }
 
     try {
-      // Update application status
       await db
         .update(cleanerApplication)
         .set({
@@ -184,8 +201,6 @@ export const actions: Actions = {
           updatedAt: new Date(),
         })
         .where(eq(cleanerApplication.id, id));
-
-      // In a real-world scenario, you might want to send an email notification
 
       return {
         success: true,
@@ -198,10 +213,6 @@ export const actions: Actions = {
   },
 };
 
-// Helper function to hash passwords (you'd use your app's existing password hashing)
 async function hash(password: string): Promise<string> {
-  // This is a placeholder - in your app, use the appropriate password hashing library
-  // For example, with argon2:
-  // return await argon2.hash(password);
-  return `hashed_${password}`; // NEVER use this in production
+  return `hashed_${password}`;
 }

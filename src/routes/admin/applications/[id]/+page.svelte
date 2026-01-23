@@ -6,6 +6,7 @@
   import ApplicationApprovalActions from "$lib/components/admin/ApplicationApprovalActions.svelte";
   import ApplicationEditForm from "$lib/components/admin/ApplicationEditForm.svelte";
   import Button from "$lib/components/ui/Button.svelte";
+  import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
   import { isWithinServiceArea } from "$lib/utils/serviceAreaValidator";
   import {
     ArrowLeft,
@@ -22,7 +23,6 @@
   } from "lucide-svelte";
 
   export let data;
-  const { application, notes } = data;
 
   let isProcessing = false;
   let isEditing = false;
@@ -151,6 +151,12 @@
 <svelte:head>
   <title>Application Details | BrightBroom Admin</title>
 </svelte:head>
+
+{#await data.streamed.applicationData}
+  <DetailPageSkeleton variant="application" />
+{:then applicationData}
+  {@const application = applicationData.application}
+  {@const notes = applicationData.notes}
 
 <!-- Page header with back button -->
 <div class="mb-6 flex items-center">
@@ -772,3 +778,9 @@
     </div>
   </div>
 {/if}
+
+{:catch error}
+  <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-6 text-center">
+    <p class="text-red-600 dark:text-red-400">Failed to load application details. Please refresh the page.</p>
+  </div>
+{/await}

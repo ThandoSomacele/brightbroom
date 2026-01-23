@@ -10,7 +10,8 @@ import { fail } from "@sveltejs/kit";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async () => {
+// Helper function to get payout data
+async function getPayoutData() {
   try {
     // Step 1: Get all active cleaners with profiles
     const cleaners = await db
@@ -121,8 +122,26 @@ export const load: PageServerLoad = async () => {
     };
   } catch (err) {
     console.error("Error loading payout data:", err);
-    throw new Error("Failed to load payout data");
+    return {
+      cleaners: [],
+      recentPayouts: [],
+      totals: {
+        eftTotal: 0,
+        eftCount: 0,
+        instantMoneyTotal: 0,
+        instantMoneyCount: 0,
+      },
+    };
   }
+}
+
+export const load: PageServerLoad = async () => {
+  // Return streamed data
+  return {
+    streamed: {
+      payoutData: getPayoutData(),
+    },
+  };
 };
 
 export const actions: Actions = {
@@ -151,9 +170,7 @@ export const actions: Actions = {
       const now = new Date();
       let totalProcessed = 0;
 
-      // Process each cleaner
       for (const cleanerId of cleanerIds) {
-        // Get all unpaid completed payments for this cleaner
         const unpaidPayments = await db
           .select({
             paymentId: payment.id,
@@ -170,7 +187,6 @@ export const actions: Actions = {
 
         if (unpaidPayments.length === 0) continue;
 
-        // Mark all payments as paid to provider
         const paymentIds = unpaidPayments.map((p) => p.paymentId);
         await db
           .update(payment)

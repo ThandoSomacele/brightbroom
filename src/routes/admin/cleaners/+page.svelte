@@ -1,11 +1,12 @@
 <!-- src/routes/admin/cleaners/+page.svelte -->
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
+  import { TableSkeleton } from "$lib/components/ui/skeletons";
   import { parseDateTimeString } from "$lib/utils/date-utils.js";
-  import { Download, Map, PlusCircle, Star, User } from "lucide-svelte";
+  import { ArrowLeft, ArrowRight, Download, Map, PlusCircle, Star, User } from "lucide-svelte";
 
   export let data;
-  let { cleaners, pagination, filters } = data;
+  let { filters } = data;
 
   // Local state for filters
   let searchTerm = filters.search || "";
@@ -50,11 +51,9 @@
   function formatRating(rating: number | null | string | undefined): string {
     if (rating === null || rating === undefined) return "Not rated";
 
-    // Convert to number if it's not already
     const numericRating =
       typeof rating === "number" ? rating : parseFloat(String(rating));
 
-    // Check if it's a valid number after conversion
     if (isNaN(numericRating)) return "Not rated";
 
     return `${numericRating.toFixed(1)} / 5.0`;
@@ -72,12 +71,6 @@
     if (statusFilter && statusFilter !== "ALL")
       searchParams.set("status", statusFilter);
 
-    // Add current page if it's not the first page
-    if (pagination.page > 1) {
-      searchParams.set("page", pagination.page.toString());
-    }
-
-    // Navigate to the same page with filters applied
     const url = searchParams.toString() ? `?${searchParams.toString()}` : "";
     window.location.href = `/admin/cleaners${url}`;
   }
@@ -92,8 +85,8 @@
   }
 
   // Navigate to a specific page
-  function goToPage(page: number) {
-    if (page < 1 || page > pagination.totalPages) return;
+  function goToPage(page: number, totalPages: number) {
+    if (page < 1 || page > totalPages) return;
 
     const searchParams = new URLSearchParams(window.location.search);
     searchParams.set("page", page.toString());
@@ -108,7 +101,6 @@
   // Export cleaners as CSV
   function exportCleaners() {
     alert("Export functionality would be implemented here");
-    // In a real application, this would trigger a server request to generate and download a CSV
   }
 </script>
 
@@ -133,10 +125,17 @@
   </div>
 </div>
 
+<!-- Filters toggle -->
+<div class="mb-4">
+  <Button variant="outline" on:click={() => (showFilters = !showFilters)}>
+    {showFilters ? "Hide Filters" : "Show Filters"}
+  </Button>
+</div>
+
 <!-- Filters and search -->
 {#if showFilters}
   <div
-    class="mt-4 grid grid-cols-1 gap-4 border-t border-gray-200 pt-4 dark:border-gray-700 sm:grid-cols-2 lg:grid-cols-4"
+    class="mb-6 grid grid-cols-1 gap-4 rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:grid-cols-2 lg:grid-cols-4"
   >
     <div>
       <label
@@ -192,209 +191,284 @@
       </select>
     </div>
 
-    <div class="flex items-end">
+    <div class="flex items-end gap-2">
+      <Button variant="primary" on:click={applyFilters}>Apply</Button>
       <button
         type="button"
         on:click={resetFilters}
         class="text-sm text-primary hover:text-primary-600 hover:underline focus:outline-none"
       >
-        Reset Filters
+        Reset
       </button>
     </div>
   </div>
 {/if}
 
-<!-- Cleaners table -->
-<div class="mb-6 overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-  <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-      <thead class="bg-gray-50 dark:bg-gray-700">
-        <tr>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
-          >
-            Cleaner
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
-          >
-            Contact
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
-          >
-            Training
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
-          >
-            Rating
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
-          >
-            Availability
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
-          >
-            Actions
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
-          >
-            Status
-          </th>
-        </tr>
-      </thead>
-      <tbody
-        class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"
-      >
-        {#if cleaners.length === 0}
+<!-- Cleaners table with streaming -->
+{#await data.streamed.cleanersData}
+  <TableSkeleton rows={10} columns={7} />
+{:then cleanersData}
+  {@const cleaners = cleanersData.cleaners}
+  {@const pagination = cleanersData.pagination}
+
+  <div class="mb-6 overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-700">
           <tr>
-            <td
-              colspan="7"
-              class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
             >
-              No cleaners found
-            </td>
+              Cleaner
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+            >
+              Contact
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+            >
+              Training
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+            >
+              Rating
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+            >
+              Availability
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+            >
+              Status
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+            >
+              Actions
+            </th>
           </tr>
-        {:else}
-          {#each cleaners as cleaner}
-            <tr
-              class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              <td class="whitespace-nowrap px-6 py-4">
-                <div class="flex items-center">
-                  <div
-                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700"
-                  >
-                    {#if cleaner.cleanerProfile?.profileImageUrl}
-                      <img
-                        src={cleaner.cleanerProfile?.profileImageUrl}
-                        alt="{cleaner.firstName} {cleaner.lastName}"
-                        class="h-full w-full object-cover"
-                      />
+        </thead>
+        <tbody
+          class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"
+        >
+          {#if cleaners.length === 0}
+            <tr>
+              <td
+                colspan="7"
+                class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+              >
+                No cleaners found
+              </td>
+            </tr>
+          {:else}
+            {#each cleaners as cleaner}
+              <tr
+                class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                on:click={() => viewCleanerDetails(cleaner.id)}
+                role="link"
+                tabindex="0"
+                on:keydown={(e) => e.key === 'Enter' && viewCleanerDetails(cleaner.id)}
+              >
+                <td class="whitespace-nowrap px-6 py-4">
+                  <div class="flex items-center">
+                    <div
+                      class="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700"
+                    >
+                      {#if cleaner.cleanerProfile?.profileImageUrl}
+                        <img
+                          src={cleaner.cleanerProfile?.profileImageUrl}
+                          alt="{cleaner.firstName} {cleaner.lastName}"
+                          class="h-full w-full object-cover"
+                        />
+                      {:else}
+                        <User
+                          size={20}
+                          class="text-gray-500 dark:text-gray-400"
+                        />
+                      {/if}
+                    </div>
+                    <div class="ml-4">
+                      <div
+                        class="text-sm font-medium text-gray-900 dark:text-white"
+                      >
+                        {cleaner.firstName}
+                        {cleaner.lastName}
+                      </div>
+                      <div class="text-sm text-gray-500 dark:text-gray-400">
+                        ID: {cleaner.id.substring(0, 8)}...
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4">
+                  <div class="text-sm text-gray-900 dark:text-white">
+                    {cleaner.email}
+                  </div>
+                  {#if cleaner.phone}
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                      {cleaner.phone}
+                    </div>
+                  {/if}
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex flex-wrap gap-1">
+                    {#if cleaner.cleanerProfile?.trainingCompleted && cleaner.cleanerProfile.trainingCompleted.length > 0}
+                      {#each cleaner.cleanerProfile.trainingCompleted as training}
+                        <span
+                          class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {training === 'HOME' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300'}"
+                        >
+                          {training === 'HOME' ? 'Home' : 'Office'}
+                        </span>
+                      {/each}
                     {:else}
-                      <User
-                        size={20}
-                        class="text-gray-500 dark:text-gray-400"
-                      />
+                      <span
+                        class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+                      >
+                        Needs Training
+                      </span>
                     {/if}
                   </div>
-                  <div class="ml-4">
-                    <div
-                      class="text-sm font-medium text-gray-900 dark:text-white"
+                </td>
+                <td class="whitespace-nowrap px-6 py-4">
+                  <div class="flex items-center">
+                    <Star size={16} class="mr-1 text-yellow-400" />
+                    <span class="text-sm text-gray-900 dark:text-white">
+                      {formatRating(cleaner.cleanerProfile?.rating)}
+                    </span>
+                  </div>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4">
+                  {#if cleaner.cleanerProfile?.isAvailable}
+                    <span
+                      class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
                     >
-                      {cleaner.firstName}
-                      {cleaner.lastName}
-                    </div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                      ID: {cleaner.id.substring(0, 8)}...
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td class="whitespace-nowrap px-6 py-4">
-                <div class="text-sm text-gray-900 dark:text-white">
-                  {cleaner.email}
-                </div>
-                {#if cleaner.phone}
-                  <div class="text-sm text-gray-500 dark:text-gray-400">
-                    {cleaner.phone}
-                  </div>
-                {/if}
-              </td>
-              <td class="px-6 py-4">
-                <div class="flex flex-wrap gap-1">
-                  {#if cleaner.cleanerProfile?.trainingCompleted && cleaner.cleanerProfile.trainingCompleted.length > 0}
-                    {#each cleaner.cleanerProfile.trainingCompleted as training}
-                      <span
-                        class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {training === 'HOME' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300'}"
-                      >
-                        {training === 'HOME' ? 'Home' : 'Office'}
-                      </span>
-                    {/each}
+                      Available
+                    </span>
                   {:else}
+                    <span
+                      class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/20 dark:text-red-300"
+                    >
+                      Unavailable
+                    </span>
+                  {/if}
+                  {#if cleaner.cleanerProfile?.workRadius}
+                    <div
+                      class="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-400"
+                    >
+                      <Map size={12} class="mr-1" />
+                      {cleaner.cleanerProfile.workRadius} km radius
+                    </div>
+                  {/if}
+                </td>
+                <td class="whitespace-nowrap px-6 py-4">
+                  {#if cleaner.isActive === false}
                     <span
                       class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
                     >
-                      Needs Training
+                      Inactive
+                    </span>
+                  {:else}
+                    <span
+                      class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                    >
+                      Active
                     </span>
                   {/if}
-                </div>
-              </td>
-              <td class="whitespace-nowrap px-6 py-4">
-                <div class="flex items-center">
-                  <Star size={16} class="mr-1 text-yellow-400" />
-                  <span class="text-sm text-gray-900 dark:text-white">
-                    {formatRating(cleaner.cleanerProfile?.rating)}
-                  </span>
-                </div>
-              </td>
-              <td class="whitespace-nowrap px-6 py-4">
-                {#if cleaner.cleanerProfile?.isAvailable}
-                  <span
-                    class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
-                  >
-                    Available
-                  </span>
-                {:else}
-                  <span
-                    class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/20 dark:text-red-300"
-                  >
-                    Unavailable
-                  </span>
-                {/if}
-                {#if cleaner.cleanerProfile?.workRadius}
-                  <div
-                    class="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-400"
-                  >
-                    <Map size={12} class="mr-1" />
-                    {cleaner.cleanerProfile.workRadius} km radius
-                  </div>
-                {/if}
-              </td>
-              <td
-                class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium"
-              >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  on:click={() => viewCleanerDetails(cleaner.id)}
-                  class="text-primary hover:text-primary-600"
+                </td>
+                <td
+                  class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium"
+                  on:click|stopPropagation
                 >
-                  View
-                </Button>
-              </td>
-              <td class="whitespace-nowrap px-6 py-4">
-                {#if cleaner.isActive === false}
-                  <span
-                    class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    on:click={() => viewCleanerDetails(cleaner.id)}
+                    class="text-primary hover:text-primary-600"
                   >
-                    Inactive
-                  </span>
-                {:else}
-                  <span
-                    class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
-                  >
-                    Active
-                  </span>
-                {/if}
-              </td>
-            </tr>
-          {/each}
-        {/if}
-      </tbody>
-    </table>
-  </div>
+                    View
+                  </Button>
+                </td>
+              </tr>
+            {/each}
+          {/if}
+        </tbody>
+      </table>
+    </div>
 
-  <!-- Pagination controls here... -->
-</div>
+    <!-- Pagination -->
+    {#if pagination.totalPages > 1}
+      <div
+        class="px-6 py-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700"
+      >
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-700 dark:text-gray-300">
+            Showing <span class="font-medium"
+              >{(pagination.page - 1) * pagination.limit + 1}</span
+            >
+            to
+            <span class="font-medium"
+              >{Math.min(
+                pagination.page * pagination.limit,
+                pagination.total,
+              )}</span
+            >
+            of <span class="font-medium">{pagination.total}</span> cleaners
+          </div>
+
+          <div class="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pagination.page === 1}
+              on:click={() => goToPage(pagination.page - 1, pagination.totalPages)}
+            >
+              <ArrowLeft size={16} />
+            </Button>
+
+            {#each Array(pagination.totalPages) as _, i}
+              {#if pagination.totalPages <= 7 || i + 1 === 1 || i + 1 === pagination.totalPages || (i + 1 >= pagination.page - 1 && i + 1 <= pagination.page + 1)}
+                <Button
+                  variant={pagination.page === i + 1 ? "primary" : "outline"}
+                  size="sm"
+                  on:click={() => goToPage(i + 1, pagination.totalPages)}
+                >
+                  {i + 1}
+                </Button>
+              {:else if i + 1 === 2 || i + 1 === pagination.totalPages - 1}
+                <span
+                  class="inline-flex items-center justify-center w-8 h-8 text-gray-500 dark:text-gray-400"
+                  >...</span
+                >
+              {/if}
+            {/each}
+
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pagination.page === pagination.totalPages}
+              on:click={() => goToPage(pagination.page + 1, pagination.totalPages)}
+            >
+              <ArrowRight size={16} />
+            </Button>
+          </div>
+        </div>
+      </div>
+    {/if}
+  </div>
+{:catch error}
+  <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-6 text-center">
+    <p class="text-red-600 dark:text-red-400">Failed to load cleaners. Please refresh the page.</p>
+  </div>
+{/await}

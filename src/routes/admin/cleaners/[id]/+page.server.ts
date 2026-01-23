@@ -11,6 +11,68 @@ import { error, fail } from "@sveltejs/kit";
 import { and, desc, eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
+// Helper function to fetch cleaner data
+async function getCleanerData(cleanerId: string) {
+  // Fetch the cleaner with profile data
+  const userResults = await db
+    .select()
+    .from(user)
+    .where(and(eq(user.id, cleanerId), eq(user.role, "CLEANER")))
+    .limit(1);
+
+  if (userResults.length === 0) {
+    throw error(404, "Cleaner not found");
+  }
+
+  const cleanerData = userResults[0];
+
+  // Fetch cleaner profile
+  const profileResults = await db
+    .select()
+    .from(cleanerProfile)
+    .where(eq(cleanerProfile.userId, cleanerId))
+    .limit(1);
+
+  const profile = profileResults.length > 0 ? profileResults[0] : null;
+
+  // Fetch recent bookings
+  const recentBookings = await db
+    .select({
+      id: booking.id,
+      status: booking.status,
+      scheduledDate: booking.scheduledDate,
+      customer: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    })
+    .from(booking)
+    .innerJoin(user, eq(booking.userId, user.id))
+    .where(eq(booking.cleanerId, cleanerId))
+    .orderBy(desc(booking.scheduledDate))
+    .limit(5);
+
+  // Fetch earnings data
+  const earningsData =
+    await cleanerEarningsService.getCleanerEarningsSummary(cleanerId);
+
+  // Fetch upcoming/potential earnings
+  const upcomingEarningsData =
+    await cleanerEarningsService.getUpcomingEarnings(cleanerId);
+
+  // Combine data
+  return {
+    cleaner: {
+      ...cleanerData,
+      cleanerProfile: profile,
+    },
+    bookings: recentBookings,
+    earnings: earningsData,
+    upcomingEarnings: upcomingEarningsData,
+  };
+}
+
 export const load: PageServerLoad = async ({ params }) => {
   const cleanerId = params.id;
 
@@ -18,69 +80,12 @@ export const load: PageServerLoad = async ({ params }) => {
     throw error(404, "Cleaner not found");
   }
 
-  try {
-    // Fetch the cleaner with profile data
-    const userResults = await db
-      .select()
-      .from(user)
-      .where(and(eq(user.id, cleanerId), eq(user.role, "CLEANER")))
-      .limit(1);
-
-    if (userResults.length === 0) {
-      throw error(404, "Cleaner not found");
-    }
-
-    const cleanerData = userResults[0];
-
-    // Fetch cleaner profile
-    const profileResults = await db
-      .select()
-      .from(cleanerProfile)
-      .where(eq(cleanerProfile.userId, cleanerId))
-      .limit(1);
-
-    const profile = profileResults.length > 0 ? profileResults[0] : null;
-
-    // Fetch recent bookings
-    const recentBookings = await db
-      .select({
-        id: booking.id,
-        status: booking.status,
-        scheduledDate: booking.scheduledDate,
-        customer: {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-        },
-      })
-      .from(booking)
-      .innerJoin(user, eq(booking.userId, user.id))
-      .where(eq(booking.cleanerId, cleanerId))
-      .orderBy(desc(booking.scheduledDate))
-      .limit(5);
-
-    // Fetch earnings data
-    const earningsData =
-      await cleanerEarningsService.getCleanerEarningsSummary(cleanerId);
-
-    // Fetch upcoming/potential earnings
-    const upcomingEarningsData =
-      await cleanerEarningsService.getUpcomingEarnings(cleanerId);
-
-    // Combine data
-    return {
-      cleaner: {
-        ...cleanerData,
-        cleanerProfile: profile,
-      },
-      bookings: recentBookings,
-      earnings: earningsData,
-      upcomingEarnings: upcomingEarningsData,
-    };
-  } catch (err) {
-    console.error("Error loading cleaner details:", err);
-    throw error(500, "Error loading cleaner details");
-  }
+  return {
+    cleanerId,
+    streamed: {
+      cleanerData: getCleanerData(cleanerId),
+    },
+  };
 };
 
 export const actions: Actions = {

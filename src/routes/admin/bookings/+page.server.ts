@@ -5,16 +5,17 @@ import { eq, and, gte, lte, like, or, desc } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ url }) => {
-  // Get search and filter parameters
-  const search = url.searchParams.get('search') || '';
-  const status = url.searchParams.get('status') || '';
-  const dateStart = url.searchParams.get('dateStart') || '';
-  const dateEnd = url.searchParams.get('dateEnd') || '';
-  const page = parseInt(url.searchParams.get('page') || '1');
-  const limit = 10; // Number of items per page
+// Helper function to fetch bookings with all filters
+async function getBookings(
+  search: string,
+  status: string,
+  dateStart: string,
+  dateEnd: string,
+  page: number,
+  limit: number
+) {
   const offset = (page - 1) * limit;
-  
+
   try {
     // Build the query with filters
     let query = db.select({
@@ -42,7 +43,7 @@ export const load: PageServerLoad = async ({ url }) => {
     .innerJoin(user, eq(booking.userId, user.id))
     .innerJoin(address, eq(booking.addressId, address.id))
     .leftJoin(payment, eq(booking.id, payment.bookingId));
-    
+
     // Apply search filter
     if (search) {
       query = query.where(
@@ -55,24 +56,24 @@ export const load: PageServerLoad = async ({ url }) => {
         )
       );
     }
-    
+
     // Apply status filter
     if (status && status !== 'ALL') {
       query = query.where(eq(booking.status, status));
     }
-    
+
     // Apply date range filters
     if (dateStart) {
       const startDate = new Date(dateStart);
       query = query.where(gte(booking.scheduledDate, startDate));
     }
-    
+
     if (dateEnd) {
       const endDate = new Date(dateEnd);
-      endDate.setHours(23, 59, 59, 999); // End of the day
+      endDate.setHours(23, 59, 59, 999);
       query = query.where(lte(booking.scheduledDate, endDate));
     }
-    
+
     // Clone the query for counting total
     const countQuery = db.select({
       count: sql<number>`count(*)`.mapWith(Number)
@@ -93,44 +94,34 @@ export const load: PageServerLoad = async ({ url }) => {
         )
       );
     }
-    
+
     if (status && status !== 'ALL') {
       countQuery.where(eq(booking.status, status));
     }
-    
+
     if (dateStart) {
       const startDate = new Date(dateStart);
       countQuery.where(gte(booking.scheduledDate, startDate));
     }
-    
+
     if (dateEnd) {
       const endDate = new Date(dateEnd);
-      endDate.setHours(23, 59, 59, 999); // End of the day
+      endDate.setHours(23, 59, 59, 999);
       countQuery.where(lte(booking.scheduledDate, endDate));
     }
-    
+
     // Execute both queries
     const [bookings, countResult] = await Promise.all([
       query
-        .orderBy(desc(booking.createdAt)) // Changed from scheduledDate to createdAt
+        .orderBy(desc(booking.createdAt))
         .limit(limit)
         .offset(offset),
       countQuery
     ]);
-    
+
     const total = countResult[0]?.count || 0;
     const totalPages = Math.ceil(total / limit);
-    
-    // Get available statuses for the filter dropdown
-    const statusOptions = [
-      { value: 'ALL', label: 'All Statuses' },
-      { value: 'PENDING', label: 'Pending' },
-      { value: 'CONFIRMED', label: 'Confirmed' },
-      { value: 'IN_PROGRESS', label: 'In Progress' },
-      { value: 'COMPLETED', label: 'Completed' },
-      { value: 'CANCELLED', label: 'Cancelled' }
-    ];
-    
+
     return {
       bookings,
       pagination: {
@@ -138,14 +129,7 @@ export const load: PageServerLoad = async ({ url }) => {
         limit,
         total,
         totalPages
-      },
-      filters: {
-        search,
-        status,
-        dateStart,
-        dateEnd
-      },
-      statusOptions
+      }
     };
   } catch (error) {
     console.error('Error loading bookings:', error);
@@ -156,14 +140,43 @@ export const load: PageServerLoad = async ({ url }) => {
         limit,
         total: 0,
         totalPages: 0
-      },
-      filters: {
-        search,
-        status,
-        dateStart,
-        dateEnd
-      },
-      statusOptions: []
+      }
     };
   }
+}
+
+export const load: PageServerLoad = async ({ url }) => {
+  // Get search and filter parameters - these are synchronous
+  const search = url.searchParams.get('search') || '';
+  const status = url.searchParams.get('status') || '';
+  const dateStart = url.searchParams.get('dateStart') || '';
+  const dateEnd = url.searchParams.get('dateEnd') || '';
+  const page = parseInt(url.searchParams.get('page') || '1');
+  const limit = 10;
+
+  // Status options are static, no need to stream
+  const statusOptions = [
+    { value: 'ALL', label: 'All Statuses' },
+    { value: 'PENDING', label: 'Pending' },
+    { value: 'CONFIRMED', label: 'Confirmed' },
+    { value: 'IN_PROGRESS', label: 'In Progress' },
+    { value: 'COMPLETED', label: 'Completed' },
+    { value: 'CANCELLED', label: 'Cancelled' }
+  ];
+
+  // Return filters immediately, stream the data
+  return {
+    filters: {
+      search,
+      status,
+      dateStart,
+      dateEnd
+    },
+    statusOptions,
+    currentPage: page,
+    // Stream the bookings data
+    streamed: {
+      bookingsData: getBookings(search, status, dateStart, dateEnd, page, limit)
+    }
+  };
 };

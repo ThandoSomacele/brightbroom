@@ -1,16 +1,12 @@
 // src/routes/admin/pricing/+page.server.ts
 import { db } from '$lib/server/db';
 import { pricingConfig, addon } from '$lib/server/db/schema';
-import { error, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { eq, asc } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
-  // Ensure user is authenticated and is admin
-  if (!locals.user || locals.user.role !== 'ADMIN') {
-    throw redirect(302, '/auth/login');
-  }
-
+// Helper function to get pricing data
+async function getPricingData() {
   try {
     // Load pricing configuration
     const [config] = await db
@@ -46,8 +42,21 @@ export const load: PageServerLoad = async ({ locals }) => {
     };
   } catch (err) {
     console.error('Error loading pricing config:', err);
-    throw error(500, 'Failed to load pricing configuration');
+    throw err;
   }
+}
+
+export const load: PageServerLoad = async ({ locals }) => {
+  // Ensure user is authenticated and is admin
+  if (!locals.user || locals.user.role !== 'ADMIN') {
+    throw redirect(302, '/auth/login');
+  }
+
+  return {
+    streamed: {
+      pricingData: getPricingData(),
+    },
+  };
 };
 
 export const actions: Actions = {

@@ -7,6 +7,7 @@
   import ProfileImageUpload from "$lib/components/admin/ProfileImageUpload.svelte";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
+  import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
   import { parseDateTimeString } from "$lib/utils/date-utils.js";
   import {
     getClosestServiceArea,
@@ -33,8 +34,65 @@
   export let data;
   export let form;
 
-  // Environment variables
-  const { cleaner, bookings, earnings, upcomingEarnings } = data;
+  // Data from streamed promise
+  let cleaner: any = null;
+  let bookings: any[] = [];
+  let earnings: any = null;
+  let upcomingEarnings: any = null;
+  let dataLoaded = false;
+
+  // Load streamed data
+  $: if (data.streamed?.cleanerData) {
+    data.streamed.cleanerData.then((d: any) => {
+      cleaner = d.cleaner;
+      bookings = d.bookings;
+      earnings = d.earnings;
+      upcomingEarnings = d.upcomingEarnings;
+      initializeFormValues(d.cleaner);
+      dataLoaded = true;
+    }).catch((err: Error) => {
+      console.error("Error loading cleaner data:", err);
+      dataLoaded = true;
+    });
+  }
+
+  // Initialize form values when cleaner data loads
+  function initializeFormValues(cleanerData: any) {
+    firstName = cleanerData.firstName;
+    lastName = cleanerData.lastName;
+    email = cleanerData.email;
+    phone = cleanerData.phone || "";
+    workAddress = cleanerData.cleanerProfile?.workAddress || "";
+    workRadius = cleanerData.cleanerProfile?.workRadius?.toString() || "10";
+    bio = cleanerData.cleanerProfile?.bio || "";
+    petCompatibility = cleanerData.cleanerProfile?.petCompatibility || "NONE";
+    isAvailable = cleanerData.cleanerProfile?.isAvailable ?? true;
+    idType = cleanerData.cleanerProfile?.idType || "SOUTH_AFRICAN_ID";
+    idNumber = cleanerData.cleanerProfile?.idNumber || "";
+    taxNumber = cleanerData.cleanerProfile?.taxNumber || "";
+    payoutMethod = cleanerData.cleanerProfile?.payoutMethod || "INSTANT_MONEY";
+    bankName = cleanerData.cleanerProfile?.bankName || "";
+    bankAccountNumber = cleanerData.cleanerProfile?.bankAccountNumber || "";
+    bankBranchCode = cleanerData.cleanerProfile?.bankBranchCode || "";
+    bankAccountType = cleanerData.cleanerProfile?.bankAccountType || "SAVINGS";
+    bankAccountHolder = cleanerData.cleanerProfile?.bankAccountHolder || "";
+
+    // Initialize available days
+    if (cleanerData.cleanerProfile?.availableDays) {
+      cleanerData.cleanerProfile.availableDays.forEach((day: string) => {
+        if (day in availableDays) {
+          availableDays[day as keyof typeof availableDays] = true;
+        }
+      });
+    }
+
+    // Initialize experience types
+    selectedExperienceTypes = cleanerData.cleanerProfile?.experienceTypes || [];
+
+    // Initialize training status
+    homeTrainingCompleted = cleanerData.cleanerProfile?.trainingCompleted?.includes("HOME") || false;
+    officeTrainingCompleted = cleanerData.cleanerProfile?.trainingCompleted?.includes("OFFICE") || false;
+  }
 
   // Mode tracking
   let isPersonalInfoEditMode = false;
@@ -44,28 +102,28 @@
   let isLoading = false;
 
   // Personal info form values
-  let firstName = cleaner.firstName;
-  let lastName = cleaner.lastName;
-  let email = cleaner.email;
-  let phone = cleaner.phone || "";
+  let firstName = "";
+  let lastName = "";
+  let email = "";
+  let phone = "";
 
-  // Profile form values
-  let workAddress = cleaner.cleanerProfile?.workAddress || "";
-  let workRadius = cleaner.cleanerProfile?.workRadius?.toString() || "10";
-  let bio = cleaner.cleanerProfile?.bio || "";
-  let petCompatibility = cleaner.cleanerProfile?.petCompatibility || "NONE";
-  let isAvailable = cleaner.cleanerProfile?.isAvailable || true;
-  let idType = cleaner.cleanerProfile?.idType || "SOUTH_AFRICAN_ID";
-  let idNumber = cleaner.cleanerProfile?.idNumber || "";
-  let taxNumber = cleaner.cleanerProfile?.taxNumber || "";
+  // Profile form values - initialized when data loads
+  let workAddress = "";
+  let workRadius = "10";
+  let bio = "";
+  let petCompatibility = "NONE";
+  let isAvailable = true;
+  let idType = "SOUTH_AFRICAN_ID";
+  let idNumber = "";
+  let taxNumber = "";
 
-  // Payout settings form values
-  let payoutMethod = cleaner.cleanerProfile?.payoutMethod || "INSTANT_MONEY";
-  let bankName = cleaner.cleanerProfile?.bankName || "";
-  let bankAccountNumber = cleaner.cleanerProfile?.bankAccountNumber || "";
-  let bankBranchCode = cleaner.cleanerProfile?.bankBranchCode || "";
-  let bankAccountType = cleaner.cleanerProfile?.bankAccountType || "SAVINGS";
-  let bankAccountHolder = cleaner.cleanerProfile?.bankAccountHolder || "";
+  // Payout settings form values - initialized when data loads
+  let payoutMethod = "INSTANT_MONEY";
+  let bankName = "";
+  let bankAccountNumber = "";
+  let bankBranchCode = "";
+  let bankAccountType = "SAVINGS";
+  let bankAccountHolder = "";
 
   // Common South African banks
   const BANKS = [
@@ -97,20 +155,12 @@
     { id: "CARE_GIVING", label: "Care Giving" },
   ];
 
-  // Initialise availableDays if data exists
-  if (cleaner.cleanerProfile?.availableDays) {
-    cleaner.cleanerProfile.availableDays.forEach((day) => {
-      availableDays[day] = true;
-    });
-  }
+  // Experience types - initialized when data loads
+  let selectedExperienceTypes: string[] = [];
 
-  // Initialise selected experience types
-  let selectedExperienceTypes: string[] =
-    cleaner.cleanerProfile?.experienceTypes || [];
-
-  // Track training status
-  let homeTrainingCompleted = cleaner.cleanerProfile?.trainingCompleted?.includes("HOME") || false;
-  let officeTrainingCompleted = cleaner.cleanerProfile?.trainingCompleted?.includes("OFFICE") || false;
+  // Track training status - initialized when data loads
+  let homeTrainingCompleted = false;
+  let officeTrainingCompleted = false;
 
   // Format date function
   function formatDate(dateString: string): string {
@@ -315,20 +365,27 @@
   <title>Cleaner Details | BrightBroom Admin</title>
 </svelte:head>
 
-<!-- Page header with back button -->
-<div class="mb-6 flex items-center">
-  <a
-    href="/admin/cleaners"
-    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 mr-3"
-  >
-    <ChevronLeft size={20} />
-  </a>
-  <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-    Cleaner Details
-  </h1>
-</div>
+{#if !dataLoaded}
+  <DetailPageSkeleton variant="cleaner" />
+{:else if !cleaner}
+  <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-6 text-center">
+    <p class="text-red-600 dark:text-red-400">Failed to load cleaner details. Please refresh the page.</p>
+  </div>
+{:else}
+  <!-- Page header with back button -->
+  <div class="mb-6 flex items-center">
+    <a
+      href="/admin/cleaners"
+      class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 mr-3"
+    >
+      <ChevronLeft size={20} />
+    </a>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+      Cleaner Details
+    </h1>
+  </div>
 
-<!-- Success/Error messages -->
+  <!-- Success/Error messages -->
 {#if form?.success}
   <div
     class="mb-6 bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300 p-4 rounded-md"
@@ -1721,3 +1778,4 @@
     </div>
   </div>
 </div>
+{/if}

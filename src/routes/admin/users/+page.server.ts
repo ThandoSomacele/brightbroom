@@ -4,12 +4,13 @@ import { booking, user } from "$lib/server/db/schema";
 import { desc, eq, like, or, sql } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ url }) => {
-  // Get query parameters for filtering and pagination
-  const search = url.searchParams.get("search") || "";
-  const role = url.searchParams.get("role") || "";
-  const page = parseInt(url.searchParams.get("page") || "1");
-  const limit = 10; // Number of items per page
+// Helper function to fetch users with filters
+async function getUsers(
+  search: string,
+  role: string,
+  page: number,
+  limit: number
+) {
   const offset = (page - 1) * limit;
 
   try {
@@ -105,10 +106,6 @@ export const load: PageServerLoad = async ({ url }) => {
         total,
         totalPages,
       },
-      filters: {
-        search,
-        role,
-      },
     };
   } catch (error) {
     console.error("Error loading users:", error);
@@ -120,10 +117,27 @@ export const load: PageServerLoad = async ({ url }) => {
         total: 0,
         totalPages: 0,
       },
-      filters: {
-        search,
-        role,
-      },
     };
   }
+}
+
+export const load: PageServerLoad = async ({ url }) => {
+  // Get query parameters for filtering and pagination
+  const search = url.searchParams.get("search") || "";
+  const role = url.searchParams.get("role") || "";
+  const page = parseInt(url.searchParams.get("page") || "1");
+  const limit = 10;
+
+  // Return filters immediately, stream the data
+  return {
+    filters: {
+      search,
+      role,
+    },
+    currentPage: page,
+    // Stream the users data
+    streamed: {
+      usersData: getUsers(search, role, page, limit),
+    },
+  };
 };

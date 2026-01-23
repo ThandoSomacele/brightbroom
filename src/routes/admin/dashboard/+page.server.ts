@@ -4,21 +4,11 @@ import { booking, payment, user, cleanerProfile } from "$lib/server/db/schema";
 import { and, desc, eq, gte, lt, sql } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ locals }) => {
-  // Current date and time
+// Helper function to get metrics data
+async function getMetrics() {
   const now = new Date();
-
-  // Calculate date ranges for trends
   const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const lastMonthEnd = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    0,
-    23,
-    59,
-    59,
-  );
 
   try {
     // Count total bookings
@@ -55,7 +45,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     // Calculate booking trend percentage
     const bookingTrend =
       lastMonthBookings === 0
-        ? 100 // If last month had 0 bookings, show 100% increase
+        ? 100
         : Number(
             (
               ((currentMonthBookings - lastMonthBookings) / lastMonthBookings) *
@@ -104,7 +94,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     // Calculate revenue trend percentage
     const revenueTrend =
       lastMonthRevenue === 0
-        ? 100 // If last month had 0 revenue, show 100% increase
+        ? 100
         : Number(
             (
               ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) *
@@ -150,7 +140,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     // Calculate cleaner trend percentage
     const cleanerTrend =
       lastMonthCleaners === 0
-        ? 100 // If last month had 0 new cleaners, show 100% increase
+        ? 100
         : Number(
             (
               ((newCleaners - lastMonthCleaners) / lastMonthCleaners) *
@@ -167,7 +157,32 @@ export const load: PageServerLoad = async ({ locals }) => {
       .where(eq(booking.status, "PENDING"));
     const pendingBookings = pendingBookingsResult[0]?.count || 0;
 
-    // Get pending cleaner applications
+    return {
+      totalBookings,
+      totalRevenue,
+      activeCleaners,
+      pendingBookings,
+      bookingTrend,
+      revenueTrend,
+      cleanerTrend,
+    };
+  } catch (error) {
+    console.error("Error loading metrics:", error);
+    return {
+      totalBookings: 0,
+      totalRevenue: 0,
+      activeCleaners: 0,
+      pendingBookings: 0,
+      bookingTrend: 0,
+      revenueTrend: 0,
+      cleanerTrend: 0,
+    };
+  }
+}
+
+// Helper function to get pending cleaners
+async function getPendingCleaners() {
+  try {
     const pendingCleanersResult = await db
       .select({
         id: user.id,
@@ -184,9 +199,19 @@ export const load: PageServerLoad = async ({ locals }) => {
       .orderBy(desc(user.createdAt))
       .limit(5);
 
+    return pendingCleanersResult;
+  } catch (error) {
+    console.error("Error loading pending cleaners:", error);
+    return [];
+  }
+}
 
-    // Get booking trends for the last 30 days
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+// Helper function to get booking trends
+async function getBookingTrends() {
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+  try {
     const bookingTrendsResult = await db
       .select({
         date: sql<string>`DATE(${booking.createdAt})`.mapWith(String),
@@ -197,7 +222,19 @@ export const load: PageServerLoad = async ({ locals }) => {
       .groupBy(sql`DATE(${booking.createdAt})`)
       .orderBy(sql`DATE(${booking.createdAt})`);
 
-    // Get revenue trends for the last 30 days
+    return bookingTrendsResult.map((r) => ({ date: r.date, value: r.count }));
+  } catch (error) {
+    console.error("Error loading booking trends:", error);
+    return [];
+  }
+}
+
+// Helper function to get revenue trends
+async function getRevenueTrends() {
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+  try {
     const revenueTrendsResult = await db
       .select({
         date: sql<string>`DATE(${payment.createdAt})`.mapWith(String),
@@ -213,72 +250,60 @@ export const load: PageServerLoad = async ({ locals }) => {
       .groupBy(sql`DATE(${payment.createdAt})`)
       .orderBy(sql`DATE(${payment.createdAt})`);
 
-    // Create mock data for recent activity (in a real app, this would come from a real activity log)
-    const recentActivity = [
-      {
-        type: "BOOKING",
-        description: "New booking created",
-        user: "Sarah Johnson",
-        date: new Date(now.getTime() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
-        link: "/admin/bookings/123",
-      },
-      {
-        type: "PAYMENT",
-        description: "Payment completed",
-        user: "John Smith",
-        date: new Date(now.getTime() - 1000 * 60 * 120).toISOString(), // 2 hours ago
-        link: "/admin/bookings/456",
-      },
-      {
-        type: "USER",
-        description: "New user registered",
-        user: "Emma Wilson",
-        date: new Date(now.getTime() - 1000 * 60 * 180).toISOString(), // 3 hours ago
-        link: "/admin/users/789",
-      },
-      {
-        type: "BOOKING",
-        description: "Booking completed",
-        user: "Michael Brown",
-        date: new Date(now.getTime() - 1000 * 60 * 240).toISOString(), // 4 hours ago
-        link: "/admin/bookings/012",
-      },
-    ];
-
-    // Return all data
-    return {
-      metrics: {
-        totalBookings,
-        totalRevenue,
-        activeCleaners,
-        pendingBookings,
-        bookingTrend,
-        revenueTrend,
-        cleanerTrend,
-        pendingCleaners: pendingCleanersResult,
-
-      },
-      bookingTrends: bookingTrendsResult.map((r) => ({ date: r.date, value: r.count })),
-      revenueTrends: revenueTrendsResult.map((r) => ({ date: r.date, value: r.value })),
-      recentActivity,
-    };
+    return revenueTrendsResult.map((r) => ({ date: r.date, value: r.value }));
   } catch (error) {
-    console.error("Error loading admin dashboard data:", error);
-    return {
-      metrics: {
-        totalBookings: 0,
-        totalRevenue: 0,
-        activeCleaners: 0,
-        pendingBookings: 0,
-        bookingTrend: 0,
-        revenueTrend: 0,
-        cleanerTrend: 0,
-        pendingCleaners: 0,
-
-      },
-      bookingTrends: [],
-      revenueTrends: [],
-      recentActivity: [],
-    };
+    console.error("Error loading revenue trends:", error);
+    return [];
   }
+}
+
+// Helper function to get recent activity
+async function getRecentActivity() {
+  const now = new Date();
+  // In a real app, this would come from an activity log table
+  return [
+    {
+      type: "BOOKING",
+      description: "New booking created",
+      user: "Sarah Johnson",
+      date: new Date(now.getTime() - 1000 * 60 * 30).toISOString(),
+      link: "/admin/bookings/123",
+    },
+    {
+      type: "PAYMENT",
+      description: "Payment completed",
+      user: "John Smith",
+      date: new Date(now.getTime() - 1000 * 60 * 120).toISOString(),
+      link: "/admin/bookings/456",
+    },
+    {
+      type: "USER",
+      description: "New user registered",
+      user: "Emma Wilson",
+      date: new Date(now.getTime() - 1000 * 60 * 180).toISOString(),
+      link: "/admin/users/789",
+    },
+    {
+      type: "BOOKING",
+      description: "Booking completed",
+      user: "Michael Brown",
+      date: new Date(now.getTime() - 1000 * 60 * 240).toISOString(),
+      link: "/admin/bookings/012",
+    },
+  ];
+}
+
+export const load: PageServerLoad = async () => {
+  // Return promises for streamed data - page loads immediately
+  // and data streams in as it becomes available
+  return {
+    // These are returned as promises and will be streamed
+    streamed: {
+      metrics: getMetrics(),
+      pendingCleaners: getPendingCleaners(),
+      bookingTrends: getBookingTrends(),
+      revenueTrends: getRevenueTrends(),
+      recentActivity: getRecentActivity(),
+    },
+  };
 };

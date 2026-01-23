@@ -3,6 +3,7 @@
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
+  import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
   import { showSuccess, showError } from "../+layout.svelte";
   import {
     DollarSign,
@@ -26,26 +27,55 @@
   // Reactive state
   let isSubmitting = $state(false);
   let showAddAddonModal = $state(false);
-  let editingAddon: typeof data.addons[0] | null = $state(null);
+  let editingAddon: any = $state(null);
+  let dataLoaded = $state(false);
+  let pricingConfig: any = $state(null);
+  let addons: any[] = $state([]);
 
-  // Form values for pricing config
-  let basePrice = $state(data.pricingConfig.basePrice);
-  let baseDurationMinutes = $state(data.pricingConfig.baseDurationMinutes);
-  let baseDescription = $state(data.pricingConfig.baseDescription || "");
-  let bedroomPrice = $state(data.pricingConfig.bedroomPrice);
-  let bedroomDurationMinutes = $state(data.pricingConfig.bedroomDurationMinutes);
-  let bedroomMin = $state(data.pricingConfig.bedroomMin);
-  let bedroomMax = $state(data.pricingConfig.bedroomMax);
-  let bathroomPrice = $state(data.pricingConfig.bathroomPrice);
-  let bathroomDurationMinutes = $state(data.pricingConfig.bathroomDurationMinutes);
-  let bathroomMin = $state(data.pricingConfig.bathroomMin);
-  let bathroomMax = $state(data.pricingConfig.bathroomMax);
+  // Form values for pricing config - will be set when data loads
+  let basePrice = $state("");
+  let baseDurationMinutes = $state(120);
+  let baseDescription = $state("");
+  let bedroomPrice = $state("");
+  let bedroomDurationMinutes = $state(60);
+  let bedroomMin = $state(1);
+  let bedroomMax = $state(10);
+  let bathroomPrice = $state("");
+  let bathroomDurationMinutes = $state(60);
+  let bathroomMin = $state(1);
+  let bathroomMax = $state(6);
 
   // Form values for new addon
   let newAddonName = $state("");
   let newAddonDescription = $state("");
   let newAddonPrice = $state("");
   let newAddonDuration = $state(60);
+
+  // Load streamed data when available
+  $effect(() => {
+    if (data.streamed?.pricingData && !dataLoaded) {
+      data.streamed.pricingData.then((result: any) => {
+        pricingConfig = result.pricingConfig;
+        addons = result.addons;
+        // Initialize form values
+        basePrice = result.pricingConfig.basePrice;
+        baseDurationMinutes = result.pricingConfig.baseDurationMinutes;
+        baseDescription = result.pricingConfig.baseDescription || "";
+        bedroomPrice = result.pricingConfig.bedroomPrice;
+        bedroomDurationMinutes = result.pricingConfig.bedroomDurationMinutes;
+        bedroomMin = result.pricingConfig.bedroomMin;
+        bedroomMax = result.pricingConfig.bedroomMax;
+        bathroomPrice = result.pricingConfig.bathroomPrice;
+        bathroomDurationMinutes = result.pricingConfig.bathroomDurationMinutes;
+        bathroomMin = result.pricingConfig.bathroomMin;
+        bathroomMax = result.pricingConfig.bathroomMax;
+        dataLoaded = true;
+      }).catch((err: Error) => {
+        console.error("Error loading pricing data:", err);
+        dataLoaded = true;
+      });
+    }
+  });
 
   // Format duration for display
   function formatDuration(minutes: number): string {
@@ -77,8 +107,8 @@
   });
 
   // Open edit modal for addon
-  function openEditAddon(addon: typeof data.addons[0]) {
-    editingAddon = addon;
+  function openEditAddon(addonItem: any) {
+    editingAddon = addonItem;
   }
 </script>
 
@@ -86,6 +116,13 @@
   <title>Pricing Configuration | Admin | BrightBroom</title>
 </svelte:head>
 
+{#if !dataLoaded}
+  <DetailPageSkeleton variant="pricing" />
+{:else if !pricingConfig}
+  <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-6 text-center">
+    <p class="text-red-600 dark:text-red-400">Failed to load pricing configuration. Please refresh the page.</p>
+  </div>
+{:else}
 <div class="space-y-8">
   <!-- Page Header -->
   <div>
@@ -340,7 +377,7 @@
     </div>
 
     <!-- Add-ons Table -->
-    {#if data.addons.length > 0}
+    {#if addons.length > 0}
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-700">
@@ -363,7 +400,7 @@
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {#each data.addons as addon (addon.id)}
+            {#each addons as addon (addon.id)}
               <tr class={!addon.isActive ? "opacity-50" : ""}>
                 <td class="px-4 py-4 whitespace-nowrap">
                   <div class="font-medium text-gray-900 dark:text-white">{addon.name}</div>
@@ -668,4 +705,5 @@
       </form>
     </div>
   </div>
+{/if}
 {/if}

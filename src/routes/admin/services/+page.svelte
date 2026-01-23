@@ -4,32 +4,19 @@
   import Button from "$lib/components/ui/Button.svelte";
   import { Clock, Edit, PlusCircle, Search, Trash2 } from "lucide-svelte";
 
-  // Get the services from the server load function
   export let data;
-  let { services } = data;
-
-  // Get form data if it exists (after a form submission)
   export let form;
 
   // Local state
   let showAddModal = false;
   let showEditModal = false;
   let showDeleteModal = false;
-  let selectedService = null;
+  let selectedService: any = null;
   let searchTerm = "";
   let isLoading = false;
 
-  // Filter services based on search term
-  $: filteredServices = searchTerm
-    ? services.filter(
-        (s) =>
-          s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          s.description.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    : services;
-
   // Format price as currency
-  function formatPrice(price) {
+  function formatPrice(price: number | string) {
     return new Intl.NumberFormat("en-ZA", {
       style: "currency",
       currency: "ZAR",
@@ -43,14 +30,14 @@
     showDeleteModal = false;
   }
 
-  function openEditModal(service) {
+  function openEditModal(service: any) {
     selectedService = service;
     showEditModal = true;
     showAddModal = false;
     showDeleteModal = false;
   }
 
-  function openDeleteModal(service) {
+  function openDeleteModal(service: any) {
     selectedService = service;
     showDeleteModal = true;
     showAddModal = false;
@@ -65,7 +52,7 @@
   }
 
   // Close modals when Escape key is pressed
-  function handleKeydown(event) {
+  function handleKeydown(event: KeyboardEvent) {
     if (event.key === "Escape") {
       closeAllModals();
     }
@@ -121,68 +108,96 @@
   </div>
 </div>
 
-<!-- Services grid -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-  {#if filteredServices.length === 0}
-    <div
-      class="col-span-full bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center text-gray-500 dark:text-gray-400"
-    >
-      {searchTerm
-        ? "No services found matching your search."
-        : "No services available. Add a new service to get started."}
-    </div>
-  {:else}
-    {#each filteredServices as service (service.id)}
-      <div
-        class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
-      >
-        <div class="p-6">
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            {service.name}
-          </h2>
-          <p class="text-gray-600 dark:text-gray-300 mb-4">
-            {service.description}
-          </p>
-
-          <div class="flex flex-wrap gap-4 mt-4">
-            <div class="flex items-center text-gray-700 dark:text-gray-300">
-              <span>{formatPrice(service.basePrice)}</span>
-            </div>
-            <div class="flex items-center text-gray-700 dark:text-gray-300">
-              <Clock class="h-5 w-5 text-primary mr-1" />
-              <span
-                >{service.durationHours}
-                {service.durationHours === 1 ? "hour" : "hours"}</span
-              >
-            </div>
-          </div>
-        </div>
-
-        <div
-          class="px-6 py-3 bg-gray-50 dark:bg-gray-700/50 flex justify-end space-x-2"
-        >
-          <Button
-            variant="ghost"
-            size="sm"
-            on:click={() => openEditModal(service)}
-          >
-            <Edit size={16} class="mr-1" />
-            Edit
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            on:click={() => openDeleteModal(service)}
-            class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-          >
-            <Trash2 size={16} class="mr-1" />
-            Delete
-          </Button>
+<!-- Services grid with streaming -->
+{#await data.streamed.services}
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+    {#each Array(6) as _}
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-pulse">
+        <div class="h-6 w-3/4 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+        <div class="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+        <div class="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+        <div class="flex gap-4 mt-4">
+          <div class="h-5 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div class="h-5 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
         </div>
       </div>
     {/each}
-  {/if}
-</div>
+  </div>
+{:then services}
+  {@const filteredServices = searchTerm
+    ? services.filter(
+        (s) =>
+          s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          s.description.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+    : services}
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+    {#if filteredServices.length === 0}
+      <div
+        class="col-span-full bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center text-gray-500 dark:text-gray-400"
+      >
+        {searchTerm
+          ? "No services found matching your search."
+          : "No services available. Add a new service to get started."}
+      </div>
+    {:else}
+      {#each filteredServices as service (service.id)}
+        <div
+          class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
+        >
+          <div class="p-6">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              {service.name}
+            </h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-4">
+              {service.description}
+            </p>
+
+            <div class="flex flex-wrap gap-4 mt-4">
+              <div class="flex items-center text-gray-700 dark:text-gray-300">
+                <span>{formatPrice(service.basePrice)}</span>
+              </div>
+              <div class="flex items-center text-gray-700 dark:text-gray-300">
+                <Clock class="h-5 w-5 text-primary mr-1" />
+                <span
+                  >{service.durationHours}
+                  {service.durationHours === 1 ? "hour" : "hours"}</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="px-6 py-3 bg-gray-50 dark:bg-gray-700/50 flex justify-end space-x-2"
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              on:click={() => openEditModal(service)}
+            >
+              <Edit size={16} class="mr-1" />
+              Edit
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              on:click={() => openDeleteModal(service)}
+              class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+            >
+              <Trash2 size={16} class="mr-1" />
+              Delete
+            </Button>
+          </div>
+        </div>
+      {/each}
+    {/if}
+  </div>
+{:catch error}
+  <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-6 text-center">
+    <p class="text-red-600 dark:text-red-400">Failed to load services. Please refresh the page.</p>
+  </div>
+{/await}
 
 <!-- Add service modal -->
 {#if showAddModal}
@@ -195,14 +210,15 @@
     <div
       class="flex items-center justify-center min-h-screen p-4 text-center sm:p-0"
     >
-      <!-- Overlay -->
       <div
         class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
         aria-hidden="true"
         on:click={closeAllModals}
+        on:keydown={(e) => e.key === 'Enter' && closeAllModals()}
+        role="button"
+        tabindex="0"
       ></div>
 
-      <!-- Modal content -->
       <div
         class="inline-block bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full"
       >
@@ -234,7 +250,6 @@
 
           <div class="px-6 py-4">
             <div class="space-y-4">
-              <!-- Name -->
               <div>
                 <label
                   for="name"
@@ -253,7 +268,6 @@
                 />
               </div>
 
-              <!-- Description -->
               <div>
                 <label
                   for="description"
@@ -272,7 +286,6 @@
                 ></textarea>
               </div>
 
-              <!-- Price and Duration -->
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label
@@ -352,14 +365,15 @@
     <div
       class="flex items-center justify-center min-h-screen p-4 text-center sm:p-0"
     >
-      <!-- Overlay -->
       <div
         class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
         aria-hidden="true"
         on:click={closeAllModals}
+        on:keydown={(e) => e.key === 'Enter' && closeAllModals()}
+        role="button"
+        tabindex="0"
       ></div>
 
-      <!-- Modal content -->
       <div
         class="inline-block bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full"
       >
@@ -393,7 +407,6 @@
 
           <div class="px-6 py-4">
             <div class="space-y-4">
-              <!-- Name -->
               <div>
                 <label
                   for="edit-name"
@@ -411,7 +424,6 @@
                 />
               </div>
 
-              <!-- Description -->
               <div>
                 <label
                   for="edit-description"
@@ -429,7 +441,6 @@
                 ></textarea>
               </div>
 
-              <!-- Price and Duration -->
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label
@@ -465,8 +476,7 @@
                     min="1"
                     max="24"
                     step="1"
-                    value={form?.data?.durationHours ||
-                      selectedService.durationHours}
+                    value={form?.data?.durationHours || selectedService.durationHours}
                     class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
@@ -508,14 +518,15 @@
     <div
       class="flex items-center justify-center min-h-screen p-4 text-center sm:p-0"
     >
-      <!-- Overlay -->
       <div
         class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
         aria-hidden="true"
         on:click={closeAllModals}
+        on:keydown={(e) => e.key === 'Enter' && closeAllModals()}
+        role="button"
+        tabindex="0"
       ></div>
 
-      <!-- Modal content -->
       <div
         class="inline-block bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full"
       >

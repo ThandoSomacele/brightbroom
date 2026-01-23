@@ -1,7 +1,8 @@
 <!-- src/routes/admin/bookings/+page.svelte -->
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
-    import { parseDateTimeString } from "$lib/utils/date-utils.js";
+  import { TableSkeleton } from "$lib/components/ui/skeletons";
+  import { parseDateTimeString } from "$lib/utils/date-utils.js";
   import {
     AlertCircle,
     ArrowLeft,
@@ -17,7 +18,7 @@
 
   // Get data from server
   export let data;
-  let { bookings, pagination, filters, statusOptions } = data;
+  let { filters, statusOptions } = data;
 
   // Local state for filters
   let searchTerm = filters.search || "";
@@ -26,7 +27,7 @@
   let dateRangeEnd = filters.dateEnd || "";
   let showFilters = false;
   let showBulkActions = false;
-  let selectedBookings = new Set();
+  let selectedBookings = new Set<string>();
   let isLoadingBulk = false;
   let bulkAction = "status";
   let bulkStatusValue = "CONFIRMED";
@@ -97,12 +98,6 @@
     if (dateRangeStart) searchParams.set("dateStart", dateRangeStart);
     if (dateRangeEnd) searchParams.set("dateEnd", dateRangeEnd);
 
-    // Add current page if it's not the first page
-    if (pagination.page > 1) {
-      searchParams.set("page", pagination.page.toString());
-    }
-
-    // Navigate to the same page with filters applied
     const url = searchParams.toString() ? `?${searchParams.toString()}` : "";
     window.location.href = `/admin/bookings${url}`;
   }
@@ -117,8 +112,8 @@
   }
 
   // Navigate to a specific page
-  function goToPage(page: number) {
-    if (page < 1 || page > pagination.totalPages) return;
+  function goToPage(page: number, totalPages: number) {
+    if (page < 1 || page > totalPages) return;
 
     const searchParams = new URLSearchParams(window.location.search);
     searchParams.set("page", page.toString());
@@ -154,14 +149,14 @@
   }
 
   // Toggle selection of all bookings
-  function toggleSelectAll(event) {
-    const checked = event.target.checked;
+  function toggleSelectAll(event: Event, bookings: any[]) {
+    const checked = (event.target as HTMLInputElement).checked;
     if (checked) {
       bookings.forEach((booking) => selectedBookings.add(booking.id));
     } else {
       selectedBookings.clear();
     }
-    selectedBookings = selectedBookings; // Trigger reactivity
+    selectedBookings = selectedBookings;
   }
 
   // Toggle individual booking selection
@@ -171,7 +166,7 @@
     } else {
       selectedBookings.add(id);
     }
-    selectedBookings = new Set(selectedBookings); // Trigger reactivity
+    selectedBookings = new Set(selectedBookings);
   }
 
   // Format currency
@@ -195,8 +190,6 @@
       });
 
       if (!response.ok) throw new Error("Failed to update status");
-
-      // Refresh the page to show updated data
       window.location.reload();
     } catch (error) {
       console.error("Error updating booking status:", error);
@@ -227,8 +220,6 @@
       });
 
       if (!response.ok) throw new Error("Failed to process bulk action");
-
-      // Refresh the page to show updated data
       window.location.reload();
     } catch (error) {
       console.error("Error processing bulk action:", error);
@@ -237,9 +228,6 @@
       isLoadingBulk = false;
     }
   }
-
-  $: allSelected =
-    bookings.length > 0 && selectedBookings.size === bookings.length;
 </script>
 
 <svelte:head>
@@ -323,7 +311,7 @@
     </div>
 
     <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-      Selected {selectedBookings.size} of {bookings.length} bookings
+      Selected {selectedBookings.size} bookings
     </div>
   </div>
 {/if}
@@ -502,301 +490,309 @@
   {/if}
 </div>
 
-<!-- Bookings table -->
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden mb-6">
-  <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-      <thead class="bg-gray-50 dark:bg-gray-700">
-        <tr>
-          {#if showBulkActions}
-            <th scope="col" class="px-3 py-3 text-left">
-              <input
-                type="checkbox"
-                checked={allSelected}
-                on:change={toggleSelectAll}
-                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-              />
-            </th>
-          {/if}
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-          >
-            Booking Info
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-          >
-            Created Date
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-          >
-            Customer
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-          >
-            Scheduled Date
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-          >
-            Status
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-          >
-            Payment
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-          >
-            Cleaner
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-          >
-            Actions
-          </th>
-        </tr>
-      </thead>
-      <tbody
-        class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
-      >
-        {#if bookings.length === 0}
+<!-- Bookings table with streaming -->
+{#await data.streamed.bookingsData}
+  <TableSkeleton rows={10} columns={8} />
+{:then bookingsData}
+  {@const bookings = bookingsData.bookings}
+  {@const pagination = bookingsData.pagination}
+  {@const allSelected = bookings.length > 0 && selectedBookings.size === bookings.length}
+
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden mb-6">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-700">
           <tr>
-            <td
-              colspan={showBulkActions ? 9 : 8}
-              class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+            {#if showBulkActions}
+              <th scope="col" class="px-3 py-3 text-left">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  on:change={(e) => toggleSelectAll(e, bookings)}
+                  class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+              </th>
+            {/if}
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
             >
-              No bookings found
-            </td>
+              Booking Info
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+            >
+              Created Date
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+            >
+              Customer
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+            >
+              Scheduled Date
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+            >
+              Status
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+            >
+              Payment
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+            >
+              Cleaner
+            </th>
+            <th
+              scope="col"
+              class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+            >
+              Actions
+            </th>
           </tr>
-        {:else}
-          {#each bookings as booking}
-            <tr
-              class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-              on:click={() => viewBookingDetails(booking.id)}
-              role="link"
-              tabindex="0"
-              on:keydown={(e) => e.key === 'Enter' && viewBookingDetails(booking.id)}
-            >
-              {#if showBulkActions}
-                <td class="px-3 py-4 whitespace-nowrap" on:click|stopPropagation>
-                  <input
-                    type="checkbox"
-                    checked={selectedBookings.has(booking.id)}
-                    on:change={() => toggleBookingSelection(booking.id)}
-                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                  />
-                </td>
-              {/if}
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900 dark:text-white">
-                  #{booking.id.substring(0, 6)}
-                </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {booking.address.street}, {booking.address.city}
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900 dark:text-white">
-                  {formatDate(booking.createdAt)}
-                </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {formatTime(booking.createdAt)}
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900 dark:text-white">
-                  {booking.customer.firstName}
-                  {booking.customer.lastName}
-                </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {booking.customer.email}
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900 dark:text-white">
-                  {formatDate(booking.scheduledDate)}
-                </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {formatTime(booking.scheduledDate)}
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap" on:click|stopPropagation>
-                <span
-                  class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(booking.status)}`}
-                >
-                  <svelte:component
-                    this={getStatusIcon(booking.status)}
-                    class="h-3.5 w-3.5 mr-1"
-                  />
-                  {booking.status}
-                </span>
-
-                <!-- Quick status change buttons -->
-                <div class="mt-2 flex flex-wrap gap-1">
-                  {#if booking.status !== "CONFIRMED"}
-                    <button
-                      class="px-1.5 py-0.5 bg-green-50 text-green-600 text-xs rounded hover:bg-green-100 dark:bg-green-900/20 dark:text-green-300 dark:hover:bg-green-900/40"
-                      title="Set as Confirmed"
-                      on:click={() =>
-                        quickStatusChange(booking.id, "CONFIRMED")}
-                    >
-                      Confirm
-                    </button>
-                  {/if}
-
-                  {#if booking.status !== "IN_PROGRESS" && booking.status !== "COMPLETED" && booking.status !== "CANCELLED"}
-                    <button
-                      class="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40"
-                      title="Set as In Progress"
-                      on:click={() =>
-                        quickStatusChange(booking.id, "IN_PROGRESS")}
-                    >
-                      Start
-                    </button>
-                  {/if}
-
-                  {#if booking.status !== "COMPLETED" && booking.status !== "CANCELLED"}
-                    <button
-                      class="px-1.5 py-0.5 bg-purple-50 text-purple-600 text-xs rounded hover:bg-purple-100 dark:bg-purple-900/20 dark:text-purple-300 dark:hover:bg-purple-900/40"
-                      title="Set as Completed"
-                      on:click={() =>
-                        quickStatusChange(booking.id, "COMPLETED")}
-                    >
-                      Complete
-                    </button>
-                  {/if}
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900 dark:text-white">
-                  {formatCurrency(booking.price)}
-                </div>
-                {#if booking.paymentStatus}
-                  <span
-                    class={`text-xs mt-1 ${booking.paymentStatus === "COMPLETED" ? "text-green-600 dark:text-green-400" : "text-yellow-600 dark:text-yellow-400"}`}
-                  >
-                    {booking.paymentStatus}
-                  </span>
-                {:else}
-                  <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    No payment
-                  </span>
-                {/if}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap" on:click|stopPropagation>
-                <span
-                  class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    booking.cleanerId
-                      ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
-                      : "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
-                  }`}
-                >
-                  <svelte:component
-                    this={booking.cleanerId ? CheckCircle : AlertCircle}
-                    class="h-3.5 w-3.5 mr-1"
-                  />
-                  {booking.cleanerId ? "Assigned" : "Unassigned"}
-                </span>
-
-                {#if !booking.cleanerId && (booking.status === "CONFIRMED" || booking.status === "PENDING")}
-                  <button
-                    class="mt-1.5 px-1.5 py-0.5 bg-primary-50 text-primary-600 text-xs rounded hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-300 dark:hover:bg-primary-900/40"
-                    title="Assign Cleaner"
-                    on:click={() => viewBookingDetails(booking.id)}
-                  >
-                    Assign
-                  </button>
-                {/if}
-              </td>
+        </thead>
+        <tbody
+          class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
+        >
+          {#if bookings.length === 0}
+            <tr>
               <td
-                class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-                on:click|stopPropagation
+                colspan={showBulkActions ? 9 : 8}
+                class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
               >
-                <div class="flex justify-end gap-2">
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    on:click={() => viewBookingDetails(booking.id)}
-                  >
-                    View
-                  </Button>
-                </div>
+                No bookings found
               </td>
             </tr>
-          {/each}
-        {/if}
-      </tbody>
-    </table>
-  </div>
-
-  {#if pagination.totalPages > 1}
-    <div
-      class="px-6 py-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700"
-    >
-      <div class="flex items-center justify-between">
-        <div class="text-sm text-gray-700 dark:text-gray-300">
-          Showing <span class="font-medium"
-            >{(pagination.page - 1) * pagination.limit + 1}</span
-          >
-          to
-          <span class="font-medium"
-            >{Math.min(
-              pagination.page * pagination.limit,
-              pagination.total,
-            )}</span
-          >
-          of <span class="font-medium">{pagination.total}</span> bookings
-        </div>
-
-        <div class="flex space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={pagination.page === 1}
-            on:click={() => goToPage(pagination.page - 1)}
-          >
-            <ArrowLeft size={16} />
-          </Button>
-
-          {#each Array(pagination.totalPages) as _, i}
-            {#if pagination.totalPages <= 7 || i + 1 === 1 || i + 1 === pagination.totalPages || (i + 1 >= pagination.page - 1 && i + 1 <= pagination.page + 1)}
-              <Button
-                variant={pagination.page === i + 1 ? "primary" : "outline"}
-                size="sm"
-                on:click={() => goToPage(i + 1)}
+          {:else}
+            {#each bookings as booking}
+              <tr
+                class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                on:click={() => viewBookingDetails(booking.id)}
+                role="link"
+                tabindex="0"
+                on:keydown={(e) => e.key === 'Enter' && viewBookingDetails(booking.id)}
               >
-                {i + 1}
-              </Button>
-            {:else if i + 1 === 2 || i + 1 === pagination.totalPages - 1}
-              <span
-                class="inline-flex items-center justify-center w-8 h-8 text-gray-500 dark:text-gray-400"
-                >...</span
-              >
-            {/if}
-          {/each}
+                {#if showBulkActions}
+                  <td class="px-3 py-4 whitespace-nowrap" on:click|stopPropagation>
+                    <input
+                      type="checkbox"
+                      checked={selectedBookings.has(booking.id)}
+                      on:change={() => toggleBookingSelection(booking.id)}
+                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                  </td>
+                {/if}
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900 dark:text-white">
+                    #{booking.id.substring(0, 6)}
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {booking.address.street}, {booking.address.city}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900 dark:text-white">
+                    {formatDate(booking.createdAt)}
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {formatTime(booking.createdAt)}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900 dark:text-white">
+                    {booking.customer.firstName}
+                    {booking.customer.lastName}
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {booking.customer.email}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900 dark:text-white">
+                    {formatDate(booking.scheduledDate)}
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {formatTime(booking.scheduledDate)}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap" on:click|stopPropagation>
+                  <span
+                    class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(booking.status)}`}
+                  >
+                    <svelte:component
+                      this={getStatusIcon(booking.status)}
+                      class="h-3.5 w-3.5 mr-1"
+                    />
+                    {booking.status}
+                  </span>
 
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={pagination.page === pagination.totalPages}
-            on:click={() => goToPage(pagination.page + 1)}
-          >
-            <ArrowRight size={16} />
-          </Button>
+                  <div class="mt-2 flex flex-wrap gap-1">
+                    {#if booking.status !== "CONFIRMED"}
+                      <button
+                        class="px-1.5 py-0.5 bg-green-50 text-green-600 text-xs rounded hover:bg-green-100 dark:bg-green-900/20 dark:text-green-300 dark:hover:bg-green-900/40"
+                        title="Set as Confirmed"
+                        on:click={() => quickStatusChange(booking.id, "CONFIRMED")}
+                      >
+                        Confirm
+                      </button>
+                    {/if}
+
+                    {#if booking.status !== "IN_PROGRESS" && booking.status !== "COMPLETED" && booking.status !== "CANCELLED"}
+                      <button
+                        class="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40"
+                        title="Set as In Progress"
+                        on:click={() => quickStatusChange(booking.id, "IN_PROGRESS")}
+                      >
+                        Start
+                      </button>
+                    {/if}
+
+                    {#if booking.status !== "COMPLETED" && booking.status !== "CANCELLED"}
+                      <button
+                        class="px-1.5 py-0.5 bg-purple-50 text-purple-600 text-xs rounded hover:bg-purple-100 dark:bg-purple-900/20 dark:text-purple-300 dark:hover:bg-purple-900/40"
+                        title="Set as Completed"
+                        on:click={() => quickStatusChange(booking.id, "COMPLETED")}
+                      >
+                        Complete
+                      </button>
+                    {/if}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900 dark:text-white">
+                    {formatCurrency(booking.price)}
+                  </div>
+                  {#if booking.paymentStatus}
+                    <span
+                      class={`text-xs mt-1 ${booking.paymentStatus === "COMPLETED" ? "text-green-600 dark:text-green-400" : "text-yellow-600 dark:text-yellow-400"}`}
+                    >
+                      {booking.paymentStatus}
+                    </span>
+                  {:else}
+                    <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      No payment
+                    </span>
+                  {/if}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap" on:click|stopPropagation>
+                  <span
+                    class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      booking.cleanerId
+                        ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                        : "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+                    }`}
+                  >
+                    <svelte:component
+                      this={booking.cleanerId ? CheckCircle : AlertCircle}
+                      class="h-3.5 w-3.5 mr-1"
+                    />
+                    {booking.cleanerId ? "Assigned" : "Unassigned"}
+                  </span>
+
+                  {#if !booking.cleanerId && (booking.status === "CONFIRMED" || booking.status === "PENDING")}
+                    <button
+                      class="mt-1.5 px-1.5 py-0.5 bg-primary-50 text-primary-600 text-xs rounded hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-300 dark:hover:bg-primary-900/40"
+                      title="Assign Cleaner"
+                      on:click={() => viewBookingDetails(booking.id)}
+                    >
+                      Assign
+                    </button>
+                  {/if}
+                </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                  on:click|stopPropagation
+                >
+                  <div class="flex justify-end gap-2">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      on:click={() => viewBookingDetails(booking.id)}
+                    >
+                      View
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            {/each}
+          {/if}
+        </tbody>
+      </table>
+    </div>
+
+    {#if pagination.totalPages > 1}
+      <div
+        class="px-6 py-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700"
+      >
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-700 dark:text-gray-300">
+            Showing <span class="font-medium"
+              >{(pagination.page - 1) * pagination.limit + 1}</span
+            >
+            to
+            <span class="font-medium"
+              >{Math.min(
+                pagination.page * pagination.limit,
+                pagination.total,
+              )}</span
+            >
+            of <span class="font-medium">{pagination.total}</span> bookings
+          </div>
+
+          <div class="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pagination.page === 1}
+              on:click={() => goToPage(pagination.page - 1, pagination.totalPages)}
+            >
+              <ArrowLeft size={16} />
+            </Button>
+
+            {#each Array(pagination.totalPages) as _, i}
+              {#if pagination.totalPages <= 7 || i + 1 === 1 || i + 1 === pagination.totalPages || (i + 1 >= pagination.page - 1 && i + 1 <= pagination.page + 1)}
+                <Button
+                  variant={pagination.page === i + 1 ? "primary" : "outline"}
+                  size="sm"
+                  on:click={() => goToPage(i + 1, pagination.totalPages)}
+                >
+                  {i + 1}
+                </Button>
+              {:else if i + 1 === 2 || i + 1 === pagination.totalPages - 1}
+                <span
+                  class="inline-flex items-center justify-center w-8 h-8 text-gray-500 dark:text-gray-400"
+                  >...</span
+                >
+              {/if}
+            {/each}
+
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pagination.page === pagination.totalPages}
+              on:click={() => goToPage(pagination.page + 1, pagination.totalPages)}
+            >
+              <ArrowRight size={16} />
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
-  {/if}
-</div>
+    {/if}
+  </div>
+{:catch error}
+  <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-6 text-center">
+    <p class="text-red-600 dark:text-red-400">Failed to load bookings. Please refresh the page.</p>
+  </div>
+{/await}
