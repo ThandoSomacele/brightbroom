@@ -1,17 +1,14 @@
 // src/routes/cleaner/dashboard/+page.server.ts
 import { db } from '$lib/server/db';
-import { booking, payment, user, service, address } from '$lib/server/db/schema';
-import { eq, and, gt } from 'drizzle-orm';
+import { booking, user, service, address } from '$lib/server/db/schema';
+import { eq, and, gt, lt, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
-  const cleanerId = locals.user?.id;
+// Helper function to fetch cleaner dashboard data
+async function getCleanerDashboardData(cleanerId: string) {
   const now = new Date();
-  
+
   // Get upcoming bookings (next 7 days)
-  const nextWeek = new Date();
-  nextWeek.setDate(nextWeek.getDate() + 7);
-  
   const upcomingBookings = await db
     .select({
       id: booking.id,
@@ -45,15 +42,12 @@ export const load: PageServerLoad = async ({ locals }) => {
     )
     .orderBy(booking.scheduledDate)
     .limit(5);
-    
+
   // Get earnings summary
   const currentMonth = new Date();
   currentMonth.setDate(1); // First day of current month
   currentMonth.setHours(0, 0, 0, 0);
-  
-  const lastMonth = new Date(currentMonth);
-  lastMonth.setMonth(lastMonth.getMonth() - 1);
-  
+
   const totalEarnings = await db
     .select({
       total: sql`SUM(${booking.price} * 0.75)`.mapWith(Number), // Assuming 75% of booking price
@@ -65,7 +59,7 @@ export const load: PageServerLoad = async ({ locals }) => {
         eq(booking.status, 'COMPLETED')
       )
     );
-    
+
   const currentMonthEarnings = await db
     .select({
       total: sql`SUM(${booking.price} * 0.75)`.mapWith(Number),
@@ -78,15 +72,15 @@ export const load: PageServerLoad = async ({ locals }) => {
         gt(booking.scheduledDate, currentMonth)
       )
     );
-    
+
   // Get next payout date (next Thursday)
   const nextThursday = new Date();
   nextThursday.setDate(nextThursday.getDate() + ((4 - nextThursday.getDay() + 7) % 7));
-  
+
   // Get payout amount (completed bookings since last Thursday that haven't been paid)
   const lastThursday = new Date(nextThursday);
   lastThursday.setDate(lastThursday.getDate() - 7);
-  
+
   const pendingPayoutAmount = await db
     .select({
       total: sql`SUM(${booking.price} * 0.75)`.mapWith(Number),
@@ -100,7 +94,7 @@ export const load: PageServerLoad = async ({ locals }) => {
         lt(booking.scheduledDate, nextThursday)
       )
     );
-    
+
   return {
     upcomingBookings,
     earnings: {
@@ -110,6 +104,34 @@ export const load: PageServerLoad = async ({ locals }) => {
         date: nextThursday,
         amount: pendingPayoutAmount[0]?.total || 0
       }
+    }
+  };
+}
+
+export const load: PageServerLoad = async ({ locals }) => {
+  const cleanerId = locals.user?.id;
+
+  if (!cleanerId) {
+    return {
+      streamed: {
+        dashboardData: Promise.resolve({
+          upcomingBookings: [],
+          earnings: {
+            total: 0,
+            currentMonth: 0,
+            nextPayout: {
+              date: new Date(),
+              amount: 0
+            }
+          }
+        })
+      }
+    };
+  }
+
+  return {
+    streamed: {
+      dashboardData: getCleanerDashboardData(cleanerId)
     }
   };
 };

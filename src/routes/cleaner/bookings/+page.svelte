@@ -2,12 +2,13 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import Button from '$lib/components/ui/Button.svelte';
+  import Skeleton from '$lib/components/ui/Skeleton.svelte';
   import { Calendar, Filter, MapPin, Search, X } from 'lucide-svelte';
-  
+
   export let data;
-  
-  const { bookings, pagination, filters } = data;
-  
+
+  const { filters } = data;
+
   // Local state for filters
   let showFilters = false;
   let searchTerm = filters.search || '';
@@ -90,11 +91,11 @@
   }
   
   // Navigate to specific page
-  function goToPage(page: number) {
-    if (page < 1 || page > pagination.totalPages) return;
-    
+  function goToPage(targetPage: number, totalPages: number) {
+    if (targetPage < 1 || targetPage > totalPages) return;
+
     const searchParams = new URLSearchParams(window.location.search);
-    searchParams.set('page', page.toString());
+    searchParams.set('page', targetPage.toString());
     window.location.href = `/cleaner/bookings?${searchParams.toString()}`;
   }
 </script>
@@ -263,13 +264,50 @@
   
   <!-- Bookings List -->
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-    <div class="divide-y divide-gray-200 dark:divide-gray-700">
-      {#if bookings.length === 0}
-        <div class="p-6 text-center text-gray-500 dark:text-gray-400">
-          No bookings found matching your filters.
-        </div>
-      {:else}
-        {#each bookings as booking}
+    {#await data.streamed.bookingsData}
+      <!-- Loading skeleton -->
+      <div class="divide-y divide-gray-200 dark:divide-gray-700">
+        {#each [1, 2, 3, 4, 5] as _}
+          <div class="p-6">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+              <div class="flex-1 space-y-3">
+                <div class="flex items-start">
+                  <Skeleton variant="avatar" class="w-5 h-5 mr-2 rounded" />
+                  <div>
+                    <Skeleton variant="text" class="w-48 mb-1" />
+                    <Skeleton variant="text" class="w-20" />
+                  </div>
+                </div>
+                <div class="flex items-start">
+                  <Skeleton variant="avatar" class="w-5 h-5 mr-2 rounded" />
+                  <div>
+                    <Skeleton variant="text" class="w-64 mb-1" />
+                    <Skeleton variant="text" class="w-40" />
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 lg:mt-0 lg:ml-4 flex flex-col items-end">
+                <div class="flex items-center">
+                  <Skeleton variant="title" class="w-24 mr-3" />
+                  <Skeleton variant="button" class="w-20 h-6 rounded-full" />
+                </div>
+                <Skeleton variant="text" class="w-32 mt-2" />
+                <Skeleton variant="button" class="w-24 h-5 mt-3" />
+              </div>
+            </div>
+          </div>
+        {/each}
+      </div>
+    {:then bookingsData}
+      {@const bookings = bookingsData.bookings}
+      {@const pagination = bookingsData.pagination}
+      <div class="divide-y divide-gray-200 dark:divide-gray-700">
+        {#if bookings.length === 0}
+          <div class="p-6 text-center text-gray-500 dark:text-gray-400">
+            No bookings found matching your filters.
+          </div>
+        {:else}
+          {#each bookings as booking}
           <div class="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
               <div class="flex-1">
@@ -323,53 +361,58 @@
               </div>
             </div>
           </div>
-        {/each}
-      {/if}
-    </div>
-    
-    <!-- Pagination -->
-    {#if pagination.totalPages > 1}
-      <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700">
-        <div class="flex items-center justify-between">
-          <div class="text-sm text-gray-700 dark:text-gray-300">
-            Showing <span class="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> to <span class="font-medium">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of <span class="font-medium">{pagination.total}</span> bookings
-          </div>
-          
-          <nav class="flex space-x-1">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              disabled={pagination.page === 1}
-              on:click={() => goToPage(pagination.page - 1)}
-            >
-              Previous
-            </Button>
-            
-            {#each Array(Math.min(5, pagination.totalPages)) as _, i}
-              {#if pagination.totalPages <= 5 || i + 1 === 1 || i + 1 === pagination.totalPages || (i + 1 >= pagination.page - 1 && i + 1 <= pagination.page + 1)}
-                <Button
-                  variant={pagination.page === i + 1 ? "primary" : "outline"}
-                  size="sm"
-                  on:click={() => goToPage(i + 1)}
-                >
-                  {i + 1}
-                </Button>
-              {:else if i + 1 === 2 || i + 1 === pagination.totalPages - 1}
-                <span class="inline-flex items-center justify-center w-8 h-8 text-gray-500 dark:text-gray-400">...</span>
-              {/if}
-            {/each}
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
-              disabled={pagination.page === pagination.totalPages}
-              on:click={() => goToPage(pagination.page + 1)}
-            >
-              Next
-            </Button>
-          </nav>
-        </div>
+          {/each}
+        {/if}
       </div>
-    {/if}
+
+      <!-- Pagination -->
+      {#if pagination.totalPages > 1}
+        <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700">
+          <div class="flex items-center justify-between">
+            <div class="text-sm text-gray-700 dark:text-gray-300">
+              Showing <span class="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> to <span class="font-medium">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of <span class="font-medium">{pagination.total}</span> bookings
+            </div>
+
+            <nav class="flex space-x-1">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagination.page === 1}
+                on:click={() => goToPage(pagination.page - 1, pagination.totalPages)}
+              >
+                Previous
+              </Button>
+
+              {#each Array(Math.min(5, pagination.totalPages)) as _, i}
+                {#if pagination.totalPages <= 5 || i + 1 === 1 || i + 1 === pagination.totalPages || (i + 1 >= pagination.page - 1 && i + 1 <= pagination.page + 1)}
+                  <Button
+                    variant={pagination.page === i + 1 ? "primary" : "outline"}
+                    size="sm"
+                    on:click={() => goToPage(i + 1, pagination.totalPages)}
+                  >
+                    {i + 1}
+                  </Button>
+                {:else if i + 1 === 2 || i + 1 === pagination.totalPages - 1}
+                  <span class="inline-flex items-center justify-center w-8 h-8 text-gray-500 dark:text-gray-400">...</span>
+                {/if}
+              {/each}
+
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagination.page === pagination.totalPages}
+                on:click={() => goToPage(pagination.page + 1, pagination.totalPages)}
+              >
+                Next
+              </Button>
+            </nav>
+          </div>
+        </div>
+      {/if}
+    {:catch error}
+      <div class="p-6 text-center">
+        <p class="text-red-600 dark:text-red-400">Failed to load bookings. Please try again later.</p>
+      </div>
+    {/await}
   </div>
 </div>

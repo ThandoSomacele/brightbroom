@@ -2,6 +2,7 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
+  import { CustomerSkeleton } from "$lib/components/ui/skeletons";
   import { formatDate, renderMarkdown } from "$lib/utils/markdown";
   import {
     ArrowLeft,
@@ -44,7 +45,6 @@
   };
 
   $: article = data.article;
-  $: relatedArticles = data.relatedArticles;
   $: articleContent = renderMarkdown(article.content);
 
   let showShareMenu = false;
@@ -337,68 +337,81 @@
     {/each}
   </div>
 
-  <!-- Related Articles -->
-  {#if relatedArticles.length > 0}
+  <!-- Related Articles (Streamed) -->
+  {#await data.streamed.relatedArticles}
     <section
       class="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-gray-700 mt-16"
     >
       <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8">
         Related Articles
       </h2>
+      <CustomerSkeleton variant="magazineArticle" />
+    </section>
+  {:then relatedArticles}
+    {#if relatedArticles.length > 0}
+      <section
+        class="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-gray-700 mt-16"
+      >
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8">
+          Related Articles
+        </h2>
 
-      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {#each relatedArticles as relatedArticle}
-          <article class="group">
-            <a href="/magazine/{relatedArticle.slug}" class="block">
-              <div
-                class="aspect-w-16 aspect-h-9 mb-4 overflow-hidden rounded-lg"
-              >
-                <img
-                  src={relatedArticle.featuredImage}
-                  alt={relatedArticle.imageAlt}
-                  class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-
-              <div class="space-y-2">
+        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {#each relatedArticles as relatedArticle}
+            <article class="group">
+              <a href="/magazine/{relatedArticle.slug}" class="block">
                 <div
-                  class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
+                  class="aspect-w-16 aspect-h-9 mb-4 overflow-hidden rounded-lg"
                 >
-                  <span class="flex items-center gap-1">
-                    <Calendar size={16} />
-                    {formatDate(relatedArticle.publishedAt)}
-                  </span>
-                  <span class="flex items-center gap-1">
-                    <Clock size={16} />
-                    {relatedArticle.readingTime} min read
-                  </span>
+                  <img
+                    src={relatedArticle.featuredImage}
+                    alt={relatedArticle.imageAlt}
+                    class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
 
-                <h3
-                  class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2"
-                >
-                  {relatedArticle.title}
-                </h3>
+                <div class="space-y-2">
+                  <div
+                    class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
+                  >
+                    <span class="flex items-center gap-1">
+                      <Calendar size={16} />
+                      {formatDate(relatedArticle.publishedAt)}
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <Clock size={16} />
+                      {relatedArticle.readingTime} min read
+                    </span>
+                  </div>
 
-                <p
-                  class="text-gray-600 dark:text-gray-300 line-clamp-2 text-sm"
-                >
-                  {relatedArticle.description}
-                </p>
+                  <h3
+                    class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2"
+                  >
+                    {relatedArticle.title}
+                  </h3>
 
-                <span
-                  class="inline-block px-2 py-1 text-xs font-medium bg-primary-100 text-primary-800 rounded dark:bg-primary-900/20 dark:text-primary-400"
-                >
-                  {categoryNames[relatedArticle.category] ||
-                    relatedArticle.category}
-                </span>
-              </div>
-            </a>
-          </article>
-        {/each}
-      </div>
-    </section>
-  {/if}
+                  <p
+                    class="text-gray-600 dark:text-gray-300 line-clamp-2 text-sm"
+                  >
+                    {relatedArticle.description}
+                  </p>
+
+                  <span
+                    class="inline-block px-2 py-1 text-xs font-medium bg-primary-100 text-primary-800 rounded dark:bg-primary-900/20 dark:text-primary-400"
+                  >
+                    {categoryNames[relatedArticle.category] ||
+                      relatedArticle.category}
+                  </span>
+                </div>
+              </a>
+            </article>
+          {/each}
+        </div>
+      </section>
+    {/if}
+  {:catch}
+    <!-- Silently fail for related articles - they're not critical -->
+  {/await}
 </article>
 
 <!-- Click outside to close share menu -->

@@ -1,12 +1,13 @@
 <!-- src/routes/profile/+page.svelte -->
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
+  import Skeleton from "$lib/components/ui/Skeleton.svelte";
   import { Calendar, Clock, MapPin, Settings, User } from "lucide-svelte";
   import { formatDate, formatTime } from "$lib/utils/date-utils";
 
   // Get data from the server load function
   export let data;
-  const { user, upcomingBookings } = data;
+  const { user } = data;
 </script>
 
 <svelte:head>
@@ -213,77 +214,109 @@
             </Button>
           </div>
 
-          {#if upcomingBookings && upcomingBookings.length > 0}
+          {#await data.streamed.upcomingBookings}
+            <!-- Loading skeleton -->
             <div class="space-y-4">
-              {#each upcomingBookings as booking}
-                <div
-                  class="rounded-lg border border-gray-200 p-4 transition-all hover:border-primary-200 dark:border-gray-700 dark:hover:border-primary-800"
-                >
+              {#each [1, 2, 3] as _}
+                <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
                   <div class="flex items-start justify-between">
-                    <div>
-                      <h3 class="font-medium text-gray-900 dark:text-white">
-                        {booking.service.name}
-                      </h3>
-                      <p
-                        class="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400"
-                      >
-                        <MapPin size={14} class="mr-1" />
-                        {booking.address.street}, {booking.address.city}
-                      </p>
-                      <p
-                        class="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400"
-                      >
-                        <Calendar size={14} class="mr-1" />
-                        {formatDate(booking.scheduledDate)} at {formatTime(booking.scheduledDate)}
-                      </p>
+                    <div class="space-y-2">
+                      <Skeleton variant="title" class="w-32" />
+                      <Skeleton variant="text" class="w-48" />
+                      <Skeleton variant="text" class="w-40" />
                     </div>
-
                     <div class="text-right">
-                      <span
-                        class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                        ${
-                          booking.status === "CONFIRMED"
-                            ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
-                            : booking.status === "PENDING"
-                              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
-                              : "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
-                        }`}
-                      >
-                        {booking.status}
-                      </span>
-
-                      <p class="mt-2 text-lg font-bold text-primary">
-                        R{typeof booking.price === "number"
-                          ? booking.price.toFixed(2)
-                          : parseFloat(booking.price).toFixed(2)}
-                      </p>
+                      <Skeleton variant="button" class="w-20 h-6 mb-2" />
+                      <Skeleton variant="title" class="w-16" />
                     </div>
                   </div>
-
                   <div class="mt-3 flex justify-end">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      href={`/profile/bookings/${booking.id}`}
-                    >
-                      View Details
-                    </Button>
+                    <Skeleton variant="button" class="w-28 h-8" />
                   </div>
                 </div>
               {/each}
             </div>
-          {:else}
+          {:then upcomingBookings}
+            {#if upcomingBookings && upcomingBookings.length > 0}
+              <div class="space-y-4">
+                {#each upcomingBookings as booking}
+                  <div
+                    class="rounded-lg border border-gray-200 p-4 transition-all hover:border-primary-200 dark:border-gray-700 dark:hover:border-primary-800"
+                  >
+                    <div class="flex items-start justify-between">
+                      <div>
+                        <h3 class="font-medium text-gray-900 dark:text-white">
+                          {booking.service.name}
+                        </h3>
+                        <p
+                          class="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400"
+                        >
+                          <MapPin size={14} class="mr-1" />
+                          {booking.address.street}, {booking.address.city}
+                        </p>
+                        <p
+                          class="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400"
+                        >
+                          <Calendar size={14} class="mr-1" />
+                          {formatDate(booking.scheduledDate)} at {formatTime(booking.scheduledDate)}
+                        </p>
+                      </div>
+
+                      <div class="text-right">
+                        <span
+                          class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                          ${
+                            booking.status === "CONFIRMED"
+                              ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                              : booking.status === "PENDING"
+                                ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
+                                : "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+                          }`}
+                        >
+                          {booking.status}
+                        </span>
+
+                        <p class="mt-2 text-lg font-bold text-primary">
+                          R{typeof booking.price === "number"
+                            ? booking.price.toFixed(2)
+                            : parseFloat(booking.price).toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="mt-3 flex justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        href={`/profile/bookings/${booking.id}`}
+                      >
+                        View Details
+                      </Button>
+                    </div>
+                  </div>
+                {/each}
+              </div>
+            {:else}
+              <div
+                class="rounded-lg border border-dashed border-gray-300 p-6 text-center dark:border-gray-700"
+              >
+                <p class="text-gray-500 dark:text-gray-400">
+                  You don't have any upcoming bookings.
+                </p>
+                <Button variant="secondary" href="/book" class="mt-4">
+                  Book Now
+                </Button>
+              </div>
+            {/if}
+          {:catch error}
             <div
-              class="rounded-lg border border-dashed border-gray-300 p-6 text-center dark:border-gray-700"
+              class="rounded-lg border border-dashed border-red-300 bg-red-50 p-6 text-center dark:border-red-700 dark:bg-red-900/10"
             >
-              <p class="text-gray-500 dark:text-gray-400">
-                You don't have any upcoming bookings.
+              <p class="text-red-600 dark:text-red-400">
+                Failed to load bookings. Please try again later.
               </p>
-              <Button variant="secondary" href="/book" class="mt-4">
-                Book Now
-              </Button>
             </div>
-          {/if}
+          {/await}
         </div>
       </div>
     </div>

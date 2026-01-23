@@ -3,6 +3,11 @@ import { ArticleService } from "$lib/services/article.service";
 import { error } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
+// Helper function to fetch related articles (for streaming)
+async function getRelatedArticles(slug: string, category: string, tags: string[]) {
+  return ArticleService.getRelatedArticles(slug, category, tags, 3);
+}
+
 export const load: PageServerLoad = async ({ params, url }) => {
   try {
     const article = await ArticleService.getArticleBySlug(params.slug);
@@ -11,23 +16,14 @@ export const load: PageServerLoad = async ({ params, url }) => {
       throw error(404, "Article not found");
     }
 
-    // Get related articles
-    const relatedArticles = await ArticleService.getRelatedArticles(
-      article.slug,
-      article.frontmatter.category,
-      article.frontmatter.tags,
-      3,
-    );
-
     // Create absolute URL for Open Graph image
     const baseUrl = url.origin;
-    const ogImage = article.frontmatter.featuredImage.startsWith('http') 
-      ? article.frontmatter.featuredImage 
+    const ogImage = article.frontmatter.featuredImage.startsWith('http')
+      ? article.frontmatter.featuredImage
       : `${baseUrl}${article.frontmatter.featuredImage}`;
 
     return {
       article,
-      relatedArticles,
       meta: {
         title: article.frontmatter.seo?.title || article.frontmatter.title,
         description:
@@ -36,6 +32,13 @@ export const load: PageServerLoad = async ({ params, url }) => {
         keywords: article.frontmatter.seo?.keywords || article.frontmatter.tags,
         ogImage: ogImage,
         url: url.href,
+      },
+      streamed: {
+        relatedArticles: getRelatedArticles(
+          article.slug,
+          article.frontmatter.category,
+          article.frontmatter.tags
+        ),
       },
     };
   } catch (err) {

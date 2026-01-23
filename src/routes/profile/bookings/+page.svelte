@@ -1,31 +1,34 @@
 <!-- src/routes/profile/bookings/+page.svelte -->
 <script lang="ts">
   import Button from '$lib/components/ui/Button.svelte';
+  import Skeleton from '$lib/components/ui/Skeleton.svelte';
   import { Calendar, MapPin, Clock, CreditCard } from 'lucide-svelte';
   import { getBookingReference } from '$lib/utils/strings';
   import { formatDate, formatTime, parseDateTimeString } from '$lib/utils/date-utils';
 
   // Get data from the server load function
   export let data;
-  const { bookings } = data;
 
   // Filter bookings by status and time
   let filterStatus = 'all';
   let filterTime = 'all';
 
-  $: filteredBookings = bookings.filter(booking => {
-    // Filter by status
-    const statusMatch = filterStatus === 'all' || booking.status === filterStatus;
+  // Helper function to filter bookings
+  function filterBookings(bookings: any[]) {
+    return bookings.filter(booking => {
+      // Filter by status
+      const statusMatch = filterStatus === 'all' || booking.status === filterStatus;
 
-    // Filter by time (upcoming/past)
-    const now = new Date();
-    const bookingDate = parseDateTimeString(booking.scheduledDate);
-    const timeMatch = filterTime === 'all' ||
-      (filterTime === 'upcoming' && bookingDate >= now) ||
-      (filterTime === 'past' && bookingDate < now);
+      // Filter by time (upcoming/past)
+      const now = new Date();
+      const bookingDate = parseDateTimeString(booking.scheduledDate);
+      const timeMatch = filterTime === 'all' ||
+        (filterTime === 'upcoming' && bookingDate >= now) ||
+        (filterTime === 'past' && bookingDate < now);
 
-    return statusMatch && timeMatch;
-  });
+      return statusMatch && timeMatch;
+    });
+  }
   
   // Get status badge class
   function getStatusBadgeClass(status: string): string {
@@ -162,8 +165,40 @@
     
     <!-- Bookings list -->
     <div class="space-y-6">
-      {#if filteredBookings.length > 0}
-        {#each filteredBookings as booking}
+      {#await data.streamed.bookings}
+        <!-- Loading skeleton for booking cards -->
+        {#each [1, 2, 3, 4] as _}
+          <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+            <div class="flex flex-wrap justify-between gap-4">
+              <div class="flex-1">
+                <div class="mb-4 flex items-center">
+                  <Skeleton variant="button" class="w-24 h-7 rounded-full" />
+                </div>
+                <Skeleton variant="text" class="w-56 mb-2" />
+                <Skeleton variant="title" class="w-64 mb-2" />
+                <div class="space-y-2">
+                  {#each [1, 2, 3] as _inner}
+                    <div class="flex items-center">
+                      <Skeleton variant="avatar" class="w-5 h-5 mr-2 rounded" />
+                      <Skeleton variant="text" class="w-40" />
+                    </div>
+                  {/each}
+                </div>
+              </div>
+              <div class="flex flex-col items-end justify-between">
+                <Skeleton variant="title" class="w-20 h-8 mb-4" />
+                <div class="mt-4 flex flex-wrap gap-2">
+                  <Skeleton variant="button" class="w-28 h-10" />
+                  <Skeleton variant="button" class="w-20 h-10" />
+                </div>
+              </div>
+            </div>
+          </div>
+        {/each}
+      {:then bookings}
+        {@const filteredBookings = filterBookings(bookings)}
+        {#if filteredBookings.length > 0}
+          {#each filteredBookings as booking}
           <div class="rounded-lg bg-white p-6 shadow-md transition-all hover:shadow-lg dark:bg-gray-800">
             <div class="flex flex-wrap justify-between gap-4">
               <!-- Left column: Booking details -->
@@ -292,7 +327,15 @@
             </Button>
           {/if}
         </div>
-      {/if}
+        {/if}
+      {:catch error}
+        <div class="rounded-lg border border-dashed border-red-300 bg-red-50 p-8 text-center dark:border-red-700 dark:bg-red-900/10">
+          <h3 class="mb-2 text-lg font-medium text-red-800 dark:text-red-300">Failed to load bookings</h3>
+          <p class="text-red-600 dark:text-red-400">
+            Please try again later or contact support if the problem persists.
+          </p>
+        </div>
+      {/await}
     </div>
   </div>
 </div>
