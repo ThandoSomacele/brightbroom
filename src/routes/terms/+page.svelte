@@ -417,7 +417,7 @@
 
                     <p>
                       3.1.18 <strong>Website</strong> means the internet site at
-                      brightbroom.co.za, related mobile-sites and software applications,
+                      brightbroom.com, related mobile-sites and software applications,
                       or such other site notified to you by us.
                     </p>
 
@@ -1432,15 +1432,15 @@
                     satisfies all legal requirements concerning written
                     communications. You may give notice to us under or in
                     connection with these Terms by emailing <a
-                      href="mailto:support@brightbroom.co.za"
+                      href="mailto:support@brightbroom.com"
                       class="text-primary-600 dark:text-primary-400 hover:underline"
-                      >support@brightbroom.co.za</a
+                      >support@brightbroom.com</a
                     >
                     or alternatively
                     <a
-                      href="mailto:info@brightbroom.co.za"
+                      href="mailto:info@brightbroom.com"
                       class="text-primary-600 dark:text-primary-400 hover:underline"
-                      >info@brightbroom.co.za</a
+                      >info@brightbroom.com</a
                     >
                   </p>
 

@@ -1056,9 +1056,9 @@
                     15.2 If you currently receive marketing information from us
                     which you would prefer not to receive in the future, please
                     email us at: <a
-                      href="mailto:info@brightbroom.co.za"
+                      href="mailto:info@brightbroom.com"
                       class="text-primary-600 dark:text-primary-400 hover:underline"
-                      >info@brightbroom.co.za</a
+                      >info@brightbroom.com</a
                     >
                   </p>
                 </div>
@@ -1132,9 +1132,9 @@
                           <td class="px-4 py-3 text-sm font-medium">Email</td>
                           <td class="px-4 py-3 text-sm"
                             ><a
-                              href="mailto:info@brightbroom.co.za"
+                              href="mailto:info@brightbroom.com"
                               class="text-primary-600 dark:text-primary-400 hover:underline"
-                              >info@brightbroom.co.za</a
+                              >info@brightbroom.com</a
                             ></td
                           >
                         </tr>
@@ -1142,11 +1142,11 @@
                           <td class="px-4 py-3 text-sm font-medium">Website</td>
                           <td class="px-4 py-3 text-sm"
                             ><a
-                              href="https://www.brightbroom.co.za"
+                              href="https://www.brightbroom.com"
                               target="_blank"
                               rel="noopener noreferrer"
                               class="text-primary-600 dark:text-primary-400 hover:underline"
-                              >www.brightbroom.co.za</a
+                              >www.brightbroom.com</a
                             ></td
                           >
                         </tr>
