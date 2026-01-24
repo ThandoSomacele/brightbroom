@@ -1,7 +1,7 @@
 // src/routes/admin/users/+page.server.ts
 import { db } from "$lib/server/db";
 import { booking, user } from "$lib/server/db/schema";
-import { desc, eq, like, or, sql } from "drizzle-orm";
+import { desc, eq, inArray, like, or, sql } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
 
 // Helper function to fetch users with filters
@@ -85,7 +85,7 @@ async function getUsers(
               count: sql<number>`count(*)`.mapWith(Number),
             })
             .from(booking)
-            .where(sql`${booking.userId} IN (${userIds.join(",")})`)
+            .where(inArray(booking.userId, userIds))
             .groupBy(booking.userId)
         : [];
 
