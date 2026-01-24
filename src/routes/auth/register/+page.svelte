@@ -2,12 +2,19 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { goto } from "$app/navigation";
+  import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
   import HoneypotField from "$lib/components/forms/HoneypotField.svelte";
-  import { Eye, EyeOff, Loader2 } from "lucide-svelte";
+  import { Eye, EyeOff, Loader2, Tag } from "lucide-svelte";
 
   // Get possible error from form action
   export let form;
+
+  // Get redirect URL from query params if it exists
+  $: redirectTo = $page.url.searchParams.get("redirectTo") || "/profile";
+
+  // Check if user is coming from coupon flow
+  $: hasPendingCoupon = $page.url.searchParams.get("coupon") === "pending";
 
   let isLoading = false;
   let isAuthenticating = false;
@@ -53,6 +60,18 @@
     </div>
 
     <div class="rounded-lg bg-white p-8 shadow-md dark:bg-gray-800">
+      <!-- Coupon pending message -->
+      {#if hasPendingCoupon}
+        <div
+          class="mb-6 rounded-md bg-primary-50 p-4 text-primary-700 dark:bg-primary-900/20 dark:text-primary-200"
+        >
+          <div class="flex items-center gap-2">
+            <Tag class="h-5 w-5 flex-shrink-0" />
+            <p>Create an account to apply your coupon code.</p>
+          </div>
+        </div>
+      {/if}
+
       <!-- Error message if registration failed -->
       {#if form?.error}
         <div
@@ -224,6 +243,9 @@
           </label>
         </div>
 
+        <!-- Hidden redirectTo field -->
+        <input type="hidden" name="redirectTo" value={redirectTo} />
+
         <!-- Submit button -->
         <Button
           variant="primary"
@@ -244,7 +266,7 @@
         <p class="text-sm text-gray-600 dark:text-gray-400">
           Already have an account?
           <a
-            href="/auth/login"
+            href="/auth/login{redirectTo !== '/profile' ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}{hasPendingCoupon ? (redirectTo !== '/profile' ? '&' : '?') + 'coupon=pending' : ''}"
             class="font-medium text-primary hover:underline"
           >
             Sign in

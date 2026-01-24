@@ -203,8 +203,31 @@
     }
 
     if (isAuthenticated) {
-      // Authenticated user - get address ID
-      selectedAddress = localStorage.getItem("booking_address") || "";
+      // Authenticated user - first check for saved address selection
+      const storedAddressId = localStorage.getItem("booking_address") || "";
+
+      // Only use the stored address ID if it actually exists in user's saved addresses
+      // (A new user who just signed up won't have any saved addresses yet)
+      if (storedAddressId && addresses.some((a) => a.id === storedAddressId)) {
+        selectedAddress = storedAddressId;
+      } else {
+        // No valid saved address - check if user has guest address data from booking flow
+        // This happens when a guest user logs in/signs up during the booking flow
+        selectedAddress = "";
+        const guestAddressData = localStorage.getItem("booking_guest_address");
+        if (guestAddressData) {
+          try {
+            guestAddress = JSON.parse(guestAddressData);
+          } catch (e) {
+            console.error("Error parsing guest address:", e);
+          }
+        }
+
+        // Also check server-side guest booking data
+        if (guestBookingData?.guestAddress) {
+          guestAddress = guestBookingData.guestAddress;
+        }
+      }
     } else {
       // Guest user - get guest address data from localStorage
       const guestAddressData = localStorage.getItem("booking_guest_address");
@@ -224,9 +247,10 @@
       }
     }
 
-    // Validation based on user type
+    // Validation based on user type - for authenticated users, accept either saved address OR guest address
+    // Guest address is valid if user just logged in during booking flow
     const hasValidAddressData = isAuthenticated
-      ? selectedAddress
+      ? (selectedAddress || guestAddress)
       : guestAddress;
 
     // Check if we have valid scheduling data
@@ -237,6 +261,22 @@
     // If required information is missing, redirect back
     if (!selectedService || !hasValidSchedule || !hasValidAddressData) {
       goto("/book");
+    }
+
+    // Check for pending coupon code (from guest user who just logged in)
+    if (isAuthenticated && !isRecurring) {
+      const pendingCoupon = localStorage.getItem("pending_coupon_code");
+      if (pendingCoupon) {
+        // Clear the pending coupon immediately to prevent re-applying
+        localStorage.removeItem("pending_coupon_code");
+        // Set the coupon code and auto-apply after a brief delay (to ensure price is calculated)
+        couponCode = pendingCoupon;
+        setTimeout(() => {
+          if (priceBreakdown) {
+            applyCoupon();
+          }
+        }, 100);
+      }
     }
   });
 
@@ -273,9 +313,9 @@
 
   // Handle form submission
   function handleSubmit() {
-    // For authenticated users, check selectedAddress
+    // For authenticated users, check selectedAddress OR guestAddress (if they just logged in during booking)
     // For guest users, check guestAddress only (contact info will be collected at payment)
-    const hasValidAddress = isAuthenticated ? selectedAddress : guestAddress;
+    const hasValidAddress = isAuthenticated ? (selectedAddress || guestAddress) : guestAddress;
 
     // Check if we have valid scheduling data
     const hasValidSchedule = isRecurring
@@ -424,6 +464,20 @@
     couponError = "";
   }
 
+  // Handle guest user trying to apply coupon - redirect to login
+  function handleGuestCoupon() {
+    if (!couponCode.trim()) {
+      return;
+    }
+
+    // Save coupon code to localStorage so we can apply it after login
+    localStorage.setItem("pending_coupon_code", couponCode.trim().toUpperCase());
+
+    // Redirect to login with return URL back to review page
+    const returnUrl = encodeURIComponent("/book/review");
+    goto(`/auth/login?redirectTo=${returnUrl}&coupon=pending`);
+  }
+
   // Clear all booking data from localStorage
   function clearBookingData() {
     localStorage.removeItem("booking_service");
@@ -566,9 +620,31 @@
 
           {#if !isAuthenticated && !isRecurring}
             <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                <Tag size={14} />
-                Have a coupon code? Log in to apply it.
+              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                <Tag size={16} class="text-primary" />
+                Have a coupon code?
+              </h4>
+
+              <!-- Coupon input for guests -->
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  bind:value={couponCode}
+                  placeholder="Enter coupon code"
+                  class="flex-1 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white uppercase font-mono focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  onkeydown={(e) => e.key === "Enter" && (e.preventDefault(), handleGuestCoupon())}
+                />
+                <button
+                  type="button"
+                  onclick={handleGuestCoupon}
+                  disabled={!couponCode.trim()}
+                  class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Apply
+                </button>
+              </div>
+              <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                You'll need to log in or create an account to use a coupon code.
               </p>
             </div>
           {/if}
@@ -966,11 +1042,11 @@
         <input type="hidden" name="couponDiscountAmount" value={appliedCoupon.discountAmount.toFixed(2)} />
       {/if}
 
-      {#if isAuthenticated}
-        <!-- Authenticated user fields -->
+      {#if isAuthenticated && selectedAddress}
+        <!-- Authenticated user with saved address -->
         <input type="hidden" name="addressId" value={selectedAddress} />
       {:else}
-        <!-- Guest user fields - only address data needed -->
+        <!-- Guest user OR authenticated user who logged in during booking (has guest address) -->
         <input
           type="hidden"
           name="guestAddress"
@@ -990,7 +1066,7 @@
           variant="primary"
           disabled={isLoading ||
             !selectedService ||
-            (isAuthenticated ? !selectedAddress : !guestAddress) ||
+            (isAuthenticated ? !(selectedAddress || guestAddress) : !guestAddress) ||
             (!isRecurring && (!selectedDate || !selectedTime)) ||
             (isRecurring && (!recurringFrequency || !recurringTimeSlot))}
         >

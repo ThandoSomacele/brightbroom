@@ -147,8 +147,8 @@ export const actions: Actions = {
 
     // Validate based on user type
     if (locals.user) {
-      // Authenticated user - require addressId
-      if (!addressId) {
+      // Authenticated user - require addressId OR guestAddress (for users who logged in during booking flow)
+      if (!addressId && !guestAddressData) {
         return { success: false, error: 'Address selection is required' };
       }
     } else {
@@ -205,12 +205,12 @@ export const actions: Actions = {
       let addressData = null;
       let guestAddress = null;
 
-      // Handle address validation based on user type
-      if (locals.user) {
-        // Authenticated user - validate address exists and belongs to user
+      // Handle address validation based on user type and available address data
+      if (locals.user && addressId) {
+        // Authenticated user with saved address - validate address exists and belongs to user
         const addressResult = await db.select()
           .from(address)
-          .where(eq(address.id, addressId!))
+          .where(eq(address.id, addressId))
           .limit(1);
 
         if (addressResult.length === 0 || addressResult[0].userId !== locals.user.id) {
@@ -218,10 +218,10 @@ export const actions: Actions = {
         }
 
         addressData = addressResult[0];
-      } else {
-        // Guest user - parse and validate guest address
+      } else if (guestAddressData) {
+        // Guest user OR authenticated user who logged in during booking flow (has guest address)
         try {
-          guestAddress = JSON.parse(guestAddressData!);
+          guestAddress = JSON.parse(guestAddressData);
 
           // Check if guest address is null or missing required fields
           if (!guestAddress) {
@@ -236,6 +236,8 @@ export const actions: Actions = {
         } catch (parseError) {
           return { success: false, error: 'Invalid address format' };
         }
+      } else {
+        return { success: false, error: 'Address information is required' };
       }
 
       // Handle recurring booking differently
@@ -341,11 +343,12 @@ export const actions: Actions = {
       const bookingId = crypto.randomUUID();
 
       // Prepare booking data with room counts and coupon fields
+      // Note: addressId is only set if user has a saved address, otherwise guestAddress is used
       const bookingData = {
         id: bookingId,
         userId: locals.user?.id || null,
         serviceId: serviceId,
-        addressId: locals.user ? addressId : null,
+        addressId: addressData ? addressId : null,
         cleanerId: cleanerId,
         status: 'PENDING' as const,
         scheduledDate: scheduledDateObj,
@@ -354,8 +357,8 @@ export const actions: Actions = {
         bedroomCount,
         bathroomCount,
         notes: notes || null,
-        // Guest booking fields - only address data (contact info obtained during authentication)
-        guestAddress: locals.user ? null : guestAddress,
+        // Guest address - used for guest users OR authenticated users who logged in during booking
+        guestAddress: guestAddress || null,
         // Coupon fields
         couponId: validatedCouponId,
         originalPrice: originalPrice ? originalPrice.toFixed(2) : null,
@@ -414,12 +417,20 @@ export const actions: Actions = {
       // Send booking confirmation email only for authenticated users
       // Guest users will receive confirmation after authentication during payment
       if (locals.user) {
-        const emailAddress = {
-          street: addressData!.street,
-          city: addressData!.city,
-          state: addressData!.state,
-          zipCode: addressData!.zipCode
-        };
+        // Use saved address data or guest address depending on what's available
+        const emailAddress = addressData
+          ? {
+              street: addressData.street,
+              city: addressData.city,
+              state: addressData.state,
+              zipCode: addressData.zipCode
+            }
+          : {
+              street: guestAddress?.street || '',
+              city: guestAddress?.city || '',
+              state: guestAddress?.state || '',
+              zipCode: guestAddress?.zipCode || ''
+            };
 
         // Build add-ons data for email
         const emailAddons = selectedAddons.map(a => ({
