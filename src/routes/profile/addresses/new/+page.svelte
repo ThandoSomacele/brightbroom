@@ -64,7 +64,7 @@
           selectedAddress.lat,
           selectedAddress.lng,
         );
-        addressError = `This address is outside our current service areas. The closest area is ${area.name}, which is ${distance.toFixed(1)}km away.`;
+        addressError = `We haven't reached your area yet! The nearest BrightBroom zone is ${area.name} (${distance.toFixed(0)}km away). We're expanding soon!`;
       }
     }
   }
@@ -72,7 +72,7 @@
   // Handle out-of-service-area warning
   function handleOutOfServiceArea(event) {
     isOutOfServiceArea = true;
-    addressError = "This address is outside our current service areas.";
+    addressError = "We're not in your neighbourhood yet! Check our service areas to see where we sparkle.";
   }
 </script>
 

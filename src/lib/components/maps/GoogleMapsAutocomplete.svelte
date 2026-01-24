@@ -233,7 +233,13 @@
     }
 
     try {
-      // Initialise the autocomplete with geocode type (includes addresses, establishments, and points of interest)
+      // Define service area bounds (covers Fourways, Bryanston, Randburg, Midrand, Centurion/Monaghan Farm)
+      const serviceAreaBounds = new google.maps.LatLngBounds(
+        new google.maps.LatLng(-26.3, 27.4),  // SW corner (covers Centurion/Monaghan Farm)
+        new google.maps.LatLng(-25.8, 28.3),  // NE corner (covers Midrand)
+      );
+
+      // Initialise the autocomplete (no types restriction to include addresses, estates, and office parks)
       autocomplete = new google.maps.places.Autocomplete(inputElement, {
         componentRestrictions: { country: "za" },
         fields: [
@@ -243,15 +249,12 @@
           "name",
           "types",
         ],
-        types: ["geocode"], // This includes addresses, establishments, and points of interest
+        bounds: serviceAreaBounds,
+        strictBounds: true, // Enforce bounds as restriction, not just bias
       });
 
-      // Bias results toward Gauteng area
-      const gautengBounds = new google.maps.LatLngBounds(
-        new google.maps.LatLng(-26.5, 27.5), // SW corner
-        new google.maps.LatLng(-25.5, 28.5), // NE corner
-      );
-      autocomplete.setBounds(gautengBounds);
+      // Set bounds for the autocomplete
+      autocomplete.setBounds(serviceAreaBounds);
 
       // Add the place_changed event listener
       autocomplete.addListener("place_changed", handlePlaceSelect);
@@ -289,7 +292,7 @@
 
       // Check if address is within our service areas
       if (!isWithinServiceArea(lat, lng)) {
-        error = "Location is outside our current service areas";
+        error = "We're not in your neighbourhood yet! BrightBroom currently sparkles in Fourways, Bryanston, Randburg, Midrand, and surrounding areas. We're growing - check back soon!";
         dispatch("outOfServiceArea", {
           address: place.formatted_address || "",
         });
