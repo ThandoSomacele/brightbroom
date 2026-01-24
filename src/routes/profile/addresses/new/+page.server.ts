@@ -68,11 +68,12 @@ export const actions: Actions = {
 
     // Process form data
     const formData = await request.formData();
-    const street = formData.get("street")?.toString();
+    const formattedAddress = formData.get("formattedAddress")?.toString() || "";
+    let street = formData.get("street")?.toString() || "";
     const aptUnit = formData.get("aptUnit")?.toString() || null;
-    const city = formData.get("city")?.toString();
-    const state = formData.get("state")?.toString();
-    const zipCode = formData.get("zipCode")?.toString();
+    let city = formData.get("city")?.toString() || "";
+    let state = formData.get("state")?.toString() || "";
+    let zipCode = formData.get("zipCode")?.toString() || "";
     const instructions = formData.get("instructions")?.toString() || null;
     const isDefault = formData.get("isDefault") === "on";
     // Get latitude and longitude if provided
@@ -89,10 +90,33 @@ export const actions: Actions = {
       url.searchParams.get("redirectTo") ||
       "/profile/addresses";
 
-    // Validate required fields
-    if (!street || !city || !state || !zipCode) {
+    // Use formatted address as fallback for missing fields (Uber-like experience)
+    if (!street && formattedAddress) {
+      // Extract first part of formatted address as street
+      const addressParts = formattedAddress.split(",");
+      street = addressParts[0]?.trim() || formattedAddress;
+    }
+
+    // For South African addresses, extract city/state from formatted address if missing
+    if (formattedAddress) {
+      const parts = formattedAddress.split(",").map(p => p.trim());
+      if (!city && parts.length > 1) {
+        city = parts[1] || "Unknown";
+      }
+      if (!state) {
+        state = parts.find(p => p.includes("Gauteng") || p.includes("Province")) || "Gauteng";
+      }
+      if (!zipCode) {
+        // Find numeric part that looks like a postal code
+        const postalMatch = formattedAddress.match(/\b\d{4}\b/);
+        zipCode = postalMatch ? postalMatch[0] : "0000";
+      }
+    }
+
+    // Validate - only require that we have coordinates (proves Google selection)
+    if (!lat || !lng) {
       return fail(400, {
-        error: "Please fill in all required fields",
+        error: "Please select an address from the Google Maps suggestions",
         values: {
           street,
           aptUnit,

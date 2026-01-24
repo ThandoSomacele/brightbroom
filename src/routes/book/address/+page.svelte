@@ -33,8 +33,8 @@
 
   // Guest address form fields
   let guestAddress = {
+    formatted: "",
     street: "",
-    streetNumber: "",
     aptUnit: "",
     city: "",
     state: "",
@@ -103,8 +103,8 @@
 
     // Update guest address with Google Places data
     guestAddress = {
+      formatted: address.formatted || "",
       street: streetValue,
-      streetNumber: guestAddress.streetNumber || "", // Keep existing streetNumber
       aptUnit: address.aptUnit || guestAddress.aptUnit || "", // Keep existing aptUnit if not in places data
       city: address.city || "",
       state: address.state || "",
@@ -117,34 +117,14 @@
     selectedGoogleAddress = address;
   }
 
-  // Validate guest address
+  // Validate guest address - only require Google Maps selection
   function isGuestAddressValid() {
-    // For South African addresses, we need at least:
-    // - A formatted address from Google Maps (this ensures it's a valid, geocoded address)
-    // - Optionally city/state/zipCode (some Google Places results may not have all fields)
+    // Just need a valid address selected from Google Maps
+    // Apartment/unit and instructions are optional (like Uber/Mr D)
     const hasFormattedAddress =
       selectedGoogleAddress.formatted &&
       selectedGoogleAddress.formatted.trim() !== "";
 
-    if (!hasFormattedAddress) {
-      return false; // Must select from Google Maps dropdown
-    }
-
-    // Additional validation for estates and complexes
-    const isEstateOrComplex =
-      selectedGoogleAddress.placeType === "establishment" ||
-      selectedGoogleAddress.placeType === "point_of_interest";
-
-    if (isEstateOrComplex) {
-      // For estates/complexes, also require street number and unit
-      const hasStreetNumber =
-        guestAddress.streetNumber && guestAddress.streetNumber.trim() !== "";
-      const hasUnitNumber =
-        guestAddress.aptUnit && guestAddress.aptUnit.trim() !== "";
-      return hasFormattedAddress && hasStreetNumber && hasUnitNumber;
-    }
-
-    // For regular addresses, just need the formatted address
     return hasFormattedAddress;
   }
 
@@ -161,30 +141,9 @@
     }
 
     if (!isAuthenticated && !isGuestAddressValid()) {
-      // Provide specific error messages
-      const isEstateOrComplex =
-        selectedGoogleAddress.placeType === "establishment" ||
-        selectedGoogleAddress.placeType === "point_of_interest";
-
-      if (!selectedGoogleAddress.formatted) {
-        addressValidationError =
-          "Please select an address from the Google Maps suggestions.";
-      } else if (
-        isEstateOrComplex &&
-        (!guestAddress.streetNumber || guestAddress.streetNumber.trim() === "")
-      ) {
-        addressValidationError =
-          "Please provide the street number or specific address within the estate/complex.";
-      } else if (
-        isEstateOrComplex &&
-        (!guestAddress.aptUnit || guestAddress.aptUnit.trim() === "")
-      ) {
-        addressValidationError =
-          "Please provide your apartment or unit number for the complex/estate.";
-      } else {
-        addressValidationError = "Please complete the address information.";
-      }
-      return; // Need to fill in guest address
+      addressValidationError =
+        "Please select an address from the Google Maps suggestions.";
+      return;
     }
 
     // Show loading state
@@ -374,62 +333,23 @@
             />
           </div>
 
-          <!-- Additional address details -->
-          <div class="space-y-4">
-            <!-- Street Number/Address Line 2 (for estates/complexes) -->
-            {#if selectedGoogleAddress.placeType === "establishment" || selectedGoogleAddress.placeType === "point_of_interest"}
-              <div>
-                <label
-                  for="streetNumber"
-                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Street Number/Address Line 2
-                  <span class="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="streetNumber"
-                  bind:value={guestAddress.streetNumber}
-                  placeholder="e.g., 123 Main Road, Building A, etc."
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  Please provide the street number or specific address within {selectedGoogleAddress.placeName ||
-                    "the estate/complex"}
-                </p>
-              </div>
-            {/if}
-
-            <!-- Unit/Apartment -->
+          <!-- Additional address details (all optional, like Uber/Mr D) -->
+          {#if selectedGoogleAddress.formatted}
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label
                   for="aptUnit"
                   class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
-                  {#if selectedGoogleAddress.placeType === "establishment" || selectedGoogleAddress.placeType === "point_of_interest"}
-                    Apartment, and Unit Number
-                    <span class="text-red-500">*</span>
-                  {:else}
-                    Apartment, and Unit (Optional)
-                  {/if}
+                  Apartment/Unit (Optional)
                 </label>
                 <input
                   type="text"
                   id="aptUnit"
                   bind:value={guestAddress.aptUnit}
                   placeholder="Apt 4B, Unit 12, etc."
-                  required={selectedGoogleAddress.placeType ===
-                    "establishment" ||
-                    selectedGoogleAddress.placeType === "point_of_interest"}
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
-                {#if selectedGoogleAddress.placeType === "establishment" || selectedGoogleAddress.placeType === "point_of_interest"}
-                  <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    Required for complexes and estates
-                  </p>
-                {/if}
               </div>
               <div>
                 <label
@@ -447,7 +367,7 @@
                 />
               </div>
             </div>
-          </div>
+          {/if}
 
           <!-- Address validation error -->
           {#if addressValidationError}

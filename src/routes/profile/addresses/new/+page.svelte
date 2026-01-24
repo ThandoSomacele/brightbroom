@@ -152,11 +152,8 @@
       <form
         method="POST"
         action="?/createAddress"
-        use:enhance={({ formData }) => {
+        use:enhance={() => {
           isSubmitting = true;
-
-          // Add the formatted address to the form data
-          formData.append("formattedAddress", selectedAddress.formatted);
 
           return async ({ result }) => {
             if (result.type === "success" && result.data?.redirect) {
@@ -207,6 +204,7 @@
           {/if}
 
           <!-- Hidden fields to store all address components -->
+          <input type="hidden" name="formattedAddress" value={selectedAddress.formatted} />
           <input type="hidden" name="street" value={selectedAddress.street} />
           <input type="hidden" name="city" value={selectedAddress.city} />
           <input type="hidden" name="state" value={selectedAddress.state} />
