@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
   import { fade, slide } from "svelte/transition";
+  import { MapPin } from "lucide-svelte";
 
   export let selectedCleanerId: string | null = null;
   export let serviceId: string | null = null;
@@ -183,7 +184,7 @@
                 >
               {/if}
               {#if cleaner.distance}
-                <span class="text-gray-600">📍 {cleaner.distance} km</span>
+                <span class="text-gray-600 flex items-center gap-1"><MapPin class="h-4 w-4" /> {cleaner.distance} km</span>
               {/if}
             </div>
 

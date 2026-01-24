@@ -3,7 +3,7 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { CheckCircle } from 'lucide-svelte';
+  import { AlertTriangle, CheckCircle } from 'lucide-svelte';
   import Button from '$lib/components/ui/Button.svelte';
 
   // Get subscription ID from URL params
@@ -67,7 +67,7 @@
     </div>
   {:else if error}
     <div class="p-8 text-center">
-      <div class="text-red-500 mb-4">⚠️</div>
+      <AlertTriangle class="h-12 w-12 text-red-500 mx-auto mb-4" />
       <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Something went wrong</h2>
       <p class="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
       <Button

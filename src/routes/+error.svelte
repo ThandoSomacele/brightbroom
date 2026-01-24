@@ -5,7 +5,7 @@
   import { onMount } from 'svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import Forbidden403 from '$lib/components/errors/Forbidden403.svelte';
-  import { Home, RefreshCw, Mail, Calendar } from 'lucide-svelte';
+  import { AlertTriangle, Home, RefreshCw, Mail, Calendar } from 'lucide-svelte';
   
   // Get error information from the page store
   $: status = $page.status;
@@ -85,7 +85,7 @@
           {#if is404}
             <div class="text-6xl font-bold text-primary">404</div>
           {:else}
-            <div class="text-4xl text-primary">⚠️</div>
+            <AlertTriangle class="h-16 w-16 text-primary" />
           {/if}
         </div>
 

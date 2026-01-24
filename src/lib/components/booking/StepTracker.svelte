@@ -3,11 +3,11 @@
   export let currentStep: number = 1;
 
   const steps = [
-    { number: 1, name: 'Service', icon: '🏠' },
-    { number: 2, name: 'Address', icon: '📍' },
-    { number: 3, name: 'Schedule', icon: '📅' },
-    { number: 4, name: 'Cleaner', icon: '👤' },
-    { number: 5, name: 'Review', icon: '✓' }
+    { number: 1, name: 'Service' },
+    { number: 2, name: 'Address' },
+    { number: 3, name: 'Schedule' },
+    { number: 4, name: 'Cleaner' },
+    { number: 5, name: 'Review' }
   ];
 </script>
 

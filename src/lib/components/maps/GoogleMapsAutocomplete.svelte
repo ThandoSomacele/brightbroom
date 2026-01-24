@@ -1,6 +1,6 @@
 <!-- src/lib/components/maps/GoogleMapsAutocomplete.svelte -->
 <script lang="ts">
-  import { AlertCircle, Loader2, MapPin, X } from "lucide-svelte";
+  import { AlertCircle, Building2, Home, Loader2, MapPin, X } from "lucide-svelte";
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
 
   // Props
@@ -500,15 +500,15 @@
 
     <!-- Place type indicator -->
     {#if selectedAddress.placeType && selectedAddress.placeType !== "address"}
-      <div class="mt-1 text-xs text-primary dark:text-primary-400">
+      <div class="mt-1 flex items-center gap-1 text-xs text-primary dark:text-primary-400">
         {#if selectedAddress.placeType === "establishment"}
-          📍 Estate/Complex selected
+          <MapPin class="h-3 w-3" /> Estate/Complex selected
         {:else if selectedAddress.placeType === "point_of_interest"}
-          🏢 Point of interest selected
+          <Building2 class="h-3 w-3" /> Point of interest selected
         {:else if selectedAddress.placeType === "sublocality"}
-          🏘️ Area selected
+          <Home class="h-3 w-3" /> Area selected
         {:else}
-          📍 Location selected
+          <MapPin class="h-3 w-3" /> Location selected
         {/if}
       </div>
     {/if}
