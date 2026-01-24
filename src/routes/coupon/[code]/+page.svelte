@@ -15,11 +15,13 @@
   const isNotYetValid = $derived(data.isNotYetValid);
   const isValid = $derived(data.isValid);
 
-  // Format price as currency
+  // Format price as currency (no decimals for cleaner display)
   function formatPrice(price: number | string) {
     return new Intl.NumberFormat("en-ZA", {
       style: "currency",
       currency: "ZAR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(Number(price));
   }
 
