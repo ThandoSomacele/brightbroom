@@ -15,6 +15,7 @@
     RefreshCw,
     ToggleLeft,
     ToggleRight,
+    ExternalLink,
   } from "lucide-svelte";
 
   let { data, form } = $props();
@@ -372,6 +373,14 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right">
                   <div class="flex justify-end gap-2">
+                    <a
+                      href="/coupon/{coupon.code}"
+                      target="_blank"
+                      class="p-2 text-gray-600 hover:text-green-500 dark:text-gray-400 dark:hover:text-green-400"
+                      title="View shareable coupon"
+                    >
+                      <ExternalLink size={16} />
+                    </a>
                     <button
                       class="p-2 text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-primary"
                       onclick={() => openEditModal(coupon)}
