@@ -172,17 +172,19 @@ export const addressService = {
     userId: string,
     addressData: {
       street: string;
-      aptUnit?: string;
+      aptUnit?: string | null;
       city: string;
       state: string;
       zipCode: string;
-      instructions?: string;
+      instructions?: string | null;
       isDefault?: boolean;
+      lat?: number | null;
+      lng?: number | null;
     },
   ): Promise<typeof address.$inferSelect> {
     try {
-      // Step 1: Normalize address data for comparison
-      const normalizedData = {
+      // Step 1: Normalize address data for COMPARISON ONLY (duplicate detection)
+      const normalizedForComparison = {
         street: normalizeAddressField(addressData.street),
         aptUnit: normalizeAddressField(addressData.aptUnit),
         city: normalizeAddressField(addressData.city),
@@ -193,7 +195,7 @@ export const addressService = {
       // Step 2: Check for existing duplicate address
       const existingAddress = await this.findExistingAddress(
         userId,
-        normalizedData,
+        normalizedForComparison,
       );
 
       if (existingAddress) {
@@ -224,13 +226,16 @@ export const addressService = {
       }
 
       // Step 5: Geocode if coordinates not provided
-      let coordinates = null;
-      if (!addressData.lat || !addressData.lng) {
-        // Use normalized data for geocoding
-        const fullAddress = `${normalizedData.street}, ${normalizedData.city}, ${normalizedData.state}, ${normalizedData.zipCode}`;
+      let coordinates = { lat: addressData.lat, lng: addressData.lng };
+      if (!coordinates.lat || !coordinates.lng) {
+        // Use original data for geocoding
+        const fullAddress = `${addressData.street}, ${addressData.city}, ${addressData.state}, ${addressData.zipCode}`;
 
         try {
-          coordinates = await geocodeAddress?.(fullAddress);
+          const geocoded = await geocodeAddress?.(fullAddress);
+          if (geocoded) {
+            coordinates = geocoded;
+          }
         } catch (geocodeError) {
           console.warn(
             "Geocoding failed, proceeding without coordinates:",
@@ -239,21 +244,21 @@ export const addressService = {
         }
       }
 
-      // Step 6: Create new address with normalized data
+      // Step 6: Create new address - PRESERVE ORIGINAL CAPITALIZATION
       const newAddressId = crypto.randomUUID();
       const [newAddress] = await db
         .insert(address)
         .values({
           id: newAddressId,
           userId,
-          street: normalizedData.street,
-          aptUnit: normalizedData.aptUnit || null,
-          city: normalizedData.city,
-          state: normalizedData.state,
-          zipCode: normalizedData.zipCode,
+          street: addressData.street.trim(),
+          aptUnit: addressData.aptUnit?.trim() || null,
+          city: addressData.city.trim(),
+          state: addressData.state.trim(),
+          zipCode: addressData.zipCode.trim(),
           lat: coordinates?.lat ? coordinates.lat.toString() : null,
           lng: coordinates?.lng ? coordinates.lng.toString() : null,
-          instructions: addressData.instructions || null,
+          instructions: addressData.instructions?.trim() || null,
           isDefault: addressData.isDefault || false,
           isActive: true,
           createdAt: new Date(),
