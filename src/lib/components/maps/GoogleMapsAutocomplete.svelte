@@ -484,6 +484,13 @@
       </div>
     {/if}
 
+    <!-- Service area hint (show when no address selected and no error) -->
+    {#if !selectedAddress.formatted && !error && !isScriptLoading}
+      <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        We currently serve Fourways, Bryanston, Randburg, Midrand, and surrounding areas.
+      </div>
+    {/if}
+
     <!-- Error message -->
     {#if error}
       <div class="mt-1 text-xs text-red-500 dark:text-red-400">
