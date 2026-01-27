@@ -37,8 +37,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run db:seed` - Seed database with test data
 - `npm run db:seed:services` - Seed only services
 - `npm run db:seed:users` - Seed only users
+- `npm run db:seed:earnings` - Seed cleaner earnings data
+- `npm run db:seed:applications` - Seed cleaner applications
+- `npm run db:seed:coupons` - Seed discount coupons
 - `npm run db:backup` - Create database backup
 - `npm run db:backup:full` - Create full database backup
+- `npm run db:deduplicate` - Deduplicate address records
 
 ### Utility Scripts
 
@@ -61,6 +65,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Payments**: PayFast integration (South African payment gateway)
 - **Hosting**: Configured for Netlify deployment
 - **Maps**: Google Maps API for address autocomplete and service area validation
+- **File Storage**: AWS S3 for document and image uploads (cleaner profiles, ID documents)
 
 ### Project Structure
 
@@ -102,6 +107,8 @@ src/
 - User roles: CUSTOMER, CLEANER, ADMIN (defined in schema)
 - Session management in `hooks.server.ts`
 - Protected routes check user role in `+page.server.ts` or `+layout.server.ts`
+- Admin routes (`/admin/*`) require ADMIN role
+- Cleaner routes (`/cleaner/*`) require CLEANER role
 
 #### Server Hooks (hooks.server.ts)
 
@@ -183,6 +190,19 @@ Executed in sequence:
 - Consistent error pages (`+error.svelte`)
 - Form validation errors returned from server actions
 
+#### File Uploads (S3)
+
+- AWS S3 for storing cleaner profile images and ID documents
+- Upload handling in admin cleaner management pages
+- Presigned URLs for secure uploads via `@aws-sdk/s3-request-presigner`
+- Image processing with Sharp for resizing/optimization
+
+#### Content System (Magazine)
+
+- Markdown-based blog/magazine articles in `src/routes/magazine/`
+- Uses `marked` for Markdown parsing and `gray-matter` for frontmatter
+- SEO-optimized landing pages for service areas (e.g., `/cleaning-services-bryanston`)
+
 ### Environment Variables
 
 Key environment variables (see .env.example):
@@ -196,6 +216,7 @@ Key environment variables (see .env.example):
 - `PUBLIC_POSTHOG_KEY` - PostHog analytics API key
 - `PUBLIC_POSTHOG_UI_HOST` - PostHog host URL (EU: `https://eu.posthog.com`)
 - `CRON_SECRET_TOKEN` - Protects the recurring payment cron endpoint
+- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `AWS_S3_BUCKET` - S3 file storage
 
 ### Important Notes
 
