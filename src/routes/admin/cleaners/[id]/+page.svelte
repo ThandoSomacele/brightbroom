@@ -77,6 +77,23 @@
     bankAccountType = cleanerData.cleanerProfile?.bankAccountType || "SAVINGS";
     bankAccountHolder = cleanerData.cleanerProfile?.bankAccountHolder || "";
 
+    // Initialize address/geocoding data
+    addressInput = cleanerData.cleanerProfile?.workAddress || "";
+    workCoordinates = {
+      lat: cleanerData.cleanerProfile?.workLocationLat || 0,
+      lng: cleanerData.cleanerProfile?.workLocationLng || 0,
+    };
+    selectedAddress = {
+      formatted: cleanerData.cleanerProfile?.workAddress || "",
+      street: "",
+      aptUnit: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      lat: cleanerData.cleanerProfile?.workLocationLat || 0,
+      lng: cleanerData.cleanerProfile?.workLocationLng || 0,
+    };
+
     // Initialize available days
     if (cleanerData.cleanerProfile?.availableDays) {
       cleanerData.cleanerProfile.availableDays.forEach((day: string) => {
@@ -307,20 +324,20 @@
     // You could set an error state variable here to show to the user
   }
   // Add geocoding data for the work address
-  let addressInput = cleaner.cleanerProfile?.workAddress || "";
+  let addressInput = cleaner?.cleanerProfile?.workAddress || "";
   let workCoordinates = {
-    lat: cleaner.cleanerProfile?.workLocationLat || 0,
-    lng: cleaner.cleanerProfile?.workLocationLng || 0,
+    lat: cleaner?.cleanerProfile?.workLocationLat || 0,
+    lng: cleaner?.cleanerProfile?.workLocationLng || 0,
   };
   let selectedAddress = {
-    formatted: cleaner.cleanerProfile?.workAddress || "",
+    formatted: cleaner?.cleanerProfile?.workAddress || "",
     street: "",
     aptUnit: "",
     city: "",
     state: "",
     zipCode: "",
-    lat: cleaner.cleanerProfile?.workLocationLat || 0,
-    lng: cleaner.cleanerProfile?.workLocationLng || 0,
+    lat: cleaner?.cleanerProfile?.workLocationLat || 0,
+    lng: cleaner?.cleanerProfile?.workLocationLng || 0,
   };
   let addressError = "";
   let isOutOfServiceArea = false;
