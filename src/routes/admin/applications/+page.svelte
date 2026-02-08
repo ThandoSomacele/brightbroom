@@ -75,6 +75,9 @@
   <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
     Cleaner Applications
   </h1>
+  <Button variant="primary" href="/admin/applications/new">
+    + Add Application
+  </Button>
 </div>
 
 <!-- Filters and search -->

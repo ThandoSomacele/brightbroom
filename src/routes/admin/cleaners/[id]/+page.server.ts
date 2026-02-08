@@ -7,6 +7,7 @@ import {
 } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
 import { cleanerEarningsService } from "$lib/server/services/cleaner-earnings.service";
+import { hash } from "@node-rs/argon2";
 import { error, fail } from "@sveltejs/kit";
 import { and, desc, eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
@@ -337,6 +338,101 @@ export const actions: Actions = {
     } catch (err) {
       console.error("Error updating cleaner profile:", err);
       return fail(500, { error: "Failed to update cleaner profile" });
+    }
+  },
+
+  // Update credentials (email, password, activation)
+  updateCredentials: async ({ params, request }) => {
+    const cleanerId = params.id;
+
+    if (!cleanerId) {
+      return fail(400, { error: "Cleaner ID is required" });
+    }
+
+    const formData = await request.formData();
+    const newEmail = formData.get("newEmail")?.toString()?.trim() || "";
+    const newPassword = formData.get("newPassword")?.toString() || "";
+    const activate = formData.has("activate");
+
+    if (!newEmail && !newPassword && !activate) {
+      return fail(400, { error: "Provide at least an email, password, or activation change" });
+    }
+
+    try {
+      // Get current user data
+      const [currentUser] = await db
+        .select()
+        .from(user)
+        .where(eq(user.id, cleanerId))
+        .limit(1);
+
+      if (!currentUser) {
+        return fail(404, { error: "Cleaner not found" });
+      }
+
+      const updates: Record<string, unknown> = {
+        updatedAt: new Date(),
+      };
+
+      // Update email if provided and different
+      if (newEmail && newEmail !== currentUser.email) {
+        // Check email uniqueness
+        const existingUser = await db
+          .select({ id: user.id })
+          .from(user)
+          .where(eq(user.email, newEmail))
+          .limit(1);
+
+        if (existingUser.length > 0) {
+          return fail(400, { error: "This email is already in use by another account" });
+        }
+
+        updates.email = newEmail;
+      }
+
+      // Hash and update password if provided
+      if (newPassword) {
+        if (newPassword.length < 8) {
+          return fail(400, { error: "Password must be at least 8 characters" });
+        }
+        updates.passwordHash = await hash(newPassword);
+      }
+
+      // Set activation status
+      if (activate) {
+        updates.isActive = true;
+      }
+
+      await db
+        .update(user)
+        .set(updates)
+        .where(eq(user.id, cleanerId));
+
+      // Send welcome email if activating with real email
+      const finalEmail = (updates.email as string) || currentUser.email;
+      const isPlaceholder = finalEmail.includes("@internal.brightbroom.com");
+
+      if (activate && !isPlaceholder) {
+        try {
+          await sendWelcomeEmail(finalEmail, {
+            firstName: currentUser.firstName,
+            lastName: currentUser.lastName,
+            role: "CLEANER",
+          });
+        } catch (emailError) {
+          console.error("Error sending welcome email:", emailError);
+        }
+      }
+
+      return {
+        success: true,
+        message: activate
+          ? "Credentials updated and account activated"
+          : "Credentials updated successfully",
+      };
+    } catch (err) {
+      console.error("Error updating credentials:", err);
+      return fail(500, { error: "Failed to update credentials" });
     }
   },
 

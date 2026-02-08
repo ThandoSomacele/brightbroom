@@ -113,7 +113,7 @@
   <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Cleaners</h1>
   <div class="mt-4 flex space-x-2 sm:mt-0">
     <div class="mt-4 sm:mt-0 flex gap-2">
-      <Button variant="primary" href="/admin/cleaners/new">
+      <Button variant="primary" href="/admin/applications/new">
         <PlusCircle size={16} class="mr-1" />
         Add New Cleaner
       </Button>

@@ -19,11 +19,13 @@
     Calendar,
     ChevronLeft,
     CreditCard,
+    KeyRound,
     Mail,
     MapPin,
     PenTool,
     Phone,
     Save,
+    Shield,
     Smartphone,
     User,
     X,
@@ -99,7 +101,25 @@
   let isProfileEditMode = false;
   let isTrainingEditMode = false;
   let isPayoutEditMode = false;
+  let isCredentialEditMode = false;
   let isLoading = false;
+
+  // Credential form values
+  let credentialEmail = "";
+  let credentialPassword = "";
+  let credentialActivate = false;
+
+  // Check if the cleaner has placeholder credentials
+  $: hasPlaceholderEmail = cleaner?.email?.includes("@internal.brightbroom.com") || false;
+
+  function toggleCredentialEdit() {
+    isCredentialEditMode = !isCredentialEditMode;
+    if (isCredentialEditMode) {
+      credentialEmail = hasPlaceholderEmail ? "" : cleaner.email;
+      credentialPassword = "";
+      credentialActivate = false;
+    }
+  }
 
   // Personal info form values
   let firstName = "";
@@ -1520,6 +1540,179 @@
                 {cleaner.cleanerProfile?.payoutMethod === 'EFT' ? 'Bank details not yet configured' : 'Phone number required for Instant Money payouts'}
               </p>
             {/if}
+          </div>
+        {/if}
+      </div>
+    </div>
+
+    <!-- Credentials Management Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <KeyRound size={20} class="text-primary" />
+            Login Credentials
+          </h2>
+          <Button variant="ghost" size="sm" on:click={toggleCredentialEdit}>
+            {#if isCredentialEditMode}
+              <X size={16} class="mr-1" />
+              Cancel
+            {:else}
+              <PenTool size={16} class="mr-1" />
+              Edit
+            {/if}
+          </Button>
+        </div>
+
+        {#if hasPlaceholderEmail}
+          <div class="mb-4 rounded-md bg-amber-50 p-3 dark:bg-amber-900/20">
+            <div class="flex items-start">
+              <Shield size={16} class="text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
+              <div class="text-sm">
+                <p class="font-medium text-amber-800 dark:text-amber-300">
+                  Placeholder credentials
+                </p>
+                <p class="text-amber-700 dark:text-amber-200 mt-1">
+                  This cleaner has a placeholder email and cannot log in. Set a real email and password to enable access.
+                </p>
+              </div>
+            </div>
+          </div>
+        {/if}
+
+        {#if isCredentialEditMode}
+          <form
+            method="POST"
+            action="?/updateCredentials"
+            use:enhance={() => {
+              isLoading = true;
+              return async ({ result, update }) => {
+                isLoading = false;
+                if (result.type === "success") {
+                  isCredentialEditMode = false;
+                }
+                await update();
+                if (result.type === "success") {
+                  await invalidateAll();
+                }
+              };
+            }}
+          >
+            <div class="space-y-4">
+              <div>
+                <label
+                  for="newEmail"
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="newEmail"
+                  name="newEmail"
+                  bind:value={credentialEmail}
+                  placeholder={hasPlaceholderEmail ? "Enter a real email address" : cleaner.email}
+                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                {#if hasPlaceholderEmail}
+                  <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                    Current: {cleaner.email} (placeholder)
+                  </p>
+                {/if}
+              </div>
+
+              <div>
+                <label
+                  for="newPassword"
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  id="newPassword"
+                  name="newPassword"
+                  bind:value={credentialPassword}
+                  placeholder="Leave blank to keep current password"
+                  autocomplete="new-password"
+                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Minimum 8 characters. Leave blank to keep the current password.
+                </p>
+              </div>
+
+              {#if !cleaner.isActive}
+                <div class="p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                  <label class="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="activate"
+                      bind:checked={credentialActivate}
+                      class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <div>
+                      <span class="text-sm font-medium text-gray-900 dark:text-white">
+                        Activate account
+                      </span>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Enable the cleaner to log in with these credentials
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              {/if}
+
+              <div class="pt-2">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={isLoading}
+                  class="w-full"
+                >
+                  {#if isLoading}
+                    <svg
+                      class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Saving...
+                  {:else}
+                    <Save size={16} class="mr-2" />
+                    {credentialActivate ? "Save & Activate" : "Save Credentials"}
+                  {/if}
+                </Button>
+              </div>
+            </div>
+          </form>
+        {:else}
+          <div class="space-y-3">
+            <div class="flex items-center">
+              <Mail class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+              <div>
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</p>
+                <p class="text-gray-900 dark:text-white {hasPlaceholderEmail ? 'italic text-amber-600 dark:text-amber-400' : ''}">
+                  {cleaner.email}
+                  {#if hasPlaceholderEmail}
+                    <span class="text-xs">(placeholder)</span>
+                  {/if}
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center">
+              <Shield class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+              <div>
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Account Status</p>
+                <p class={cleaner.isActive ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"}>
+                  {cleaner.isActive ? "Active — can log in" : "Inactive — cannot log in"}
+                </p>
+              </div>
+            </div>
           </div>
         {/if}
       </div>

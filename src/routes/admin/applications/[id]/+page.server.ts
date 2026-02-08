@@ -7,6 +7,7 @@ import {
   user,
 } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
+import { hash } from "@node-rs/argon2";
 import { error, fail } from "@sveltejs/kit";
 import { desc, eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
@@ -138,16 +139,18 @@ export const actions: Actions = {
         })
         .where(eq(cleanerApplication.id, applicationId));
 
-      // Generate a temporary password (in a real application, use a secure method)
-      const temporaryPassword = `BrightBroom${Math.random().toString(36).substring(2, 8)}`;
+      // Determine if this is a placeholder email
+      const isPlaceholderEmail = application.email.includes("@internal.brightbroom.com");
+
+      // Generate a temporary password
+      const temporaryPassword = `BrightBroom${crypto.randomUUID().split("-")[0]}`;
 
       // Create user account
       const userId = crypto.randomUUID();
-
-      // Hash password (using a placeholder here - use your app's password hashing)
       const passwordHash = await hash(temporaryPassword);
 
       // Insert new user with CLEANER role
+      // If placeholder email, set inactive so they can't log in until real credentials are set
       await db.insert(user).values({
         id: userId,
         email: application.email,
@@ -156,7 +159,7 @@ export const actions: Actions = {
         lastName: application.lastName,
         phone: application.phone,
         role: "CLEANER",
-        isActive: true, // Set initial active status to true
+        isActive: !isPlaceholderEmail,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -183,19 +186,18 @@ export const actions: Actions = {
         await db.insert(cleanerProfile).values({
           id: profileId,
           userId,
-          idType: application.idType ? application.idType : "SOUTH_AFRICAN_ID",
-          idNumber: application.idNumber || "0000000000000",
+          idType: application.idType || "SOUTH_AFRICAN_ID",
+          idNumber: application.idNumber || "PENDING",
           workAddress: application.formattedAddress || application.city,
-          // Use actual coordinates from application if available
-          workLocationLat: application.latitude || -26.0274, // Default to Fourways
-          workLocationLng: application.longitude || 28.0106, // Correct longitude for Fourways
-          workRadius: 10, // Default radius in km
-          bio: "", // Empty bio initially
-          petCompatibility: "NONE", // Default to no pet compatibility
-          availableDays: availabilityArray, // Use availability days from application
-          trainingCompleted: [], // No training completed yet - admin will update after onboarding
-          isAvailable: false, // Start as unavailable until fully onboarded
-          profileImageUrl: application.profileImageUrl, // Transfer profile image if any
+          workLocationLat: application.latitude || 0,
+          workLocationLng: application.longitude || 0,
+          workRadius: 10,
+          bio: application.bio || "",
+          petCompatibility: application.petCompatibility || "NONE",
+          availableDays: availabilityArray,
+          trainingCompleted: [],
+          isAvailable: false,
+          profileImageUrl: application.profileImageUrl,
           createdAt: new Date(),
           updatedAt: new Date(),
         });
@@ -223,13 +225,19 @@ export const actions: Actions = {
         createdAt: new Date(),
       });
 
-      // Send welcome email with temporary password
-      await sendWelcomeEmail(application.email, {
-        firstName: application.firstName,
-        lastName: application.lastName,
-        role: "CLEANER", // Specify the role
-        temporaryPassword, // Include this in email for the cleaner to log in
-      });
+      // Send welcome email only if the cleaner has a real email
+      if (!isPlaceholderEmail) {
+        try {
+          await sendWelcomeEmail(application.email, {
+            firstName: application.firstName,
+            lastName: application.lastName,
+            role: "CLEANER",
+            temporaryPassword,
+          });
+        } catch (emailError) {
+          console.error("Error sending welcome email:", emailError);
+        }
+      }
 
       return {
         success: true,
@@ -287,10 +295,3 @@ export const actions: Actions = {
   },
 };
 
-// Helper function to hash passwords (placeholder)
-async function hash(password: string): Promise<string> {
-  // This is a placeholder - in your app, use the appropriate password hashing library
-  // For example, with argon2:
-  // return await argon2.hash(password);
-  return `hashed_${password}`; // NEVER use this in production
-}

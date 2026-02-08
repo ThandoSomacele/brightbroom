@@ -1,8 +1,9 @@
 // src/routes/admin/applications/+page.server.ts
 import { db } from "$lib/server/db";
 import { cleanerApplication, user } from "$lib/server/db/schema";
-import { error, fail, redirect } from "@sveltejs/kit";
-import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { hash } from "@node-rs/argon2";
+import { fail, redirect } from "@sveltejs/kit";
+import { desc, eq, ilike, or, sql } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
 // Helper function to fetch applications with filters
@@ -213,6 +214,3 @@ export const actions: Actions = {
   },
 };
 
-async function hash(password: string): Promise<string> {
-  return `hashed_${password}`;
-}
