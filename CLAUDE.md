@@ -43,11 +43,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run db:backup` - Create database backup
 - `npm run db:backup:full` - Create full database backup
 - `npm run db:deduplicate` - Deduplicate address records
+- `npm run db:seed:tenants` - Seed tenant/marketplace data
+- `npm run db:migrate:training` - Migrate training data
 
 ### Utility Scripts
 
 - `npm run services:update` - Update services
 - `npm run services:convert` - Convert services format
+- `npm run services:update:sort` - Update service sort order
+- `npm run services:update:details` - Update service details
 - `npm run update:address-coordinates` - Update address coordinates
 - `npm run update:cleaner-coordinates` - Update cleaner coordinates
 - `npm run deploy:check` - Pre-deployment checks
@@ -104,11 +108,12 @@ src/
 #### Authentication & Authorization
 
 - Uses Lucia Auth v3 with session-based authentication
-- User roles: CUSTOMER, CLEANER, ADMIN (defined in schema)
+- User roles: CUSTOMER, CLEANER, ADMIN, TENANT_ADMIN (defined in schema)
 - Session management in `hooks.server.ts`
 - Protected routes check user role in `+page.server.ts` or `+layout.server.ts`
 - Admin routes (`/admin/*`) require ADMIN role
 - Cleaner routes (`/cleaner/*`) require CLEANER role
+- TENANT_ADMIN users get tenant context loaded via `event.locals.tenant` and `event.locals.tenantMembership`
 
 #### Server Hooks (hooks.server.ts)
 
@@ -197,6 +202,28 @@ Executed in sequence:
 - Presigned URLs for secure uploads via `@aws-sdk/s3-request-presigner`
 - Image processing with Sharp for resizing/optimization
 
+#### Multi-Tenancy Architecture
+
+The platform operates as a marketplace where multiple cleaning companies (tenants) can onboard:
+
+- **Tenant table**: Each tenant represents a cleaning company with its own branding (logo, contact info), commission rate, and service areas
+- **Tenant membership**: Users are linked to tenants via `tenantMember` table with scoped roles (OWNER, ADMIN, MANAGER)
+- **Data scoping**: Bookings, services, cleaner profiles, and applications have a `tenantId` foreign key
+- **Platform owner**: Distinguished by `isPlatformOwner` flag on the tenant record - the original BrightBroom business
+- **Services**: Can be platform-wide (`tenantId = null`) or tenant-specific
+- **Tenant context**: `handleAuth` hook loads tenant membership for TENANT_ADMIN/ADMIN users, stored in `event.locals.tenant` and `event.locals.tenantMembership`
+- **Admin pages**: Tenant-scoped admin views filter data by `tenantId`
+
+#### Guest Bookings
+
+- Supports bookings without user accounts (nullable `userId`/`addressId`)
+- Guest address stored as JSON in the `guestAddress` field on the booking
+
+#### Subscription System
+
+- Recurring bookings with frequencies: WEEKLY, BIWEEKLY, TWICE_WEEKLY, TWICE_MONTHLY
+- Processed via `/api/subscriptions/process-recurring` (daily cron at 2 AM UTC on Netlify)
+
 #### Content System (Magazine)
 
 - Markdown-based blog/magazine articles in `src/routes/magazine/`
@@ -229,6 +256,16 @@ Key environment variables (see .env.example):
 - Validate all user input on the server side
 - Decimal/money fields stored as strings in DB, convert with `Number()` when calculating
 - Use `db:push` for dev schema changes, `db:generate` + `db:migrate` for production migrations
+
+### Build Configuration Notes
+
+- **SvelteKit adapter**: `adapter-netlify` with `edge: false` and `split: true` (avoids 50MB function limit)
+- **PostHog requirement**: `paths.relative = false` in svelte.config.js for session replay
+- **Dark mode**: Class-based strategy (`darkMode: 'class'`) in Tailwind config
+- **Image optimization**: Uses `vite-imagetools` plugin
+- **Prettier**: Uses `prettier-plugin-tailwindcss` for automatic Tailwind class sorting
+- **Netlify build**: Runs `netlify/scripts/` pre-build diagnostics and `deploy-db.sh` for migrations
+- **Branch deploys**: Enable `GENERATE_MIGRATIONS=true`; production skips migration generation
 
 ## Netlify Deployment Notes
 
