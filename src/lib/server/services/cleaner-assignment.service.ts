@@ -10,7 +10,7 @@ import { sendCleanerAssignmentNotifications } from "./notification.service";
  */
 export const cleanerAssignmentService = {
   /**
-   * Find available cleaners for a booking based on location, availability, and specialization
+   * Find available cleaners for a booking based on location and availability
    * @param bookingId The ID of the booking
    * @returns Array of suitable cleaners with availability status and distance
    */

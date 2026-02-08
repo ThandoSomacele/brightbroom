@@ -451,10 +451,6 @@ export const applicationNote = pgTable("application_note", {
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
-// DEPRECATED: cleanerSpecialisation table removed - replaced by trainingCompleted field on cleanerProfile
-// Keeping comment for migration reference
-// export const cleanerSpecialisation = pgTable("cleaner_specialisation", { ... });
-
 // New table for admin notes
 export const adminNote = pgTable("admin_note", {
   id: text("id").primaryKey().notNull(),

@@ -244,6 +244,37 @@ Key environment variables (see .env.example):
 - Uses inline CSS styles (no Tailwind CDN to avoid production warnings)
 - Automatically served by Netlify for non-existent routes
 
+## Git Worktrees
+
+We use git worktrees for parallel feature development. Each worktree gets its own directory alongside the main repo.
+
+### Pattern
+
+1. **Create a feature branch from development:**
+   ```bash
+   git branch feature/<name> development
+   ```
+
+2. **Add a worktree:**
+   ```bash
+   git worktree add ../brightbroom-<feature> feature/<name>
+   ```
+
+3. **Symlink shared resources** (avoid duplicating node_modules and env):
+   ```bash
+   cd ../brightbroom-<feature>
+   ln -s /Users/thando/Documents/brightbroom/node_modules ./node_modules
+   ln -s /Users/thando/Documents/brightbroom/.env ./.env
+   ```
+
+4. One worktree per feature. Merge back into `development` when ready.
+
+### Active Worktrees
+
+| Feature | Directory | Branch |
+|---------|-----------|--------|
+| WhatsApp notifications | `../brightbroom-whatsapp` | `feature/whatsapp-notifications` |
+
 ## Instructions
 
 - Don't commit or push until I give you the go ahead
