@@ -3,6 +3,7 @@ import { db } from "$lib/server/db";
 import { cleanerApplication, user } from "$lib/server/db/schema";
 import { error, fail, redirect } from "@sveltejs/kit";
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
 // Helper function to fetch applications with filters
@@ -10,54 +11,52 @@ async function getApplications(
   search: string,
   status: string,
   page: number,
-  limit: number
+  limit: number,
+  tenantId: string | null
 ) {
   const offset = (page - 1) * limit;
 
   try {
-    // Build the query with filters
-    let query = db.select().from(cleanerApplication);
+    // Build conditions array
+    const conditions: SQL[] = [];
 
-    // Apply search filter if provided
+    // Tenant scoping
+    if (tenantId) {
+      conditions.push(eq(cleanerApplication.tenantId, tenantId));
+    }
+
+    // Search filter
     if (search) {
-      query = query.where(
+      conditions.push(
         or(
           ilike(cleanerApplication.firstName, `%${search}%`),
           ilike(cleanerApplication.lastName, `%${search}%`),
           ilike(cleanerApplication.email, `%${search}%`),
           ilike(cleanerApplication.phone || "", `%${search}%`),
           ilike(cleanerApplication.city, `%${search}%`),
-        ),
+        )!,
       );
     }
 
-    // Apply status filter if provided (except ALL)
+    // Status filter
     if (status && status !== "ALL") {
-      query = query.where(eq(cleanerApplication.status, status as any));
+      conditions.push(eq(cleanerApplication.status, status as any));
     }
 
-    // Clone the query for counting total
-    const countQuery = db
+    // Build query
+    let query = db.select().from(cleanerApplication);
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    // Count query
+    let countQuery = db
       .select({
         count: sql<number>`count(*)`.mapWith(Number),
       })
       .from(cleanerApplication);
-
-    // Apply the same filters to the count query
-    if (search) {
-      countQuery.where(
-        or(
-          ilike(cleanerApplication.firstName, `%${search}%`),
-          ilike(cleanerApplication.lastName, `%${search}%`),
-          ilike(cleanerApplication.email, `%${search}%`),
-          ilike(cleanerApplication.phone || "", `%${search}%`),
-          ilike(cleanerApplication.city, `%${search}%`),
-        ),
-      );
-    }
-
-    if (status && status !== "ALL") {
-      countQuery.where(eq(cleanerApplication.status, status as any));
+    if (conditions.length > 0) {
+      countQuery = countQuery.where(and(...conditions));
     }
 
     // Execute queries
@@ -95,27 +94,26 @@ async function getApplications(
 }
 
 export const load: PageServerLoad = async ({ url, locals }) => {
-  // Verify admin role
-  if (!locals.user || locals.user.role !== "ADMIN") {
+  if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
     throw redirect(302, "/auth/login?redirectTo=/admin/applications");
   }
 
-  // Get query parameters for filtering and pagination
   const search = url.searchParams.get("search") || "";
   const status = url.searchParams.get("status") || "PENDING";
   const page = parseInt(url.searchParams.get("page") || "1");
   const limit = 10;
 
-  // Return filters immediately, stream the data
+  // Tenant scoping
+  const tenantId = locals.user.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+
   return {
     filters: {
       search,
       status,
     },
     currentPage: page,
-    // Stream the applications data
     streamed: {
-      applicationsData: getApplications(search, status, page, limit),
+      applicationsData: getApplications(search, status, page, limit, tenantId),
     },
   };
 };

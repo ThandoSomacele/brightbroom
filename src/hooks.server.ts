@@ -3,6 +3,7 @@ import { error, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { validateSessionToken } from '$lib/server/auth';
 import type { User } from '$lib/server/db/schema';
+import { tenantService } from '$lib/server/services/tenant.service';
 import { randomBytes } from 'crypto';
 
 /**
@@ -15,23 +16,34 @@ const handleAuth: Handle = async ({ event, resolve }) => {
   // Default to no user and no session
   event.locals.user = null;
   event.locals.session = null;
-  
+  event.locals.tenant = null;
+  event.locals.tenantMembership = null;
+
   if (sessionToken) {
     try {
       // Validate the session token
       const { user, session } = await validateSessionToken(sessionToken);
-      
+
       if (session && user) {
         // Set user and session in locals
         event.locals.user = user as User;
         event.locals.session = session;
+
+        // Load tenant membership for tenant admins and platform admins
+        if (user.role === 'TENANT_ADMIN' || user.role === 'ADMIN') {
+          const membership = await tenantService.getTenantForUser(user.id);
+          if (membership) {
+            event.locals.tenant = membership.tenant;
+            event.locals.tenantMembership = membership;
+          }
+        }
       }
     } catch (err) {
       console.error('Session validation error:', err);
       // Continue without user/session if validation fails
     }
   }
-  
+
   return resolve(event);
 };
 
@@ -193,15 +205,26 @@ if (path.includes('//')) {
   // Admin route protection
   if (path.startsWith('/admin')) {
     const user = event.locals.user;
-    
+
     // Check if not authenticated
     if (!user) {
       throw error(401, "Authentication required");
     }
-    
-    // Check if not admin
-    if (user.role !== 'ADMIN') {
+
+    // Platform admins and tenant admins can access admin routes
+    if (user.role !== 'ADMIN' && user.role !== 'TENANT_ADMIN') {
       throw error(403, "You don't have permission to access this area");
+    }
+
+    // Tenant admins must have a valid tenant membership
+    if (user.role === 'TENANT_ADMIN' && !event.locals.tenant) {
+      throw error(403, "No tenant association found for your account");
+    }
+
+    // Platform-only admin routes that tenant admins cannot access
+    const platformOnlyPaths = ['/admin/tenants', '/admin/pricing'];
+    if (user.role === 'TENANT_ADMIN' && platformOnlyPaths.some(p => path.startsWith(p))) {
+      throw error(403, "This area is restricted to platform administrators");
     }
   }
   

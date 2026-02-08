@@ -3,25 +3,32 @@ import { db } from "$lib/server/db";
 import { booking, payment, bookingAddon, addon } from "$lib/server/db/schema";
 import { redirect } from "@sveltejs/kit";
 import { and, eq, gte, lt, sql, desc } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
 
+// Helper to build tenant-scoped booking condition
+function bookingTenantCondition(tenantId: string | null): SQL | undefined {
+  return tenantId ? eq(booking.tenantId, tenantId) : undefined;
+}
+
 // Helper function to fetch all report metrics
-async function getReportMetrics(startDateObj: Date, endDateObj: Date, period: string) {
+async function getReportMetrics(startDateObj: Date, endDateObj: Date, period: string, tenantId: string | null) {
   // Fetch revenue metrics
   const revenueData = await getRevenueMetrics(
     startDateObj,
     endDateObj,
     period,
+    tenantId,
   );
 
   // Fetch booking metrics
-  const bookingMetrics = await getBookingMetrics(startDateObj, endDateObj);
+  const bookingMetrics = await getBookingMetrics(startDateObj, endDateObj, tenantId);
 
   // Fetch booking trend data
-  const bookingTrend = await getBookingTrend(startDateObj, endDateObj);
+  const bookingTrend = await getBookingTrend(startDateObj, endDateObj, tenantId);
 
   // Fetch booking insights (room configurations and addons)
-  const bookingInsights = await getBookingInsights(startDateObj, endDateObj);
+  const bookingInsights = await getBookingInsights(startDateObj, endDateObj, tenantId);
 
   // Fetch user growth data
   const userGrowth = await getUserGrowth(startDateObj, endDateObj, period);
@@ -43,10 +50,13 @@ async function getReportMetrics(startDateObj: Date, endDateObj: Date, period: st
 }
 
 export const load: PageServerLoad = async ({ url, locals }) => {
-  // Verify admin role
-  if (!locals.user || locals.user.role !== "ADMIN") {
+  // Verify admin or tenant admin role
+  if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
     throw redirect(302, "/auth/login?redirectTo=/admin/reports");
   }
+
+  // Tenant scoping
+  const tenantId = locals.user.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
 
   // Get filter parameters from URL
   const period = url.searchParams.get("period") || "month";
@@ -67,7 +77,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
       endDate,
     },
     streamed: {
-      metrics: getReportMetrics(startDateObj, endDateObj, period),
+      metrics: getReportMetrics(startDateObj, endDateObj, period, tenantId),
     },
   };
 };
@@ -107,21 +117,27 @@ async function getRevenueMetrics(
   startDate: Date,
   endDate: Date,
   period: string,
+  tenantId: string | null,
 ) {
-  // Total revenue for the period
-  const totalRevenueResult = await db
-    .select({
-      total: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number),
-    })
-    .from(payment)
-    .where(
-      and(
-        eq(payment.status, "COMPLETED"),
-        gte(payment.createdAt, startDate),
-        lt(payment.createdAt, endDate),
-      ),
-    );
+  const tenantFilter = bookingTenantCondition(tenantId);
 
+  // Total revenue for the period
+  const revenueConditions: SQL[] = [
+    eq(payment.status, "COMPLETED"),
+    gte(payment.createdAt, startDate),
+    lt(payment.createdAt, endDate),
+  ];
+
+  let totalRevenueQuery = tenantFilter
+    ? db.select({ total: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number) })
+        .from(payment)
+        .innerJoin(booking, eq(booking.id, payment.bookingId))
+        .where(and(...revenueConditions, tenantFilter))
+    : db.select({ total: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number) })
+        .from(payment)
+        .where(and(...revenueConditions));
+
+  const totalRevenueResult = await totalRevenueQuery;
   const totalRevenue = totalRevenueResult[0]?.total || 0;
 
   // Calculate previous period for comparison
@@ -133,19 +149,22 @@ async function getRevenueMetrics(
   previousPeriodEnd.setTime(previousPeriodEnd.getTime() - durationMs);
 
   // Get previous period revenue
-  const previousRevenueResult = await db
-    .select({
-      total: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number),
-    })
-    .from(payment)
-    .where(
-      and(
-        eq(payment.status, "COMPLETED"),
-        gte(payment.createdAt, previousPeriodStart),
-        lt(payment.createdAt, previousPeriodEnd),
-      ),
-    );
+  const prevConditions: SQL[] = [
+    eq(payment.status, "COMPLETED"),
+    gte(payment.createdAt, previousPeriodStart),
+    lt(payment.createdAt, previousPeriodEnd),
+  ];
 
+  let previousRevenueQuery = tenantFilter
+    ? db.select({ total: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number) })
+        .from(payment)
+        .innerJoin(booking, eq(booking.id, payment.bookingId))
+        .where(and(...prevConditions, tenantFilter))
+    : db.select({ total: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number) })
+        .from(payment)
+        .where(and(...prevConditions));
+
+  const previousRevenueResult = await previousRevenueQuery;
   const previousPeriodTotal = previousRevenueResult[0]?.total || 0;
 
   // Calculate percentage change
@@ -156,7 +175,7 @@ async function getRevenueMetrics(
 
   // Get revenue trend data
   const interval = getIntervalByPeriod(period);
-  const trendData = await getRevenueTrend(startDate, endDate, interval);
+  const trendData = await getRevenueTrend(startDate, endDate, interval, tenantId);
 
   return {
     total: totalRevenue,
@@ -171,21 +190,33 @@ async function getRevenueTrend(
   startDate: Date,
   endDate: Date,
   interval: string,
+  tenantId: string | null,
 ) {
+  const tenantFilter = bookingTenantCondition(tenantId);
+  const conditions: SQL[] = [
+    eq(payment.status, "COMPLETED"),
+    gte(payment.createdAt, startDate),
+    lt(payment.createdAt, endDate),
+  ];
+  if (tenantFilter) conditions.push(tenantFilter);
+
   // Query real revenue data grouped by date
-  const results = await db
-    .select({
-      date: sql<string>`DATE(${payment.createdAt})`.mapWith(String),
-      value: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number),
-    })
-    .from(payment)
-    .where(
-      and(
-        eq(payment.status, "COMPLETED"),
-        gte(payment.createdAt, startDate),
-        lt(payment.createdAt, endDate),
-      ),
-    )
+  let query = tenantFilter
+    ? db.select({
+        date: sql<string>`DATE(${payment.createdAt})`.mapWith(String),
+        value: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number),
+      })
+      .from(payment)
+      .innerJoin(booking, eq(booking.id, payment.bookingId))
+      .where(and(...conditions))
+    : db.select({
+        date: sql<string>`DATE(${payment.createdAt})`.mapWith(String),
+        value: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number),
+      })
+      .from(payment)
+      .where(and(...conditions));
+
+  const results = await query
     .groupBy(sql`DATE(${payment.createdAt})`)
     .orderBy(sql`DATE(${payment.createdAt})`);
 
@@ -201,19 +232,21 @@ async function getRevenueTrend(
 }
 
 // Get booking trend data
-async function getBookingTrend(startDate: Date, endDate: Date) {
+async function getBookingTrend(startDate: Date, endDate: Date, tenantId: string | null) {
+  const tenantFilter = bookingTenantCondition(tenantId);
+  const conditions: SQL[] = [
+    gte(booking.createdAt, startDate),
+    lt(booking.createdAt, endDate),
+  ];
+  if (tenantFilter) conditions.push(tenantFilter);
+
   const results = await db
     .select({
       date: sql<string>`DATE(${booking.createdAt})`.mapWith(String),
       value: sql<number>`count(*)`.mapWith(Number),
     })
     .from(booking)
-    .where(
-      and(
-        gte(booking.createdAt, startDate),
-        lt(booking.createdAt, endDate),
-      ),
-    )
+    .where(and(...conditions))
     .groupBy(sql`DATE(${booking.createdAt})`)
     .orderBy(sql`DATE(${booking.createdAt})`);
 
@@ -228,64 +261,43 @@ async function getBookingTrend(startDate: Date, endDate: Date) {
 }
 
 // Get booking metrics - simplify with drizzle builder
-async function getBookingMetrics(startDate: Date, endDate: Date) {
+async function getBookingMetrics(startDate: Date, endDate: Date, tenantId: string | null) {
+  const tenantFilter = bookingTenantCondition(tenantId);
+  const baseConditions: SQL[] = [
+    gte(booking.createdAt, startDate),
+    lt(booking.createdAt, endDate),
+  ];
+  if (tenantFilter) baseConditions.push(tenantFilter);
+
   // Total bookings
   const totalBookingsResult = await db
-    .select({
-      count: sql<number>`count(*)`.mapWith(Number),
-    })
+    .select({ count: sql<number>`count(*)`.mapWith(Number) })
     .from(booking)
-    .where(
-      and(gte(booking.createdAt, startDate), lt(booking.createdAt, endDate)),
-    );
+    .where(and(...baseConditions));
 
   const totalBookings = totalBookingsResult[0]?.count || 0;
 
   // Completed bookings
   const completedBookingsResult = await db
-    .select({
-      count: sql<number>`count(*)`.mapWith(Number),
-    })
+    .select({ count: sql<number>`count(*)`.mapWith(Number) })
     .from(booking)
-    .where(
-      and(
-        eq(booking.status, "COMPLETED"),
-        gte(booking.createdAt, startDate),
-        lt(booking.createdAt, endDate),
-      ),
-    );
+    .where(and(eq(booking.status, "COMPLETED"), ...baseConditions));
 
   const completedBookings = completedBookingsResult[0]?.count || 0;
 
   // Cancelled bookings
   const cancelledBookingsResult = await db
-    .select({
-      count: sql<number>`count(*)`.mapWith(Number),
-    })
+    .select({ count: sql<number>`count(*)`.mapWith(Number) })
     .from(booking)
-    .where(
-      and(
-        eq(booking.status, "CANCELLED"),
-        gte(booking.createdAt, startDate),
-        lt(booking.createdAt, endDate),
-      ),
-    );
+    .where(and(eq(booking.status, "CANCELLED"), ...baseConditions));
 
   const cancelledBookings = cancelledBookingsResult[0]?.count || 0;
 
   // Pending confirmation bookings
   const pendingBookingsResult = await db
-    .select({
-      count: sql<number>`count(*)`.mapWith(Number),
-    })
+    .select({ count: sql<number>`count(*)`.mapWith(Number) })
     .from(booking)
-    .where(
-      and(
-        eq(booking.status, "PENDING"),
-        gte(booking.createdAt, startDate),
-        lt(booking.createdAt, endDate),
-      ),
-    );
+    .where(and(eq(booking.status, "PENDING"), ...baseConditions));
 
   const pendingBookings = pendingBookingsResult[0]?.count || 0;
 
@@ -303,7 +315,14 @@ async function getBookingMetrics(startDate: Date, endDate: Date) {
 }
 
 // Get booking insights (room configurations and addons)
-async function getBookingInsights(startDate: Date, endDate: Date) {
+async function getBookingInsights(startDate: Date, endDate: Date, tenantId: string | null) {
+  const tenantFilter = bookingTenantCondition(tenantId);
+  const baseConditions: SQL[] = [
+    gte(booking.createdAt, startDate),
+    lt(booking.createdAt, endDate),
+  ];
+  if (tenantFilter) baseConditions.push(tenantFilter);
+
   // Get popular room configurations
   const roomConfigsResult = await db
     .select({
@@ -313,12 +332,7 @@ async function getBookingInsights(startDate: Date, endDate: Date) {
       totalRevenue: sql<string>`COALESCE(SUM(${booking.price}), 0)`.mapWith(Number),
     })
     .from(booking)
-    .where(
-      and(
-        gte(booking.createdAt, startDate),
-        lt(booking.createdAt, endDate),
-      ),
-    )
+    .where(and(...baseConditions))
     .groupBy(booking.bedroomCount, booking.bathroomCount)
     .orderBy(desc(sql`count(*)`))
     .limit(5);
@@ -332,6 +346,12 @@ async function getBookingInsights(startDate: Date, endDate: Date) {
   }));
 
   // Get popular addons
+  const addonConditions: SQL[] = [
+    gte(booking.createdAt, startDate),
+    lt(booking.createdAt, endDate),
+  ];
+  if (tenantFilter) addonConditions.push(tenantFilter);
+
   const addonsResult = await db
     .select({
       addonId: bookingAddon.addonId,
@@ -342,12 +362,7 @@ async function getBookingInsights(startDate: Date, endDate: Date) {
     .from(bookingAddon)
     .innerJoin(addon, eq(bookingAddon.addonId, addon.id))
     .innerJoin(booking, eq(bookingAddon.bookingId, booking.id))
-    .where(
-      and(
-        gte(booking.createdAt, startDate),
-        lt(booking.createdAt, endDate),
-      ),
-    )
+    .where(and(...addonConditions))
     .groupBy(bookingAddon.addonId, addon.name)
     .orderBy(desc(sql`count(*)`))
     .limit(5);
@@ -366,12 +381,7 @@ async function getBookingInsights(startDate: Date, endDate: Date) {
       avgPrice: sql<string>`COALESCE(AVG(${booking.price}), 0)`.mapWith(Number),
     })
     .from(booking)
-    .where(
-      and(
-        gte(booking.createdAt, startDate),
-        lt(booking.createdAt, endDate),
-      ),
-    );
+    .where(and(...baseConditions));
 
   return {
     roomConfigurations,

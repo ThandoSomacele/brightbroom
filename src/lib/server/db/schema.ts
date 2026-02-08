@@ -16,6 +16,13 @@ export const userRoleEnum = pgEnum("UserRole", [
   "CUSTOMER",
   "CLEANER",
   "ADMIN",
+  "TENANT_ADMIN",
+]);
+
+export const tenantMemberRoleEnum = pgEnum("TenantMemberRole", [
+  "OWNER",
+  "ADMIN",
+  "MANAGER",
 ]);
 export const bookingStatusEnum = pgEnum("BookingStatus", [
   "PENDING",
@@ -139,6 +146,47 @@ export const key = pgTable("key", {
   hashedPassword: text("hashed_password"),
 });
 
+// Tenant table - each cleaning company on the marketplace
+export const tenant = pgTable("tenant", {
+  id: text("id").primaryKey().notNull(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  logoUrl: text("logo_url"),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  province: text("province"),
+  serviceAreas: json("service_areas"), // Array of area definitions
+  commissionRate: decimal("commission_rate", { precision: 5, scale: 2 })
+    .default("15.00")
+    .notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  isPlatformOwner: boolean("is_platform_owner").default(false).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Tenant membership - links users to tenants with scoped roles
+export const tenantMember = pgTable(
+  "tenant_member",
+  {
+    id: text("id").primaryKey().notNull(),
+    tenantId: text("tenant_id")
+      .notNull()
+      .references(() => tenant.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    role: tenantMemberRoleEnum("role").default("ADMIN").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqueTenantUser: unique("unique_tenant_user").on(
+      table.tenantId,
+      table.userId,
+    ),
+  }),
+);
+
 export const passwordResetToken = pgTable("password_reset_token", {
   id: text("id").primaryKey().notNull(),
   userId: text("user_id")
@@ -187,6 +235,7 @@ export const address = pgTable(
 
 export const service = pgTable("service", {
   id: text("id").primaryKey().notNull(),
+  tenantId: text("tenant_id").references(() => tenant.id), // Null = platform-wide default service
   name: text("name").notNull(),
   description: text("description").notNull(),
   basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(),
@@ -201,6 +250,7 @@ export const service = pgTable("service", {
 // Pricing configuration table (single row for global config)
 export const pricingConfig = pgTable("pricing_config", {
   id: text("id").primaryKey().notNull().default("default"),
+  tenantId: text("tenant_id").references(() => tenant.id), // Each tenant can have their own pricing
   // Base cleaning (Living Room + Kitchen - included in every clean)
   basePrice: decimal("base_price", { precision: 10, scale: 2 })
     .notNull()
@@ -277,6 +327,7 @@ export const subscriptionAddon = pgTable("subscription_addon", {
 
 export const booking = pgTable("booking", {
   id: text("id").primaryKey().notNull(),
+  tenantId: text("tenant_id").references(() => tenant.id), // Which company fulfills this booking
   userId: text("user_id").references(() => user.id), // Now nullable for guest bookings
   addressId: text("address_id").references(() => address.id), // Now nullable for guest bookings
   serviceId: text("service_id")
@@ -352,6 +403,7 @@ export const payment = pgTable("payment", {
 //  cleanerProfile table
 export const cleanerProfile = pgTable("cleaner_profile", {
   id: text("id").primaryKey().notNull(),
+  tenantId: text("tenant_id").references(() => tenant.id), // Which company this cleaner belongs to
   userId: text("user_id")
     .notNull()
     .unique()
@@ -400,6 +452,7 @@ export const cleanerProfile = pgTable("cleaner_profile", {
 // cleanerApplication table
 export const cleanerApplication = pgTable("cleaner_application", {
   id: text("id").primaryKey().notNull(),
+  tenantId: text("tenant_id").references(() => tenant.id), // Which company the applicant is applying to
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   email: text("email").notNull(),
@@ -646,6 +699,12 @@ export type NewSession = typeof session.$inferInsert;
 
 export type Key = typeof key.$inferSelect;
 export type NewKey = typeof key.$inferInsert;
+
+export type Tenant = typeof tenant.$inferSelect;
+export type NewTenant = typeof tenant.$inferInsert;
+
+export type TenantMember = typeof tenantMember.$inferSelect;
+export type NewTenantMember = typeof tenantMember.$inferInsert;
 
 export type PasswordResetToken = typeof passwordResetToken.$inferSelect;
 export type NewPasswordResetToken = typeof passwordResetToken.$inferInsert;

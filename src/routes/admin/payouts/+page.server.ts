@@ -11,9 +11,14 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
 // Helper function to get payout data
-async function getPayoutData() {
+async function getPayoutData(tenantId: string | null) {
   try {
     // Step 1: Get all active cleaners with profiles
+    const cleanerConditions = [eq(user.role, "CLEANER"), eq(user.isActive, true)];
+    if (tenantId) {
+      cleanerConditions.push(eq(cleanerProfile.tenantId, tenantId));
+    }
+
     const cleaners = await db
       .select({
         id: user.id,
@@ -30,9 +35,17 @@ async function getPayoutData() {
       })
       .from(user)
       .innerJoin(cleanerProfile, eq(cleanerProfile.userId, user.id))
-      .where(and(eq(user.role, "CLEANER"), eq(user.isActive, true)));
+      .where(and(...cleanerConditions));
 
     // Step 2: Get pending payouts for each cleaner
+    const pendingPayoutConditions = [
+      eq(payment.status, "COMPLETED"),
+      eq(payment.isPaidToProvider, false),
+    ];
+    if (tenantId) {
+      pendingPayoutConditions.push(eq(booking.tenantId, tenantId));
+    }
+
     const pendingPayoutsQuery = await db
       .select({
         cleanerId: booking.cleanerId,
@@ -41,12 +54,7 @@ async function getPayoutData() {
       })
       .from(payment)
       .innerJoin(booking, eq(booking.id, payment.bookingId))
-      .where(
-        and(
-          eq(payment.status, "COMPLETED"),
-          eq(payment.isPaidToProvider, false)
-        )
-      )
+      .where(and(...pendingPayoutConditions))
       .groupBy(booking.cleanerId);
 
     // Create a map of cleaner ID to pending payout data
@@ -76,6 +84,11 @@ async function getPayoutData() {
     );
 
     // Step 3: Get recent paid payments for history display
+    const recentPaidConditions = [eq(payment.isPaidToProvider, true)];
+    if (tenantId) {
+      recentPaidConditions.push(eq(booking.tenantId, tenantId));
+    }
+
     const recentPaidPayments = await db
       .select({
         id: payment.id,
@@ -90,7 +103,7 @@ async function getPayoutData() {
       .from(payment)
       .innerJoin(booking, eq(booking.id, payment.bookingId))
       .innerJoin(user, eq(user.id, booking.cleanerId))
-      .where(eq(payment.isPaidToProvider, true))
+      .where(and(...recentPaidConditions))
       .orderBy(desc(payment.providerPayoutDate))
       .limit(50);
 
@@ -135,11 +148,14 @@ async function getPayoutData() {
   }
 }
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+  // Tenant scoping
+  const tenantId = locals.user?.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+
   // Return streamed data
   return {
     streamed: {
-      payoutData: getPayoutData(),
+      payoutData: getPayoutData(tenantId),
     },
   };
 };

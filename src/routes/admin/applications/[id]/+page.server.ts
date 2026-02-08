@@ -8,16 +8,21 @@ import {
 } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
 import { error, fail } from "@sveltejs/kit";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
 // Helper function to fetch application data
-async function getApplicationData(applicationId: string) {
-  // Fetch the application details
+async function getApplicationData(applicationId: string, tenantId: string | null) {
+  // Fetch the application details with tenant scoping
+  const conditions = [eq(cleanerApplication.id, applicationId)];
+  if (tenantId) {
+    conditions.push(eq(cleanerApplication.tenantId, tenantId));
+  }
+
   const [application] = await db
     .select()
     .from(cleanerApplication)
-    .where(eq(cleanerApplication.id, applicationId))
+    .where(and(...conditions))
     .limit(1);
 
   if (!application) {
@@ -37,17 +42,20 @@ async function getApplicationData(applicationId: string) {
   };
 }
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
   const applicationId = params.id;
 
   if (!applicationId) {
     throw error(404, "Application not found");
   }
 
+  // Tenant scoping
+  const tenantId = locals.user?.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+
   return {
     applicationId,
     streamed: {
-      applicationData: getApplicationData(applicationId),
+      applicationData: getApplicationData(applicationId, tenantId),
     },
   };
 };
@@ -183,6 +191,7 @@ export const actions: Actions = {
         await db.insert(cleanerProfile).values({
           id: profileId,
           userId,
+          tenantId: application.tenantId, // Inherit tenant from application
           idType: application.idType ? application.idType : "SOUTH_AFRICAN_ID",
           idNumber: application.idNumber || "0000000000000",
           workAddress: application.formattedAddress || application.city,

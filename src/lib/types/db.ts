@@ -4,9 +4,10 @@ import type {
   Address,
   Booking,
   CleanerProfile,
-  CleanerSpecialisation,
   Payment,
   Service,
+  Tenant,
+  TenantMember,
   User,
 } from "$lib/server/db/schema";
 
@@ -15,9 +16,10 @@ export type {
   Address,
   Booking,
   CleanerProfile,
-  CleanerSpecialisation,
   Payment,
   Service,
+  Tenant,
+  TenantMember,
   User,
 };
 
@@ -34,30 +36,32 @@ export type UserWithCleanerProfile = User & {
   cleanerProfile: CleanerProfile | null;
 };
 
-export type CleanerProfileWithSpecialisations = CleanerProfile & {
-  specialisations: CleanerSpecialisation[];
-};
-
 export type CleanerWithFullDetails = User & {
-  cleanerProfile: CleanerProfileWithSpecialisations;
+  cleanerProfile: CleanerProfile;
 };
 
 export type BookingWithRelations = Booking & {
   user: User;
   address: Address;
   service: Service;
+  tenant?: Tenant;
   cleaner?: User & {
     cleanerProfile?: CleanerProfile;
   };
   payment?: Payment;
 };
 
-export type ServiceWithSpecialisations = Service & {
-  cleanerSpecialisations: CleanerSpecialisation[];
-};
-
 export type PaymentWithBooking = Payment & {
   booking: Booking;
+};
+
+// Tenant-related types
+export type TenantWithMembers = Tenant & {
+  members: (TenantMember & { user: User })[];
+};
+
+export type UserWithTenant = User & {
+  tenantMember?: TenantMember & { tenant: Tenant };
 };
 
 // API response types (for type safety in API responses)
@@ -67,4 +71,5 @@ export type BookingResponse = BookingWithRelations;
 
 export type CleanerResponse = Omit<User, "passwordHash"> & {
   cleanerProfile: CleanerProfile;
+  tenant?: Tenant;
 };

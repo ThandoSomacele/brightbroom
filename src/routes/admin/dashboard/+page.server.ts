@@ -2,159 +2,139 @@
 import { db } from "$lib/server/db";
 import { booking, payment, user, cleanerProfile } from "$lib/server/db/schema";
 import { and, desc, eq, gte, lt, sql } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
 
+// Helper to build tenant-scoped booking conditions
+function bookingTenantCondition(tenantId: string | null): SQL | undefined {
+  return tenantId ? eq(booking.tenantId, tenantId) : undefined;
+}
+
+// Helper to build tenant-scoped cleaner conditions
+function cleanerTenantCondition(tenantId: string | null): SQL | undefined {
+  return tenantId ? eq(cleanerProfile.tenantId, tenantId) : undefined;
+}
+
 // Helper function to get metrics data
-async function getMetrics() {
+async function getMetrics(tenantId: string | null) {
   const now = new Date();
   const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const tenantFilter = bookingTenantCondition(tenantId);
 
   try {
     // Count total bookings
     const totalBookingsResult = await db
-      .select({
-        count: sql<number>`count(*)`.mapWith(Number),
-      })
-      .from(booking);
+      .select({ count: sql<number>`count(*)`.mapWith(Number) })
+      .from(booking)
+      .where(tenantFilter);
     const totalBookings = totalBookingsResult[0]?.count || 0;
 
     // Count current month bookings
     const currentMonthBookingsResult = await db
-      .select({
-        count: sql<number>`count(*)`.mapWith(Number),
-      })
+      .select({ count: sql<number>`count(*)`.mapWith(Number) })
       .from(booking)
-      .where(gte(booking.createdAt, currentMonthStart));
+      .where(tenantFilter ? and(gte(booking.createdAt, currentMonthStart), tenantFilter) : gte(booking.createdAt, currentMonthStart));
     const currentMonthBookings = currentMonthBookingsResult[0]?.count || 0;
 
     // Count last month bookings
     const lastMonthBookingsResult = await db
-      .select({
-        count: sql<number>`count(*)`.mapWith(Number),
-      })
+      .select({ count: sql<number>`count(*)`.mapWith(Number) })
       .from(booking)
       .where(
-        and(
-          gte(booking.createdAt, lastMonthStart),
-          lt(booking.createdAt, currentMonthStart),
-        ),
+        tenantFilter
+          ? and(gte(booking.createdAt, lastMonthStart), lt(booking.createdAt, currentMonthStart), tenantFilter)
+          : and(gte(booking.createdAt, lastMonthStart), lt(booking.createdAt, currentMonthStart))
       );
     const lastMonthBookings = lastMonthBookingsResult[0]?.count || 0;
 
-    // Calculate booking trend percentage
     const bookingTrend =
       lastMonthBookings === 0
         ? 100
         : Number(
-            (
-              ((currentMonthBookings - lastMonthBookings) / lastMonthBookings) *
-              100
-            ).toFixed(1),
+            (((currentMonthBookings - lastMonthBookings) / lastMonthBookings) * 100).toFixed(1),
           );
 
-    // Calculate total revenue
-    const totalRevenueResult = await db
-      .select({
-        sum: sql<string>`sum(amount)::numeric`.mapWith(Number),
-      })
-      .from(payment)
-      .where(eq(payment.status, "COMPLETED"));
+    // Revenue - join payment with booking for tenant filtering
+    const revenueBase = tenantFilter
+      ? db.select({ sum: sql<string>`sum(${payment.amount})::numeric`.mapWith(Number) })
+          .from(payment)
+          .innerJoin(booking, eq(booking.id, payment.bookingId))
+          .where(and(eq(payment.status, "COMPLETED"), tenantFilter))
+      : db.select({ sum: sql<string>`sum(${payment.amount})::numeric`.mapWith(Number) })
+          .from(payment)
+          .where(eq(payment.status, "COMPLETED"));
+
+    const totalRevenueResult = await revenueBase;
     const totalRevenue = totalRevenueResult[0]?.sum || 0;
 
-    // Calculate current month revenue
-    const currentMonthRevenueResult = await db
-      .select({
-        sum: sql<string>`sum(amount)::numeric`.mapWith(Number),
-      })
-      .from(payment)
-      .where(
-        and(
-          eq(payment.status, "COMPLETED"),
-          gte(payment.createdAt, currentMonthStart),
-        ),
-      );
+    const currentMonthRevenueResult = tenantFilter
+      ? await db.select({ sum: sql<string>`sum(${payment.amount})::numeric`.mapWith(Number) })
+          .from(payment)
+          .innerJoin(booking, eq(booking.id, payment.bookingId))
+          .where(and(eq(payment.status, "COMPLETED"), gte(payment.createdAt, currentMonthStart), tenantFilter))
+      : await db.select({ sum: sql<string>`sum(${payment.amount})::numeric`.mapWith(Number) })
+          .from(payment)
+          .where(and(eq(payment.status, "COMPLETED"), gte(payment.createdAt, currentMonthStart)));
     const currentMonthRevenue = currentMonthRevenueResult[0]?.sum || 0;
 
-    // Calculate last month revenue
-    const lastMonthRevenueResult = await db
-      .select({
-        sum: sql<string>`sum(amount)::numeric`.mapWith(Number),
-      })
-      .from(payment)
-      .where(
-        and(
-          eq(payment.status, "COMPLETED"),
-          gte(payment.createdAt, lastMonthStart),
-          lt(payment.createdAt, currentMonthStart),
-        ),
-      );
+    const lastMonthRevenueResult = tenantFilter
+      ? await db.select({ sum: sql<string>`sum(${payment.amount})::numeric`.mapWith(Number) })
+          .from(payment)
+          .innerJoin(booking, eq(booking.id, payment.bookingId))
+          .where(and(eq(payment.status, "COMPLETED"), gte(payment.createdAt, lastMonthStart), lt(payment.createdAt, currentMonthStart), tenantFilter))
+      : await db.select({ sum: sql<string>`sum(${payment.amount})::numeric`.mapWith(Number) })
+          .from(payment)
+          .where(and(eq(payment.status, "COMPLETED"), gte(payment.createdAt, lastMonthStart), lt(payment.createdAt, currentMonthStart)));
     const lastMonthRevenue = lastMonthRevenueResult[0]?.sum || 0;
 
-    // Calculate revenue trend percentage
     const revenueTrend =
       lastMonthRevenue === 0
         ? 100
-        : Number(
-            (
-              ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) *
-              100
-            ).toFixed(1),
-          );
+        : Number((((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100).toFixed(1));
 
-    // Count active cleaners
-    const activeCleanersResult = await db
-      .select({
-        count: sql<number>`count(*)`.mapWith(Number),
-      })
-      .from(user)
-      .where(eq(user.role, "CLEANER"));
+    // Active cleaners - scope by tenant
+    const cleanerFilter = cleanerTenantCondition(tenantId);
+    const activeCleanersResult = cleanerFilter
+      ? await db.select({ count: sql<number>`count(*)`.mapWith(Number) })
+          .from(user)
+          .innerJoin(cleanerProfile, eq(user.id, cleanerProfile.userId))
+          .where(and(eq(user.role, "CLEANER"), cleanerFilter))
+      : await db.select({ count: sql<number>`count(*)`.mapWith(Number) })
+          .from(user)
+          .where(eq(user.role, "CLEANER"));
     const activeCleaners = activeCleanersResult[0]?.count || 0;
 
-    // Count cleaners joined this month
-    const newCleanersResult = await db
-      .select({
-        count: sql<number>`count(*)`.mapWith(Number),
-      })
-      .from(user)
-      .where(
-        and(eq(user.role, "CLEANER"), gte(user.createdAt, currentMonthStart)),
-      );
+    const newCleanersResult = cleanerFilter
+      ? await db.select({ count: sql<number>`count(*)`.mapWith(Number) })
+          .from(user)
+          .innerJoin(cleanerProfile, eq(user.id, cleanerProfile.userId))
+          .where(and(eq(user.role, "CLEANER"), gte(user.createdAt, currentMonthStart), cleanerFilter))
+      : await db.select({ count: sql<number>`count(*)`.mapWith(Number) })
+          .from(user)
+          .where(and(eq(user.role, "CLEANER"), gte(user.createdAt, currentMonthStart)));
     const newCleaners = newCleanersResult[0]?.count || 0;
 
-    // Count cleaners joined last month
-    const lastMonthCleanersResult = await db
-      .select({
-        count: sql<number>`count(*)`.mapWith(Number),
-      })
-      .from(user)
-      .where(
-        and(
-          eq(user.role, "CLEANER"),
-          gte(user.createdAt, lastMonthStart),
-          lt(user.createdAt, currentMonthStart),
-        ),
-      );
+    const lastMonthCleanersResult = cleanerFilter
+      ? await db.select({ count: sql<number>`count(*)`.mapWith(Number) })
+          .from(user)
+          .innerJoin(cleanerProfile, eq(user.id, cleanerProfile.userId))
+          .where(and(eq(user.role, "CLEANER"), gte(user.createdAt, lastMonthStart), lt(user.createdAt, currentMonthStart), cleanerFilter))
+      : await db.select({ count: sql<number>`count(*)`.mapWith(Number) })
+          .from(user)
+          .where(and(eq(user.role, "CLEANER"), gte(user.createdAt, lastMonthStart), lt(user.createdAt, currentMonthStart)));
     const lastMonthCleaners = lastMonthCleanersResult[0]?.count || 0;
 
-    // Calculate cleaner trend percentage
     const cleanerTrend =
       lastMonthCleaners === 0
         ? 100
-        : Number(
-            (
-              ((newCleaners - lastMonthCleaners) / lastMonthCleaners) *
-              100
-            ).toFixed(1),
-          );
+        : Number((((newCleaners - lastMonthCleaners) / lastMonthCleaners) * 100).toFixed(1));
 
-    // Count pending bookings
+    // Pending bookings
     const pendingBookingsResult = await db
-      .select({
-        count: sql<number>`count(*)`.mapWith(Number),
-      })
+      .select({ count: sql<number>`count(*)`.mapWith(Number) })
       .from(booking)
-      .where(eq(booking.status, "PENDING"));
+      .where(tenantFilter ? and(eq(booking.status, "PENDING"), tenantFilter) : eq(booking.status, "PENDING"));
     const pendingBookings = pendingBookingsResult[0]?.count || 0;
 
     return {
@@ -181,9 +161,13 @@ async function getMetrics() {
 }
 
 // Helper function to get pending cleaners
-async function getPendingCleaners() {
+async function getPendingCleaners(tenantId: string | null) {
   try {
-    const pendingCleanersResult = await db
+    const cleanerFilter = cleanerTenantCondition(tenantId);
+    const conditions: SQL[] = [eq(user.role, "CLEANER"), eq(cleanerProfile.isAvailable, false)];
+    if (cleanerFilter) conditions.push(cleanerFilter);
+
+    return await db
       .select({
         id: user.id,
         firstName: user.firstName,
@@ -193,13 +177,9 @@ async function getPendingCleaners() {
       })
       .from(user)
       .innerJoin(cleanerProfile, eq(user.id, cleanerProfile.userId))
-      .where(
-        and(eq(user.role, "CLEANER"), eq(cleanerProfile.isAvailable, false)),
-      )
+      .where(and(...conditions))
       .orderBy(desc(user.createdAt))
       .limit(5);
-
-    return pendingCleanersResult;
   } catch (error) {
     console.error("Error loading pending cleaners:", error);
     return [];
@@ -207,9 +187,10 @@ async function getPendingCleaners() {
 }
 
 // Helper function to get booking trends
-async function getBookingTrends() {
+async function getBookingTrends(tenantId: string | null) {
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const tenantFilter = bookingTenantCondition(tenantId);
 
   try {
     const bookingTrendsResult = await db
@@ -218,7 +199,7 @@ async function getBookingTrends() {
         count: sql<number>`count(*)`.mapWith(Number),
       })
       .from(booking)
-      .where(gte(booking.createdAt, thirtyDaysAgo))
+      .where(tenantFilter ? and(gte(booking.createdAt, thirtyDaysAgo), tenantFilter) : gte(booking.createdAt, thirtyDaysAgo))
       .groupBy(sql`DATE(${booking.createdAt})`)
       .orderBy(sql`DATE(${booking.createdAt})`);
 
@@ -230,27 +211,38 @@ async function getBookingTrends() {
 }
 
 // Helper function to get revenue trends
-async function getRevenueTrends() {
+async function getRevenueTrends(tenantId: string | null) {
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const tenantFilter = bookingTenantCondition(tenantId);
 
   try {
-    const revenueTrendsResult = await db
-      .select({
-        date: sql<string>`DATE(${payment.createdAt})`.mapWith(String),
-        value: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number),
-      })
-      .from(payment)
-      .where(
-        and(
-          eq(payment.status, "COMPLETED"),
-          gte(payment.createdAt, thirtyDaysAgo),
-        ),
-      )
-      .groupBy(sql`DATE(${payment.createdAt})`)
-      .orderBy(sql`DATE(${payment.createdAt})`);
+    let query;
+    if (tenantFilter) {
+      query = db
+        .select({
+          date: sql<string>`DATE(${payment.createdAt})`.mapWith(String),
+          value: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number),
+        })
+        .from(payment)
+        .innerJoin(booking, eq(booking.id, payment.bookingId))
+        .where(and(eq(payment.status, "COMPLETED"), gte(payment.createdAt, thirtyDaysAgo), tenantFilter))
+        .groupBy(sql`DATE(${payment.createdAt})`)
+        .orderBy(sql`DATE(${payment.createdAt})`);
+    } else {
+      query = db
+        .select({
+          date: sql<string>`DATE(${payment.createdAt})`.mapWith(String),
+          value: sql<string>`COALESCE(SUM(${payment.amount}), 0)`.mapWith(Number),
+        })
+        .from(payment)
+        .where(and(eq(payment.status, "COMPLETED"), gte(payment.createdAt, thirtyDaysAgo)))
+        .groupBy(sql`DATE(${payment.createdAt})`)
+        .orderBy(sql`DATE(${payment.createdAt})`);
+    }
 
-    return revenueTrendsResult.map((r) => ({ date: r.date, value: r.value }));
+    const result = await query;
+    return result.map((r) => ({ date: r.date, value: r.value }));
   } catch (error) {
     console.error("Error loading revenue trends:", error);
     return [];
@@ -260,7 +252,6 @@ async function getRevenueTrends() {
 // Helper function to get recent activity
 async function getRecentActivity() {
   const now = new Date();
-  // In a real app, this would come from an activity log table
   return [
     {
       type: "BOOKING",
@@ -293,16 +284,16 @@ async function getRecentActivity() {
   ];
 }
 
-export const load: PageServerLoad = async () => {
-  // Return promises for streamed data - page loads immediately
-  // and data streams in as it becomes available
+export const load: PageServerLoad = async ({ locals }) => {
+  // Tenant scoping
+  const tenantId = locals.user?.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+
   return {
-    // These are returned as promises and will be streamed
     streamed: {
-      metrics: getMetrics(),
-      pendingCleaners: getPendingCleaners(),
-      bookingTrends: getBookingTrends(),
-      revenueTrends: getRevenueTrends(),
+      metrics: getMetrics(tenantId),
+      pendingCleaners: getPendingCleaners(tenantId),
+      bookingTrends: getBookingTrends(tenantId),
+      revenueTrends: getRevenueTrends(tenantId),
       recentActivity: getRecentActivity(),
     },
   };

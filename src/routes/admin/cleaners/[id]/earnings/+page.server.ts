@@ -7,8 +7,8 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-  // Ensure admin access
-  if (!locals.user || locals.user.role !== "ADMIN") {
+  // Ensure admin or tenant admin access
+  if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
     throw redirect(302, "/auth/login?redirectTo=/admin");
   }
 

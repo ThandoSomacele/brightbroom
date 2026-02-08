@@ -5,13 +5,16 @@ import { booking, service, user, address, payment, cleanerProfile } from '$lib/s
 import { eq, and, desc } from 'drizzle-orm';
 import { error, fail } from '@sveltejs/kit';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
   const bookingId = params.id;
-  
+
   if (!bookingId) {
     throw error(404, 'Booking not found');
   }
-  
+
+  // Tenant scoping
+  const tenantId = locals.user?.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+
   try {
     // Fetch the booking with all related information
     const bookingResults = await db.select({
@@ -77,7 +80,7 @@ export const load: PageServerLoad = async ({ params }) => {
       cleanerProfile, 
       booking.cleanerId ? eq(cleanerProfile.userId, booking.cleanerId) : undefined
     )
-    .where(eq(booking.id, bookingId))
+    .where(tenantId ? and(eq(booking.id, bookingId), eq(booking.tenantId, tenantId)) : eq(booking.id, bookingId))
     .limit(1);
     
     if (bookingResults.length === 0) {

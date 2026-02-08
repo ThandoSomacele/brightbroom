@@ -12,7 +12,7 @@ import { and, desc, eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
 // Helper function to fetch cleaner data
-async function getCleanerData(cleanerId: string) {
+async function getCleanerData(cleanerId: string, tenantId: string | null) {
   // Fetch the cleaner with profile data
   const userResults = await db
     .select()
@@ -27,11 +27,21 @@ async function getCleanerData(cleanerId: string) {
   const cleanerData = userResults[0];
 
   // Fetch cleaner profile
+  const profileConditions = [eq(cleanerProfile.userId, cleanerId)];
+  if (tenantId) {
+    profileConditions.push(eq(cleanerProfile.tenantId, tenantId));
+  }
+
   const profileResults = await db
     .select()
     .from(cleanerProfile)
-    .where(eq(cleanerProfile.userId, cleanerId))
+    .where(and(...profileConditions))
     .limit(1);
+
+  // If tenant-scoped and no profile found, the cleaner doesn't belong to this tenant
+  if (tenantId && profileResults.length === 0) {
+    throw error(404, "Cleaner not found");
+  }
 
   const profile = profileResults.length > 0 ? profileResults[0] : null;
 
@@ -73,17 +83,20 @@ async function getCleanerData(cleanerId: string) {
   };
 }
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
   const cleanerId = params.id;
 
   if (!cleanerId) {
     throw error(404, "Cleaner not found");
   }
 
+  // Tenant scoping
+  const tenantId = locals.user?.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+
   return {
     cleanerId,
     streamed: {
-      cleanerData: getCleanerData(cleanerId),
+      cleanerData: getCleanerData(cleanerId, tenantId),
     },
   };
 };

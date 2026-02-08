@@ -32,6 +32,7 @@
   import UpdateStatusIndicator from "$lib/components/admin/UpdateStatusIndicator.svelte";
   import {
     Banknote,
+    Building2,
     Landmark,
     Calendar,
     ChartNoAxesColumnIncreasing,
@@ -46,24 +47,36 @@
     Tag,
   } from "lucide-svelte";
 
+  export let data;
+
   let showMobileMenu = false;
 
-  const navItems = [
+  const isPlatformAdmin = data.isPlatformAdmin;
+  const tenantName = data.tenant?.name ?? "BrightBroom";
+
+  // All nav items with optional platformOnly flag
+  const allNavItems = [
     { label: "Dashboard", href: "/admin/dashboard", icon: Home },
     { label: "Bookings", href: "/admin/bookings", icon: Calendar },
     { label: "Applications", href: "/admin/applications", icon: FileText },
     { label: "Cleaners", href: "/admin/cleaners", icon: BrushCleaning },
-    { label: "Users", href: "/admin/users", icon: User },
-    { label: "Pricing", href: "/admin/pricing", icon: Banknote },
+    { label: "Users", href: "/admin/users", icon: User, platformOnly: true },
+    { label: "Tenants", href: "/admin/tenants", icon: Building2, platformOnly: true },
+    { label: "Pricing", href: "/admin/pricing", icon: Banknote, platformOnly: true },
     { label: "Coupons", href: "/admin/coupons", icon: Tag },
     { label: "Payouts", href: "/admin/payouts", icon: Landmark },
-    { label: "Services", href: "/admin/services", icon: Settings },
+    { label: "Services", href: "/admin/services", icon: Settings, platformOnly: true },
     {
       label: "Reports",
       href: "/admin/reports",
       icon: ChartNoAxesColumnIncreasing,
     },
   ];
+
+  // Filter nav items based on user role
+  $: navItems = isPlatformAdmin
+    ? allNavItems
+    : allNavItems.filter((item) => !item.platformOnly);
 
   function isActive(href: string) {
     return (
@@ -84,7 +97,7 @@
     class="lg:hidden bg-white dark:bg-gray-800 shadow p-4 flex justify-between items-center"
   >
     <div class="flex items-center">
-      <span class="font-bold text-primary text-xl">BrightBroom</span>
+      <span class="font-bold text-primary text-xl">{tenantName}</span>
       <span class="ml-2 font-semibold text-gray-900 dark:text-white">Admin</span
       >
     </div>
@@ -107,7 +120,7 @@
     `}
     >
       <div class="p-4 hidden lg:flex items-center">
-        <span class="font-bold text-primary text-xl">BrightBroom</span>
+        <span class="font-bold text-primary text-xl">{tenantName}</span>
         <span class="ml-2 font-semibold text-gray-900 dark:text-white"
           >Admin</span
         >

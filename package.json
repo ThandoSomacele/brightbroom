@@ -27,6 +27,7 @@
     "db:seed:earnings": "tsx scripts/db/seed-earnings.ts",
     "db:seed:applications": "tsx scripts/db/seed-applications.ts",
     "db:seed:coupons": "tsx scripts/db/seed-coupons.ts",
+    "db:seed:tenants": "tsx scripts/db/seed-tenants.ts",
     "db:migrate:training": "tsx scripts/db/migrate-training.ts",
     "db:backup": "tsx scripts/db/backup.ts",
     "db:backup:full": "tsx scripts/db/backup.ts --full",

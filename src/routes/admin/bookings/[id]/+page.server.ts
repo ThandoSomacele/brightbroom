@@ -20,8 +20,13 @@ import { and, desc, eq, sql } from "drizzle-orm"; // Added sql import
 import type { Actions, PageServerLoad } from "./$types";
 
 // Helper function to fetch all booking data
-async function getBookingData(bookingId: string) {
+async function getBookingData(bookingId: string, tenantId: string | null) {
   // Step 1: Fetch the basic booking information
+  const bookingConditions = [eq(booking.id, bookingId)];
+  if (tenantId) {
+    bookingConditions.push(eq(booking.tenantId, tenantId));
+  }
+
   const bookingResult = await db
       .select({
         id: booking.id,
@@ -40,7 +45,7 @@ async function getBookingData(bookingId: string) {
         bathroomCount: booking.bathroomCount,
       })
       .from(booking)
-      .where(eq(booking.id, bookingId))
+      .where(and(...bookingConditions))
       .limit(1);
 
     if (bookingResult.length === 0) {
@@ -223,8 +228,8 @@ async function getBookingData(bookingId: string) {
 export const load: PageServerLoad = async ({ params, locals }) => {
   const bookingId = params.id;
 
-  // Make sure the current user is an admin
-  if (!locals.user || locals.user.role !== "ADMIN") {
+  // Make sure the current user is an admin or tenant admin
+  if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
     throw redirect(302, "/auth/login?redirectTo=/admin");
   }
 
@@ -232,10 +237,13 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     throw error(404, "Booking not found");
   }
 
+  // Tenant scoping
+  const tenantId = locals.user.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+
   return {
     bookingId,
     streamed: {
-      bookingData: getBookingData(bookingId),
+      bookingData: getBookingData(bookingId, tenantId),
     },
   };
 };
@@ -244,7 +252,7 @@ export const actions: Actions = {
   // Action to change booking status
   changeStatus: async ({ params, request, locals }) => {
     // Verify admin role
-    if (!locals.user || locals.user.role !== "ADMIN") {
+    if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
       return fail(403, { error: "Unauthorized" });
     }
 
@@ -306,7 +314,7 @@ export const actions: Actions = {
   // Action to assign cleaner to booking
   assignCleaner: async ({ params, request, locals }) => {
     // Verify admin role
-    if (!locals.user || locals.user.role !== "ADMIN") {
+    if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
       return fail(403, { error: "Unauthorized" });
     }
 
@@ -437,7 +445,7 @@ export const actions: Actions = {
   // Action to add admin note
   addNote: async ({ params, request, locals }) => {
     // Verify admin role
-    if (!locals.user || locals.user.role !== "ADMIN") {
+    if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
       return fail(403, { error: "Unauthorized" });
     }
 
@@ -476,7 +484,7 @@ export const actions: Actions = {
   // Action to add communication
   addCommunication: async ({ params, request, locals }) => {
     // Verify admin role
-    if (!locals.user || locals.user.role !== "ADMIN") {
+    if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
       return fail(403, { error: "Unauthorized" });
     }
 
@@ -589,7 +597,7 @@ export const actions: Actions = {
 
   autoAssignCleaner: async ({ params, locals }) => {
     // Verify admin role
-    if (!locals.user || locals.user.role !== "ADMIN") {
+    if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
       return fail(403, { error: "Unauthorized" });
     }
 
@@ -636,7 +644,7 @@ export const actions: Actions = {
   // Action to send cleaner changed notification email
   sendCleanerChangeNotification: async ({ params, request, locals }) => {
     // Verify admin role
-    if (!locals.user || locals.user.role !== "ADMIN") {
+    if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
       return fail(403, { error: "Unauthorized" });
     }
 

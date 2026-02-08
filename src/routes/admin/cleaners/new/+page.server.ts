@@ -10,8 +10,8 @@ import type { Actions, PageServerLoad } from "./$types";
  * Load data needed for the cleaner creation form
  */
 export const load: PageServerLoad = async ({ locals }) => {
-  // Verify admin role
-  if (!locals.user || locals.user.role !== "ADMIN") {
+  // Verify admin or tenant admin role
+  if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
     throw redirect(302, "/auth/login?redirectTo=/admin/cleaners/new");
   }
 
@@ -37,8 +37,8 @@ export const load: PageServerLoad = async ({ locals }) => {
  */
 export const actions: Actions = {
   create: async ({ request, locals }) => {
-    // Verify admin role
-    if (!locals.user || locals.user.role !== "ADMIN") {
+    // Verify admin or tenant admin role
+    if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
       return fail(403, { error: "Unauthorized" });
     }
 
@@ -175,11 +175,13 @@ export const actions: Actions = {
       const lat = -33.9249 + (Math.random() * 0.2 - 0.1); // Around Cape Town
       const lng = 18.4241 + (Math.random() * 0.2 - 0.1);
 
-      // Create cleaner profile
+      // Create cleaner profile - inherit tenant from admin creating the cleaner
+      const tenantId = locals.user.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
       const profileId = crypto.randomUUID();
       await db.insert(cleanerProfile).values({
         id: profileId,
         userId,
+        tenantId,
         workAddress,
         workLocationLat: lat,
         workLocationLng: lng,

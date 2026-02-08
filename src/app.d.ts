@@ -1,5 +1,5 @@
 // src/app.d.ts
-import type { Session, User } from '$lib/server/db/schema';
+import type { Session, User, Tenant, TenantMember } from '$lib/server/db/schema';
 
 declare global {
   namespace App {
@@ -7,6 +7,8 @@ declare global {
       user: User | null;
       session: Session | null;
       csrf: string;
+      tenant: Tenant | null;
+      tenantMembership: TenantMember | null;
     }
   }
 }

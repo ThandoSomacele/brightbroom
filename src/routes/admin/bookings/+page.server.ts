@@ -3,6 +3,7 @@ import { db } from '$lib/server/db';
 import { booking, user, address, payment } from '$lib/server/db/schema';
 import { eq, and, gte, lte, like, or, desc } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
+import type { SQL } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
 // Helper function to fetch bookings with all filters
@@ -12,12 +13,56 @@ async function getBookings(
   dateStart: string,
   dateEnd: string,
   page: number,
-  limit: number
+  limit: number,
+  tenantId: string | null
 ) {
   const offset = (page - 1) * limit;
 
   try {
-    // Build the query with filters
+    // Build conditions array
+    const conditions: SQL[] = [];
+    const countConditions: SQL[] = [];
+
+    // Tenant scoping
+    if (tenantId) {
+      conditions.push(eq(booking.tenantId, tenantId));
+      countConditions.push(eq(booking.tenantId, tenantId));
+    }
+
+    // Search filter
+    if (search) {
+      const searchCondition = or(
+        like(user.firstName, `%${search}%`),
+        like(user.lastName, `%${search}%`),
+        like(user.email, `%${search}%`),
+        like(address.street, `%${search}%`),
+        like(address.city, `%${search}%`)
+      )!;
+      conditions.push(searchCondition);
+      countConditions.push(searchCondition);
+    }
+
+    // Status filter
+    if (status && status !== 'ALL') {
+      conditions.push(eq(booking.status, status));
+      countConditions.push(eq(booking.status, status));
+    }
+
+    // Date range filters
+    if (dateStart) {
+      const startDate = new Date(dateStart);
+      conditions.push(gte(booking.scheduledDate, startDate));
+      countConditions.push(gte(booking.scheduledDate, startDate));
+    }
+
+    if (dateEnd) {
+      const endDate = new Date(dateEnd);
+      endDate.setHours(23, 59, 59, 999);
+      conditions.push(lte(booking.scheduledDate, endDate));
+      countConditions.push(lte(booking.scheduledDate, endDate));
+    }
+
+    // Build query
     let query = db.select({
       id: booking.id,
       status: booking.status,
@@ -44,70 +89,20 @@ async function getBookings(
     .innerJoin(address, eq(booking.addressId, address.id))
     .leftJoin(payment, eq(booking.id, payment.bookingId));
 
-    // Apply search filter
-    if (search) {
-      query = query.where(
-        or(
-          like(user.firstName, `%${search}%`),
-          like(user.lastName, `%${search}%`),
-          like(user.email, `%${search}%`),
-          like(address.street, `%${search}%`),
-          like(address.city, `%${search}%`)
-        )
-      );
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
     }
 
-    // Apply status filter
-    if (status && status !== 'ALL') {
-      query = query.where(eq(booking.status, status));
-    }
-
-    // Apply date range filters
-    if (dateStart) {
-      const startDate = new Date(dateStart);
-      query = query.where(gte(booking.scheduledDate, startDate));
-    }
-
-    if (dateEnd) {
-      const endDate = new Date(dateEnd);
-      endDate.setHours(23, 59, 59, 999);
-      query = query.where(lte(booking.scheduledDate, endDate));
-    }
-
-    // Clone the query for counting total
-    const countQuery = db.select({
+    // Count query
+    let countQuery = db.select({
       count: sql<number>`count(*)`.mapWith(Number)
     })
     .from(booking)
     .innerJoin(user, eq(booking.userId, user.id))
     .innerJoin(address, eq(booking.addressId, address.id));
 
-    // Apply the same filters to the count query
-    if (search) {
-      countQuery.where(
-        or(
-          like(user.firstName, `%${search}%`),
-          like(user.lastName, `%${search}%`),
-          like(user.email, `%${search}%`),
-          like(address.street, `%${search}%`),
-          like(address.city, `%${search}%`)
-        )
-      );
-    }
-
-    if (status && status !== 'ALL') {
-      countQuery.where(eq(booking.status, status));
-    }
-
-    if (dateStart) {
-      const startDate = new Date(dateStart);
-      countQuery.where(gte(booking.scheduledDate, startDate));
-    }
-
-    if (dateEnd) {
-      const endDate = new Date(dateEnd);
-      endDate.setHours(23, 59, 59, 999);
-      countQuery.where(lte(booking.scheduledDate, endDate));
+    if (countConditions.length > 0) {
+      countQuery = countQuery.where(and(...countConditions));
     }
 
     // Execute both queries
@@ -145,8 +140,7 @@ async function getBookings(
   }
 }
 
-export const load: PageServerLoad = async ({ url }) => {
-  // Get search and filter parameters - these are synchronous
+export const load: PageServerLoad = async ({ url, locals }) => {
   const search = url.searchParams.get('search') || '';
   const status = url.searchParams.get('status') || '';
   const dateStart = url.searchParams.get('dateStart') || '';
@@ -154,7 +148,9 @@ export const load: PageServerLoad = async ({ url }) => {
   const page = parseInt(url.searchParams.get('page') || '1');
   const limit = 10;
 
-  // Status options are static, no need to stream
+  // Tenant scoping: tenant admins see only their tenant's bookings
+  const tenantId = locals.user?.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+
   const statusOptions = [
     { value: 'ALL', label: 'All Statuses' },
     { value: 'PENDING', label: 'Pending' },
@@ -164,7 +160,6 @@ export const load: PageServerLoad = async ({ url }) => {
     { value: 'CANCELLED', label: 'Cancelled' }
   ];
 
-  // Return filters immediately, stream the data
   return {
     filters: {
       search,
@@ -174,9 +169,8 @@ export const load: PageServerLoad = async ({ url }) => {
     },
     statusOptions,
     currentPage: page,
-    // Stream the bookings data
     streamed: {
-      bookingsData: getBookings(search, status, dateStart, dateEnd, page, limit)
+      bookingsData: getBookings(search, status, dateStart, dateEnd, page, limit, tenantId)
     }
   };
 };
