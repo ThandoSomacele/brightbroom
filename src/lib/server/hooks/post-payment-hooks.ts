@@ -10,6 +10,7 @@ import {
 } from "$lib/server/db/schema";
 import { sendBookingConfirmationEmail } from "$lib/server/email-service";
 import { cleanerAssignmentService } from "$lib/server/services/cleaner-assignment.service";
+import { sendAdminBookingNotification } from "$lib/server/services/whatsapp.service";
 import { eq } from "drizzle-orm";
 
 /**
@@ -407,6 +408,61 @@ export const postPaymentHooks = {
   },
 
   /**
+   * Send WhatsApp notification to admin about a new booking
+   * This is non-blocking - failures are logged but don't affect the booking
+   * @param bookingId The booking ID
+   * @returns Success status
+   */
+  async sendAdminWhatsAppNotification(bookingId: string): Promise<boolean> {
+    try {
+      console.log(
+        `[POST-PAYMENT HOOKS] Sending WhatsApp notification for booking: ${bookingId}`,
+      );
+
+      const result = await sendAdminBookingNotification(bookingId);
+
+      // Record the result in admin notes
+      await db.insert(adminNote).values({
+        id: crypto.randomUUID(),
+        bookingId,
+        content: result.success
+          ? `WhatsApp notification sent to admin (ID: ${result.messageId})`
+          : `WhatsApp notification failed: ${result.error || "Unknown error"}`,
+        addedBy: "System (Auto)",
+        createdAt: new Date(),
+      });
+
+      return result.success;
+    } catch (error) {
+      console.error(
+        '[POST-PAYMENT HOOKS] Error sending WhatsApp notification for booking:',
+        {
+          bookingId,
+          error: error instanceof Error ? error.message : String(error)
+        }
+      );
+
+      // Record the error - non-blocking
+      try {
+        await db.insert(adminNote).values({
+          id: crypto.randomUUID(),
+          bookingId,
+          content: `WhatsApp notification error: ${error instanceof Error ? error.message : "Unknown error"}`,
+          addedBy: "System (Auto)",
+          createdAt: new Date(),
+        });
+      } catch (noteError) {
+        console.error(
+          "[POST-PAYMENT HOOKS] Failed to create admin note about WhatsApp error:",
+          noteError,
+        );
+      }
+
+      return false;
+    }
+  },
+
+  /**
    * Run all post-payment hooks with improved reliability
    * @param bookingId The booking ID
    * @param paymentStatus Optional payment status to override database check
@@ -450,9 +506,15 @@ export const postPaymentHooks = {
       );
       await this.sendConfirmationEmailWithRetry(bookingId, paymentStatus);
 
-      // 2. Attempt cleaner assignment
+      // 2. Send WhatsApp notification to admin (non-blocking)
       console.log(
-        `[POST-PAYMENT HOOKS] Executing step 2: Attempt cleaner assignment`,
+        `[POST-PAYMENT HOOKS] Executing step 2: Send WhatsApp notification to admin`,
+      );
+      await this.sendAdminWhatsAppNotification(bookingId);
+
+      // 3. Attempt cleaner assignment
+      console.log(
+        `[POST-PAYMENT HOOKS] Executing step 3: Attempt cleaner assignment`,
       );
       await this.attemptCleanerAssignment(bookingId);
 
