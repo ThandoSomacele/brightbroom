@@ -6,6 +6,7 @@ import {
   user,
 } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
+import { tenantService } from "$lib/server/services/tenant.service";
 import { generateStrongPassword } from "$lib/utils/auth-utils";
 import { eq, like, or } from "drizzle-orm";
 
@@ -182,11 +183,13 @@ export const cleanerApplicationService = {
       }
 
       // Create the profile with application data and defaults
+      const resolvedTenantId = application.tenantId || (await tenantService.getPlatformOwner())?.id || null;
       const [newProfile] = await db
         .insert(cleanerProfile)
         .values({
           id: profileId,
           userId: userId,
+          tenantId: resolvedTenantId,
           idType: application.idType,
           idNumber: application.idNumber,
           // Use application location as work location

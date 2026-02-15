@@ -7,6 +7,7 @@ import {
 } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
 import { cleanerEarningsService } from "$lib/server/services/cleaner-earnings.service";
+import { tenantService } from "$lib/server/services/tenant.service";
 import { error, fail } from "@sveltejs/kit";
 import { and, desc, eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
@@ -323,9 +324,11 @@ export const actions: Actions = {
           .where(eq(cleanerProfile.userId, cleanerId));
       } else {
         // Create new profile including experience types
+        const resolvedTenantId = locals.tenant?.id || (await tenantService.getPlatformOwner())?.id || null;
         await db.insert(cleanerProfile).values({
           id: crypto.randomUUID(),
           userId: cleanerId,
+          tenantId: resolvedTenantId,
           workAddress,
           workRadius,
           bio,

@@ -1,6 +1,7 @@
 // src/routes/admin/cleaners/new/+page.server.ts
 import { db } from "$lib/server/db";
 import { cleanerProfile, service, user } from "$lib/server/db/schema";
+import { tenantService } from "$lib/server/services/tenant.service";
 import { hash } from "@node-rs/argon2";
 import { error, fail, redirect } from "@sveltejs/kit";
 import { eq } from "drizzle-orm"; // Added sql import
@@ -176,7 +177,11 @@ export const actions: Actions = {
       const lng = 18.4241 + (Math.random() * 0.2 - 0.1);
 
       // Create cleaner profile - inherit tenant from admin creating the cleaner
-      const tenantId = locals.user.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+      let tenantId = locals.tenant?.id || null;
+      if (!tenantId) {
+        const platformOwner = await tenantService.getPlatformOwner();
+        tenantId = platformOwner?.id || null;
+      }
       const profileId = crypto.randomUUID();
       await db.insert(cleanerProfile).values({
         id: profileId,
