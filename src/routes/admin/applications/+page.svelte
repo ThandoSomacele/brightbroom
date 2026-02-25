@@ -1,5 +1,6 @@
 <!-- src/routes/admin/applications/+page.svelte -->
 <script lang="ts">
+  import { goto } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
   import { TableSkeleton } from "$lib/components/ui/skeletons";
   import { parseDateTimeString } from "$lib/utils/date-utils.js";
@@ -208,7 +209,11 @@
           {:else}
             {#each applications as application}
               <tr
-                class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
+                class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                on:click={() => goto(`/admin/applications/${application.id}`)}
+                role="link"
+                tabindex="0"
+                on:keydown={(e) => e.key === 'Enter' && goto(`/admin/applications/${application.id}`)}
               >
                 <td class="whitespace-nowrap px-6 py-4">
                   <div class="flex items-center">
@@ -297,7 +302,7 @@
                 <td
                   class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium"
                 >
-                  <div class="flex justify-end">
+                  <div class="flex justify-end" on:click|stopPropagation>
                     <a
                       href={`/admin/applications/${application.id}`}
                       class="text-primary hover:text-primary-600"

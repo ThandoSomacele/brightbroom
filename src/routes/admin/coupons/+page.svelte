@@ -270,7 +270,13 @@
           </thead>
           <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
             {#each filteredCoupons as coupon (coupon.id)}
-              <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+              <tr
+                class="hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer"
+                onclick={() => openEditModal(coupon)}
+                role="button"
+                tabindex="0"
+                onkeydown={(e) => e.key === 'Enter' && openEditModal(coupon)}
+              >
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
                     <Tag size={16} class="text-primary mr-2" />
@@ -339,7 +345,7 @@
                     </span>
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-6 py-4 whitespace-nowrap" onclick={(e) => e.stopPropagation()}>
                   <form
                     method="POST"
                     action="?/toggleActive"
@@ -371,7 +377,7 @@
                     </button>
                   </form>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right">
+                <td class="px-6 py-4 whitespace-nowrap text-right" onclick={(e) => e.stopPropagation()}>
                   <div class="flex justify-end gap-2">
                     <a
                       href="/coupon/{coupon.code}"

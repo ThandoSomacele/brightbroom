@@ -1,5 +1,6 @@
 <!-- src/routes/admin/tenants/+page.svelte -->
 <script lang="ts">
+  import { goto } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
   import {
     Building2,
@@ -66,7 +67,13 @@
         </thead>
         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
           {#each data.tenants as tenant}
-            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+            <tr
+              class="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
+              on:click={() => goto(`/admin/tenants/${tenant.id}`)}
+              role="link"
+              tabindex="0"
+              on:keydown={(e) => e.key === 'Enter' && goto(`/admin/tenants/${tenant.id}`)}
+            >
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="flex-shrink-0 h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -121,7 +128,7 @@
                 {/if}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" on:click|stopPropagation>
                   <a
                     href="/admin/tenants/{tenant.id}"
                     class="text-primary hover:text-primary-600 font-medium"

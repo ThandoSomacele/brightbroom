@@ -242,7 +242,13 @@
           </tr>
         {:else}
           {#each bookings as booking}
-            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <tr
+              class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+              on:click={() => viewBookingDetails(booking.id)}
+              role="link"
+              tabindex="0"
+              on:keydown={(e) => e.key === 'Enter' && viewBookingDetails(booking.id)}
+            >
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                 {booking.id.substring(0, 8)}...
               </td>
@@ -264,7 +270,7 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button
-                  on:click={() => viewBookingDetails(booking.id)}
+                  on:click|stopPropagation={() => viewBookingDetails(booking.id)}
                   class="text-primary hover:text-primary-600"
                 >
                   View

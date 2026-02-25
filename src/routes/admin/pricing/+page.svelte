@@ -401,7 +401,13 @@
           </thead>
           <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {#each addons as addon (addon.id)}
-              <tr class={!addon.isActive ? "opacity-50" : ""}>
+              <tr
+                class={`hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer ${!addon.isActive ? "opacity-50" : ""}`}
+                onclick={() => openEditAddon(addon)}
+                role="button"
+                tabindex="0"
+                onkeydown={(e) => e.key === 'Enter' && openEditAddon(addon)}
+              >
                 <td class="px-4 py-4 whitespace-nowrap">
                   <div class="font-medium text-gray-900 dark:text-white">{addon.name}</div>
                   {#if addon.description}
@@ -427,7 +433,7 @@
                     {addon.isActive ? "Active" : "Inactive"}
                   </span>
                 </td>
-                <td class="px-4 py-4 whitespace-nowrap text-right space-x-2">
+                <td class="px-4 py-4 whitespace-nowrap text-right space-x-2" onclick={(e) => e.stopPropagation()}>
                   <button
                     type="button"
                     onclick={() => openEditAddon(addon)}
