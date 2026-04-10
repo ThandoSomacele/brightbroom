@@ -1,11 +1,10 @@
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
   import { page } from "$app/stores";
-  import Button from "$lib/components/ui/Button.svelte";
   import heroImage from "$lib/image-assets/hero.webp";
   import kitchenImage from "$lib/image-assets/kitchen.webp";
   import livingRoomImage from "$lib/image-assets/living-room.webp";
-  import { Clock, Home, CalendarCheck, Sparkles } from "lucide-svelte";
+  import { CalendarCheck, Clock, Home, Sparkles } from "lucide-svelte";
 
   // Get user data from loader
   export let data;
@@ -150,7 +149,7 @@
       <p class="text-primary font-semibold text-sm uppercase tracking-wider mb-4">Professional Cleaning Services</p>
       <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6 leading-tight">
         Cleaner Bookings
-        <span class="text-primary"> Made Simple</span>
+        <span class="text-primary"> Made&nbsp;Simple</span>
       </h1>
       <p class="text-base sm:text-lg text-gray-900 md:text-gray-700 dark:text-gray-200 mb-8 sm:mb-10 leading-relaxed">
         BrightBroom connects you with professional cleaners for your home or
