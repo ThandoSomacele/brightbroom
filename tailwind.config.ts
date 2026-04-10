@@ -5,6 +5,10 @@ export default {
 
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+        heading: ['Poppins', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+      },
       colors: {
         // Primary teal color with various shades
         primary: {

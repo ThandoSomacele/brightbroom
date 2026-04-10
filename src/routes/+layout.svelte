@@ -95,7 +95,7 @@
 </a>
 
 <!-- Header with navigation -->
-<header class="bg-white shadow dark:bg-gray-800">
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm dark:bg-gray-800/95">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="flex h-16 items-center justify-between">
       <!-- Logo and site name -->
