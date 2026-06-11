@@ -113,8 +113,8 @@ async function updateAddressCoordinates() {
       console.log(
         "1. Update your schema.ts to add lat and lng columns to the address table",
       );
-      console.log("2. Run 'npm run db:generate' to create a migration");
-      console.log("3. Run 'npm run db:migrate' to apply the migration");
+      console.log("2. Run 'pnpm db:generate' to create a migration");
+      console.log("3. Run 'pnpm db:migrate' to apply the migration");
       process.exit(1);
     }
 

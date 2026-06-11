@@ -43,7 +43,7 @@ if (options.help || args.length === 0) {
 BrightBroom Database Seeder
 ===========================
 
-Usage: npm run db:seed [entities] [options]
+Usage: pnpm db:seed [entities] [options]
 
 Entities:
   all            Seed all entities (default)
@@ -60,9 +60,9 @@ Options:
   --help, -h            Show this help text
 
 Examples:
-  npm run db:seed                 # Seed all entities (with confirmation)
-  npm run db:seed services -o     # Overwrite just services
-  npm run db:seed users --confirm # Seed users without confirmation
+  pnpm db:seed                 # Seed all entities (with confirmation)
+  pnpm db:seed services -o     # Overwrite just services
+  pnpm db:seed users --confirm # Seed users without confirmation
   `);
   process.exit(0);
 }

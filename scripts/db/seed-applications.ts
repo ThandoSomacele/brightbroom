@@ -42,7 +42,7 @@ if (options.help) {
 BrightBroom Cleaner Applications Seeder
 =======================================
 
-Usage: npm run db:seed:applications [options]
+Usage: pnpm db:seed:applications [options]
 
 Options:
   --overwrite, -o       Delete existing applications before seeding
@@ -52,9 +52,9 @@ Options:
   --help, -h            Show this help text
 
 Examples:
-  npm run db:seed:applications                 # Seed 15 applications
-  npm run db:seed:applications --count=20      # Seed 20 applications
-  npm run db:seed:applications -o -y           # Overwrite without confirmation
+  pnpm db:seed:applications                 # Seed 15 applications
+  pnpm db:seed:applications --count=20      # Seed 20 applications
+  pnpm db:seed:applications -o -y           # Overwrite without confirmation
   `);
   process.exit(0);
 }

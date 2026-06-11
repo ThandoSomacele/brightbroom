@@ -38,7 +38,7 @@ async function deployToNetlify() {
       execSync('netlify --version', { stdio: 'ignore' });
     } catch (error) {
       console.error('❌ Netlify CLI is not installed. Please install it with:');
-      console.error('npm install -g netlify-cli');
+      console.error('pnpm add -g netlify-cli');
       process.exit(1);
     }
     

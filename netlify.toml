@@ -1,11 +1,12 @@
 [build]
-  command = "npm ci && ./netlify/scripts/pre-build.sh && npx svelte-kit sync && npm run build && ./netlify/scripts/deploy-db.sh"
+  command = "pnpm install --frozen-lockfile --prod=false && ./netlify/scripts/pre-build.sh && pnpm exec svelte-kit sync && pnpm run build && ./netlify/scripts/deploy-db.sh"
   publish = ".svelte-kit/netlify"
   functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "20"
-  NPM_FLAGS = "--include=dev"
+  # Install devDependencies even when NODE_ENV=production (needed for the build).
+  PNPM_FLAGS = "--prod=false"
 
 [functions]
   node_bundler = "esbuild"
@@ -37,9 +38,9 @@
   environment = { NODE_ENV = "production" }
   
 [context.development]
-  command = "npm ci && ./netlify/scripts/pre-build.sh && npx svelte-kit sync && npm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
+  command = "pnpm install --frozen-lockfile --prod=false && ./netlify/scripts/pre-build.sh && pnpm exec svelte-kit sync && pnpm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
   environment = { NODE_ENV = "development" }
 
 [context.branch-deploy]
-  command = "npm ci && ./netlify/scripts/pre-build.sh && npx svelte-kit sync && npm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
+  command = "pnpm install --frozen-lockfile --prod=false && ./netlify/scripts/pre-build.sh && pnpm exec svelte-kit sync && pnpm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
   environment = { NODE_ENV = "development" }

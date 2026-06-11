@@ -32,9 +32,9 @@ export const handler = async function(event, context) {
     }
 
     // Use migrate instead of push for production (safer)
-    const command = process.env.NODE_ENV === 'production' 
-      ? 'npx drizzle-kit migrate'
-      : 'npx drizzle-kit push';
+    const command = process.env.NODE_ENV === 'production'
+      ? 'pnpm exec drizzle-kit migrate'
+      : 'pnpm exec drizzle-kit push';
     
     console.log(`Running command: ${command}`);
     

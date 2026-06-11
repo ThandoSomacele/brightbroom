@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
+  "packageManager": "pnpm@11.5.0",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite dev",
     "build": "svelte-kit sync && vite build",
@@ -18,7 +22,7 @@
     "db:stop": "docker compose down",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
-    "db:generate": "npx drizzle-kit generate --schema=./src/lib/server/db/schema.ts --out=./drizzle/migrations --dialect=postgresql",
+    "db:generate": "drizzle-kit generate --schema=./src/lib/server/db/schema.ts --out=./drizzle/migrations --dialect=postgresql",
     "db:studio": "drizzle-kit studio",
     "db:reset,": "drizzle-kit reset",
     "db:seed": "tsx scripts/db/seed.ts",

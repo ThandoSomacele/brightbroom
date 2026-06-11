@@ -1,6 +1,6 @@
 # Pre-commit hooks configuration for code quality
-# Install with: npm install --save-dev pre-commit husky lint-staged
-# Setup with: npx husky install
+# Install with: pnpm add -D pre-commit husky lint-staged
+# Setup with: pnpm exec husky install
 
 repos:
   - repo: local
@@ -8,7 +8,7 @@ repos:
       # TypeScript type checking
       - id: typescript-check
         name: TypeScript Check
-        entry: npm run check
+        entry: pnpm check
         language: system
         files: \.(ts|js|svelte)$
         pass_filenames: false
@@ -16,7 +16,7 @@ repos:
       # ESLint for code quality
       - id: eslint
         name: ESLint
-        entry: npx eslint --fix
+        entry: pnpm exec eslint --fix
         language: system
         files: \.(ts|js|svelte)$
         args: [--max-warnings=0]
@@ -24,7 +24,7 @@ repos:
       # Prettier for code formatting
       - id: prettier
         name: Prettier
-        entry: npx prettier --write
+        entry: pnpm exec prettier --write
         language: system
         files: \.(ts|js|svelte|json|md|css|html)$
 

@@ -6,52 +6,52 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Development
 
-- `npm run dev` - Start development server (Vite + SvelteKit)
-- `npm run dev:debug` - Start development server with debug logging
-- `npm run check` - Run TypeScript checks (uses svelte-check)
-- `npm run check:watch` - Run TypeScript checks in watch mode
+- `pnpm dev` - Start development server (Vite + SvelteKit)
+- `pnpm dev:debug` - Start development server with debug logging
+- `pnpm check` - Run TypeScript checks (uses svelte-check)
+- `pnpm check:watch` - Run TypeScript checks in watch mode
 
 ### Production
 
-- `npm run build` - Build for production (svelte-kit sync + vite build)
-- `npm run preview` - Preview production build locally
-- `npm run analyze` - Build with bundle analysis
+- `pnpm build` - Build for production (svelte-kit sync + vite build)
+- `pnpm preview` - Preview production build locally
+- `pnpm analyze` - Build with bundle analysis
 
 ### Testing & Quality
 
-- `npm run test` - Run tests with Vitest
-- `npm run test -- path/to/test.ts` - Run a specific test file
-- `npm run lint` - Run ESLint on .js, .ts, .svelte files
-- `npm run lint:fix` - Auto-fix linting issues
-- `npm run format` - Format code with Prettier
-- `npm run format:check` - Check formatting without making changes
+- `pnpm test` - Run tests with Vitest
+- `pnpm test -- path/to/test.ts` - Run a specific test file
+- `pnpm lint` - Run ESLint on .js, .ts, .svelte files
+- `pnpm lint:fix` - Auto-fix linting issues
+- `pnpm format` - Format code with Prettier
+- `pnpm format:check` - Check formatting without making changes
 
 ### Database
 
-- `npm run db:start` - Start PostgreSQL in Docker container
-- `npm run db:stop` - Stop PostgreSQL container
-- `npm run db:generate` - Generate new migration from schema changes (outputs to ./drizzle/migrations)
-- `npm run db:migrate` - Apply migrations to database
-- `npm run db:push` - Push schema changes directly (development)
-- `npm run db:studio` - Open Drizzle Studio for database management
-- `npm run db:seed` - Seed database with test data
-- `npm run db:seed:services` - Seed only services
-- `npm run db:seed:users` - Seed only users
-- `npm run db:seed:earnings` - Seed cleaner earnings data
-- `npm run db:seed:applications` - Seed cleaner applications
-- `npm run db:seed:coupons` - Seed discount coupons
-- `npm run db:backup` - Create database backup
-- `npm run db:backup:full` - Create full database backup
-- `npm run db:deduplicate` - Deduplicate address records
+- `pnpm db:start` - Start PostgreSQL in Docker container
+- `pnpm db:stop` - Stop PostgreSQL container
+- `pnpm db:generate` - Generate new migration from schema changes (outputs to ./drizzle/migrations)
+- `pnpm db:migrate` - Apply migrations to database
+- `pnpm db:push` - Push schema changes directly (development)
+- `pnpm db:studio` - Open Drizzle Studio for database management
+- `pnpm db:seed` - Seed database with test data
+- `pnpm db:seed:services` - Seed only services
+- `pnpm db:seed:users` - Seed only users
+- `pnpm db:seed:earnings` - Seed cleaner earnings data
+- `pnpm db:seed:applications` - Seed cleaner applications
+- `pnpm db:seed:coupons` - Seed discount coupons
+- `pnpm db:backup` - Create database backup
+- `pnpm db:backup:full` - Create full database backup
+- `pnpm db:deduplicate` - Deduplicate address records
 
 ### Utility Scripts
 
-- `npm run services:update` - Update services
-- `npm run services:convert` - Convert services format
-- `npm run update:address-coordinates` - Update address coordinates
-- `npm run update:cleaner-coordinates` - Update cleaner coordinates
-- `npm run deploy:check` - Pre-deployment checks
-- `npm run deploy:validate-env` - Validate environment variables
+- `pnpm services:update` - Update services
+- `pnpm services:convert` - Convert services format
+- `pnpm update:address-coordinates` - Update address coordinates
+- `pnpm update:cleaner-coordinates` - Update cleaner coordinates
+- `pnpm deploy:check` - Pre-deployment checks
+- `pnpm deploy:validate-env` - Validate environment variables
 
 ## High-Level Architecture
 

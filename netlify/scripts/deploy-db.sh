@@ -8,7 +8,7 @@ echo "Running database deployment in $DEPLOY_CONTEXT context"
 # Only generate migrations in development or when explicitly requested
 if [ "$DEPLOY_CONTEXT" == "development" ] || [ "$GENERATE_MIGRATIONS" == "true" ]; then
   echo "Generating database migrations..."
-  npx drizzle-kit generate --schema=./src/lib/server/db/schema.ts --out=./drizzle/migrations --dialect=postgresql
+  pnpm exec drizzle-kit generate --schema=./src/lib/server/db/schema.ts --out=./drizzle/migrations --dialect=postgresql
 else
   echo "Skipping migration generation in $DEPLOY_CONTEXT environment"
 fi
@@ -18,7 +18,7 @@ export NODE_ENV=$DEPLOY_CONTEXT
 
 # Run migrations with the appropriate environment
 echo "Applying migrations to database..."
-npx drizzle-kit migrate
+pnpm exec drizzle-kit migrate
 
 # SAFETY CHECK: Never attempt to run seeds in production environment
 if [ "$DEPLOY_CONTEXT" == "production" ] && [ "$SEED_DATABASE" == "true" ]; then

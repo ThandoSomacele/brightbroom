@@ -40,7 +40,7 @@ if (options.help) {
 BrightBroom Database Backup Script
 ==================================
 
-Usage: npm run db:backup [tables] [options]
+Usage: pnpm db:backup [tables] [options]
 
 Parameters:
   [tables]           Specific tables to backup (e.g., service user booking)
@@ -54,10 +54,10 @@ Options:
   --help, -h         Show this help text
 
 Examples:
-  npm run db:backup                   # Backup all tables (data only)
-  npm run db:backup service user -f   # Full backup of specific tables
-  npm run db:backup --format=json     # Backup all tables in JSON format
-  npm run db:backup --compress        # Create a compressed backup
+  pnpm db:backup                   # Backup all tables (data only)
+  pnpm db:backup service user -f   # Full backup of specific tables
+  pnpm db:backup --format=json     # Backup all tables in JSON format
+  pnpm db:backup --compress        # Create a compressed backup
   `);
   process.exit(0);
 }

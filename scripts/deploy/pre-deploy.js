@@ -57,7 +57,7 @@ function runTsCheck() {
   console.log(`\n${colors.blue}Running TypeScript checks...${colors.reset}`);
   
   try {
-    execSync('npm run check', { stdio: 'inherit' });
+    execSync('pnpm run check', { stdio: 'inherit' });
     console.log(`${colors.green}✓ TypeScript checks passed${colors.reset}`);
     return true;
   } catch (error) {
@@ -73,7 +73,7 @@ function runLinting() {
   console.log(`\n${colors.blue}Running linting...${colors.reset}`);
   
   try {
-    execSync('npm run lint', { stdio: 'inherit' });
+    execSync('pnpm run lint', { stdio: 'inherit' });
     console.log(`${colors.green}✓ Linting passed${colors.reset}`);
     return true;
   } catch (error) {
