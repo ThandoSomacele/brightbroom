@@ -416,11 +416,12 @@
 
       <!-- Auto-approve toggle -->
       <div
-        class="mt-8 p-4 border-2 rounded-lg"
-        class:border-primary={autoApprove}
-        class:bg-primary/5={autoApprove}
-        class:border-gray-200={!autoApprove}
-        class:dark:border-gray-600={!autoApprove}
+        class={[
+          "mt-8 p-4 border-2 rounded-lg",
+          autoApprove
+            ? "border-primary bg-primary/5"
+            : "border-gray-200 dark:border-gray-600",
+        ]}
       >
         <label class="flex items-start space-x-3 cursor-pointer">
           <input

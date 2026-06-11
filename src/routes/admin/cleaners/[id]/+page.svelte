@@ -327,20 +327,20 @@
     // You could set an error state variable here to show to the user
   }
   // Add geocoding data for the work address
-  let addressInput = cleaner.cleanerProfile?.workAddress || "";
+  let addressInput = cleaner?.cleanerProfile?.workAddress || "";
   let workCoordinates = {
-    lat: cleaner.cleanerProfile?.workLocationLat || 0,
-    lng: cleaner.cleanerProfile?.workLocationLng || 0,
+    lat: cleaner?.cleanerProfile?.workLocationLat || 0,
+    lng: cleaner?.cleanerProfile?.workLocationLng || 0,
   };
   let selectedAddress = {
-    formatted: cleaner.cleanerProfile?.workAddress || "",
+    formatted: cleaner?.cleanerProfile?.workAddress || "",
     street: "",
     aptUnit: "",
     city: "",
     state: "",
     zipCode: "",
-    lat: cleaner.cleanerProfile?.workLocationLat || 0,
-    lng: cleaner.cleanerProfile?.workLocationLng || 0,
+    lat: cleaner?.cleanerProfile?.workLocationLat || 0,
+    lng: cleaner?.cleanerProfile?.workLocationLng || 0,
   };
   let addressError = "";
   let isOutOfServiceArea = false;
