@@ -29,17 +29,17 @@
   }
 
   const baseStyles =
-    "inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
+    "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
 
   const variantStyles = {
     primary:
-      "bg-primary text-white hover:bg-primary-600 hover:text-white focus:ring-primary-500",
+      "bg-primary text-white shadow-sm hover:bg-primary-600 hover:text-white hover:shadow-md focus-visible:ring-primary-500",
     secondary:
-      "bg-secondary text-white hover:bg-secondary-600 hover:text-white focus:ring-secondary-500",
+      "bg-secondary text-white shadow-sm hover:bg-secondary-600 hover:text-white hover:shadow-md focus-visible:ring-secondary-500",
     outline:
-      "border border-gray-300 dark:border-gray-600 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-primary-500",
+      "border border-gray-300 dark:border-gray-600 bg-transparent hover:border-primary/50 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-900 dark:text-gray-100 focus-visible:ring-primary-500",
     ghost:
-      "bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-primary-500",
+      "bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-gray-100 focus-visible:ring-primary-500",
   };
 
   const sizeStyles = {
