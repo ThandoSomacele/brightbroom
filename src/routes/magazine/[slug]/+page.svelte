@@ -2,6 +2,7 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
+  import Card from "$lib/components/ui/Card.svelte";
   import { CustomerSkeleton } from "$lib/components/ui/skeletons";
   import { formatDate, renderMarkdown } from "$lib/utils/markdown";
   import {
@@ -159,7 +160,7 @@
         {article.frontmatter.readingTime} min read
       </span>
       <span
-        class="inline-block px-2 py-1 text-xs font-medium bg-primary-100 text-primary-800 rounded dark:bg-primary-900/20 dark:text-primary-400"
+        class="inline-block rounded-full bg-primary-100 text-primary px-3 py-1 text-xs font-medium dark:bg-primary-900/30"
       >
         {categoryNames[article.frontmatter.category] ||
           article.frontmatter.category}
@@ -182,7 +183,7 @@
     <div class="flex flex-wrap gap-2 mb-8">
       {#each article.frontmatter.tags as tag}
         <span
-          class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded dark:bg-gray-700 dark:text-gray-400"
+          class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
         >
           <Tag size={12} />
           {tag}
@@ -191,7 +192,7 @@
 
       {#each article.frontmatter.serviceAreas as area}
         <span
-          class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-secondary-100 text-secondary-800 rounded dark:bg-secondary-900/20 dark:text-secondary-400"
+          class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium bg-secondary-100 text-secondary-800 dark:bg-secondary-900/20 dark:text-secondary-400"
         >
           <MapPin size={12} />
           {areaNames[area] || area}
@@ -358,53 +359,49 @@
 
         <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {#each relatedArticles as relatedArticle}
-            <article class="group">
-              <a href="/magazine/{relatedArticle.slug}" class="block">
+            <Card padding="none" href="/magazine/{relatedArticle.slug}">
+              <div class="aspect-w-16 aspect-h-9 overflow-hidden">
+                <img
+                  src={relatedArticle.featuredImage}
+                  alt={relatedArticle.imageAlt}
+                  class="img-zoom w-full h-48 object-cover"
+                />
+              </div>
+
+              <div class="p-6 space-y-2">
                 <div
-                  class="aspect-w-16 aspect-h-9 mb-4 overflow-hidden rounded-lg"
+                  class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
                 >
-                  <img
-                    src={relatedArticle.featuredImage}
-                    alt={relatedArticle.imageAlt}
-                    class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-
-                <div class="space-y-2">
-                  <div
-                    class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    <span class="flex items-center gap-1">
-                      <Calendar size={16} />
-                      {formatDate(relatedArticle.publishedAt)}
-                    </span>
-                    <span class="flex items-center gap-1">
-                      <Clock size={16} />
-                      {relatedArticle.readingTime} min read
-                    </span>
-                  </div>
-
-                  <h3
-                    class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2"
-                  >
-                    {relatedArticle.title}
-                  </h3>
-
-                  <p
-                    class="text-gray-600 dark:text-gray-300 line-clamp-2 text-sm"
-                  >
-                    {relatedArticle.description}
-                  </p>
-
-                  <span
-                    class="inline-block px-2 py-1 text-xs font-medium bg-primary-100 text-primary-800 rounded dark:bg-primary-900/20 dark:text-primary-400"
-                  >
-                    {categoryNames[relatedArticle.category] ||
-                      relatedArticle.category}
+                  <span class="flex items-center gap-1">
+                    <Calendar size={16} />
+                    {formatDate(relatedArticle.publishedAt)}
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <Clock size={16} />
+                    {relatedArticle.readingTime} min read
                   </span>
                 </div>
-              </a>
-            </article>
+
+                <h3
+                  class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2"
+                >
+                  {relatedArticle.title}
+                </h3>
+
+                <p
+                  class="text-gray-600 dark:text-gray-300 line-clamp-2 text-sm"
+                >
+                  {relatedArticle.description}
+                </p>
+
+                <span
+                  class="inline-block rounded-full bg-primary-100 text-primary px-3 py-1 text-xs font-medium dark:bg-primary-900/30"
+                >
+                  {categoryNames[relatedArticle.category] ||
+                    relatedArticle.category}
+                </span>
+              </div>
+            </Card>
           {/each}
         </div>
       </section>

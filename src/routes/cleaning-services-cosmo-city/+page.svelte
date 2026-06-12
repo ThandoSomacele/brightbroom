@@ -1,5 +1,6 @@
 <script>
   import Button from "$lib/components/ui/Button.svelte";
+  import Card from "$lib/components/ui/Card.svelte";
 </script>
 
 <svelte:head>
@@ -134,7 +135,8 @@
   <div class="max-w-4xl mx-auto">
     <!-- Hero Section -->
     <section class="mb-12">
-      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+      <p class="section-eyebrow mb-3">Cosmo City</p>
+      <h1 class="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-4">
         Professional Cleaning Services in Cosmo City
       </h1>
       <p class="text-xl text-gray-600 mb-8">
@@ -153,8 +155,8 @@
     </section>
 
     <!-- Service Areas -->
-    <section class="mb-12 bg-gray-50 rounded-lg p-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-4">
+    <Card as="section" padding="lg" class="mb-12">
+      <h2 class="font-heading text-2xl font-bold text-gray-900 dark:text-white mb-4">
         Areas We Serve Around Cosmo City
       </h2>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -243,28 +245,28 @@
           <span>Roodepoort</span>
         </div>
       </div>
-      <p class="mt-4 text-gray-600">
+      <p class="mt-4 text-gray-600 dark:text-gray-300">
         We offer extended coverage with a 50km radius from Cosmo City, ensuring
         reliable service to a wide area.
       </p>
-    </section>
+    </Card>
 
     <!-- Services Overview -->
     <section class="mb-12">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+      <h2 class="font-heading text-2xl font-bold text-gray-900 mb-6">
         Our Cleaning Services in Cosmo City
       </h2>
       <div class="grid md:grid-cols-2 gap-6">
-        <div class="border border-gray-200 rounded-lg p-6">
-          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+        <Card hover>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
             Regular Home Cleaning
           </h3>
-          <p class="text-gray-600 mb-4">
+          <p class="text-gray-600 dark:text-gray-300 mb-4">
             Keep your Cosmo City home consistently clean with our affordable
             regular cleaning service. Perfect for busy families and working
             professionals.
           </p>
-          <ul class="space-y-2 text-gray-600">
+          <ul class="space-y-2 text-gray-600 dark:text-gray-300">
             <li class="flex items-start">
               <span class="text-primary-600 mr-2">•</span>
               Weekly, bi-weekly, or monthly schedules
@@ -278,17 +280,17 @@
               Flexible and affordable pricing
             </li>
           </ul>
-        </div>
+        </Card>
 
-        <div class="border border-gray-200 rounded-lg p-6">
-          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+        <Card hover>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
             Deep Cleaning
           </h3>
-          <p class="text-gray-600 mb-4">
+          <p class="text-gray-600 dark:text-gray-300 mb-4">
             Comprehensive deep cleaning for your home in Cosmo City. Ideal for
             spring cleaning, moving in/out, or special occasions.
           </p>
-          <ul class="space-y-2 text-gray-600">
+          <ul class="space-y-2 text-gray-600 dark:text-gray-300">
             <li class="flex items-start">
               <span class="text-primary-600 mr-2">•</span>
               Thorough cleaning of all areas
@@ -302,17 +304,17 @@
               Perfect for seasonal deep cleans
             </li>
           </ul>
-        </div>
+        </Card>
 
-        <div class="border border-gray-200 rounded-lg p-6">
-          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+        <Card hover>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
             Office Cleaning
           </h3>
-          <p class="text-gray-600 mb-4">
+          <p class="text-gray-600 dark:text-gray-300 mb-4">
             Professional office cleaning for businesses in Cosmo City and the
             surrounding commercial areas.
           </p>
-          <ul class="space-y-2 text-gray-600">
+          <ul class="space-y-2 text-gray-600 dark:text-gray-300">
             <li class="flex items-start">
               <span class="text-primary-600 mr-2">•</span>
               Flexible scheduling options
@@ -326,17 +328,17 @@
               Regular service contracts available
             </li>
           </ul>
-        </div>
+        </Card>
 
-        <div class="border border-gray-200 rounded-lg p-6">
-          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+        <Card hover>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
             Move In/Move Out Cleaning
           </h3>
-          <p class="text-gray-600 mb-4">
+          <p class="text-gray-600 dark:text-gray-300 mb-4">
             Specialised cleaning for tenants and landlords in Cosmo City,
             ensuring properties are spotless for new occupants.
           </p>
-          <ul class="space-y-2 text-gray-600">
+          <ul class="space-y-2 text-gray-600 dark:text-gray-300">
             <li class="flex items-start">
               <span class="text-primary-600 mr-2">•</span>
               Complete property cleaning
@@ -350,22 +352,22 @@
               Move-in ready guarantee
             </li>
           </ul>
-        </div>
+        </Card>
       </div>
     </section>
 
     <!-- Why Choose Us -->
     <section class="mb-12">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+      <h2 class="font-heading text-2xl font-bold text-gray-900 mb-6">
         Why Cosmo City Residents Choose BrightBroom
       </h2>
       <div class="grid md:grid-cols-3 gap-6">
-        <div class="text-center">
+        <Card hover class="text-center">
           <div
-            class="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16"
           >
             <svg
-              class="w-8 h-8 text-primary-600"
+              class="w-8 h-8"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -378,19 +380,19 @@
               ></path>
             </svg>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-2">Affordable Pricing</h3>
-          <p class="text-gray-600">
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Affordable Pricing</h3>
+          <p class="text-gray-600 dark:text-gray-300">
             Quality cleaning services at prices that work for Cosmo City
             families and businesses.
           </p>
-        </div>
+        </Card>
 
-        <div class="text-center">
+        <Card hover class="text-center">
           <div
-            class="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16"
           >
             <svg
-              class="w-8 h-8 text-primary-600"
+              class="w-8 h-8"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -403,21 +405,21 @@
               ></path>
             </svg>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-2">
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">
             Local Community Focus
           </h3>
-          <p class="text-gray-600">
+          <p class="text-gray-600 dark:text-gray-300">
             We employ local cleaners from Cosmo City and surrounding areas,
             supporting our community.
           </p>
-        </div>
+        </Card>
 
-        <div class="text-center">
+        <Card hover class="text-center">
           <div
-            class="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16"
           >
             <svg
-              class="w-8 h-8 text-primary-600"
+              class="w-8 h-8"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -430,18 +432,18 @@
               ></path>
             </svg>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-2">Vetted & Trusted</h3>
-          <p class="text-gray-600">
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Vetted & Trusted</h3>
+          <p class="text-gray-600 dark:text-gray-300">
             All our cleaners are thoroughly vetted and trained for your complete
             peace of mind.
           </p>
-        </div>
+        </Card>
       </div>
     </section>
 
     <!-- Local Knowledge -->
     <section class="mb-12 bg-primary-50 rounded-lg p-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-4">
+      <h2 class="font-heading text-2xl font-bold text-gray-900 mb-4">
         Serving the Cosmo City Community
       </h2>
       <p class="text-gray-700 mb-4">
@@ -464,7 +466,7 @@
 
     <!-- CTA Section -->
     <section class="text-center py-8 bg-gray-900 text-white rounded-lg">
-      <h2 class="text-3xl font-bold mb-4">
+      <h2 class="font-heading text-3xl font-bold mb-4">
         Ready for a Cleaner Home in Cosmo City?
       </h2>
       <p class="text-xl mb-8 text-gray-300">
@@ -491,26 +493,26 @@
 
     <!-- FAQ Section -->
     <section class="mt-12">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+      <h2 class="font-heading text-2xl font-bold text-gray-900 mb-6">
         Frequently Asked Questions - Cosmo City
       </h2>
       <div class="space-y-4">
-        <details class="border border-gray-200 rounded-lg p-4">
-          <summary class="font-semibold text-gray-900 cursor-pointer"
+        <details class="card card-hover p-4">
+          <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
             >Do you serve all areas within Cosmo City?</summary
           >
-          <p class="mt-3 text-gray-600">
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
             Yes, we service all residential areas within Cosmo City, including
             apartment complexes, townhouses, and standalone homes. We have
             extended coverage reaching 50km from the center of Cosmo City.
           </p>
         </details>
 
-        <details class="border border-gray-200 rounded-lg p-4">
-          <summary class="font-semibold text-gray-900 cursor-pointer"
+        <details class="card card-hover p-4">
+          <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
             >How do you handle load-shedding schedules?</summary
           >
-          <p class="mt-3 text-gray-600">
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
             We track load-shedding schedules for Cosmo City and surrounding
             areas, planning our appointments accordingly. If load-shedding
             affects your booking, we'll work with you to reschedule at no extra
@@ -518,44 +520,44 @@
           </p>
         </details>
 
-        <details class="border border-gray-200 rounded-lg p-4">
-          <summary class="font-semibold text-gray-900 cursor-pointer"
+        <details class="card card-hover p-4">
+          <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
             >Do I need to provide cleaning supplies?</summary
           >
-          <p class="mt-3 text-gray-600">
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
             Yes, we ask that you provide cleaning supplies and equipment. This
             helps us keep our prices affordable and ensures you get the specific
             products you prefer in your home.
           </p>
         </details>
 
-        <details class="border border-gray-200 rounded-lg p-4">
-          <summary class="font-semibold text-gray-900 cursor-pointer"
+        <details class="card card-hover p-4">
+          <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
             >What payment methods do you accept?</summary
           >
-          <p class="mt-3 text-gray-600">
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
             We accept secure online payments through our platform, including
             credit/debit cards and EFT. Payment is processed when you complete
             your booking.
           </p>
         </details>
 
-        <details class="border border-gray-200 rounded-lg p-4">
-          <summary class="font-semibold text-gray-900 cursor-pointer"
+        <details class="card card-hover p-4">
+          <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
             >Can I book a cleaner for the same day?</summary
           >
-          <p class="mt-3 text-gray-600">
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
             We offer same-day bookings based on cleaner availability in your
             area. For the best chance of securing your preferred time, we
             recommend booking at least 24 hours in advance.
           </p>
         </details>
 
-        <details class="border border-gray-200 rounded-lg p-4">
-          <summary class="font-semibold text-gray-900 cursor-pointer"
+        <details class="card card-hover p-4">
+          <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
             >Are your cleaners from the local community?</summary
           >
-          <p class="mt-3 text-gray-600">
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
             Yes, we actively recruit and train cleaners from Cosmo City and
             surrounding communities. This supports local employment while
             ensuring our cleaners understand the area and can communicate

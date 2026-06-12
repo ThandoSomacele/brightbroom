@@ -1,5 +1,6 @@
 <script>
   import Button from "$lib/components/ui/Button.svelte";
+  import Card from "$lib/components/ui/Card.svelte";
 </script>
 
 <svelte:head>
@@ -134,7 +135,8 @@
   <div class="max-w-4xl mx-auto">
     <!-- Hero Section -->
     <section class="mb-12">
-      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+      <p class="section-eyebrow mb-3">North Riding</p>
+      <h1 class="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-4">
         Professional Cleaning Services in North Riding
       </h1>
       <p class="text-xl text-gray-600 mb-8">
@@ -153,8 +155,8 @@
     </section>
 
     <!-- Service Areas -->
-    <section class="mb-12 bg-gray-50 rounded-lg p-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-4">
+    <Card as="section" padding="lg" class="mb-12">
+      <h2 class="font-heading text-2xl font-bold text-gray-900 dark:text-white mb-4">
         Areas We Serve in North Riding
       </h2>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -243,28 +245,28 @@
           <span>Honeydew</span>
         </div>
       </div>
-      <p class="mt-4 text-gray-600">
+      <p class="mt-4 text-gray-600 dark:text-gray-300">
         We cover all areas within a 15km radius of North Riding, ensuring prompt
         and reliable service to your doorstep.
       </p>
-    </section>
+    </Card>
 
     <!-- Services Overview -->
     <section class="mb-12">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+      <h2 class="font-heading text-2xl font-bold text-gray-900 mb-6">
         Our Cleaning Services in North Riding
       </h2>
       <div class="grid md:grid-cols-2 gap-6">
-        <div class="border border-gray-200 rounded-lg p-6">
-          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+        <Card hover>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
             Regular Home Cleaning
           </h3>
-          <p class="text-gray-600 mb-4">
+          <p class="text-gray-600 dark:text-gray-300 mb-4">
             Keep your North Riding home consistently clean with our regular
             cleaning service. Perfect for busy professionals and families in the
             area.
           </p>
-          <ul class="space-y-2 text-gray-600">
+          <ul class="space-y-2 text-gray-600 dark:text-gray-300">
             <li class="flex items-start">
               <span class="text-primary-600 mr-2">•</span>
               Weekly, bi-weekly, or monthly schedules
@@ -278,17 +280,17 @@
               Flexible booking options
             </li>
           </ul>
-        </div>
+        </Card>
 
-        <div class="border border-gray-200 rounded-lg p-6">
-          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+        <Card hover>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
             Deep Cleaning
           </h3>
-          <p class="text-gray-600 mb-4">
+          <p class="text-gray-600 dark:text-gray-300 mb-4">
             Thorough deep cleaning for your home in North Riding. Ideal for
             spring cleaning, moving in/out, or special occasions.
           </p>
-          <ul class="space-y-2 text-gray-600">
+          <ul class="space-y-2 text-gray-600 dark:text-gray-300">
             <li class="flex items-start">
               <span class="text-primary-600 mr-2">•</span>
               Comprehensive cleaning of all areas
@@ -302,17 +304,17 @@
               Perfect for seasonal deep cleans
             </li>
           </ul>
-        </div>
+        </Card>
 
-        <div class="border border-gray-200 rounded-lg p-6">
-          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+        <Card hover>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
             Office Cleaning
           </h3>
-          <p class="text-gray-600 mb-4">
+          <p class="text-gray-600 dark:text-gray-300 mb-4">
             Professional office cleaning for businesses in the North Riding
             commercial district and nearby business parks.
           </p>
-          <ul class="space-y-2 text-gray-600">
+          <ul class="space-y-2 text-gray-600 dark:text-gray-300">
             <li class="flex items-start">
               <span class="text-primary-600 mr-2">•</span>
               After-hours cleaning available
@@ -326,17 +328,17 @@
               Regular service contracts available
             </li>
           </ul>
-        </div>
+        </Card>
 
-        <div class="border border-gray-200 rounded-lg p-6">
-          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+        <Card hover>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
             Post-Construction Cleaning
           </h3>
-          <p class="text-gray-600 mb-4">
+          <p class="text-gray-600 dark:text-gray-300 mb-4">
             Specialised cleaning for newly built or renovated properties in
             North Riding and surrounding developments.
           </p>
-          <ul class="space-y-2 text-gray-600">
+          <ul class="space-y-2 text-gray-600 dark:text-gray-300">
             <li class="flex items-start">
               <span class="text-primary-600 mr-2">•</span>
               Removal of construction dust and debris
@@ -350,22 +352,22 @@
               Move-in ready results
             </li>
           </ul>
-        </div>
+        </Card>
       </div>
     </section>
 
     <!-- Why Choose Us -->
     <section class="mb-12">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+      <h2 class="font-heading text-2xl font-bold text-gray-900 mb-6">
         Why North Riding Residents Choose BrightBroom
       </h2>
       <div class="grid md:grid-cols-3 gap-6">
-        <div class="text-center">
+        <Card hover class="text-center">
           <div
-            class="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16"
           >
             <svg
-              class="w-8 h-8 text-primary-600"
+              class="w-8 h-8"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -378,19 +380,19 @@
               ></path>
             </svg>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-2">Always On Time</h3>
-          <p class="text-gray-600">
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Always On Time</h3>
+          <p class="text-gray-600 dark:text-gray-300">
             Our cleaners arrive promptly at your scheduled time, respecting your
             busy North Riding lifestyle.
           </p>
-        </div>
+        </Card>
 
-        <div class="text-center">
+        <Card hover class="text-center">
           <div
-            class="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16"
           >
             <svg
-              class="w-8 h-8 text-primary-600"
+              class="w-8 h-8"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -403,19 +405,19 @@
               ></path>
             </svg>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-2">Vetted Professionals</h3>
-          <p class="text-gray-600">
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Vetted Professionals</h3>
+          <p class="text-gray-600 dark:text-gray-300">
             All our cleaners are thoroughly vetted, insured, and trained for
             your complete peace of mind.
           </p>
-        </div>
+        </Card>
 
-        <div class="text-center">
+        <Card hover class="text-center">
           <div
-            class="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16"
           >
             <svg
-              class="w-8 h-8 text-primary-600"
+              class="w-8 h-8"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -428,20 +430,20 @@
               ></path>
             </svg>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-2">
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">
             100% Satisfaction Guaranteed
           </h3>
-          <p class="text-gray-600">
+          <p class="text-gray-600 dark:text-gray-300">
             We're not happy until you're completely satisfied with our cleaning
             service.
           </p>
-        </div>
+        </Card>
       </div>
     </section>
 
     <!-- Local Knowledge -->
     <section class="mb-12 bg-primary-50 rounded-lg p-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-4">
+      <h2 class="font-heading text-2xl font-bold text-gray-900 mb-4">
         Local North Riding Expertise
       </h2>
       <p class="text-gray-700 mb-4">
@@ -464,7 +466,7 @@
 
     <!-- CTA Section -->
     <section class="text-center py-8 bg-gray-900 text-white rounded-lg">
-      <h2 class="text-3xl font-bold mb-4">
+      <h2 class="font-heading text-3xl font-bold mb-4">
         Ready for a Cleaner Home in North Riding?
       </h2>
       <p class="text-xl mb-8 text-gray-300">
@@ -491,26 +493,26 @@
 
     <!-- FAQ Section -->
     <section class="mt-12">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+      <h2 class="font-heading text-2xl font-bold text-gray-900 mb-6">
         Frequently Asked Questions - North Riding
       </h2>
       <div class="space-y-4">
-        <details class="border border-gray-200 rounded-lg p-4">
-          <summary class="font-semibold text-gray-900 cursor-pointer"
+        <details class="card card-hover p-4">
+          <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
             >Do you service all estates in North Riding?</summary
           >
-          <p class="mt-3 text-gray-600">
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
             Yes, we service all residential estates, complexes, and security
             villages within the North Riding area. Simply provide access details
             and security contact information when booking.
           </p>
         </details>
 
-        <details class="border border-gray-200 rounded-lg p-4">
-          <summary class="font-semibold text-gray-900 cursor-pointer"
+        <details class="card card-hover p-4">
+          <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
             >How do you handle load-shedding in North Riding?</summary
           >
-          <p class="mt-3 text-gray-600">
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
             We track load-shedding schedules for all North Riding areas and plan
             our cleaning appointments accordingly. If load-shedding affects your
             booking time, we'll coordinate with you to reschedule at no extra
@@ -518,33 +520,33 @@
           </p>
         </details>
 
-        <details class="border border-gray-200 rounded-lg p-4">
-          <summary class="font-semibold text-gray-900 cursor-pointer"
+        <details class="card card-hover p-4">
+          <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
             >Do I need to provide cleaning supplies?</summary
           >
-          <p class="mt-3 text-gray-600">
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
             Yes, we ask that you provide cleaning supplies and equipment. This
             ensures you get exactly the products you prefer in your home and
             allows us to keep our service prices competitive.
           </p>
         </details>
 
-        <details class="border border-gray-200 rounded-lg p-4">
-          <summary class="font-semibold text-gray-900 cursor-pointer"
+        <details class="card card-hover p-4">
+          <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
             >Can I book same-day cleaning in North Riding?</summary
           >
-          <p class="mt-3 text-gray-600">
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
             We offer same-day bookings subject to cleaner availability in your
             area. For the best chance of securing your preferred time slot, we
             recommend booking at least 24-48 hours in advance.
           </p>
         </details>
 
-        <details class="border border-gray-200 rounded-lg p-4">
-          <summary class="font-semibold text-gray-900 cursor-pointer"
+        <details class="card card-hover p-4">
+          <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
             >Are your cleaners insured?</summary
           >
-          <p class="mt-3 text-gray-600">
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
             Yes, all our cleaners are fully insured and vetted. We take security
             and trust seriously, ensuring you can confidently welcome our
             professionals into your North Riding home.

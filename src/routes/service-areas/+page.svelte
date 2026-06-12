@@ -1,6 +1,8 @@
 <!-- src/routes/service-areas/+page.svelte -->
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
+  import Card from "$lib/components/ui/Card.svelte";
+  import SectionHeading from "$lib/components/ui/SectionHeading.svelte";
   import { SERVICE_AREAS } from "$lib/utils/serviceAreaValidator";
   import { MapPin, Check } from "lucide-svelte";
 
@@ -21,7 +23,7 @@
   <div class="mx-auto max-w-7xl">
     <!-- Hero section -->
     <div class="mb-12 text-center">
-      <h1 class="text-4xl font-bold text-gray-900 dark:text-white">
+      <h1 class="font-heading text-4xl font-bold text-gray-900 dark:text-white">
         Our Service Areas
       </h1>
       <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
@@ -34,8 +36,8 @@
       <div class="mb-6 lg:grid-cols-5">
         <!-- Service areas list -->
         <div class="w-full">
-          <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-            <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+          <Card>
+            <h2 class="font-heading mb-4 text-xl font-semibold text-gray-900 dark:text-white">
               Areas We Serve
             </h2>
 
@@ -43,7 +45,7 @@
               {#each SERVICE_AREAS as area}
                 <li>
                   <button
-                    class={`w-full rounded-lg border-2 p-4 text-left transition-all hover:bg-gray-50 dark:hover:bg-gray-700
+                    class={`card card-hover w-full border-2 p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700
                       ${
                         selectedArea === area.name
                           ? "border-primary bg-primary-50 dark:border-primary-700 dark:bg-primary-900/20"
@@ -73,7 +75,7 @@
                 </li>
               {/each}
             </ul>
-          </div>
+          </Card>
         </div>
       </div>
 
@@ -100,14 +102,10 @@
 
     <!-- FAQ section -->
     <div class="mb-16">
-      <h2
-        class="mb-6 text-2xl font-bold text-center text-gray-900 dark:text-white"
-      >
-        Frequently Asked Questions
-      </h2>
+      <SectionHeading title="Frequently Asked Questions" />
 
       <div class="space-y-4">
-        <div class="rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="card card-hover">
           <button
             class="flex w-full items-center justify-between p-4 text-left focus:outline-none"
             aria-expanded="true"
@@ -124,7 +122,7 @@
           </div>
         </div>
 
-        <div class="rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="card card-hover">
           <button
             class="flex w-full items-center justify-between p-4 text-left focus:outline-none"
             aria-expanded="true"
@@ -142,7 +140,7 @@
           </div>
         </div>
 
-        <div class="rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="card card-hover">
           <button
             class="flex w-full items-center justify-between p-4 text-left focus:outline-none"
             aria-expanded="true"

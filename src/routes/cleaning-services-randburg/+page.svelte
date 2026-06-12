@@ -1,5 +1,6 @@
 <script>
   import Button from "$lib/components/ui/Button.svelte";
+  import Card from "$lib/components/ui/Card.svelte";
 </script>
 
 <svelte:head>
@@ -31,7 +32,8 @@
   <div class="max-w-4xl mx-auto">
     <!-- Hero Section -->
     <section class="mb-12">
-      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+      <p class="section-eyebrow mb-3">Randburg</p>
+      <h1 class="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-4">
         Professional Cleaning Services in Randburg
       </h1>
       <p class="text-xl text-gray-600 mb-8">
@@ -49,8 +51,8 @@
     </section>
 
     <!-- Service Areas -->
-    <section class="mb-12 bg-gray-50 rounded-lg p-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-4">
+    <Card as="section" padding="lg" class="mb-12">
+      <h2 class="font-heading text-2xl font-bold text-gray-900 dark:text-white mb-4">
         Areas We Serve in Randburg
       </h2>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -139,27 +141,27 @@
           <span>Northcliff</span>
         </div>
       </div>
-      <p class="mt-4 text-gray-600">
+      <p class="mt-4 text-gray-600 dark:text-gray-300">
         We cover all areas within a 15km radius of Randburg, ensuring prompt and
         reliable service to your doorstep.
       </p>
-    </section>
+    </Card>
 
     <!-- Services Overview -->
     <section class="mb-12">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+      <h2 class="font-heading text-2xl font-bold text-gray-900 mb-6">
         Our Cleaning Services in Randburg
       </h2>
       <div class="grid md:grid-cols-2 gap-6">
-        <div class="border border-gray-200 rounded-lg p-6">
-          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+        <Card hover>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
             Regular Home Cleaning
           </h3>
-          <p class="text-gray-600 mb-4">
+          <p class="text-gray-600 dark:text-gray-300 mb-4">
             Keep your Randburg home consistently clean with our regular cleaning
             service. Perfect for busy professionals and families.
           </p>
-          <ul class="space-y-2 text-gray-600">
+          <ul class="space-y-2 text-gray-600 dark:text-gray-300">
             <li class="flex items-start">
               <span class="text-primary-600 mr-2">•</span>
               Weekly, bi-weekly, or monthly schedules
@@ -173,17 +175,17 @@
               Flexible booking options
             </li>
           </ul>
-        </div>
+        </Card>
 
-        <div class="border border-gray-200 rounded-lg p-6">
-          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+        <Card hover>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
             Deep Cleaning
           </h3>
-          <p class="text-gray-600 mb-4">
+          <p class="text-gray-600 dark:text-gray-300 mb-4">
             Thorough deep cleaning for your home in Randburg. Ideal for spring
             cleaning or move-in/move-out situations.
           </p>
-          <ul class="space-y-2 text-gray-600">
+          <ul class="space-y-2 text-gray-600 dark:text-gray-300">
             <li class="flex items-start">
               <span class="text-primary-600 mr-2">•</span>
               Comprehensive cleaning of all areas
@@ -197,22 +199,22 @@
               Perfect for special occasions
             </li>
           </ul>
-        </div>
+        </Card>
       </div>
     </section>
 
     <!-- Why Choose Us -->
     <section class="mb-12">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+      <h2 class="font-heading text-2xl font-bold text-gray-900 mb-6">
         Why Randburg Residents Choose BrightBroom
       </h2>
       <div class="grid md:grid-cols-3 gap-6">
-        <div class="text-center">
+        <Card hover class="text-center">
           <div
-            class="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16"
           >
             <svg
-              class="w-8 h-8 text-primary-600"
+              class="w-8 h-8"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -225,18 +227,18 @@
               ></path>
             </svg>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-2">Always On Time</h3>
-          <p class="text-gray-600">
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Always On Time</h3>
+          <p class="text-gray-600 dark:text-gray-300">
             Our cleaners arrive promptly at your scheduled time, every time.
           </p>
-        </div>
+        </Card>
 
-        <div class="text-center">
+        <Card hover class="text-center">
           <div
-            class="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16"
           >
             <svg
-              class="w-8 h-8 text-primary-600"
+              class="w-8 h-8"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -249,19 +251,19 @@
               ></path>
             </svg>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-2">Vetted Professionals</h3>
-          <p class="text-gray-600">
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Vetted Professionals</h3>
+          <p class="text-gray-600 dark:text-gray-300">
             All our cleaners are thoroughly vetted and trained for your peace of
             mind.
           </p>
-        </div>
+        </Card>
 
-        <div class="text-center">
+        <Card hover class="text-center">
           <div
-            class="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16"
           >
             <svg
-              class="w-8 h-8 text-primary-600"
+              class="w-8 h-8"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -274,19 +276,19 @@
               ></path>
             </svg>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-2">
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">
             Satisfaction Guaranteed
           </h3>
-          <p class="text-gray-600">
+          <p class="text-gray-600 dark:text-gray-300">
             We're not happy until you're completely satisfied with our service.
           </p>
-        </div>
+        </Card>
       </div>
     </section>
 
     <!-- Local Knowledge -->
     <section class="mb-12 bg-primary-50 rounded-lg p-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-4">
+      <h2 class="font-heading text-2xl font-bold text-gray-900 mb-4">
         Local Randburg Expertise
       </h2>
       <p class="text-gray-700 mb-4">
@@ -304,7 +306,7 @@
 
     <!-- CTA Section -->
     <section class="text-center py-8 bg-gray-900 text-white rounded-lg">
-      <h2 class="text-3xl font-bold mb-4">
+      <h2 class="font-heading text-3xl font-bold mb-4">
         Ready for a Cleaner Home in Randburg?
       </h2>
       <p class="text-xl mb-8 text-gray-300">
@@ -331,47 +333,47 @@
 
     <!-- FAQ Section -->
     <section class="mt-12">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+      <h2 class="font-heading text-2xl font-bold text-gray-900 mb-6">
         Frequently Asked Questions - Randburg
       </h2>
       <div class="space-y-4">
-        <details class="border border-gray-200 rounded-lg p-4">
-          <summary class="font-semibold text-gray-900 cursor-pointer"
+        <details class="card card-hover p-4">
+          <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
             >Do you service all areas in Randburg?</summary
           >
-          <p class="mt-3 text-gray-600">
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
             Yes, we service all residential areas and complexes within Randburg,
             including gated communities. Simply provide access details when
             booking.
           </p>
         </details>
 
-        <details class="border border-gray-200 rounded-lg p-4">
-          <summary class="font-semibold text-gray-900 cursor-pointer"
+        <details class="card card-hover p-4">
+          <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
             >How do you handle load-shedding?</summary
           >
-          <p class="mt-3 text-gray-600">
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
             We track load-shedding schedules for all Randburg areas and plan our
             cleaning appointments accordingly. If load-shedding affects your
             booking, we'll reschedule at no extra cost.
           </p>
         </details>
 
-        <details class="border border-gray-200 rounded-lg p-4">
-          <summary class="font-semibold text-gray-900 cursor-pointer"
+        <details class="card card-hover p-4">
+          <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
             >Do I need to provide cleaning supplies?</summary
           >
-          <p class="mt-3 text-gray-600">
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
             Yes, we ask that you provide cleaning supplies and equipment. This
             ensures you get exactly the products you prefer in your home.
           </p>
         </details>
 
-        <details class="border border-gray-200 rounded-lg p-4">
-          <summary class="font-semibold text-gray-900 cursor-pointer"
+        <details class="card card-hover p-4">
+          <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
             >Can I book a same-day cleaning in Randburg?</summary
           >
-          <p class="mt-3 text-gray-600">
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
             We offer same-day bookings subject to availability. For the best
             chance of securing your preferred time, we recommend booking at
             least 24 hours in advance.
