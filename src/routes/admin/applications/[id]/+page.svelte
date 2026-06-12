@@ -244,7 +244,7 @@
 
 <!-- Application edit form (shown when editing) -->
 {#if isEditing}
-  <div class="bg-white p-6 rounded-lg shadow-md dark:bg-gray-800 mb-6">
+  <div class="card p-6 mb-6">
     <ApplicationEditForm
       {application}
       isEditing={true}
@@ -259,7 +259,7 @@
     <!-- Left column: Applicant details -->
     <div class="lg:col-span-2 space-y-6">
       <!-- Personal information card -->
-      <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+      <div class="card p-6">
         <div class="flex items-center mb-4">
           <div
             class="h-20 w-20 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 mr-4"
@@ -338,7 +338,7 @@
       </div>
 
       <!-- Location information card -->
-      <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+      <div class="card p-6">
         <h2
           class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center"
         >
@@ -409,7 +409,7 @@
       </div>
 
       <!-- Documents & Availability -->
-      <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+      <div class="card p-6">
         <h2
           class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center"
         >
@@ -495,7 +495,7 @@
 
       <!-- Additional Information -->
       {#if application.referralSource || application.documents || application.notes}
-        <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+        <div class="card p-6">
           <h2
             class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center"
           >
@@ -647,7 +647,7 @@
     <!-- Right column: Admin actions -->
     <div class="space-y-6">
       <!-- Admin Actions Card -->
-      <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+      <div class="card p-6">
         <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
           Admin Actions
         </h2>
@@ -753,7 +753,7 @@
 
       <!-- Notes History Card -->
       {#if notes && notes.length > 0}
-        <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+        <div class="card p-6">
           <h2
             class="mb-4 text-lg font-semibold text-gray-900 dark:text-white flex items-center"
           >

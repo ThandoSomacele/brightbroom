@@ -135,7 +135,7 @@
 <!-- Filters and search -->
 {#if showFilters}
   <div
-    class="mb-6 grid grid-cols-1 gap-4 rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:grid-cols-2 lg:grid-cols-4"
+    class="mb-6 grid grid-cols-1 gap-4 card p-4 sm:grid-cols-2 lg:grid-cols-4"
   >
     <div>
       <label
@@ -211,10 +211,10 @@
   {@const cleaners = cleanersData.cleaners}
   {@const pagination = cleanersData.pagination}
 
-  <div class="mb-6 overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+  <div class="mb-6 card overflow-hidden p-0">
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead class="bg-gray-50 dark:bg-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-800/50">
           <tr>
             <th
               scope="col"
@@ -275,7 +275,7 @@
           {:else}
             {#each cleaners as cleaner}
               <tr
-                class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                class="transition-colors hover:bg-primary-50/50 dark:hover:bg-gray-700/50 cursor-pointer"
                 on:click={() => viewCleanerDetails(cleaner.id)}
                 role="link"
                 tabindex="0"

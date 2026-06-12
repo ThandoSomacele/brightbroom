@@ -78,7 +78,7 @@
   message={$adminNotification.message}
 />
 
-<div class="min-h-screen bg-gray-100 dark:bg-gray-900">
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
   <!-- Mobile header -->
   <div
     class="lg:hidden bg-white dark:bg-gray-800 shadow p-4 flex justify-between items-center"
@@ -118,11 +118,11 @@
           <a
             href={item.href}
             class={`
-              flex items-center px-4 py-2 rounded-md text-sm font-medium
+              flex items-center px-4 py-2 rounded-lg text-sm font-medium border-l-2 transition-colors duration-150
               ${
                 isActive(item.href)
-                  ? "bg-primary text-white hover:text-white"
-                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  ? "border-primary bg-primary-50 text-primary dark:bg-primary-900/20"
+                  : "border-transparent text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
               }
             `}
           >

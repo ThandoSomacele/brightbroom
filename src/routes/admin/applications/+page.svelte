@@ -153,10 +153,10 @@
   {@const applications = applicationsData.applications}
   {@const pagination = applicationsData.pagination}
 
-  <div class="mb-6 overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+  <div class="mb-6 card overflow-hidden p-0">
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead class="bg-gray-50 dark:bg-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-800/50">
           <tr>
             <th
               scope="col"
@@ -211,7 +211,7 @@
           {:else}
             {#each applications as application}
               <tr
-                class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
+                class="transition-colors hover:bg-primary-50/50 dark:hover:bg-gray-700/50"
               >
                 <td class="whitespace-nowrap px-6 py-4">
                   <div class="flex items-center">

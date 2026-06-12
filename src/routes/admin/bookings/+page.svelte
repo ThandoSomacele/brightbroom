@@ -254,7 +254,7 @@
 <!-- Bulk actions panel -->
 {#if showBulkActions}
   <div
-    class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow p-4 border-l-4 border-primary"
+    class="mb-6 card p-4 border-l-4 border-primary"
   >
     <div class="flex flex-col sm:flex-row sm:items-center gap-4">
       <div class="flex-1">
@@ -317,7 +317,7 @@
 {/if}
 
 <!-- Filters and search -->
-<div class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+<div class="mb-6 card p-4">
   <div
     class="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-3"
   >
@@ -498,10 +498,10 @@
   {@const pagination = bookingsData.pagination}
   {@const allSelected = bookings.length > 0 && selectedBookings.size === bookings.length}
 
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden mb-6">
+  <div class="card overflow-hidden p-0 mb-6">
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead class="bg-gray-50 dark:bg-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-800/50">
           <tr>
             {#if showBulkActions}
               <th scope="col" class="px-3 py-3 text-left">
@@ -578,7 +578,7 @@
           {:else}
             {#each bookings as booking}
               <tr
-                class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                class="transition-colors hover:bg-primary-50/50 dark:hover:bg-gray-700/50 cursor-pointer"
                 on:click={() => viewBookingDetails(booking.id)}
                 role="link"
                 tabindex="0"

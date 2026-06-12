@@ -150,7 +150,7 @@
 {/if}
 
 <!-- Search and filter -->
-<div class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+<div class="mb-6 card p-4">
   <div class="flex flex-col sm:flex-row gap-4">
     <div class="relative flex-1">
       <div
@@ -226,7 +226,7 @@
     return matchesSearch && matchesStatus;
   })}
 
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+  <div class="card overflow-hidden p-0">
     {#if filteredCoupons.length === 0}
       <div class="p-6 text-center text-gray-500 dark:text-gray-400">
         {searchTerm || filterStatus !== "all"
@@ -236,7 +236,7 @@
     {:else}
       <div class="overflow-x-auto">
         <table class="w-full">
-          <thead class="bg-gray-50 dark:bg-gray-700/50">
+          <thead class="bg-gray-50 dark:bg-gray-800/50">
             <tr>
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
@@ -270,7 +270,7 @@
           </thead>
           <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
             {#each filteredCoupons as coupon (coupon.id)}
-              <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+              <tr class="transition-colors hover:bg-primary-50/50 dark:hover:bg-gray-700/50">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
                     <Tag size={16} class="text-primary mr-2" />

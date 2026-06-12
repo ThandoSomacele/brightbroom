@@ -312,7 +312,7 @@
 
 <!-- Booking status and actions header -->
 <div
-  class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between"
+  class="mb-6 card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between"
 >
   <div class="flex items-center">
     <span
@@ -378,7 +378,7 @@
   <!-- Left column: Booking details -->
   <div class="lg:col-span-2 space-y-6">
     <!-- Service details -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div class="card p-6">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
         Cleaning Details
       </h2>
@@ -468,7 +468,7 @@
     </div>
 
     <!-- Customer details -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div class="card p-6">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
           Customer Details
@@ -584,7 +584,7 @@
 
     <!-- Cleaner details if assigned -->
     {#if booking.cleaner}
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <div class="card p-6">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
             Assigned Cleaner
@@ -679,7 +679,7 @@
     {/if}
 
     <!-- Communication Log -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div class="card p-6">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
           Communication Log
@@ -728,7 +728,7 @@
     </div>
 
     <!-- Admin Notes -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div class="card p-6">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
           Admin Notes
@@ -767,7 +767,7 @@
   <!-- Right column: Payment and actions -->
   <div class="space-y-6">
     <!-- Payment information -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div class="card p-6">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
         Payment Details
       </h2>
@@ -839,7 +839,7 @@
     </div>
 
     <!-- Payout Breakdown -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div class="card p-6">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
           Payout Breakdown
@@ -942,7 +942,7 @@
     </div>
 
     <!-- Booking timeline -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div class="card p-6">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
         Booking Timeline
       </h2>
@@ -1057,7 +1057,7 @@
 
     <!-- Related bookings -->
     {#if relatedBookings && relatedBookings.length > 0}
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <div class="card p-6">
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
           Related Bookings
         </h2>

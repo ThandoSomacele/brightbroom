@@ -131,7 +131,7 @@
 
   <!-- Summary Cards -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div class="card p-6">
       <div class="flex items-center">
         <div class="p-3 bg-primary-100 dark:bg-primary-900/20 rounded-lg">
           <Banknote class="h-6 w-6 text-primary" />
@@ -147,7 +147,7 @@
       </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div class="card p-6">
       <div class="flex items-center">
         <div class="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
           <CreditCard class="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -164,7 +164,7 @@
       </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div class="card p-6">
       <div class="flex items-center">
         <div class="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
           <Smartphone class="h-6 w-6 text-purple-600 dark:text-purple-400" />
@@ -185,7 +185,7 @@
   <!-- Main Grid -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
     <!-- EFT Payouts Section -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <div class="card overflow-hidden p-0">
       <div class="p-6 border-b border-gray-200 dark:border-gray-700">
         <div class="flex items-center justify-between">
           <div class="flex items-center">
@@ -275,7 +275,7 @@
     </div>
 
     <!-- Instant Money Section -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <div class="card overflow-hidden p-0">
       <div class="p-6 border-b border-gray-200 dark:border-gray-700">
         <div class="flex items-center justify-between">
           <div class="flex items-center">
@@ -368,7 +368,7 @@
 
   <!-- Mark as Paid Section -->
   {#if selectedEftCleaners.size > 0 || selectedInstantMoneyCleaners.size > 0}
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+    <div class="card p-6 mb-6">
       <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
         Mark Payouts as Paid
       </h3>
@@ -459,7 +459,7 @@
   {/if}
 
   <!-- Recent Paid Payments -->
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+  <div class="card overflow-hidden p-0">
     <div class="p-6 border-b border-gray-200 dark:border-gray-700">
       <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
         Recently Paid Payments
@@ -469,7 +469,7 @@
     <div class="overflow-x-auto">
       {#if recentPayouts.length > 0}
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead class="bg-gray-50 dark:bg-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-800/50">
             <tr>
               <th
                 scope="col"
@@ -499,7 +499,7 @@
           </thead>
           <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {#each recentPayouts as payout}
-              <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+              <tr class="transition-colors hover:bg-primary-50/50 dark:hover:bg-gray-700/50">
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {formatDate(payout.paidDate)}
                 </td>
