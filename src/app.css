@@ -96,6 +96,57 @@
   .animate-loading-progress {
     animation: loading-progress 1.5s ease-in-out infinite;
   }
+
+  /* ---- Design system primitives (shared across the platform) ---- */
+
+  /* Card surface: the standard container for content blocks */
+  .card {
+    @apply rounded-xl border border-gray-200 bg-white shadow-card transition-all duration-200 dark:border-gray-700 dark:bg-gray-800;
+  }
+
+  /* Opt-in hover elevation for interactive cards */
+  .card-hover {
+    @apply hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-card-hover;
+  }
+
+  /* Circular icon badge used in feature/step/stat cards */
+  .icon-chip {
+    @apply flex items-center justify-center rounded-full bg-primary-100 text-primary transition-colors duration-200 dark:bg-primary-900/30;
+  }
+
+  /* Icon chip fills with brand colour when its parent .group is hovered */
+  .icon-chip-interactive {
+    @apply group-hover:bg-primary group-hover:text-white;
+  }
+
+  /* Section heading typography */
+  .section-eyebrow {
+    @apply text-sm font-semibold uppercase tracking-wider text-primary;
+  }
+
+  .section-title {
+    @apply font-heading text-3xl font-bold text-gray-900 dark:text-white md:text-4xl;
+  }
+
+  /* Image zoom-on-hover treatment (frame clips the scaled image) */
+  .img-zoom-frame {
+    @apply overflow-hidden rounded-xl;
+  }
+
+  .img-zoom {
+    @apply transition-transform duration-300 group-hover:scale-105;
+  }
+}
+
+/* Respect users who prefer reduced motion: disable transform-based hovers */
+@media (prefers-reduced-motion: reduce) {
+  .card-hover {
+    @apply hover:translate-y-0;
+  }
+
+  .img-zoom {
+    @apply group-hover:scale-100;
+  }
 }
 
 /* ---- Article image style options ---- */
