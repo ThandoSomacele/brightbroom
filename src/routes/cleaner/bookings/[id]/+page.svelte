@@ -171,7 +171,7 @@
 
   <!-- Status and Actions -->
   <div
-    class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between"
+    class="card p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between"
   >
     <div>
       <div class="flex items-center">
@@ -245,7 +245,7 @@
   <!-- Add Note Form -->
   {#if showAddNote}
     <div
-      class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border-l-4 border-primary"
+      class="card p-6 border-l-4 border-primary"
     >
       <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
         Add a Note
@@ -308,7 +308,7 @@
     <!-- Left column: Booking details -->
     <div class="lg:col-span-2 space-y-6">
       <!-- Service and location details -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div class="card p-6">
         <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
           Cleaning Details
         </h2>
@@ -406,7 +406,7 @@
       </div>
 
       <!-- Customer details -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div class="card p-6">
         <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
           Customer Details
         </h2>
@@ -440,7 +440,7 @@
       </div>
 
       <!-- Communication Log -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div class="card p-6">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-lg font-medium text-gray-900 dark:text-white">
             Notes & Communications
@@ -492,7 +492,7 @@
     <!-- Right column: Status timeline and quick actions -->
     <div class="space-y-6">
       <!-- Booking status timeline -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div class="card p-6">
         <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
           Booking Timeline
         </h2>
@@ -655,7 +655,7 @@
       {/if}
 
       <!-- Payment info -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div class="card p-6">
         <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
           Payment Information
         </h2>
