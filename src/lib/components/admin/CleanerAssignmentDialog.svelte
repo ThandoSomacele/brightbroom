@@ -1,7 +1,8 @@
 <!-- src/lib/components/admin/CleanerAssignmentDialog.svelte -->
 <script lang="ts">
+  import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
-  
+
   // Props
   export let bookingId: string;
   export let onClose: () => void = () => {};
@@ -50,7 +51,7 @@
     if (distance <= 0) {
       return "Distance unknown";
     }
-    return `${distance}km away`;
+    return `${distance.toFixed(1)}km away`;
   }
   
   // Assign selected cleaner
@@ -59,15 +60,17 @@
       const response = await fetch(`/api/bookings/${bookingId}/assign-cleaner`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-csrf-token': $page.data.csrf
         },
         body: JSON.stringify({
           cleanerId: selectedCleanerId
         })
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to assign cleaner');
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.message || 'Failed to assign cleaner');
       }
       
       onAssign(selectedCleanerId);
@@ -151,11 +154,7 @@
                     {cleaner.firstName} {cleaner.lastName}
                   </div>
                   <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    {#if cleaner.distance > 0}
-                      • {cleaner.distance}km away
-                    {:else}
-                      • Distance unknown
-                    {/if}
+                    • {formatDistance(cleaner.distance)}
                   </div>
                 </div>
                 <div>

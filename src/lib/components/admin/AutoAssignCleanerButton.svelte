@@ -1,6 +1,7 @@
 <!-- src/lib/components/admin/AutoAssignCleanerButton.svelte -->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { page } from '$app/stores';
   import Button from '$lib/components/ui/Button.svelte';
   import { CheckCircle, Users } from 'lucide-svelte';
   
@@ -32,7 +33,8 @@
       const response = await fetch(`/api/bookings/${bookingId}/assign-cleaner`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-csrf-token': $page.data.csrf
         }
       });
       

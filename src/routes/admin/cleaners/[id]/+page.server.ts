@@ -245,6 +245,10 @@ export const actions: Actions = {
 
     const formData = await request.formData();
     const workAddress = formData.get("workAddress")?.toString();
+    const workLocationLat =
+      parseFloat(formData.get("workLocationLat")?.toString() || "") || 0;
+    const workLocationLng =
+      parseFloat(formData.get("workLocationLng")?.toString() || "") || 0;
     const workRadius = formData.get("workRadius")
       ? parseFloat(formData.get("workRadius")?.toString() || "0")
       : 0;
@@ -297,6 +301,11 @@ export const actions: Actions = {
           .update(cleanerProfile)
           .set({
             workAddress,
+            // Only overwrite coordinates when a fresh address selection
+            // provided them, so an edit can't wipe existing coordinates
+            ...(workLocationLat && workLocationLng
+              ? { workLocationLat, workLocationLng }
+              : {}),
             workRadius,
             bio,
             petCompatibility: petCompatibility as any, // Type assertion
@@ -324,8 +333,8 @@ export const actions: Actions = {
           taxNumber,
           availableDays,
           experienceTypes, // Include experience types
-          workLocationLat: 0, // Placeholder - would be set with actual geocoding
-          workLocationLng: 0, // Placeholder - would be set with actual geocoding
+          workLocationLat,
+          workLocationLng,
           createdAt: new Date(),
           updatedAt: new Date(),
         });

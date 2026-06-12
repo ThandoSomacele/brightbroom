@@ -315,6 +315,71 @@ export const cleanerAssignmentService = {
   },
 
   /**
+   * Assign a specific cleaner to a booking, or clear the assignment
+   * @param bookingId The ID of the booking
+   * @param cleanerId The cleaner to assign, or null to clear the current assignment
+   */
+  async assignSpecificCleaner(
+    bookingId: string,
+    cleanerId: string | null,
+  ): Promise<{ success: boolean; message?: string }> {
+    try {
+      const bookingDetails = await db
+        .select({ id: booking.id })
+        .from(booking)
+        .where(eq(booking.id, bookingId))
+        .limit(1);
+
+      if (bookingDetails.length === 0) {
+        return { success: false, message: "Booking not found" };
+      }
+
+      if (cleanerId !== null) {
+        const cleanerDetails = await db
+          .select({ id: user.id, firstName: user.firstName, lastName: user.lastName })
+          .from(user)
+          .where(and(eq(user.id, cleanerId), eq(user.role, "CLEANER")))
+          .limit(1);
+
+        if (cleanerDetails.length === 0) {
+          return { success: false, message: "Cleaner not found" };
+        }
+
+        await db
+          .update(booking)
+          .set({ cleanerId, updatedAt: new Date() })
+          .where(eq(booking.id, bookingId));
+
+        try {
+          await sendCleanerAssignmentNotifications(bookingId);
+        } catch (notificationError) {
+          console.error("Error sending assignment notifications:", notificationError);
+          // Continue even if notifications fail
+        }
+
+        return {
+          success: true,
+          message: `Cleaner ${cleanerDetails[0].firstName} ${cleanerDetails[0].lastName} assigned successfully`,
+        };
+      }
+
+      // cleanerId is null: clear the assignment
+      await db
+        .update(booking)
+        .set({ cleanerId: null, updatedAt: new Date() })
+        .where(eq(booking.id, bookingId));
+
+      return { success: true, message: "Cleaner assignment cleared" };
+    } catch (error) {
+      console.error("Error assigning cleaner:", error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to assign cleaner",
+      };
+    }
+  },
+
+  /**
    * Automatically assign the best available cleaner to a booking
    * @param bookingId The ID of the booking
    * @returns The assigned cleaner or null if no cleaner could be assigned
