@@ -34,7 +34,7 @@
       </p>
     </div>
 
-    <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+    <div class="card p-6">
       <!-- Success message -->
       {#if form?.success}
         <div

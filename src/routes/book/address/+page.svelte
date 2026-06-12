@@ -315,7 +315,7 @@
 
     <!-- Guest Address Form -->
     {#if !isAuthenticated}
-      <div class="mb-8 rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+      <div class="mb-8 card p-6">
         <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
           Enter Your Address
         </h2>
@@ -400,7 +400,7 @@
         <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
           Access Instructions (Optional)
         </h2>
-        <div class="rounded-lg bg-white p-5 shadow-sm dark:bg-gray-800">
+        <div class="card p-5">
           <textarea
             bind:value={accessInstructions}
             rows={4}

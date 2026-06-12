@@ -30,7 +30,7 @@
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
       <!-- Left column: User info -->
       <div>
-        <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+        <div class="card p-6">
           <div class="mb-6 flex items-center">
             <div
               class="flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/20"
@@ -143,7 +143,7 @@
       <!-- Right column: Bookings and quick actions -->
       <div class="lg:col-span-2">
         <!-- Quick Actions -->
-        <div class="mb-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+        <div class="mb-8 card p-6">
           <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
             Quick Actions
           </h2>
@@ -203,7 +203,7 @@
         </div>
 
         <!-- Upcoming Bookings -->
-        <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+        <div class="card p-6">
           <div class="mb-4 flex items-center justify-between">
             <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
               Upcoming Bookings

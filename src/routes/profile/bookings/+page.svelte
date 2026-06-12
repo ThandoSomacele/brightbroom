@@ -168,7 +168,7 @@
       {#await data.streamed.bookings}
         <!-- Loading skeleton for booking cards -->
         {#each [1, 2, 3, 4] as _}
-          <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+          <div class="card p-6">
             <div class="flex flex-wrap justify-between gap-4">
               <div class="flex-1">
                 <div class="mb-4 flex items-center">
@@ -199,7 +199,7 @@
         {@const filteredBookings = filterBookings(bookings)}
         {#if filteredBookings.length > 0}
           {#each filteredBookings as booking}
-          <div class="rounded-lg bg-white p-6 shadow-md transition-all hover:shadow-lg dark:bg-gray-800">
+          <div class="card card-hover p-6">
             <div class="flex flex-wrap justify-between gap-4">
               <!-- Left column: Booking details -->
               <div class="flex-1">
@@ -294,8 +294,8 @@
           </div>
         {/each}
       {:else}
-        <div class="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
-          <h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">No bookings found</h3>
+        <div class="animate-fade-in rounded-xl border-2 border-dashed border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
+          <h3 class="mb-2 font-heading text-lg font-semibold text-gray-900 dark:text-white">No bookings found</h3>
           
           {#if filterStatus !== 'all' || filterTime !== 'all'}
             <p class="mb-4 text-gray-600 dark:text-gray-400">

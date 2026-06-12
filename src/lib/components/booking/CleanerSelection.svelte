@@ -127,10 +127,10 @@
     <div class="grid gap-6 md:grid-cols-3">
       {#each cleaners as cleaner (cleaner.id)}
         <div
-          class="cleaner-card border-2 rounded-lg p-4 cursor-pointer transition-all {selectedCleaner?.id ===
+          class="cleaner-card border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 {selectedCleaner?.id ===
           cleaner.id
             ? 'border-primary bg-primary/5'
-            : 'border-gray-200 hover:border-gray-300'}"
+            : 'border-gray-200 hover:border-primary/50 dark:border-gray-700 dark:hover:border-primary/50'}"
           on:click={() => selectCleaner(cleaner)}
           on:keydown={(e) => e.key === "Enter" && selectCleaner(cleaner)}
           role="button"
