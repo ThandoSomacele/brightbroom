@@ -4,12 +4,10 @@
   functions = "netlify/functions"
 
 [build.environment]
-  NODE_VERSION = "20"
+  # pnpm 11 requires Node >= 22.13 (uses the node:sqlite built-in)
+  NODE_VERSION = "22"
   # Install devDependencies even when NODE_ENV=production (needed for the build).
   PNPM_FLAGS = "--prod=false"
-  # Work around stale Corepack signature keys in the build image, which fail
-  # verification when downloading recent pnpm releases ("Cannot find matching keyid").
-  COREPACK_INTEGRITY_KEYS = "0"
 
 [functions]
   node_bundler = "esbuild"
