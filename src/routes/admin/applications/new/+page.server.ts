@@ -39,6 +39,8 @@ export const actions: Actions = {
     const idType = formData.get("idType")?.toString() || "";
     const idNumber = formData.get("idNumber")?.toString()?.trim() || "";
     const workAddress = formData.get("workAddress")?.toString()?.trim() || "";
+    const workLatitude = parseFloat(formData.get("workLatitude")?.toString() || "") || 0;
+    const workLongitude = parseFloat(formData.get("workLongitude")?.toString() || "") || 0;
     const bio = formData.get("bio")?.toString()?.trim() || "";
     const petCompatibility =
       formData.get("petCompatibility")?.toString() || "NONE";
@@ -159,6 +161,8 @@ export const actions: Actions = {
         phone,
         city,
         formattedAddress: workAddress || null,
+        latitude: workLatitude ? String(workLatitude) : null,
+        longitude: workLongitude ? String(workLongitude) : null,
         idType: idType || null,
         idNumber: idNumber || null,
         bio: bio || null,
@@ -225,8 +229,8 @@ export const actions: Actions = {
           idType: idType || "SOUTH_AFRICAN_ID",
           idNumber: idNumber || "PENDING",
           workAddress: workAddress || city,
-          workLocationLat: 0,
-          workLocationLng: 0,
+          workLocationLat: workLatitude,
+          workLocationLng: workLongitude,
           workRadius: 10,
           bio: bio || "",
           petCompatibility: petCompatibility || "NONE",
