@@ -192,25 +192,25 @@
             <tr>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                class="table-th"
               >
                 Name
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                class="table-th"
               >
                 Email
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                class="table-th"
               >
                 Applied
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                class="table-th text-right"
               >
                 Actions
               </th>
@@ -227,24 +227,24 @@
                 tabindex="0"
                 onkeydown={(e) => e.key === 'Enter' && goto(`/admin/cleaners/${cleaner.id}`)}
               >
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900 dark:text-white">
                     {cleaner.firstName}
                     {cleaner.lastName}
                   </div>
                 </td>
                 <td
-                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                  class="table-td whitespace-nowrap text-gray-500 dark:text-gray-400"
                 >
                   {cleaner.email}
                 </td>
                 <td
-                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                  class="table-td whitespace-nowrap text-gray-500 dark:text-gray-400"
                 >
                   {formatDate(cleaner.createdAt)}
                 </td>
                 <td
-                  class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                  class="table-td whitespace-nowrap text-right font-medium"
                 >
                   <a
                     href={`/admin/cleaners/${cleaner.id}`}
@@ -469,25 +469,25 @@
           <tr>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Type
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Details
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Date
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Actions
             </th>
@@ -505,7 +505,7 @@
                 tabindex="0"
                 onkeydown={(e) => e.key === 'Enter' && goto(activity.link)}
               >
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <span
                     class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                     ${
@@ -521,7 +521,7 @@
                     {activity.type}
                   </span>
                 </td>
-                <td class="px-6 py-4">
+                <td class="table-td">
                   <div class="text-sm text-gray-900 dark:text-white">
                     {activity.description}
                   </div>
@@ -530,11 +530,11 @@
                   </div>
                 </td>
                 <td
-                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                  class="table-td whitespace-nowrap text-gray-500 dark:text-gray-400"
                 >
                   {formatDate(activity.date)}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <td class="table-td whitespace-nowrap font-medium">
                   <a
                     href={activity.link}
                     class="text-primary hover:text-primary-600"
@@ -549,7 +549,7 @@
             <tr>
               <td
                 colspan="4"
-                class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+                class="table-td py-8 text-center text-gray-500 dark:text-gray-400"
               >
                 No recent activity found
               </td>

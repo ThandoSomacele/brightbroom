@@ -747,25 +747,25 @@
           <tr>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Configuration
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Bookings
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Revenue
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Share
             </th>
@@ -777,16 +777,16 @@
           {#if isLoading}
             {#each Array(3) as _, i (i)}
               <tr class={i % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-700"}>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="flex items-center">
                     <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
                     <div class="h-4 w-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ml-2"></div>
@@ -802,21 +802,21 @@
                   : "bg-gray-50 dark:bg-gray-700"}
               >
                 <td
-                  class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white"
+                  class="table-td whitespace-nowrap font-medium text-gray-900 dark:text-white"
                 >
                   {config.configuration}
                 </td>
                 <td
-                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                  class="table-td whitespace-nowrap text-gray-500 dark:text-gray-400"
                 >
                   {config.bookingCount}
                 </td>
                 <td
-                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                  class="table-td whitespace-nowrap text-gray-500 dark:text-gray-400"
                 >
                   {formatCurrency(config.totalRevenue)}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="flex items-center">
                     <div
                       class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full"
@@ -843,7 +843,7 @@
             <tr>
               <td
                 colspan="4"
-                class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+                class="table-td py-8 text-center text-gray-500 dark:text-gray-400"
               >
                 No booking data available for this period
               </td>
@@ -867,19 +867,19 @@
           <tr>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Add-on
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Times Added
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Revenue
             </th>
@@ -891,13 +891,13 @@
           {#if isLoading}
             {#each Array(3) as _, i (i)}
               <tr class={i % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-700"}>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="h-4 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                 </td>
               </tr>
@@ -910,17 +910,17 @@
                   : "bg-gray-50 dark:bg-gray-700"}
               >
                 <td
-                  class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white"
+                  class="table-td whitespace-nowrap font-medium text-gray-900 dark:text-white"
                 >
                   {addon.addonName}
                 </td>
                 <td
-                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                  class="table-td whitespace-nowrap text-gray-500 dark:text-gray-400"
                 >
                   {addon.bookingCount}
                 </td>
                 <td
-                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                  class="table-td whitespace-nowrap text-gray-500 dark:text-gray-400"
                 >
                   {formatCurrency(addon.totalRevenue)}
                 </td>
@@ -930,7 +930,7 @@
             <tr>
               <td
                 colspan="3"
-                class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+                class="table-td py-8 text-center text-gray-500 dark:text-gray-400"
               >
                 No add-on data available for this period
               </td>
@@ -961,31 +961,31 @@
         <tr>
           <th
             scope="col"
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+            class="table-th"
           >
             Cleaner
           </th>
           <th
             scope="col"
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+            class="table-th"
           >
             Completed Bookings
           </th>
           <th
             scope="col"
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+            class="table-th"
           >
             Avg Booking Value
           </th>
           <th
             scope="col"
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+            class="table-th"
           >
             On-time %
           </th>
           <th
             scope="col"
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+            class="table-th"
           >
             Rating
           </th>
@@ -997,7 +997,7 @@
         {#if isLoading}
           {#each Array(5) as _, i (i)}
             <tr class={i % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-700"}>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="table-td whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
                   <div class="ml-4">
@@ -1006,16 +1006,16 @@
                   </div>
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="table-td whitespace-nowrap">
                 <div class="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="table-td whitespace-nowrap">
                 <div class="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="table-td whitespace-nowrap">
                 <div class="h-4 w-14 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="table-td whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                   <div class="h-4 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ml-1"></div>
@@ -1030,7 +1030,7 @@
                 ? "bg-white dark:bg-gray-800"
                 : "bg-gray-50 dark:bg-gray-700"}
             >
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="table-td whitespace-nowrap">
                 <div class="flex items-center">
                   <div
                     class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center"
@@ -1055,22 +1055,22 @@
                 </div>
               </td>
               <td
-                class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                class="table-td whitespace-nowrap text-gray-500 dark:text-gray-400"
               >
                 {cleaner.completedBookings}
               </td>
               <td
-                class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                class="table-td whitespace-nowrap text-gray-500 dark:text-gray-400"
               >
                 {formatCurrency(cleaner.averageBookingValue)}
               </td>
               <td
-                class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                class="table-td whitespace-nowrap text-gray-500 dark:text-gray-400"
               >
                 <!-- Simulated on-time percentage, in a real app this would come from the data -->
                 {(85 + ((i * 2) % 15)).toFixed(1)}%
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="table-td whitespace-nowrap">
                 <div class="flex items-center">
                   {#each Array(5) as _, j}
                     <svg
@@ -1097,7 +1097,7 @@
           <tr>
             <td
               colspan="5"
-              class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+              class="table-td py-8 text-center text-gray-500 dark:text-gray-400"
             >
               No cleaner performance data available for this period
             </td>

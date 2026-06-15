@@ -178,25 +178,6 @@
     }).format(value);
   }
 
-  // Quick status change
-  async function quickStatusChange(bookingId: string, status: string) {
-    try {
-      const response = await fetch(`/api/admin/bookings/${bookingId}/status`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status }),
-      });
-
-      if (!response.ok) throw new Error("Failed to update status");
-      window.location.reload();
-    } catch (error) {
-      console.error("Error updating booking status:", error);
-      alert("Failed to update booking status. Please try again.");
-    }
-  }
-
   // Process bulk action
   async function processBulkAction() {
     if (selectedBookings.size === 0) {
@@ -515,49 +496,49 @@
             {/if}
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Booking Info
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Created Date
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Customer
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Scheduled Date
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Status
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Payment
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th"
             >
               Cleaner
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+              class="table-th text-right"
             >
               Actions
             </th>
@@ -570,7 +551,7 @@
             <tr>
               <td
                 colspan={showBulkActions ? 9 : 8}
-                class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+                class="table-td py-8 text-center text-gray-500 dark:text-gray-400"
               >
                 No bookings found
               </td>
@@ -594,7 +575,7 @@
                     />
                   </td>
                 {/if}
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900 dark:text-white">
                     #{booking.id.substring(0, 6)}
                   </div>
@@ -602,7 +583,7 @@
                     {booking.address.street}, {booking.address.city}
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="text-sm text-gray-900 dark:text-white">
                     {formatDate(booking.createdAt)}
                   </div>
@@ -610,7 +591,7 @@
                     {formatTime(booking.createdAt)}
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="text-sm text-gray-900 dark:text-white">
                     {booking.customer.firstName}
                     {booking.customer.lastName}
@@ -619,7 +600,7 @@
                     {booking.customer.email}
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="text-sm text-gray-900 dark:text-white">
                     {formatDate(booking.scheduledDate)}
                   </div>
@@ -627,7 +608,7 @@
                     {formatTime(booking.scheduledDate)}
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap" on:click|stopPropagation>
+                <td class="table-td whitespace-nowrap">
                   <span
                     class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(booking.status)}`}
                   >
@@ -637,40 +618,8 @@
                     />
                     {booking.status}
                   </span>
-
-                  <div class="mt-2 flex flex-wrap gap-1">
-                    {#if booking.status !== "CONFIRMED"}
-                      <button
-                        class="px-1.5 py-0.5 bg-green-50 text-green-600 text-xs rounded hover:bg-green-100 dark:bg-green-900/20 dark:text-green-300 dark:hover:bg-green-900/40"
-                        title="Set as Confirmed"
-                        on:click={() => quickStatusChange(booking.id, "CONFIRMED")}
-                      >
-                        Confirm
-                      </button>
-                    {/if}
-
-                    {#if booking.status !== "IN_PROGRESS" && booking.status !== "COMPLETED" && booking.status !== "CANCELLED"}
-                      <button
-                        class="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40"
-                        title="Set as In Progress"
-                        on:click={() => quickStatusChange(booking.id, "IN_PROGRESS")}
-                      >
-                        Start
-                      </button>
-                    {/if}
-
-                    {#if booking.status !== "COMPLETED" && booking.status !== "CANCELLED"}
-                      <button
-                        class="px-1.5 py-0.5 bg-purple-50 text-purple-600 text-xs rounded hover:bg-purple-100 dark:bg-purple-900/20 dark:text-purple-300 dark:hover:bg-purple-900/40"
-                        title="Set as Completed"
-                        on:click={() => quickStatusChange(booking.id, "COMPLETED")}
-                      >
-                        Complete
-                      </button>
-                    {/if}
-                  </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900 dark:text-white">
                     {formatCurrency(booking.price)}
                   </div>
@@ -686,7 +635,7 @@
                     </span>
                   {/if}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap" on:click|stopPropagation>
+                <td class="table-td whitespace-nowrap">
                   <span
                     class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       booking.cleanerId
@@ -700,30 +649,19 @@
                     />
                     {booking.cleanerId ? "Assigned" : "Unassigned"}
                   </span>
-
-                  {#if !booking.cleanerId && (booking.status === "CONFIRMED" || booking.status === "PENDING")}
-                    <button
-                      class="mt-1.5 px-1.5 py-0.5 bg-primary-50 text-primary-600 text-xs rounded hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-300 dark:hover:bg-primary-900/40"
-                      title="Assign Cleaner"
-                      on:click={() => viewBookingDetails(booking.id)}
-                    >
-                      Assign
-                    </button>
-                  {/if}
                 </td>
                 <td
-                  class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                  class="table-td whitespace-nowrap text-right font-medium"
                   on:click|stopPropagation
                 >
-                  <div class="flex justify-end gap-2">
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      on:click={() => viewBookingDetails(booking.id)}
-                    >
-                      View
-                    </Button>
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    on:click={() => viewBookingDetails(booking.id)}
+                    class="text-primary hover:text-primary-600"
+                  >
+                    View
+                  </Button>
                 </td>
               </tr>
             {/each}

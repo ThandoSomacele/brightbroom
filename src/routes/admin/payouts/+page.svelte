@@ -473,25 +473,25 @@
             <tr>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                class="table-th"
               >
                 Date Paid
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                class="table-th"
               >
                 Cleaner
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                class="table-th text-right"
               >
                 Booking Amount
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                class="table-th text-right"
               >
                 Cleaner Payout
               </th>
@@ -500,18 +500,18 @@
           <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {#each recentPayouts as payout}
               <tr class="transition-colors hover:bg-primary-50/50 dark:hover:bg-gray-700/50">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                <td class="table-td whitespace-nowrap text-gray-500 dark:text-gray-400">
                   {formatDate(payout.paidDate)}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900 dark:text-white">
                     {payout.cleanerFirstName} {payout.cleanerLastName}
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500 dark:text-gray-400">
+                <td class="table-td whitespace-nowrap text-right text-gray-500 dark:text-gray-400">
                   {formatCurrency(payout.amount)}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900 dark:text-white">
+                <td class="table-td whitespace-nowrap text-right font-medium text-gray-900 dark:text-white">
                   {formatCurrency(payout.cleanerPayoutAmount)}
                 </td>
               </tr>

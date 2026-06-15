@@ -136,6 +136,20 @@
   .img-zoom {
     @apply transition-transform duration-300 group-hover:scale-105;
   }
+
+  /* Compact pill button for inline table quick-actions (pair with colour classes) */
+  .btn-chip {
+    @apply inline-flex items-center whitespace-nowrap rounded-md px-2 py-1 text-xs font-medium transition-colors duration-150;
+  }
+
+  /* Standard admin/portal table cells */
+  .table-th {
+    @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400;
+  }
+
+  .table-td {
+    @apply px-4 py-3.5 text-sm;
+  }
 }
 
 /* Respect users who prefer reduced motion: disable transform-based hovers */

@@ -239,31 +239,31 @@
           <thead class="bg-gray-50 dark:bg-gray-800/50">
             <tr>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                class="table-th"
                 >Code</th
               >
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                class="table-th"
                 >Discount</th
               >
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                class="table-th"
                 >Min. Amount</th
               >
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                class="table-th"
                 >Usage</th
               >
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                class="table-th"
                 >Valid Until</th
               >
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                class="table-th"
                 >Status</th
               >
               <th
-                class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                class="table-th text-right"
                 >Actions</th
               >
             </tr>
@@ -271,7 +271,7 @@
           <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
             {#each filteredCoupons as coupon (coupon.id)}
               <tr class="transition-colors hover:bg-primary-50/50 dark:hover:bg-gray-700/50">
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="flex items-center">
                     <Tag size={16} class="text-primary mr-2" />
                     <div>
@@ -286,7 +286,7 @@
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="flex items-center">
                     {#if coupon.discountType === "PERCENTAGE"}
                       <Percent size={14} class="text-green-500 mr-1" />
@@ -308,10 +308,10 @@
                     </span>
                   {/if}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-gray-300">
+                <td class="table-td whitespace-nowrap text-gray-700 dark:text-gray-300">
                   {formatPrice(coupon.minimumBookingAmount)}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="flex items-center text-gray-700 dark:text-gray-300">
                     <Users size={14} class="mr-1" />
                     {coupon.usedCount}
@@ -327,7 +327,7 @@
                     </div>
                   {/if}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="flex items-center">
                     <Calendar size={14} class="mr-1 text-gray-400" />
                     <span
@@ -339,7 +339,7 @@
                     </span>
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <form
                     method="POST"
                     action="?/toggleActive"
@@ -371,7 +371,7 @@
                     </button>
                   </form>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right">
+                <td class="table-td whitespace-nowrap text-right">
                   <div class="flex justify-end gap-2">
                     <a
                       href="/coupon/{coupon.code}"
@@ -461,7 +461,7 @@
             </h3>
           </div>
 
-          <div class="px-6 py-4">
+          <div class="table-td">
             <div class="space-y-4">
               <!-- Coupon Code -->
               <div>
@@ -753,7 +753,7 @@
             </h3>
           </div>
 
-          <div class="px-6 py-4">
+          <div class="table-td">
             <div class="space-y-4">
               <!-- Coupon Code -->
               <div>
@@ -1038,7 +1038,7 @@
             </h3>
           </div>
 
-          <div class="px-6 py-4">
+          <div class="table-td">
             <p class="text-gray-700 dark:text-gray-300">
               Are you sure you want to delete the coupon <span
                 class="font-mono font-bold">{selectedCoupon.code}</span

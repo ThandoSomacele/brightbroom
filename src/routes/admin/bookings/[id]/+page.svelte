@@ -334,7 +334,7 @@
     {/if}
   </div>
 
-  <div class="flex mt-4 sm:mt-0 space-x-2">
+  <div class="mt-4 flex flex-wrap gap-2 sm:mt-0">
     <Button
       variant="outline"
       on:click={() => (showStatusChangeModal = true)}
