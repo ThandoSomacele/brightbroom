@@ -110,7 +110,7 @@
       </div>
 
       <!-- Desktop navigation links -->
-      <nav class="hidden space-x-4 md:flex">
+      <nav class="hidden space-x-4 lg:flex">
         <a
           href="/"
           class="px-3 py-2 text-gray-700 hover:text-primary dark:text-gray-200"
@@ -146,7 +146,7 @@
       </nav>
 
       <!-- Auth buttons or user menu -->
-      <div class="hidden md:flex md:items-center space-x-3">
+      <div class="hidden lg:flex lg:items-center space-x-3">
         {#if user}
           <Button variant="outline" href="/profile">
             <span>{user.firstName} {user.lastName}</span>
@@ -168,7 +168,7 @@
       </div>
 
       <!-- Mobile menu button - this is the hamburger icon -->
-      <div class="flex md:hidden">
+      <div class="flex lg:hidden">
         <button
           type="button"
           class="inline-flex items-center justify-center rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
@@ -218,7 +218,7 @@
 
   <!-- Mobile menu -->
   {#if isMenuOpen}
-    <div class="md:hidden">
+    <div class="lg:hidden">
       <div class="space-y-1 px-2 pb-3 pt-2">
         <a
           href="/"

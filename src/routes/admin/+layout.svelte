@@ -81,7 +81,7 @@
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
   <!-- Mobile header -->
   <div
-    class="lg:hidden bg-white dark:bg-gray-800 shadow p-4 flex justify-between items-center"
+    class="md:hidden bg-white dark:bg-gray-800 shadow p-4 flex justify-between items-center"
   >
     <div class="flex items-center">
       <span class="font-bold text-primary text-xl">BrightBroom</span>
@@ -102,10 +102,15 @@
     <aside
       class={`
       bg-white dark:bg-gray-800 shadow
-      ${showMobileMenu ? "block" : "hidden"} 
-      lg:block lg:w-64 lg:fixed lg:inset-y-0 overflow-y-auto
+      ${showMobileMenu ? "block" : "hidden"}
+      md:block md:fixed md:inset-y-0 md:w-20 lg:w-64 overflow-y-auto overflow-x-hidden
     `}
     >
+      <!-- Compact logo for tablet icon rail -->
+      <div class="hidden md:flex lg:hidden p-4 justify-center">
+        <span class="font-bold text-primary text-2xl">B</span>
+      </div>
+      <!-- Full logo for desktop -->
       <div class="p-4 hidden lg:flex items-center">
         <span class="font-bold text-primary text-xl">BrightBroom</span>
         <span class="ml-2 font-semibold text-gray-900 dark:text-white"
@@ -117,8 +122,10 @@
         {#each navItems as item}
           <a
             href={item.href}
+            title={item.label}
             class={`
-              flex items-center px-4 py-2 rounded-lg text-sm font-medium border-l-2 transition-colors duration-150
+              flex items-center rounded-lg py-2 px-4 text-sm font-medium border-l-2 transition-colors duration-150
+              md:justify-center md:px-2 lg:justify-start lg:px-4
               ${
                 isActive(item.href)
                   ? "border-primary bg-primary-50 text-primary dark:bg-primary-900/20"
@@ -126,15 +133,18 @@
               }
             `}
           >
-            <svelte:component this={item.icon} class="mr-3 h-5 w-5" />
-            {item.label}
+            <svelte:component
+              this={item.icon}
+              class="h-5 w-5 flex-shrink-0 mr-3 md:mr-0 lg:mr-3"
+            />
+            <span class="md:hidden lg:inline">{item.label}</span>
           </a>
         {/each}
       </nav>
     </aside>
 
     <!-- Main content -->
-    <main class="lg:ml-64 flex-1">
+    <main class="md:ml-20 lg:ml-64 flex-1">
       <div class="max-w-7xl mx-auto px-4 py-6">
         <slot />
       </div>
