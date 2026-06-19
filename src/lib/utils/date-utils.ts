@@ -30,6 +30,49 @@ export function parseDateTimeString(dateTimeStr: string | Date): Date {
 }
 
 /**
+ * Converts a Date or datetime string to a naive wall-clock string
+ * in the format "YYYY-MM-DD HH:mm:ss" for storage in a
+ * `timestamp without time zone` column.
+ *
+ * Booking times are South African wall-clock times (e.g. "08:00"), not
+ * instants. Storing them as a naive string keeps the value identical
+ * regardless of the timezone of the server that reads/writes it, which
+ * avoids the UTC-vs-SAST shift you get when round-tripping through a
+ * JS Date instant on a UTC production server.
+ */
+export function toNaiveDateTimeString(value: string | Date): string {
+  const date = parseDateTimeString(value);
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+    `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+  );
+}
+
+/** Fixed South African Standard Time offset. SA has no daylight saving, so this is always UTC+2. */
+const SAST_OFFSET_MS = 2 * 60 * 60 * 1000;
+
+/**
+ * Returns the South African wall-clock time of an instant (default: now) as a
+ * naive "YYYY-MM-DD HH:mm:ss" string. Use this to build query bounds that
+ * compare against the naive `scheduledDate` column, so the comparison is
+ * correct regardless of the server's timezone (UTC in production).
+ *
+ * The output is fixed-width and zero-padded, so lexicographic comparison of
+ * two such strings matches chronological order.
+ */
+export function instantToSASTString(instant: Date = new Date()): string {
+  const shifted = new Date(instant.getTime() + SAST_OFFSET_MS);
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  return (
+    `${shifted.getUTCFullYear()}-${pad(shifted.getUTCMonth() + 1)}-${pad(shifted.getUTCDate())} ` +
+    `${pad(shifted.getUTCHours())}:${pad(shifted.getUTCMinutes())}:${pad(shifted.getUTCSeconds())}`
+  );
+}
+
+/**
  * Formats a date string or Date object to a localized date string
  */
 export function formatDate(dateStr: string | Date): string {

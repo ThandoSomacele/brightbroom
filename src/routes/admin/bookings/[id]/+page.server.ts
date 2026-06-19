@@ -718,7 +718,7 @@ export const actions: Actions = {
       const emailData = {
         id: bookingInfo.id,
         service: { name: serviceData[0]?.name || "Cleaning Service" },
-        scheduledDate: bookingInfo.scheduledDate.toISOString(),
+        scheduledDate: bookingInfo.scheduledDate,
         address: addressData[0] || { street: "", city: "", state: "", zipCode: "" },
         originalCleaner: originalCleanerFirstName && originalCleanerLastName
           ? { firstName: originalCleanerFirstName, lastName: originalCleanerLastName }

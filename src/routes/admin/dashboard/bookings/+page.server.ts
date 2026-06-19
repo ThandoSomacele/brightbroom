@@ -60,14 +60,11 @@ export const load: PageServerLoad = async ({ url }) => {
     }
     
     if (dateStart) {
-      const startDate = new Date(dateStart);
-      query = query.where(gte(booking.scheduledDate, startDate));
+      query = query.where(gte(booking.scheduledDate, `${dateStart} 00:00:00`));
     }
     
     if (dateEnd) {
-      const endDate = new Date(dateEnd);
-      endDate.setHours(23, 59, 59, 999); // End of the day
-      query = query.where(lte(booking.scheduledDate, endDate));
+      query = query.where(lte(booking.scheduledDate, `${dateEnd} 23:59:59`));
     }
     
     // Clone the query for counting total
@@ -98,14 +95,11 @@ export const load: PageServerLoad = async ({ url }) => {
     }
     
     if (dateStart) {
-      const startDate = new Date(dateStart);
-      countQuery.where(gte(booking.scheduledDate, startDate));
+      countQuery.where(gte(booking.scheduledDate, `${dateStart} 00:00:00`));
     }
     
     if (dateEnd) {
-      const endDate = new Date(dateEnd);
-      endDate.setHours(23, 59, 59, 999); // End of the day
-      countQuery.where(lte(booking.scheduledDate, endDate));
+      countQuery.where(lte(booking.scheduledDate, `${dateEnd} 23:59:59`));
     }
     
     // Execute both queries

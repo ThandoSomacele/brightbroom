@@ -3,6 +3,7 @@ import { db } from '$lib/server/db';
 import { booking } from '$lib/server/db/schema';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { eq, and, or } from 'drizzle-orm';
+import { instantToSASTString } from '$lib/utils/date-utils';
 import type { Actions, PageServerLoad } from './$types';
 
 // Redirect if accessed directly
@@ -41,9 +42,8 @@ export const actions: Actions = {
       
       const currentBooking = bookings[0];
       
-      // Check if booking is in the past
-      const now = new Date();
-      if (currentBooking.scheduledDate < now) {
+      // Check if booking is in the past (compare naive SAST wall-clock strings)
+      if (currentBooking.scheduledDate < instantToSASTString()) {
         return fail(400, { error: 'Cannot cancel a past booking' });
       }
       

@@ -2,7 +2,8 @@
 <script lang="ts">
   import { Search, Filter, Download, Calendar, MapPin, User, Clock, ArrowRight, ArrowLeft } from 'lucide-svelte';
   import Button from '$lib/components/ui/Button.svelte';
-  
+  import { parseDateTimeString } from '$lib/utils/date-utils';
+
   export let data;
   let { bookings, pagination, filters } = data;
   
@@ -25,7 +26,7 @@
   
   // Format date function
   function formatDate(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     return date.toLocaleDateString('en-ZA', {
       year: 'numeric',
       month: 'short',
@@ -35,7 +36,7 @@
   
   // Format time function
   function formatTime(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     return date.toLocaleTimeString('en-ZA', {
       hour: '2-digit',
       minute: '2-digit'

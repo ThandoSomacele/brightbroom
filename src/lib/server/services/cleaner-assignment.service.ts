@@ -3,6 +3,7 @@ import { db } from "$lib/server/db";
 import { address, booking, cleanerProfile, user } from "$lib/server/db/schema";
 import { getDistanceFromLatLonInKm } from "$lib/utils/serviceAreaValidator";
 import { and, eq, gte, lt, ne, sql } from "drizzle-orm";
+import { toNaiveDateTimeString } from "$lib/utils/date-utils";
 import { sendCleanerAssignmentNotifications } from "./notification.service";
 
 /**
@@ -148,11 +149,11 @@ export const cleanerAssignmentService = {
             // Same day
             gte(
               booking.scheduledDate,
-              new Date(new Date(startTime).setHours(0, 0, 0, 0)),
+              toNaiveDateTimeString(new Date(new Date(startTime).setHours(0, 0, 0, 0))),
             ),
             lt(
               booking.scheduledDate,
-              new Date(new Date(startTime).setHours(23, 59, 59, 999)),
+              toNaiveDateTimeString(new Date(new Date(startTime).setHours(23, 59, 59, 999))),
             ),
             // Not cancelled
             ne(booking.status, "CANCELLED"),

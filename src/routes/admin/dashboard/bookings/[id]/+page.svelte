@@ -3,7 +3,8 @@
   import { enhance } from '$app/forms';
   import { Calendar, MapPin, User, Clock, CreditCard, Home, MessageSquare, ChevronLeft } from 'lucide-svelte';
   import Button from '$lib/components/ui/Button.svelte';
-  
+  import { parseDateTimeString } from '$lib/utils/date-utils';
+
   export let data;
   const { booking, availableCleaners } = data;
   export let form;
@@ -16,7 +17,7 @@
   
   // Format date function
   function formatDate(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     return date.toLocaleDateString('en-ZA', {
       weekday: 'long',
       year: 'numeric',
@@ -27,7 +28,7 @@
   
   // Format time function
   function formatTime(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     return date.toLocaleTimeString('en-ZA', {
       hour: '2-digit',
       minute: '2-digit'

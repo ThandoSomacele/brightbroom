@@ -302,7 +302,7 @@ export const cleanerEarningsService = {
     upcomingBookingsCount: number;
     upcomingBookings: Array<{
       id: string;
-      scheduledDate: Date;
+      scheduledDate: string;
       price: number;
       status: string;
       estimatedPayout: number;

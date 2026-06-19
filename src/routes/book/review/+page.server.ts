@@ -7,7 +7,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { sendBookingConfirmationEmail } from '$lib/server/email-service';
 import { addressService } from '$lib/server/services/address.service';
 import { couponService } from '$lib/server/services/coupon.service';
-import { parseDateTimeString } from '$lib/utils/date-utils';
+import { toNaiveDateTimeString } from '$lib/utils/date-utils';
 import { getGuestBookingData, storeGuestBookingData } from '$lib/server/guest-booking';
 import { calculateCleaningPrice, validateRoomSelection } from '$lib/utils/pricing';
 
@@ -309,7 +309,9 @@ export const actions: Actions = {
       }
 
       // One-time booking logic - scheduledDate is guaranteed to exist here (validated above)
-      const scheduledDateObj = new Date(parseDateTimeString(scheduledDate!));
+      // Store as a naive wall-clock string so the time is not shifted by the
+      // server timezone (UTC in production) on read-back.
+      const scheduledDateStr = toNaiveDateTimeString(scheduledDate!);
 
       // Validate and calculate coupon discount (only for authenticated users)
       let validatedCouponId: string | null = null;
@@ -351,7 +353,7 @@ export const actions: Actions = {
         addressId: addressData ? addressId : null,
         cleanerId: cleanerId,
         status: 'PENDING' as const,
-        scheduledDate: scheduledDateObj,
+        scheduledDate: scheduledDateStr,
         duration: priceBreakdown.totalDurationMinutes,
         price: finalBookingPrice.toFixed(2),
         bedroomCount,
@@ -444,7 +446,7 @@ export const actions: Actions = {
             name: 'General Clean',
             description: `${bedroomCount} bedroom${bedroomCount > 1 ? 's' : ''}, ${bathroomCount} bathroom${bathroomCount > 1 ? 's' : ''}${selectedAddons.length > 0 ? ' + ' + selectedAddons.length + ' add-on' + (selectedAddons.length > 1 ? 's' : '') : ''}`
           },
-          scheduledDate: scheduledDateObj.toISOString(),
+          scheduledDate: scheduledDateStr,
           price: newBooking.price,
           address: emailAddress,
           // Room-based pricing details

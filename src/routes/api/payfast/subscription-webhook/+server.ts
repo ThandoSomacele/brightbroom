@@ -7,6 +7,7 @@ import { subscription, subscriptionPayment, booking } from '$lib/server/db/schem
 import { payFastSubscriptionService } from '$lib/server/services/payfast-subscription';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
+import { toNaiveDateTimeString } from '$lib/utils/date-utils';
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
@@ -82,12 +83,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
       // Create a booking for the next scheduled cleaning
       const bookingId = crypto.randomBytes(16).toString('hex');
-      const scheduledDate = calculateNextCleaningDate(
+      const scheduledDate = toNaiveDateTimeString(calculateNextCleaningDate(
         subscriptionData.frequency,
         subscriptionData.preferredDays || [],
         subscriptionData.monthlyDates || [],
         subscriptionData.preferredTimeSlot || '09:00-12:00'
-      );
+      ));
 
       await db.insert(booking).values({
         id: bookingId,

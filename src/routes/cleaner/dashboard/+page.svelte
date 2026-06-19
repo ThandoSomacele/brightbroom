@@ -4,6 +4,7 @@
   import { CustomerSkeleton } from '$lib/components/ui/skeletons';
   import StatCard from '$lib/components/ui/StatCard.svelte';
   import EmptyState from '$lib/components/ui/EmptyState.svelte';
+  import { parseDateTimeString } from '$lib/utils/date-utils';
 
   export let data;
 
@@ -17,7 +18,7 @@
 
   // Format date
   function formatDate(dateString: string | Date): string {
-    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    const date = typeof dateString === 'string' ? parseDateTimeString(dateString) : dateString;
     return date.toLocaleDateString('en-ZA', {
       weekday: 'long',
       year: 'numeric',
@@ -28,7 +29,7 @@
 
   // Format time
   function formatTime(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     return date.toLocaleTimeString('en-ZA', {
       hour: '2-digit',
       minute: '2-digit'

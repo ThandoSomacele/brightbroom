@@ -2,6 +2,7 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
+  import { parseDateTimeString } from "$lib/utils/date-utils";
   import {
     Calendar,
     ChevronLeft,
@@ -26,7 +27,7 @@
 
   // Format date
   function formatDate(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     return date.toLocaleDateString("en-ZA", {
       weekday: "long",
       year: "numeric",
@@ -37,7 +38,7 @@
 
   // Format time
   function formatTime(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     return date.toLocaleTimeString("en-ZA", {
       hour: "2-digit",
       minute: "2-digit",
@@ -77,14 +78,14 @@
 
   // Check if booking is upcoming (in the future)
   function isUpcoming(dateString: string): boolean {
-    const bookingDate = new Date(dateString);
+    const bookingDate = parseDateTimeString(dateString);
     const now = new Date();
     return bookingDate > now;
   }
 
   // Calculate time relative to now
   function getRelativeTime(dateString: string): string {
-    const bookingDate = new Date(dateString);
+    const bookingDate = parseDateTimeString(dateString);
     const now = new Date();
     const diffMs = bookingDate.getTime() - now.getTime();
 
@@ -117,7 +118,7 @@
 
   // Format relative time for communications
   function formatRelativeTime(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));

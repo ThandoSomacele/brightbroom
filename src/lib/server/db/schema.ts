@@ -284,7 +284,10 @@ export const booking = pgTable("booking", {
     .references(() => service.id),
   cleanerId: text("cleaner_id").references(() => user.id),
   status: bookingStatusEnum("status").default("PENDING").notNull(),
-  scheduledDate: timestamp("scheduled_date", { mode: "date" }).notNull(),
+  // Stored as a naive wall-clock string (SAST). Using mode "string" keeps the
+  // value timezone-independent: an 8am booking is read back as "08:00" whether
+  // the server runs in SAST (local dev) or UTC (production). See date-utils.ts.
+  scheduledDate: timestamp("scheduled_date", { mode: "string" }).notNull(),
   duration: integer("duration").notNull(), // Duration in minutes
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   notes: text("notes"),

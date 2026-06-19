@@ -5,6 +5,7 @@
   import Skeleton from '$lib/components/ui/Skeleton.svelte';
   import { Calendar, Filter, MapPin, Search, X } from 'lucide-svelte';
   import EmptyState from '$lib/components/ui/EmptyState.svelte';
+  import { parseDateTimeString } from '$lib/utils/date-utils';
 
   export let data;
 
@@ -19,7 +20,7 @@
   
   // Format date
   function formatDate(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     return date.toLocaleDateString('en-ZA', {
       weekday: 'long',
       year: 'numeric',
@@ -30,7 +31,7 @@
   
   // Format time
   function formatTime(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     return date.toLocaleTimeString('en-ZA', {
       hour: '2-digit',
       minute: '2-digit'

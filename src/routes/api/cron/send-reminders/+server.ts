@@ -4,6 +4,7 @@ import { address, booking, service, user } from "$lib/server/db/schema";
 import { sendBookingReminderEmail } from "$lib/server/email-service";
 import { json } from "@sveltejs/kit";
 import { and, between, eq } from "drizzle-orm";
+import { instantToSASTString } from "$lib/utils/date-utils";
 import type { RequestHandler } from "./$types";
 
 /**
@@ -58,7 +59,7 @@ export const GET: RequestHandler = async ({ url, request }) => {
       .where(
         and(
           eq(booking.status, "CONFIRMED"),
-          between(booking.scheduledDate, lowerBound, upperBound),
+          between(booking.scheduledDate, instantToSASTString(lowerBound), instantToSASTString(upperBound)),
         ),
       );
 

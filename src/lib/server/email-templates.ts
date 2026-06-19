@@ -1014,7 +1014,7 @@ export function getPaymentReceiptTemplate(
     day: "numeric",
   });
 
-  const scheduledDate = new Date(paymentDetails.booking.scheduledDate);
+  const scheduledDate = parseDateTimeString(paymentDetails.booking.scheduledDate);
   const formattedScheduledDate = scheduledDate.toLocaleDateString("en-ZA", {
     weekday: "long",
     year: "numeric",

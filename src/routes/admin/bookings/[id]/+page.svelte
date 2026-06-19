@@ -7,6 +7,7 @@
   import Button from "$lib/components/ui/Button.svelte";
   import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
   import { calculatePayout } from "$lib/utils/payout-calculator";
+  import { parseDateTimeString } from "$lib/utils/date-utils";
   import {
     AlertTriangle,
     Calendar,
@@ -78,7 +79,7 @@
 
   // Format date function
   function formatDate(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     return date.toLocaleDateString("en-ZA", {
       weekday: "long",
       year: "numeric",
@@ -89,7 +90,7 @@
 
   // Format time function
   function formatTime(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     return date.toLocaleTimeString("en-ZA", {
       hour: "2-digit",
       minute: "2-digit",
@@ -176,7 +177,7 @@
 
   // Format relative time (for notes/comments)
   function formatRelativeTime(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
