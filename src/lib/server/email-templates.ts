@@ -3760,3 +3760,129 @@ This email was sent to ${recipientEmail}.
     text,
   };
 }
+
+/**
+ * Internal notification sent to the operations inbox when a booking has been
+ * successfully paid. Gives the team everything needed to action/assign it.
+ */
+export function getAdminBookingPaidTemplate(
+  booking: {
+    id: string;
+    customerName: string;
+    customerEmail: string;
+    customerPhone?: string;
+    service: string;
+    scheduledDate: string | Date;
+    bedroomCount?: number;
+    bathroomCount?: number;
+    durationMinutes?: number;
+    price: string | number;
+    address: { street: string; city: string; state: string; zipCode: string };
+    notes?: string;
+  },
+  data: EmailTemplateData,
+): { subject: string; html: string; text: string } {
+  const reference = getBookingReference(booking.id);
+  const adminUrl = `${data.appUrl}/admin/bookings/${booking.id}`;
+  const scheduledDate = parseDateTimeString(booking.scheduledDate);
+  const dateString = scheduledDate.toLocaleDateString("en-ZA", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const timeString = scheduledDate.toLocaleTimeString("en-ZA", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const priceFormatted = `R${Number(booking.price).toFixed(2)}`;
+  const rooms = [
+    booking.bedroomCount != null ? `${booking.bedroomCount} bedroom${booking.bedroomCount === 1 ? "" : "s"}` : null,
+    booking.bathroomCount != null ? `${booking.bathroomCount} bathroom${booking.bathroomCount === 1 ? "" : "s"}` : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  const subject = `New paid booking ${reference} — ${dateString} at ${timeString}`;
+
+  const row = (label: string, value: string) => `
+        <div class="detail-row">
+          <span class="label">${label}:</span>
+          <span>${value}</span>
+        </div>`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Paid Booking</title>
+  <style>
+    body, html { margin: 0; padding: 0; font-family: Arial, sans-serif; line-height: 1.6; color: #333333; }
+    .email-container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; padding: 20px 0; background-color: ${data.primaryColor}; }
+    .content { padding: 30px 20px; background-color: #ffffff; }
+    .submission-details { background-color: #f9f9f9; border-radius: 4px; padding: 20px; margin: 20px 0; }
+    .detail-row { margin-bottom: 10px; border-bottom: 1px solid #eeeeee; padding-bottom: 10px; }
+    .detail-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .label { font-weight: bold; color: #666666; }
+    .button { display: inline-block; background-color: ${data.primaryColor}; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; margin-top: 10px; }
+    .footer { font-size: 12px; text-align: center; color: #888888; padding: 20px; }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1 style="color: #ffffff; margin: 0;">${data.brandName}</h1>
+    </div>
+    <div class="content">
+      <h2>New paid booking ${reference}</h2>
+      <p>A booking has been paid and confirmed. Details below.</p>
+
+      <div class="submission-details">
+        ${row("Reference", reference)}
+        ${row("Customer", `${booking.customerName} (${escapeHtml(booking.customerEmail)})`)}
+        ${booking.customerPhone ? row("Phone", booking.customerPhone) : ""}
+        ${row("Service", booking.service)}
+        ${rooms ? row("Rooms", rooms) : ""}
+        ${row("Date", dateString)}
+        ${row("Time", timeString)}
+        ${booking.durationMinutes != null ? row("Duration", `${booking.durationMinutes} minutes`) : ""}
+        ${row("Location", `${booking.address.street}, ${booking.address.city}, ${booking.address.state} ${booking.address.zipCode}`)}
+        ${row("Amount paid", priceFormatted)}
+        ${booking.notes ? row("Customer notes", escapeHtml(booking.notes)) : ""}
+      </div>
+
+      <a href="${adminUrl}" class="button">Open in admin</a>
+    </div>
+    <div class="footer">
+      <p>This is an automated internal notification from ${data.brandName}.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const text = [
+    `New paid booking ${reference}`,
+    ``,
+    `Reference: ${reference}`,
+    `Customer: ${booking.customerName} (${booking.customerEmail})`,
+    booking.customerPhone ? `Phone: ${booking.customerPhone}` : null,
+    `Service: ${booking.service}`,
+    rooms ? `Rooms: ${rooms}` : null,
+    `Date: ${dateString}`,
+    `Time: ${timeString}`,
+    booking.durationMinutes != null ? `Duration: ${booking.durationMinutes} minutes` : null,
+    `Location: ${booking.address.street}, ${booking.address.city}, ${booking.address.state} ${booking.address.zipCode}`,
+    `Amount paid: ${priceFormatted}`,
+    booking.notes ? `Customer notes: ${booking.notes}` : null,
+    ``,
+    `Open in admin: ${adminUrl}`,
+  ]
+    .filter((line) => line !== null)
+    .join("\n");
+
+  return { subject, html, text };
+}

@@ -5,6 +5,7 @@ import { Resend } from "resend";
 import { db } from "./db";
 import { adminNote, payment } from "./db/schema";
 import {
+  getAdminBookingPaidTemplate,
   getBookingConfirmationTemplate,
   getBookingReminderTemplate,
   getCleanerApplicationTemplate,
@@ -565,6 +566,60 @@ export async function sendContactFormEmail(
     return true;
   } catch (error) {
     console.error("Error sending contact form email:", error);
+    return false;
+  }
+}
+
+/**
+ * Send an internal notification to the operations inbox when a booking has
+ * been successfully paid. Best-effort: failures are logged, not thrown.
+ */
+export async function sendAdminNewBookingEmail(bookingData: {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+  service: string;
+  scheduledDate: string | Date;
+  bedroomCount?: number;
+  bathroomCount?: number;
+  durationMinutes?: number;
+  price: string | number;
+  address: { street: string; city: string; state: string; zipCode: string };
+  notes?: string;
+}): Promise<boolean> {
+  try {
+    if (!resend) {
+      console.error("Resend API key not configured");
+      return false;
+    }
+
+    const notificationEmail =
+      env.ADMIN_BOOKINGS_EMAIL || "bookings@brightbroom.com";
+
+    const template = getAdminBookingPaidTemplate(bookingData, EMAIL_CONFIG);
+
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: notificationEmail,
+      replyTo: bookingData.customerEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+
+    if (error) {
+      console.error("Resend API error when sending admin booking notification:", error);
+      return false;
+    }
+
+    console.log(
+      `Admin booking notification sent to ${notificationEmail}:`,
+      data?.id,
+    );
+    return true;
+  } catch (error) {
+    console.error("Error sending admin booking notification:", error);
     return false;
   }
 }
