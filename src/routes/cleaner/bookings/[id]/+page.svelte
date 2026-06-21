@@ -18,7 +18,7 @@
   export let data;
   export let form;
 
-  const { bookingDetails, communications } = data;
+  const { bookingDetails, communications, cleanerPayout } = data;
 
   let isSubmittingStatus = false;
   let isSubmittingNote = false;
@@ -51,11 +51,6 @@
       style: "currency",
       currency: "ZAR",
     }).format(amount);
-  }
-
-  // Get cleaner earnings (80% of booking price after fees)
-  function getCleanerEarnings(price: number): number {
-    return price * 0.80;
   }
 
   // Get status badge class
@@ -322,9 +317,7 @@
                 Earnings from this job
               </p>
               <p class="text-xl font-semibold text-primary mt-1">
-                {formatCurrency(
-                  getCleanerEarnings(bookingDetails.booking.price),
-                )}
+                {formatCurrency(cleanerPayout)}
               </p>
             </div>
           </div>
@@ -685,9 +678,7 @@
               >Your earnings:</span
             >
             <span class="font-bold text-primary text-lg"
-              >{formatCurrency(
-                getCleanerEarnings(bookingDetails.booking.price),
-              )}</span
+              >{formatCurrency(cleanerPayout)}</span
             >
           </div>
 

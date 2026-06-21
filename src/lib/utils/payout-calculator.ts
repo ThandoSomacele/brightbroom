@@ -145,6 +145,29 @@ export function calculatePayoutFromStoredFee(
 }
 
 /**
+ * Resolve the cleaner payout for a booking.
+ *
+ * Prefers the actual amount captured on the payment record at payment time;
+ * if that hasn't been populated yet, it estimates from the booking price and
+ * payment method (defaulting to credit card). Money fields are stored as
+ * strings in the DB, so inputs are coerced with Number().
+ */
+export function resolveCleanerPayout(
+  bookingPrice: number | string,
+  paymentMethod?: string | null,
+  storedPayout?: number | string | null,
+): number {
+  if (storedPayout !== null && storedPayout !== undefined && storedPayout !== "") {
+    const stored = Number(storedPayout);
+    if (!Number.isNaN(stored)) return stored;
+  }
+
+  const price = Number(bookingPrice) || 0;
+  const method = (paymentMethod as PaymentMethodType) || "CREDIT_CARD";
+  return calculatePayout(price, method).cleanerPayout;
+}
+
+/**
  * Round a number to two decimal places
  */
 function roundToTwoDecimals(value: number): number {
