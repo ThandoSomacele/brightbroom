@@ -21,3 +21,55 @@ allowBuilds:
   esbuild: true
   sharp: true
   core-js: false
+
+overrides:
+  cookie@<0.7.0: ^0.7.0
+  esbuild@<=0.24.2: ^0.24.3
+  fast-xml-parser@<5.7.0: ^5.7.0
+  fast-xml-parser@>=4.0.0-beta.0 <4.5.4: ^4.5.4
+  fast-xml-parser@>=4.0.0-beta.3 <4.5.5: ^4.5.5
+  fast-xml-parser@>=4.1.3 <4.5.4: ^4.5.4
+  form-data@>=4.0.0 <4.0.6: ^4.0.6
+  js-yaml@<=4.1.1: ^4.1.2
+  minimatch@>=9.0.0 <9.0.6: ^9.0.6
+  minimatch@>=9.0.0 <9.0.7: ^9.0.7
+  postcss@<8.5.10: ^8.5.10
+  uuid@<11.1.1: ^11.1.1
+  vite@<=6.4.1: ^6.4.2
+  vite@<=6.4.2: ^6.4.3
+  vite@>=6.0.0 <=6.4.1: ^6.4.2
+  ws@>=8.0.0 <8.21.0: ^8.21.0
+  # Additional advisories flagged by GitHub Dependabot (not in npm audit DB),
+  # scoped by major so we don't force breaking bumps onto older consumers.
+  minimatch@3: 3.1.4
+  picomatch@2: 2.3.2
+  picomatch@4: 4.0.4
+  yaml@1: 1.10.3
+  yaml@2: 2.8.3
+  diff@4: 4.0.4
+  brace-expansion@1: 1.1.13
+  brace-expansion@2: 2.0.3
+  glob@10: 10.5.0
+  flatted: 3.4.2
+  shell-quote: 1.8.4
+  preact: 10.27.3
+  js-cookie: 3.0.7
+  rollup: 4.59.0
+  ajv@6: 6.14.0
+  "@smithy/config-resolver": 4.4.0
+
+minimumReleaseAgeExclude:
+  - esbuild@0.24.3
+  - cookie@0.7.0
+  - minimatch@9.0.6
+  - minimatch@9.0.7
+  - fast-xml-parser@4.5.4
+  - fast-xml-parser@4.5.5
+  - vite@6.4.2
+  - postcss@8.5.10
+  - fast-xml-parser@5.7.0
+  - uuid@11.1.1
+  - ws@8.21.0
+  - form-data@4.0.6
+  - vite@6.4.3
+  - js-yaml@4.1.2
