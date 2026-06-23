@@ -69,6 +69,31 @@ export const cleanerEarningsService = {
           ),
         );
 
+      // Resolve a payment's fee/commission/payout breakdown. Older payments
+      // don't have these captured on the record (the fields are null), so fall
+      // back to computing them from the amount + method via the canonical
+      // calculatePayout. This keeps the breakdown correct for all bookings.
+      const resolveBreakdown = (pymt: (typeof payments)[number]) => {
+        const gross = Number(pymt.amount) || 0;
+        const method = (pymt.paymentMethod as PaymentMethodType) || "CREDIT_CARD";
+        const estimate = calculatePayout(gross, method);
+        return {
+          gross,
+          fee:
+            pymt.payFastFeeAmount != null
+              ? Number(pymt.payFastFeeAmount)
+              : estimate.payFastFee,
+          commission:
+            pymt.platformCommissionAmount != null
+              ? Number(pymt.platformCommissionAmount)
+              : estimate.commissionAmount,
+          payout:
+            pymt.cleanerPayoutAmount != null
+              ? Number(pymt.cleanerPayoutAmount)
+              : estimate.cleanerPayout,
+        };
+      };
+
       // Calculate totals
       let totalEarnings = 0;
       let totalPayFastFees = 0;
@@ -77,14 +102,15 @@ export const cleanerEarningsService = {
       let pendingPayout = 0;
 
       for (const pymt of payments) {
-        totalEarnings += Number(pymt.amount) || 0;
-        totalPayFastFees += Number(pymt.payFastFeeAmount) || 0;
-        totalCommission += Number(pymt.platformCommissionAmount) || 0;
-        totalPayout += Number(pymt.cleanerPayoutAmount) || 0;
+        const { gross, fee, commission, payout } = resolveBreakdown(pymt);
+        totalEarnings += gross;
+        totalPayFastFees += fee;
+        totalCommission += commission;
+        totalPayout += payout;
 
         // Add to pending payout if not yet paid to cleaner
         if (!pymt.isPaidToProvider) {
-          pendingPayout += Number(pymt.cleanerPayoutAmount) || 0;
+          pendingPayout += payout;
         }
       }
 
@@ -130,19 +156,19 @@ export const cleanerEarningsService = {
         return date >= yearStart;
       });
 
-      // Calculate sums
+      // Calculate sums (using the resolved payout, not the raw nullable field)
       const currentMonthEarnings = currentMonthPayments.reduce(
-        (sum, p) => sum + Number(p.cleanerPayoutAmount || 0),
+        (sum, p) => sum + resolveBreakdown(p).payout,
         0,
       );
 
       const lastMonthEarnings = lastMonthPayments.reduce(
-        (sum, p) => sum + Number(p.cleanerPayoutAmount || 0),
+        (sum, p) => sum + resolveBreakdown(p).payout,
         0,
       );
 
       const yearToDateEarnings = yearToDatePayments.reduce(
-        (sum, p) => sum + Number(p.cleanerPayoutAmount || 0),
+        (sum, p) => sum + resolveBreakdown(p).payout,
         0,
       );
 

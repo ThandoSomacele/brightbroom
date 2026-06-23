@@ -2,6 +2,7 @@
 import { db } from "$lib/server/db";
 import { booking, payment, user } from "$lib/server/db/schema";
 import { cleanerEarningsService } from "$lib/server/services/cleaner-earnings.service";
+import { resolveCleanerPayout } from "$lib/utils/payout-calculator";
 import { error, fail, redirect } from "@sveltejs/kit";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
@@ -116,10 +117,13 @@ export const actions: Actions = {
         return fail(400, { error: "No payments selected for payout" });
       }
       
-      // Calculate total payout amount
-      const payoutResult = await db
+      // Calculate total payout amount. cleanerPayoutAmount may be null on older
+      // payments, so fall back to computing it from amount + method.
+      const selectedPayments = await db
         .select({
-          totalAmount: db.fn.sum(payment.cleanerPayoutAmount)
+          amount: payment.amount,
+          paymentMethod: payment.paymentMethod,
+          cleanerPayoutAmount: payment.cleanerPayoutAmount,
         })
         .from(payment)
         .where(and(
@@ -127,8 +131,11 @@ export const actions: Actions = {
           eq(payment.status, "COMPLETED"),
           eq(payment.isPaidToProvider, false)
         ));
-        
-      const payoutAmount = Number(payoutResult[0]?.totalAmount || 0);
+
+      const payoutAmount = selectedPayments.reduce(
+        (sum, p) => sum + resolveCleanerPayout(p.amount, p.paymentMethod, p.cleanerPayoutAmount),
+        0,
+      );
       
       if (payoutAmount <= 0) {
         return fail(400, { error: "Invalid payout amount or selected payments already processed" });

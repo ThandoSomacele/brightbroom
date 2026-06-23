@@ -1,7 +1,7 @@
 // src/lib/server/services/user.service.ts
 import { db } from '$lib/server/db';
 import { user, address, type User } from '$lib/server/db/schema';
-import { eq, like, or, and, desc } from 'drizzle-orm';
+import { eq, like, or, and, desc, count } from 'drizzle-orm';
 
 /**
  * User service for managing users in the database
@@ -117,7 +117,7 @@ export const userService = {
   async countUsers(params?: { role?: "CUSTOMER" | "CLEANER" | "ADMIN"; search?: string }): Promise<number> {
     const { role, search } = params || {};
 
-    let query = db.select({count: db.fn.count()}).from(user);
+    let query = db.select({ count: count() }).from(user);
 
     if (role) {
       query = query.where(eq(user.role, role));
