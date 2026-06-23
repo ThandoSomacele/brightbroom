@@ -3,6 +3,7 @@ import { db } from "$lib/server/db";
 import { adminNote, booking, payment, address, user } from "$lib/server/db/schema";
 import { sendBookingConfirmationEmail } from "$lib/server/email-service";
 import { postPaymentHooks } from "$lib/server/hooks/post-payment-hooks";
+import { paymentProcessorService } from "$lib/server/services/payment-processor.service";
 import { validateIpnRequest } from "$lib/server/payment";
 import { json } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
@@ -102,6 +103,9 @@ export async function POST({ request }) {
           .where(eq(payment.id, paymentId));
 
         console.log(`[IPN] Updated payment status to COMPLETED for ID: ${paymentId}`);
+
+        // Persist the payout breakdown (PayFast fee, commission, cleaner payout)
+        await paymentProcessorService.ensurePayoutFields(paymentId);
 
         // Update booking status to CONFIRMED
         await db

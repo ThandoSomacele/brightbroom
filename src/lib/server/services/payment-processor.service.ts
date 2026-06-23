@@ -132,9 +132,60 @@ export const paymentProcessorService = {
   },
   
   /**
+   * Ensure a completed payment has its payout breakdown (PayFast fee, platform
+   * commission and cleaner payout) persisted on the record.
+   *
+   * The payment row is created at booking time and later flipped to COMPLETED,
+   * so this back-fills the payout fields at that point. Idempotent: it only
+   * writes when cleanerPayoutAmount is still null, so it's safe to call from
+   * every success path (success redirect + IPN, including IPN retries).
+   *
+   * @param paymentId The payment ID
+   * @returns true if fields were populated (or already present)
+   */
+  async ensurePayoutFields(paymentId: string): Promise<boolean> {
+    try {
+      const [pymt] = await db
+        .select({
+          id: payment.id,
+          amount: payment.amount,
+          paymentMethod: payment.paymentMethod,
+          cleanerPayoutAmount: payment.cleanerPayoutAmount,
+        })
+        .from(payment)
+        .where(eq(payment.id, paymentId))
+        .limit(1);
+
+      if (!pymt) return false;
+      // Already captured - nothing to do.
+      if (pymt.cleanerPayoutAmount != null) return true;
+
+      const gross = Number(pymt.amount) || 0;
+      const method = (pymt.paymentMethod as PaymentMethodType) || "CREDIT_CARD";
+      const breakdown = calculatePayout(gross, method);
+
+      await db
+        .update(payment)
+        .set({
+          platformCommissionRate: (breakdown.commissionRate * 100).toString(),
+          platformCommissionAmount: breakdown.commissionAmount.toString(),
+          payFastFeeAmount: breakdown.payFastFee.toString(),
+          cleanerPayoutAmount: breakdown.cleanerPayout.toString(),
+          updatedAt: new Date(),
+        })
+        .where(eq(payment.id, paymentId));
+
+      return true;
+    } catch (error) {
+      console.error("Error populating payout fields:", error);
+      return false;
+    }
+  },
+
+  /**
    * Process a payment when a booking is marked as completed
    * This handles the case where the booking status changes from CONFIRMED to COMPLETED
-   * 
+   *
    * @param bookingId The booking ID
    * @returns Success status
    */

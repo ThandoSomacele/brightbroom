@@ -9,6 +9,7 @@ import {
   type Payment,
 } from "$lib/server/db/schema";
 import { postPaymentHooks } from "$lib/server/hooks/post-payment-hooks";
+import { paymentProcessorService } from "$lib/server/services/payment-processor.service";
 import crypto from "crypto";
 import { eq } from "drizzle-orm";
 import { env } from "$env/dynamic/private";
@@ -439,6 +440,9 @@ export async function processSuccessfulPayment(
       .where(eq(payment.id, paymentId));
 
     console.log(`Updated payment status to COMPLETED: ${paymentId}`);
+
+    // Persist the payout breakdown (PayFast fee, commission, cleaner payout)
+    await paymentProcessorService.ensurePayoutFields(paymentId);
 
     // Get the booking ID and user info for this payment
     const paymentResult = await db
