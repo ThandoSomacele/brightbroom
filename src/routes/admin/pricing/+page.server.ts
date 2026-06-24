@@ -3,7 +3,24 @@ import { db } from '$lib/server/db';
 import { pricingConfig, addon } from '$lib/server/db/schema';
 import { redirect } from '@sveltejs/kit';
 import { eq, asc } from 'drizzle-orm';
+import { payoutConfigService } from '$lib/server/services/payout-config.service';
+import {
+  type PaymentMethodType,
+  type PayFastFeeRule,
+} from '$lib/utils/payout-calculator';
 import type { Actions, PageServerLoad } from './$types';
+
+// Payment methods shown in the Fees & Commission editor (OTHER is the
+// fallback used for unknown methods and kept editable for completeness).
+const PAYOUT_METHODS: PaymentMethodType[] = [
+  'CREDIT_CARD',
+  'DEBIT_CARD',
+  'EFT',
+  'MOBICRED',
+  'SNAPSCAN',
+  'ZAPPER',
+  'OTHER',
+];
 
 // Helper function to get pricing data
 async function getPricingData() {
@@ -36,9 +53,25 @@ async function getPricingData() {
       bathroomMax: 6,
     };
 
+    // Normalised payout config (commission rate + per-method PayFast fees),
+    // always populated for every method so the editor has complete rows.
+    const payout = payoutConfigService.buildConfig(
+      (config as any)?.platformCommissionRate,
+      (config as any)?.payfastFees,
+    );
+
     return {
       pricingConfig: pricingData,
       addons,
+      payoutConfig: {
+        commissionPercent: Number((payout.commissionRate * 100).toFixed(2)),
+        fees: PAYOUT_METHODS.map((method) => ({
+          method,
+          percent: Number((payout.fees[method].percent * 100).toFixed(3)),
+          fixed: payout.fees[method].fixed,
+          min: payout.fees[method].min ?? null,
+        })),
+      },
     };
   } catch (err) {
     console.error('Error loading pricing config:', err);
@@ -143,6 +176,88 @@ export const actions: Actions = {
     } catch (err) {
       console.error('Error updating pricing config:', err);
       return { success: false, error: 'Failed to update pricing configuration' };
+    }
+  },
+
+  updatePayoutConfig: async ({ request, locals }) => {
+    // Ensure user is authenticated and is admin
+    if (!locals.user || locals.user.role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized' };
+    }
+
+    const formData = await request.formData();
+
+    // Commission rate is entered as a percentage (e.g. 20 for 20%).
+    const commissionPercent = parseFloat(
+      formData.get('commissionPercent')?.toString() || '',
+    );
+    if (
+      Number.isNaN(commissionPercent) ||
+      commissionPercent < 0 ||
+      commissionPercent > 100
+    ) {
+      return {
+        success: false,
+        error: 'Commission rate must be between 0 and 100',
+      };
+    }
+
+    // Build the per-method fee map. Percent is entered as a percentage and
+    // stored as a fraction to match PayoutConfig.fees (see payout-calculator).
+    const fees: Record<string, PayFastFeeRule> = {};
+    for (const method of PAYOUT_METHODS) {
+      const percentRaw = formData.get(`fee_${method}_percent`)?.toString();
+      const fixedRaw = formData.get(`fee_${method}_fixed`)?.toString();
+      const minRaw = formData.get(`fee_${method}_min`)?.toString();
+
+      const percent = parseFloat(percentRaw || '');
+      const fixed = parseFloat(fixedRaw || '');
+      const min = minRaw === undefined || minRaw === '' ? undefined : parseFloat(minRaw);
+
+      if (
+        Number.isNaN(percent) || percent < 0 ||
+        Number.isNaN(fixed) || fixed < 0 ||
+        (min !== undefined && (Number.isNaN(min) || min < 0))
+      ) {
+        return {
+          success: false,
+          error: `Invalid fee values for ${method.replace(/_/g, ' ')}`,
+        };
+      }
+
+      fees[method] = { percent: percent / 100, fixed };
+      if (min !== undefined) fees[method].min = min;
+    }
+
+    try {
+      const existingConfig = await db
+        .select({ id: pricingConfig.id })
+        .from(pricingConfig)
+        .where(eq(pricingConfig.id, 'default'));
+
+      const values = {
+        platformCommissionRate: commissionPercent.toFixed(2),
+        payfastFees: fees,
+        updatedAt: new Date(),
+      };
+
+      if (existingConfig.length > 0) {
+        await db
+          .update(pricingConfig)
+          .set(values)
+          .where(eq(pricingConfig.id, 'default'));
+      } else {
+        // Insert relies on schema defaults for the booking-price columns.
+        await db.insert(pricingConfig).values({ id: 'default', ...values });
+      }
+
+      return {
+        success: true,
+        message: 'Fees & commission updated successfully',
+      };
+    } catch (err) {
+      console.error('Error updating payout config:', err);
+      return { success: false, error: 'Failed to update fees & commission' };
     }
   },
 

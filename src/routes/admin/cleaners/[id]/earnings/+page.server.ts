@@ -7,6 +7,24 @@ import { error, fail, redirect } from "@sveltejs/kit";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
+/**
+ * Run an optional query, degrading to a fallback (and logging) on failure.
+ * Keeps the earnings page rendering even if a secondary query fails — e.g. a
+ * payout column missing on an un-migrated database — instead of returning a 500.
+ */
+async function safeQuery<T>(
+  promise: PromiseLike<T>,
+  fallback: T,
+  label: string,
+): Promise<T> {
+  try {
+    return await promise;
+  } catch (err) {
+    console.error(`[cleaner-earnings] ${label} failed:`, err);
+    return fallback;
+  }
+}
+
 export const load: PageServerLoad = async ({ params, locals }) => {
   // Ensure admin access
   if (!locals.user || locals.user.role !== "ADMIN") {
@@ -18,28 +36,28 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     throw error(404, "Cleaner not found");
   }
 
-  try {
-    // Get cleaner details
-    const userResults = await db
-      .select()
-      .from(user)
-      .where(and(eq(user.id, cleanerId), eq(user.role, "CLEANER")))
-      .limit(1);
+  // Get cleaner details. A genuine "not found" must surface as a 404 — it is
+  // intentionally NOT wrapped in a try/catch that would mask it as a 500.
+  const userResults = await db
+    .select()
+    .from(user)
+    .where(and(eq(user.id, cleanerId), eq(user.role, "CLEANER")))
+    .limit(1);
 
-    if (userResults.length === 0) {
-      throw error(404, "Cleaner not found");
-    }
+  if (userResults.length === 0) {
+    throw error(404, "Cleaner not found");
+  }
 
-    const cleanerData = userResults[0];
+  const cleanerData = userResults[0];
 
-    // Get earnings summary
-    const earningsSummary = await cleanerEarningsService.getCleanerEarningsSummary(cleanerId);
+  // Earnings summaries already fail-safe internally (return defaults on error).
+  const earningsSummary = await cleanerEarningsService.getCleanerEarningsSummary(cleanerId);
+  const upcomingEarnings = await cleanerEarningsService.getUpcomingEarnings(cleanerId);
 
-    // Get upcoming/potential earnings
-    const upcomingEarnings = await cleanerEarningsService.getUpcomingEarnings(cleanerId);
-
-    // Get payment history with PayFast fee
-    const paymentHistory = await db
+  // Payment history with PayFast fee — guarded so a query error degrades to an
+  // empty list rather than crashing the page.
+  const paymentHistory = await safeQuery(
+    db
       .select({
         id: payment.id,
         bookingId: payment.bookingId,
@@ -60,10 +78,14 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         eq(payment.status, "COMPLETED")
       ))
       .orderBy(desc(payment.createdAt))
-      .limit(50);
+      .limit(50),
+    [],
+    "paymentHistory",
+  );
 
-    // Get pending payouts
-    const pendingPayouts = await db
+  // Pending payouts — same guarding.
+  const pendingPayouts = await safeQuery(
+    db
       .select({
         id: payment.id,
         bookingId: payment.bookingId,
@@ -77,19 +99,18 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         eq(payment.status, "COMPLETED"),
         eq(payment.isPaidToProvider, false)
       ))
-      .orderBy(desc(payment.createdAt));
+      .orderBy(desc(payment.createdAt)),
+    [],
+    "pendingPayouts",
+  );
 
-    return {
-      cleaner: cleanerData,
-      earnings: earningsSummary,
-      upcomingEarnings,
-      paymentHistory,
-      pendingPayouts,
-    };
-  } catch (err) {
-    console.error("Error loading cleaner earnings:", err);
-    throw error(500, "Error loading cleaner earnings");
-  }
+  return {
+    cleaner: cleanerData,
+    earnings: earningsSummary,
+    upcomingEarnings,
+    paymentHistory,
+    pendingPayouts,
+  };
 };
 
 export const actions: Actions = {

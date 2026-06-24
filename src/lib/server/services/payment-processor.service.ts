@@ -3,6 +3,7 @@ import { db } from "$lib/server/db";
 import { booking, payment } from "$lib/server/db/schema";
 import { eq } from "drizzle-orm";
 import { cleanerEarningsService } from "./cleaner-earnings.service";
+import { payoutConfigService } from "./payout-config.service";
 import {
   calculatePayout,
   PLATFORM_COMMISSION_RATE,
@@ -75,9 +76,10 @@ export const paymentProcessorService = {
       // Map external payment method to internal type for fee calculation
       const paymentMethodForCalc = this.mapPaymentMethod(paymentData.paymentMethod) as PaymentMethodType;
 
-      // Calculate payout breakdown including PayFast fees
-      // Formula: PayFast fee deducted first, then 20% commission on net amount
-      const payoutBreakdown = calculatePayout(paymentData.amount, paymentMethodForCalc);
+      // Calculate payout breakdown including PayFast fees, using the admin-
+      // configured commission rate and fee schedule (falls back to defaults).
+      const payoutConfig = await payoutConfigService.getPayoutConfig();
+      const payoutBreakdown = calculatePayout(paymentData.amount, paymentMethodForCalc, payoutConfig);
 
       const platformCommissionRate = payoutBreakdown.commissionRate * 100; // Store as percentage (20.00)
       const platformCommissionAmount = payoutBreakdown.commissionAmount;
@@ -162,7 +164,8 @@ export const paymentProcessorService = {
 
       const gross = Number(pymt.amount) || 0;
       const method = (pymt.paymentMethod as PaymentMethodType) || "CREDIT_CARD";
-      const breakdown = calculatePayout(gross, method);
+      const payoutConfig = await payoutConfigService.getPayoutConfig();
+      const breakdown = calculatePayout(gross, method, payoutConfig);
 
       await db
         .update(payment)

@@ -68,14 +68,55 @@
   let originalCleanerFirstName = "";
   let originalCleanerLastName = "";
 
-  // Calculate estimated payout (used when payment is not yet completed)
+  // Calculate estimated payout (used when payment is not yet completed, or as a
+  // fallback for older completed payments whose breakdown was never persisted)
   $: estimatedPayout = booking ? calculatePayout(
     Number(booking.price),
     booking.payment?.paymentMethod || "CREDIT_CARD"
-  ) : { totalFees: 0, platformCommission: 0, cleanerPayout: 0 };
+  ) : {
+    bookingAmount: 0, payFastFee: 0, netAfterFees: 0,
+    commissionRate: 0.2, commissionAmount: 0, cleanerPayout: 0,
+  };
 
   // Determine if we have actual payment data or using estimates
   $: hasCompletedPayment = booking?.payment?.status === "COMPLETED";
+
+  // A stored money value is only trustworthy when present and > 0; otherwise we
+  // fall back to the computed estimate. This fixes older completed payments that
+  // show R0 because their payout fields were never back-filled.
+  function storedAmount(value: unknown): number | null {
+    const n = Number(value);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }
+
+  // Unified payout breakdown: prefers persisted amounts, falls back to estimate.
+  $: payoutBreakdown = (() => {
+    const p = booking?.payment;
+    const est = estimatedPayout;
+    const gross =
+      (hasCompletedPayment ? storedAmount(p?.amount) : null) ??
+      Number(booking?.price ?? 0);
+    const payFastFee =
+      (hasCompletedPayment ? storedAmount(p?.payFastFeeAmount) : null) ??
+      est.payFastFee;
+    const commissionAmount =
+      (hasCompletedPayment ? storedAmount(p?.platformCommissionAmount) : null) ??
+      est.commissionAmount;
+    const cleanerPayout =
+      (hasCompletedPayment ? storedAmount(p?.cleanerPayoutAmount) : null) ??
+      est.cleanerPayout;
+    const commissionRate =
+      (hasCompletedPayment ? storedAmount(p?.platformCommissionRate) : null) ??
+      Math.round(est.commissionRate * 100);
+    return {
+      gross,
+      payFastFee,
+      netAfterFees: Math.round((gross - payFastFee) * 100) / 100,
+      commissionAmount,
+      cleanerPayout,
+      commissionRate,
+    };
+  })();
 
   // Format date function
   function formatDate(dateString: string): string {
@@ -857,7 +898,7 @@
         <div class="flex justify-between items-center">
           <span class="text-gray-600 dark:text-gray-300">Booking Total:</span>
           <span class="font-medium text-gray-900 dark:text-white">
-            {formatPrice(hasCompletedPayment ? booking.payment.amount : booking.price)}
+            {formatPrice(payoutBreakdown.gross)}
           </span>
         </div>
 
@@ -865,7 +906,7 @@
         <div class="flex justify-between items-center">
           <span class="text-gray-600 dark:text-gray-300">PayFast Fee:</span>
           <span class="text-red-600 dark:text-red-400">
-            -{formatPrice(hasCompletedPayment ? (booking.payment.payFastFeeAmount || 0) : estimatedPayout.payFastFee)}
+            -{formatPrice(payoutBreakdown.payFastFee)}
           </span>
         </div>
 
@@ -873,20 +914,17 @@
         <div class="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
           <span class="text-gray-600 dark:text-gray-300">Net After Fees:</span>
           <span class="font-medium text-gray-900 dark:text-white">
-            {formatPrice(hasCompletedPayment
-              ? (Number(booking.payment.amount) - Number(booking.payment.payFastFeeAmount || 0))
-              : estimatedPayout.netAfterFees
-            )}
+            {formatPrice(payoutBreakdown.netAfterFees)}
           </span>
         </div>
 
         <!-- Platform Commission -->
         <div class="flex justify-between items-center">
           <span class="text-gray-600 dark:text-gray-300">
-            BrightBroom Commission ({hasCompletedPayment ? (booking.payment.platformCommissionRate || 20) : 20}%):
+            BrightBroom Commission ({payoutBreakdown.commissionRate}%):
           </span>
           <span class="text-red-600 dark:text-red-400">
-            -{formatPrice(hasCompletedPayment ? (booking.payment.platformCommissionAmount || 0) : estimatedPayout.commissionAmount)}
+            -{formatPrice(payoutBreakdown.commissionAmount)}
           </span>
         </div>
 
@@ -894,7 +932,7 @@
         <div class="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
           <span class="font-medium text-gray-900 dark:text-white">Cleaner Payout:</span>
           <span class="font-bold text-lg text-primary">
-            {formatPrice(hasCompletedPayment ? (booking.payment.cleanerPayoutAmount || 0) : estimatedPayout.cleanerPayout)}
+            {formatPrice(payoutBreakdown.cleanerPayout)}
           </span>
         </div>
 

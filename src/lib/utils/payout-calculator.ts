@@ -26,9 +26,46 @@ export interface PayoutBreakdown {
 }
 
 /**
+ * Fee rule for a single payment method.
+ * fee = (amount * percent) + fixed, clamped to a minimum of `min` when set.
+ */
+export interface PayFastFeeRule {
+  percent: number; // fraction, e.g. 0.035 for 3.5%
+  fixed: number;   // flat amount in Rands, e.g. 2.00
+  min?: number;    // minimum fee in Rands, e.g. 2.00 for EFT
+}
+
+/**
+ * Resolved payout configuration used to compute breakdowns.
+ * Loaded from the pricing_config row server-side (see payout-config.service.ts);
+ * defaults to DEFAULT_PAYOUT_CONFIG when no config has been saved.
+ */
+export interface PayoutConfig {
+  commissionRate: number; // fraction, e.g. 0.20 for 20%
+  fees: Record<PaymentMethodType, PayFastFeeRule>;
+}
+
+/**
  * Platform commission rate (20% of net after PayFast fees)
  */
 export const PLATFORM_COMMISSION_RATE = 0.20;
+
+/**
+ * Default payout configuration — mirrors the historical hardcoded values so
+ * behaviour is unchanged until an admin saves overrides in /admin/pricing.
+ */
+export const DEFAULT_PAYOUT_CONFIG: PayoutConfig = {
+  commissionRate: PLATFORM_COMMISSION_RATE,
+  fees: {
+    CREDIT_CARD: { percent: 0.035, fixed: 2.0 },
+    DEBIT_CARD: { percent: 0.035, fixed: 2.0 },
+    EFT: { percent: 0.02, fixed: 0, min: 2.0 },
+    MOBICRED: { percent: 0.025, fixed: 1.5 },
+    SNAPSCAN: { percent: 0.025, fixed: 0 },
+    ZAPPER: { percent: 0.025, fixed: 0 },
+    OTHER: { percent: 0.035, fixed: 2.0 },
+  },
+};
 
 /**
  * PayFast payout fee (R10.01 incl. VAT per payout)
@@ -41,34 +78,20 @@ export const PAYFAST_PAYOUT_FEE = 10.01;
  *
  * @param amount - The transaction amount in Rands
  * @param paymentMethod - The payment method used
+ * @param config - Optional payout config; defaults to DEFAULT_PAYOUT_CONFIG
  * @returns The PayFast fee amount
  */
-export function calculatePayFastFee(amount: number, paymentMethod: PaymentMethodType): number {
-  switch (paymentMethod) {
-    case 'CREDIT_CARD':
-    case 'DEBIT_CARD':
-      // Credit/Debit cards: 3.5% + R2.00 flat fee
-      return roundToTwoDecimals((amount * 0.035) + 2.00);
-
-    case 'EFT':
-      // Instant EFT: 2% with minimum R2.00
-      const eftFee = amount * 0.02;
-      return roundToTwoDecimals(Math.max(eftFee, 2.00));
-
-    case 'MOBICRED':
-      // Mobicred: typically 2.5% + R1.50
-      return roundToTwoDecimals((amount * 0.025) + 1.50);
-
-    case 'SNAPSCAN':
-    case 'ZAPPER':
-      // SnapScan/Zapper: typically 2.5%
-      return roundToTwoDecimals(amount * 0.025);
-
-    case 'OTHER':
-    default:
-      // Default to credit card fees as conservative estimate
-      return roundToTwoDecimals((amount * 0.035) + 2.00);
+export function calculatePayFastFee(
+  amount: number,
+  paymentMethod: PaymentMethodType,
+  config: PayoutConfig = DEFAULT_PAYOUT_CONFIG
+): number {
+  const rule = config.fees[paymentMethod] ?? config.fees.OTHER ?? DEFAULT_PAYOUT_CONFIG.fees.OTHER;
+  let fee = amount * rule.percent + rule.fixed;
+  if (rule.min != null) {
+    fee = Math.max(fee, rule.min);
   }
+  return roundToTwoDecimals(fee);
 }
 
 /**
@@ -90,18 +113,26 @@ export function calculatePayFastFee(amount: number, paymentMethod: PaymentMethod
  *
  * @param bookingAmount - The booking amount in Rands
  * @param paymentMethod - The payment method used
- * @param customCommissionRate - Optional custom commission rate (defaults to 20%)
+ * @param config - Optional payout config (commission rate + PayFast fees).
+ *                 For backward compatibility a bare number is treated as a
+ *                 custom commission rate. Defaults to DEFAULT_PAYOUT_CONFIG.
  * @returns PayoutBreakdown with all calculated values
  */
 export function calculatePayout(
   bookingAmount: number,
   paymentMethod: PaymentMethodType,
-  customCommissionRate?: number
+  config?: number | PayoutConfig
 ): PayoutBreakdown {
-  const payFastFee = calculatePayFastFee(bookingAmount, paymentMethod);
+  // Backward-compat: a number means "override just the commission rate".
+  const resolved: PayoutConfig =
+    typeof config === "number"
+      ? { ...DEFAULT_PAYOUT_CONFIG, commissionRate: config }
+      : config ?? DEFAULT_PAYOUT_CONFIG;
+
+  const payFastFee = calculatePayFastFee(bookingAmount, paymentMethod, resolved);
   const netAfterFees = roundToTwoDecimals(bookingAmount - payFastFee);
 
-  const commissionRate = customCommissionRate ?? PLATFORM_COMMISSION_RATE;
+  const commissionRate = resolved.commissionRate;
   const commissionAmount = roundToTwoDecimals(netAfterFees * commissionRate);
   const cleanerPayout = roundToTwoDecimals(netAfterFees - commissionAmount);
 
