@@ -2,7 +2,11 @@
 import { db } from "$lib/server/db";
 import { booking, payment, user } from "$lib/server/db/schema";
 import { cleanerEarningsService } from "$lib/server/services/cleaner-earnings.service";
-import { resolveCleanerPayout } from "$lib/utils/payout-calculator";
+import {
+  calculatePayout,
+  resolveCleanerPayout,
+  type PaymentMethodType,
+} from "$lib/utils/payout-calculator";
 import { error, fail, redirect } from "@sveltejs/kit";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
@@ -56,12 +60,13 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
   // Payment history with PayFast fee — guarded so a query error degrades to an
   // empty list rather than crashing the page.
-  const paymentHistory = await safeQuery(
+  const paymentHistoryRaw = await safeQuery(
     db
       .select({
         id: payment.id,
         bookingId: payment.bookingId,
         amount: payment.amount,
+        paymentMethod: payment.paymentMethod,
         payFastFee: payment.payFastFeeAmount,
         commission: payment.platformCommissionAmount,
         commissionRate: payment.platformCommissionRate,
@@ -83,13 +88,33 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     "paymentHistory",
   );
 
-  // Pending payouts — same guarding.
-  const pendingPayouts = await safeQuery(
+  // Resolve the fee/commission/payout breakdown for display: older payments
+  // never had these persisted (null), so fall back to the canonical calculation
+  // so the history table matches the summary and pending-payout figures.
+  const paymentHistory = paymentHistoryRaw.map((p) => {
+    const estimate = calculatePayout(
+      Number(p.amount) || 0,
+      (p.paymentMethod as PaymentMethodType) || "CREDIT_CARD",
+    );
+    return {
+      ...p,
+      payFastFee: p.payFastFee != null ? Number(p.payFastFee) : estimate.payFastFee,
+      commission: p.commission != null ? Number(p.commission) : estimate.commissionAmount,
+      payout: p.payout != null ? Number(p.payout) : estimate.cleanerPayout,
+    };
+  });
+
+  // Pending payouts — same guarding. cleanerPayoutAmount may be null on older
+  // payments, so resolve the real payout (matching the processPayout action)
+  // instead of passing null through to the page.
+  const pendingRaw = await safeQuery(
     db
       .select({
         id: payment.id,
         bookingId: payment.bookingId,
-        amount: payment.cleanerPayoutAmount,
+        gross: payment.amount,
+        paymentMethod: payment.paymentMethod,
+        storedPayout: payment.cleanerPayoutAmount,
         createdAt: payment.createdAt,
       })
       .from(payment)
@@ -103,6 +128,13 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     [],
     "pendingPayouts",
   );
+
+  const pendingPayouts = pendingRaw.map((p) => ({
+    id: p.id,
+    bookingId: p.bookingId,
+    amount: resolveCleanerPayout(p.gross, p.paymentMethod, p.storedPayout),
+    createdAt: p.createdAt,
+  }));
 
   return {
     cleaner: cleanerData,
