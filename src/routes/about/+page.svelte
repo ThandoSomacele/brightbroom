@@ -1,6 +1,7 @@
 <!-- src/routes/about/+page.svelte -->
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
+  import Card from "$lib/components/ui/Card.svelte";
   import { Award, CheckCircle, TrendingUp, Users } from "lucide-svelte";
 
   // Page data - in a real app, this might come from a CMS or API
@@ -135,8 +136,9 @@
 <section class="bg-white py-16 dark:bg-gray-800">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="text-center">
+      <p class="section-eyebrow mb-3">About Us</p>
       <h1
-        class="text-4xl font-bold tracking-tight text-gray-900 dark:text-white md:text-5xl"
+        class="font-heading text-4xl font-bold tracking-tight text-gray-900 dark:text-white md:text-5xl"
       >
         About BrightBroom
       </h1>
@@ -206,9 +208,7 @@
 
     <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
       {#each coreValues as value}
-        <div
-          class="rounded-lg bg-gray-50 p-6 shadow-md transition-transform hover:-translate-y-1 dark:bg-gray-700"
-        >
+        <Card hover>
           <div class="mb-4 text-primary">
             <svelte:component this={value.icon} class="h-8 w-8" />
           </div>
@@ -218,7 +218,7 @@
           <p class="text-gray-600 dark:text-gray-300">
             {value.description}
           </p>
-        </div>
+        </Card>
       {/each}
     </div>
   </div>
@@ -283,7 +283,7 @@
 <!-- CTA Section -->
 <section class="bg-white py-16 dark:bg-gray-800">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="rounded-lg bg-gray-50 p-8 shadow-md dark:bg-gray-700">
+    <Card padding="lg">
       <div class="flex flex-col text-center items-center">
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
           Ready to experience the BrightBroom difference?
@@ -299,6 +299,6 @@
           <Button variant="outline" href="/contact">Contact Us</Button>
         </div>
       </div>
-    </div>
+    </Card>
   </div>
 </section>

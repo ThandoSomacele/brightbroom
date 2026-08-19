@@ -59,7 +59,7 @@
       <p class="mt-2 text-gray-600 dark:text-gray-300">Create a new account</p>
     </div>
 
-    <div class="rounded-lg bg-white p-8 shadow-md dark:bg-gray-800">
+    <div class="card animate-fade-in-up p-8">
       <!-- Coupon pending message -->
       {#if hasPendingCoupon}
         <div

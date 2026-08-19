@@ -4,6 +4,7 @@
   import Button from '$lib/components/ui/Button.svelte';
   import Skeleton from '$lib/components/ui/Skeleton.svelte';
   import { Calendar, Filter, MapPin, Search, X } from 'lucide-svelte';
+  import EmptyState from '$lib/components/ui/EmptyState.svelte';
 
   export let data;
 
@@ -110,7 +111,7 @@
   </h1>
   
   <!-- Filters -->
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+  <div class="card p-4">
     <div class="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
       <div class="relative flex-1">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -263,7 +264,7 @@
   </div>
   
   <!-- Bookings List -->
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+  <div class="card overflow-hidden p-0">
     {#await data.streamed.bookingsData}
       <!-- Loading skeleton -->
       <div class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -303,12 +304,12 @@
       {@const pagination = bookingsData.pagination}
       <div class="divide-y divide-gray-200 dark:divide-gray-700">
         {#if bookings.length === 0}
-          <div class="p-6 text-center text-gray-500 dark:text-gray-400">
-            No bookings found matching your filters.
+          <div class="p-6">
+            <EmptyState icon={Calendar} title="No bookings found matching your filters." />
           </div>
         {:else}
           {#each bookings as booking}
-          <div class="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+          <div class="p-6 transition-colors hover:bg-primary-50/50 dark:hover:bg-gray-700/50">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
               <div class="flex-1">
                 <div class="flex items-start">

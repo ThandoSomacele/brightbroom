@@ -7,7 +7,6 @@
   import {
     ArrowLeft,
     ArrowRight,
-    Eye,
     Filter,
     Search,
     User,
@@ -76,6 +75,9 @@
   <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
     Cleaner Applications
   </h1>
+  <Button variant="primary" href="/admin/applications/new">
+    + Add Application
+  </Button>
 </div>
 
 <!-- Filters and search -->
@@ -151,44 +153,44 @@
   {@const applications = applicationsData.applications}
   {@const pagination = applicationsData.pagination}
 
-  <div class="mb-6 overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+  <div class="mb-6 card overflow-hidden p-0">
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead class="bg-gray-50 dark:bg-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-800/50">
           <tr>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+              class="table-th"
             >
               Applicant
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+              class="table-th"
             >
               Contact
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+              class="table-th"
             >
               Documents
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+              class="table-th"
             >
               Application Date
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+              class="table-th"
             >
               Status
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+              class="table-th text-right"
             >
               Actions
             </th>
@@ -201,7 +203,7 @@
             <tr>
               <td
                 colspan="6"
-                class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+                class="table-td py-8 text-center text-gray-500 dark:text-gray-400"
               >
                 No applications found
               </td>
@@ -209,13 +211,13 @@
           {:else}
             {#each applications as application}
               <tr
-                class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                class="transition-colors hover:bg-primary-50/50 dark:hover:bg-gray-700/50 cursor-pointer"
                 on:click={() => goto(`/admin/applications/${application.id}`)}
                 role="link"
                 tabindex="0"
                 on:keydown={(e) => e.key === 'Enter' && goto(`/admin/applications/${application.id}`)}
               >
-                <td class="whitespace-nowrap px-6 py-4">
+                <td class="table-td whitespace-nowrap">
                   <div class="flex items-center">
                     <div
                       class="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700"
@@ -246,7 +248,7 @@
                     </div>
                   </div>
                 </td>
-                <td class="whitespace-nowrap px-6 py-4">
+                <td class="table-td whitespace-nowrap">
                   <div class="text-sm text-gray-900 dark:text-white">
                     {application.email}
                   </div>
@@ -256,9 +258,7 @@
                     </div>
                   {/if}
                 </td>
-                <td
-                  class="whitespace-nowrap px-6 py-4 text-sm"
-                >
+                <td class="table-td whitespace-nowrap">
                   {#if application.documentsPending}
                     <span
                       class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
@@ -273,12 +273,10 @@
                     </span>
                   {/if}
                 </td>
-                <td
-                  class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white"
-                >
+                <td class="table-td whitespace-nowrap text-gray-900 dark:text-white">
                   {formatDate(application.createdAt)}
                 </td>
-                <td class="whitespace-nowrap px-6 py-4">
+                <td class="table-td whitespace-nowrap">
                   {#if application.status === "PENDING"}
                     <span
                       class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
@@ -300,19 +298,17 @@
                   {/if}
                 </td>
                 <td
-                  class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium"
+                  class="table-td whitespace-nowrap text-right font-medium"
+                  on:click|stopPropagation
                 >
-                  <div class="flex justify-end" on:click|stopPropagation>
-                    <a
-                      href={`/admin/applications/${application.id}`}
-                      class="text-primary hover:text-primary-600"
-                    >
-                      <Button variant="ghost" size="sm">
-                        <Eye size={16} />
-                        <span class="ml-1">View</span>
-                      </Button>
-                    </a>
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    href={`/admin/applications/${application.id}`}
+                    class="text-primary hover:text-primary-600"
+                  >
+                    View
+                  </Button>
                 </td>
               </tr>
             {/each}

@@ -3,6 +3,7 @@
   import { enhance } from "$app/forms";
   import HoneypotField from "$lib/components/forms/HoneypotField.svelte";
   import Button from "$lib/components/ui/Button.svelte";
+  import Card from "$lib/components/ui/Card.svelte";
 
   import {
     ExternalLink,
@@ -53,7 +54,8 @@
   <div class="container mx-auto px-4">
     <!-- Page Header -->
     <div class="mb-12 text-center">
-      <h1 class="mb-4 text-4xl font-bold text-gray-900 dark:text-white">
+      <p class="section-eyebrow mb-3">Get In Touch</p>
+      <h1 class="mb-4 font-heading text-4xl font-bold text-gray-900 dark:text-white">
         Contact Us
       </h1>
       <p class="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-300">
@@ -66,7 +68,7 @@
       <div class="grid gap-8 md:grid-cols-3">
         <!-- Contact Info Section -->
         <div class="md:col-span-1">
-          <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+          <Card>
             <h2
               class="mb-6 text-2xl font-semibold text-gray-900 dark:text-white"
             >
@@ -78,7 +80,7 @@
               <!-- Email -->
               <div class="flex">
                 <div
-                  class="mr-4 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/20"
+                  class="icon-chip mr-4 h-12 w-12 flex-shrink-0"
                 >
                   <Mail size={20} />
                 </div>
@@ -100,7 +102,7 @@
               <!-- Phone -->
               <div class="flex">
                 <div
-                  class="mr-4 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/20"
+                  class="icon-chip mr-4 h-12 w-12 flex-shrink-0"
                 >
                   <MessageSquare size={20} />
                 </div>
@@ -122,7 +124,7 @@
               <!-- Office -->
               <div class="flex">
                 <div
-                  class="mr-4 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/20"
+                  class="icon-chip mr-4 h-12 w-12 flex-shrink-0"
                 >
                   <MapPin size={20} />
                 </div>
@@ -170,12 +172,12 @@
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
 
         <!-- Contact Form Section -->
         <div class="md:col-span-2">
-          <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+          <Card>
             <h2
               class="mb-6 text-2xl font-semibold text-gray-900 dark:text-white"
             >
@@ -410,7 +412,7 @@
                 </div>
               </form>
             {/if}
-          </div>
+          </Card>
         </div>
       </div>
     </div>

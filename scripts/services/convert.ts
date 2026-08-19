@@ -221,10 +221,10 @@ function main(): void {
     
     default:
       console.log('Usage:');
-      console.log('  npm run services:convert json-to-csv    # Convert JSON to CSV');
-      console.log('  npm run services:convert csv-to-json    # Convert CSV to JSON');
-      console.log('  npm run services:convert both           # Convert in both directions');
-      console.log('  npm run services:convert --verbose      # Show detailed conversion logs');
+      console.log('  pnpm services:convert json-to-csv    # Convert JSON to CSV');
+      console.log('  pnpm services:convert csv-to-json    # Convert CSV to JSON');
+      console.log('  pnpm services:convert both           # Convert in both directions');
+      console.log('  pnpm services:convert --verbose      # Show detailed conversion logs');
   }
   
   console.log('Conversion process complete.');

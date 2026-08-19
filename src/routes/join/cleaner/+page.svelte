@@ -5,6 +5,8 @@
   import HoneypotField from "$lib/components/forms/HoneypotField.svelte";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
+  import Card from "$lib/components/ui/Card.svelte";
+  import SectionHeading from "$lib/components/ui/SectionHeading.svelte";
 
   import {
     getClosestServiceArea,
@@ -179,7 +181,7 @@
   <div class="bg-primary py-16 text-white">
     <div class="container mx-auto px-4">
       <div class="mx-auto max-w-3xl text-center">
-        <h1 class="mb-4 text-4xl font-bold md:text-5xl">
+        <h1 class="mb-4 font-heading text-4xl font-bold md:text-5xl">
           Join Our Team of Professional Cleaners
         </h1>
         <p class="mb-8 text-lg text-white/90">
@@ -194,20 +196,12 @@
   <!-- Benefits Section -->
   <section class="py-12 bg-gray-50 dark:bg-gray-800">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
-      <h2
-        class="text-2xl font-bold text-gray-900 dark:text-white text-center mb-12"
-      >
-        Why Join BrightBroom?
-      </h2>
+      <SectionHeading eyebrow="Benefits" title="Why Join BrightBroom?" />
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <!-- Benefit 1 -->
-        <div
-          class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center"
-        >
-          <div
-            class="w-16 h-16 mx-auto bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mb-4"
-          >
+        <Card hover class="text-center">
+          <div class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16">
             <Clock size={24} />
           </div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -217,15 +211,11 @@
             Work when it suits you. Set your own availability and work hours
             that fit your lifestyle.
           </p>
-        </div>
+        </Card>
 
         <!-- Benefit 2 -->
-        <div
-          class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center"
-        >
-          <div
-            class="w-16 h-16 mx-auto bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mb-4"
-          >
+        <Card hover class="text-center">
+          <div class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16">
             <Wallet size={24} />
           </div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -235,15 +225,11 @@
             Earn competitive rates plus tips. Get paid weekly with transparent
             payment processing.
           </p>
-        </div>
+        </Card>
 
         <!-- Benefit 3 -->
-        <div
-          class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 text-center"
-        >
-          <div
-            class="w-16 h-16 mx-auto bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mb-4"
-          >
+        <Card hover class="text-center">
+          <div class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16">
             <Zap size={24} />
           </div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -253,7 +239,7 @@
             Access training opportunities, build your reputation, and grow your
             client base with our platform.
           </p>
-        </div>
+        </Card>
       </div>
     </div>
   </section>
@@ -262,13 +248,9 @@
   <div class="bg-gray-100 py-16 dark:bg-gray-800">
     <div class="container mx-auto px-4">
       <div class="mx-auto max-w-3xl">
-        <h2
-          class="mb-8 text-center text-3xl font-bold text-gray-900 dark:text-white"
-        >
-          Requirements to Join
-        </h2>
+        <SectionHeading eyebrow="What You Need" title="Requirements to Join" />
 
-        <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-700">
+        <Card>
           <ul class="space-y-4">
             <li class="flex">
               <div
@@ -331,7 +313,7 @@
               </p>
             </li>
           </ul>
-        </div>
+        </Card>
       </div>
     </div>
   </div>
@@ -435,20 +417,15 @@
   <div id="apply" class="bg-gray-100 py-16 dark:bg-gray-800">
     <div class="container mx-auto px-4">
       <div class="mx-auto max-w-3xl">
-        <h2
-          class="mb-6 text-center text-3xl font-bold text-gray-900 dark:text-white"
-        >
-          Apply to Join
-        </h2>
-        <p class="mb-12 text-center text-lg text-gray-600 dark:text-gray-300">
-          Fill out the application form below to start your journey with
-          BrightBroom. Our team will review your application and get back to you
-          within 2-3 business days.
-        </p>
+        <SectionHeading
+          eyebrow="Application"
+          title="Apply to Join"
+          subtitle="Fill out the application form below to start your journey with BrightBroom. Our team will review your application and get back to you within 2-3 business days."
+        />
 
         {#if formSuccess}
           <div
-            class="rounded-lg bg-white p-8 text-center shadow-md dark:bg-gray-700"
+            class="card p-8 text-center"
           >
             <div class="mb-6 flex justify-center">
               <div
@@ -491,7 +468,7 @@
             </Button>
           </div>
         {:else}
-          <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-700">
+          <div class="card p-6">
             <!-- Progress indicator for multi-step form -->
             <div class="mb-8">
               <div class="flex justify-between">
@@ -1197,15 +1174,11 @@
   <!-- FAQ Section -->
   <section class="py-12 bg-white dark:bg-gray-900">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
-      <h2
-        class="text-2xl font-bold text-gray-900 dark:text-white text-center mb-8"
-      >
-        Frequently Asked Questions
-      </h2>
+      <SectionHeading title="Frequently Asked Questions" />
 
       <div class="space-y-6">
         <!-- FAQ Item 1 -->
-        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+        <Card hover>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             What happens after I submit my application?
           </h3>
@@ -1214,10 +1187,10 @@
             your profile meets our requirements, we'll reach out to schedule a
             video interview and discuss the next steps.
           </p>
-        </div>
+        </Card>
 
         <!-- FAQ Item 2 -->
-        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+        <Card hover>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             What equipment or supplies do I need?
           </h3>
@@ -1226,7 +1199,7 @@
             equipment. You just need reliable transportation to get to your jobs
             and a smartphone to use our app.
           </p>
-        </div>
+        </Card>
 
         <!-- FAQ Item 3 -->
         <!-- <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
@@ -1239,7 +1212,7 @@
         </div> -->
 
         <!-- FAQ Item 4 -->
-        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+        <Card hover>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             How and when do I get paid?
           </h3>
@@ -1247,7 +1220,7 @@
             Payments are processed weekly for all completed jobs. Funds are
             transferred directly to your bank account.
           </p>
-        </div>
+        </Card>
       </div>
     </div>
   </section>

@@ -154,7 +154,7 @@
     </div>
     
     <!-- Booking details card -->
-    <div class="mb-6 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+    <div class="mb-6 card p-6">
       <h2 class="mb-6 text-xl font-semibold text-gray-900 dark:text-white">Booking Information</h2>
       
       <!-- Booking ID and Created Date -->

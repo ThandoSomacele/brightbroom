@@ -202,7 +202,7 @@
       {#if filteredSubscriptions.length > 0}
         {#each filteredSubscriptions as subscription}
           <div
-            class="rounded-lg bg-white p-6 shadow-md transition-all hover:shadow-lg dark:bg-gray-800"
+            class="card card-hover p-6"
           >
             <div class="flex flex-wrap justify-between gap-4">
               <!-- Left column: Subscription details -->

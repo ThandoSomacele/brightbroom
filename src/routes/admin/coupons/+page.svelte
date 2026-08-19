@@ -150,7 +150,7 @@
 {/if}
 
 <!-- Search and filter -->
-<div class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+<div class="mb-6 card p-4">
   <div class="flex flex-col sm:flex-row gap-4">
     <div class="relative flex-1">
       <div
@@ -226,7 +226,7 @@
     return matchesSearch && matchesStatus;
   })}
 
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+  <div class="card overflow-hidden p-0">
     {#if filteredCoupons.length === 0}
       <div class="p-6 text-center text-gray-500 dark:text-gray-400">
         {searchTerm || filterStatus !== "all"
@@ -236,34 +236,34 @@
     {:else}
       <div class="overflow-x-auto">
         <table class="w-full">
-          <thead class="bg-gray-50 dark:bg-gray-700/50">
+          <thead class="bg-gray-50 dark:bg-gray-800/50">
             <tr>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                class="table-th"
                 >Code</th
               >
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                class="table-th"
                 >Discount</th
               >
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                class="table-th"
                 >Min. Amount</th
               >
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                class="table-th"
                 >Usage</th
               >
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                class="table-th"
                 >Valid Until</th
               >
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                class="table-th"
                 >Status</th
               >
               <th
-                class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                class="table-th text-right"
                 >Actions</th
               >
             </tr>
@@ -271,13 +271,13 @@
           <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
             {#each filteredCoupons as coupon (coupon.id)}
               <tr
-                class="hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer"
+                class="transition-colors hover:bg-primary-50/50 dark:hover:bg-gray-700/50 cursor-pointer"
                 onclick={() => openEditModal(coupon)}
                 role="button"
                 tabindex="0"
                 onkeydown={(e) => e.key === 'Enter' && openEditModal(coupon)}
               >
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="flex items-center">
                     <Tag size={16} class="text-primary mr-2" />
                     <div>
@@ -292,7 +292,7 @@
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="flex items-center">
                     {#if coupon.discountType === "PERCENTAGE"}
                       <Percent size={14} class="text-green-500 mr-1" />
@@ -314,10 +314,10 @@
                     </span>
                   {/if}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-gray-300">
+                <td class="table-td whitespace-nowrap text-gray-700 dark:text-gray-300">
                   {formatPrice(coupon.minimumBookingAmount)}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="flex items-center text-gray-700 dark:text-gray-300">
                     <Users size={14} class="mr-1" />
                     {coupon.usedCount}
@@ -333,7 +333,7 @@
                     </div>
                   {/if}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="flex items-center">
                     <Calendar size={14} class="mr-1 text-gray-400" />
                     <span
@@ -345,7 +345,7 @@
                     </span>
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap" onclick={(e) => e.stopPropagation()}>
+                <td class="table-td whitespace-nowrap" onclick={(e) => e.stopPropagation()}>
                   <form
                     method="POST"
                     action="?/toggleActive"
@@ -377,7 +377,7 @@
                     </button>
                   </form>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right" onclick={(e) => e.stopPropagation()}>
+                <td class="table-td whitespace-nowrap text-right" onclick={(e) => e.stopPropagation()}>
                   <div class="flex justify-end gap-2">
                     <a
                       href="/coupon/{coupon.code}"
@@ -467,7 +467,7 @@
             </h3>
           </div>
 
-          <div class="px-6 py-4">
+          <div class="table-td">
             <div class="space-y-4">
               <!-- Coupon Code -->
               <div>
@@ -759,7 +759,7 @@
             </h3>
           </div>
 
-          <div class="px-6 py-4">
+          <div class="table-td">
             <div class="space-y-4">
               <!-- Coupon Code -->
               <div>
@@ -1044,7 +1044,7 @@
             </h3>
           </div>
 
-          <div class="px-6 py-4">
+          <div class="table-td">
             <p class="text-gray-700 dark:text-gray-300">
               Are you sure you want to delete the coupon <span
                 class="font-mono font-bold">{selectedCoupon.code}</span

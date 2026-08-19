@@ -106,11 +106,11 @@
       <div class="relative">
         <!-- Addon card container - uses div with role for accessibility -->
         <div
-          class="w-full flex items-center justify-between rounded-lg border-2 p-4 transition-all {selected
+          class="w-full flex items-center justify-between rounded-xl border-2 p-4 transition-all duration-200 {selected
             ? 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-primary-900/20'
             : disabled
               ? 'border-gray-200 bg-gray-100 opacity-60 dark:border-gray-700 dark:bg-gray-800/50'
-              : 'border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600'}"
+              : 'border-gray-200 bg-white hover:border-primary/50 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-primary/50'}"
         >
           <!-- Clickable area for toggle -->
           <button

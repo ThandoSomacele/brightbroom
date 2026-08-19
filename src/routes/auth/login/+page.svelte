@@ -60,7 +60,7 @@
       </p>
     </div>
 
-    <div class="rounded-lg bg-white p-8 shadow-md dark:bg-gray-800">
+    <div class="card animate-fade-in-up p-8">
       <!-- Coupon pending message -->
       {#if hasPendingCoupon}
         <div

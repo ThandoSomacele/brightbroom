@@ -1,0 +1,23 @@
+# pnpm settings (pnpm v11+). This is the home for settings that previously
+# lived under the "pnpm" field of package.json or in .npmrc.
+
+# Hoisted (flat) node_modules layout instead of pnpm's default symlinked store.
+# Required so that:
+#   - Netlify's esbuild function bundler can resolve `external_node_modules`
+#     (it does not follow pnpm's nested symlink store reliably), and
+#   - the node_modules symlinked across our git worktrees keeps working.
+nodeLinker: hoisted
+
+# Install missing non-optional peer dependencies automatically
+# (replaces npm's legacy-peer-deps behaviour).
+autoInstallPeers: true
+
+# allowBuilds explicitly approves dependency build (postinstall) scripts
+# (a bare name matches all versions):
+#   esbuild - places the platform binary used by Vite.
+#   sharp   - native image-processing bindings used for S3 image resizing.
+#   core-js - postinstall is only a funding message, so keep it disallowed.
+allowBuilds:
+  esbuild: true
+  sharp: true
+  core-js: false

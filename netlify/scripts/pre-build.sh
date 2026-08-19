@@ -4,7 +4,7 @@
 echo "Netlify pre-build diagnostics"
 echo "-----------------------------"
 echo "Node version: $(node --version)"
-echo "NPM version: $(npm --version)"
+echo "pnpm version: $(pnpm --version)"
 echo "Environment: $NODE_ENV"
 echo "Path: $PATH"
 
@@ -17,10 +17,9 @@ export PATH="$NODE_BIN:$PATH"
 echo "Critical binaries:"
 ls -la node_modules/.bin/vite node_modules/.bin/svelte-kit || echo "Binaries not found"
 
-# Re-install critical dependencies
-echo "Installing critical dependencies"
-npm i @sveltejs/adapter-netlify @sveltejs/kit @sveltejs/vite-plugin-svelte vite
-npm i -g @sveltejs/kit vite
+# Ensure dependencies are present (idempotent against the frozen lockfile).
+echo "Verifying dependencies are installed"
+pnpm install --frozen-lockfile --prod=false
 
 echo "PATH after updates: $PATH"
 echo "Checking binary access after updates:"

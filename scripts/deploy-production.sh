@@ -51,7 +51,7 @@ fi
 # Install dependencies if needed
 if [ ! -d "node_modules" ]; then
     print_status "Installing dependencies..."
-    npm install
+    pnpm install
 fi
 
 print_success "Environment validation complete"
@@ -103,7 +103,7 @@ print_status "Starting database migration..."
 # Use drizzle-kit migrate (safer than push for production)
 print_status "Running Drizzle migrations..."
 
-if npm run db:migrate; then
+if pnpm run db:migrate; then
     print_success "✅ Database migration completed successfully!"
 else
     print_error "❌ Database migration failed!"
@@ -116,7 +116,7 @@ fi
 print_status "Verifying migration..."
 
 # Check if we can connect to the database
-if npx drizzle-kit check; then
+if pnpm exec drizzle-kit check; then
     print_success "✅ Migration verification passed"
 else
     print_warning "⚠️  Migration verification had warnings - please review"

@@ -21,7 +21,7 @@
       <p class="mt-2 text-gray-600 dark:text-gray-300">Update your password to keep your account secure</p>
     </div>
 
-    <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+    <div class="card p-6">
       <!-- Success message -->
       {#if form?.success}
         <div class="mb-6 rounded-md bg-green-50 p-4 dark:bg-green-900/20">

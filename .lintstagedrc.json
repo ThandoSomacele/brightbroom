@@ -1,12 +1,10 @@
 {
   "*.{ts,js,svelte}": [
     "eslint --fix",
-    "prettier --write"
+    "prettier --write",
+    "pnpm check"
   ],
   "*.{json,md,css,html}": [
     "prettier --write"
-  ],
-  "*.{ts,js,svelte}": [
-    "npm run check"
   ]
 }

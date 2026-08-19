@@ -98,7 +98,7 @@
 </div>
 
 <!-- Filters and search -->
-<div class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+<div class="mb-6 card p-4">
   <div class="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
     <div class="flex-1 relative">
       <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -163,27 +163,27 @@
   {@const users = usersData.users}
   {@const pagination = usersData.pagination}
 
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden mb-6">
+  <div class="card overflow-hidden p-0 mb-6">
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead class="bg-gray-50 dark:bg-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-800/50">
           <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th scope="col" class="table-th">
               Name
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th scope="col" class="table-th">
               Email
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th scope="col" class="table-th">
               Role
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th scope="col" class="table-th">
               Joined
             </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th scope="col" class="table-th">
               Bookings
             </th>
-            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th scope="col" class="table-th text-right">
               Actions
             </th>
           </tr>
@@ -191,20 +191,20 @@
         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
           {#if users.length === 0}
             <tr>
-              <td colspan="6" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+              <td colspan="6" class="table-td py-8 text-center text-gray-500 dark:text-gray-400">
                 No users found
               </td>
             </tr>
           {:else}
             {#each users as user}
               <tr
-                class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                class="transition-colors hover:bg-primary-50/50 dark:hover:bg-gray-700/50 cursor-pointer"
                 on:click={() => viewUserDetails(user.id)}
                 role="link"
                 tabindex="0"
                 on:keydown={(e) => e.key === 'Enter' && viewUserDetails(user.id)}
               >
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="flex items-center">
                     <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
                       <Users size={20} class="text-gray-500 dark:text-gray-400" />
@@ -216,7 +216,7 @@
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="flex items-center text-sm text-gray-900 dark:text-white">
                     <Mail size={16} class="mr-2 text-gray-400" />
                     {user.email}
@@ -228,21 +228,21 @@
                     </div>
                   {/if}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <span class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeClass(user.role)}`}>
                     {user.role}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="table-td whitespace-nowrap">
                   <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
                     <Calendar size={16} class="mr-2 text-gray-400" />
                     {formatDate(user.createdAt)}
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                <td class="table-td whitespace-nowrap text-gray-900 dark:text-white">
                   {user.bookingsCount}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" on:click|stopPropagation>
+                <td class="table-td whitespace-nowrap text-right font-medium" on:click|stopPropagation>
                   <Button
                     variant="ghost"
                     size="sm"

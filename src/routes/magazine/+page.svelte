@@ -3,6 +3,7 @@
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
+  import Card from "$lib/components/ui/Card.svelte";
   import { CustomerSkeleton } from "$lib/components/ui/skeletons";
   import { formatDate } from "$lib/utils/markdown";
   import { Calendar, Clock, Filter, MapPin, Search, Tag } from "lucide-svelte";
@@ -87,7 +88,8 @@
 <section class="bg-gradient-to-br from-primary to-primary-600 text-white">
   <div class="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
     <div class="text-center">
-      <h1 class="text-4xl md:text-6xl font-bold mb-6">BrightBroom Magazine</h1>
+      <p class="section-eyebrow mb-3 text-primary-100">Magazine</p>
+      <h1 class="font-heading text-4xl md:text-6xl font-bold mb-6">BrightBroom Magazine</h1>
       <p class="text-xl md:text-2xl mb-8 text-primary-100 max-w-3xl mx-auto">
         Transform your space with expert tips on organisation, design, and
         maintenance for South African homes and apartments.
@@ -238,56 +240,52 @@
 
         <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {#each featuredArticles as article}
-            <article class="group cursor-pointer">
-              <a href="/magazine/{article.slug}" class="block">
+            <Card padding="none" href="/magazine/{article.slug}">
+              <div class="aspect-w-16 aspect-h-9 overflow-hidden">
+                <img
+                  src={article.featuredImage}
+                  alt={article.imageAlt}
+                  class="img-zoom w-full h-48 object-cover"
+                />
+              </div>
+
+              <div class="p-6 space-y-2">
                 <div
-                  class="aspect-w-16 aspect-h-9 mb-4 overflow-hidden rounded-lg"
+                  class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
                 >
-                  <img
-                    src={article.featuredImage}
-                    alt={article.imageAlt}
-                    class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                  <span class="flex items-center gap-1">
+                    <Calendar size={16} />
+                    {formatDate(article.publishedAt)}
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <Clock size={16} />
+                    {article.readingTime} min read
+                  </span>
                 </div>
 
-                <div class="space-y-2">
-                  <div
-                    class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
+                <h3
+                  class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors"
+                >
+                  {article.title}
+                </h3>
+
+                <p class="text-gray-600 dark:text-gray-300 line-clamp-2">
+                  {article.description}
+                </p>
+
+                <div class="flex items-center justify-between">
+                  <span
+                    class="inline-block rounded-full bg-primary-100 text-primary px-3 py-1 text-xs font-medium dark:bg-primary-900/30"
                   >
-                    <span class="flex items-center gap-1">
-                      <Calendar size={16} />
-                      {formatDate(article.publishedAt)}
-                    </span>
-                    <span class="flex items-center gap-1">
-                      <Clock size={16} />
-                      {article.readingTime} min read
-                    </span>
-                  </div>
+                    {categoryNames[article.category] || article.category}
+                  </span>
 
-                  <h3
-                    class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors"
-                  >
-                    {article.title}
-                  </h3>
-
-                  <p class="text-gray-600 dark:text-gray-300 line-clamp-2">
-                    {article.description}
-                  </p>
-
-                  <div class="flex items-center justify-between">
-                    <span
-                      class="inline-block px-3 py-1 text-xs font-medium bg-primary-100 text-primary-800 rounded-full dark:bg-primary-900/20 dark:text-primary-400"
-                    >
-                      {categoryNames[article.category] || article.category}
-                    </span>
-
-                    <span class="text-sm text-gray-500 dark:text-gray-400">
-                      by {article.author.name}
-                    </span>
-                  </div>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">
+                    by {article.author.name}
+                  </span>
                 </div>
-              </a>
-            </article>
+              </div>
+            </Card>
           {/each}
         </div>
       </div>
@@ -408,73 +406,69 @@
       {#if articles.length > 0}
         <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {#each articles as article}
-            <article
-              class="bg-white dark:bg-gray-900 rounded-lg shadow-md overflow-hidden group hover:shadow-lg transition-shadow"
-            >
-              <a href="/magazine/{article.slug}">
-                <div class="aspect-w-16 aspect-h-9 overflow-hidden">
-                  <img
-                    src={article.featuredImage}
-                    alt={article.imageAlt}
-                    class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+            <Card padding="none" href="/magazine/{article.slug}">
+              <div class="aspect-w-16 aspect-h-9 overflow-hidden">
+                <img
+                  src={article.featuredImage}
+                  alt={article.imageAlt}
+                  class="img-zoom w-full h-48 object-cover"
+                />
+              </div>
+
+              <div class="p-6 space-y-4">
+                <div
+                  class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
+                >
+                  <span class="flex items-center gap-1">
+                    <Calendar size={16} />
+                    {formatDate(article.publishedAt)}
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <Clock size={16} />
+                    {article.readingTime} min read
+                  </span>
                 </div>
 
-                <div class="p-6 space-y-4">
-                  <div
-                    class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    <span class="flex items-center gap-1">
-                      <Calendar size={16} />
-                      {formatDate(article.publishedAt)}
+                <h3
+                  class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2"
+                >
+                  {article.title}
+                </h3>
+
+                <p class="text-gray-600 dark:text-gray-300 line-clamp-3">
+                  {article.description}
+                </p>
+
+                <div
+                  class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700"
+                >
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="inline-block rounded-full bg-primary-100 text-primary px-3 py-1 text-xs font-medium dark:bg-primary-900/30"
+                    >
+                      {categoryNames[article.category] || article.category}
                     </span>
-                    <span class="flex items-center gap-1">
-                      <Clock size={16} />
-                      {article.readingTime} min read
-                    </span>
-                  </div>
 
-                  <h3
-                    class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2"
-                  >
-                    {article.title}
-                  </h3>
-
-                  <p class="text-gray-600 dark:text-gray-300 line-clamp-3">
-                    {article.description}
-                  </p>
-
-                  <div
-                    class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700"
-                  >
-                    <div class="flex items-center gap-2">
+                    {#if article.serviceAreas.length > 0}
                       <span
-                        class="inline-block px-2 py-1 text-xs font-medium bg-primary-100 text-primary-800 rounded dark:bg-primary-900/20 dark:text-primary-400"
+                        class="inline-block rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
                       >
-                        {categoryNames[article.category] || article.category}
+                        <MapPin size={12} class="inline mr-1" />
+                        {areaNames[article.serviceAreas[0]] ||
+                          article.serviceAreas[0]}
+                        {#if article.serviceAreas.length > 1}
+                          +{article.serviceAreas.length - 1}
+                        {/if}
                       </span>
-
-                      {#if article.serviceAreas.length > 0}
-                        <span
-                          class="inline-block px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded dark:bg-gray-700 dark:text-gray-400"
-                        >
-                          <MapPin size={12} class="inline mr-1" />
-                          {areaNames[article.serviceAreas[0]] ||
-                            article.serviceAreas[0]}
-                          {#if article.serviceAreas.length > 1}
-                            +{article.serviceAreas.length - 1}
-                          {/if}
-                        </span>
-                      {/if}
-                    </div>
-
-                    <span class="text-sm text-gray-500 dark:text-gray-400">
-                      by {article.author.name}
-                    </span>
+                    {/if}
                   </div>
+
+                  <span class="text-sm text-gray-500 dark:text-gray-400">
+                    by {article.author.name}
+                  </span>
                 </div>
-              </a>
-            </article>
+              </div>
+            </Card>
           {/each}
         </div>
       {:else}

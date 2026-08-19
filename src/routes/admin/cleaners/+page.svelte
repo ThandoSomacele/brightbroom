@@ -113,7 +113,7 @@
   <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Cleaners</h1>
   <div class="mt-4 flex space-x-2 sm:mt-0">
     <div class="mt-4 sm:mt-0 flex gap-2">
-      <Button variant="primary" href="/admin/cleaners/new">
+      <Button variant="primary" href="/admin/applications/new">
         <PlusCircle size={16} class="mr-1" />
         Add New Cleaner
       </Button>
@@ -135,7 +135,7 @@
 <!-- Filters and search -->
 {#if showFilters}
   <div
-    class="mb-6 grid grid-cols-1 gap-4 rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:grid-cols-2 lg:grid-cols-4"
+    class="mb-6 grid grid-cols-1 gap-4 card p-4 sm:grid-cols-2 lg:grid-cols-4"
   >
     <div>
       <label
@@ -211,50 +211,50 @@
   {@const cleaners = cleanersData.cleaners}
   {@const pagination = cleanersData.pagination}
 
-  <div class="mb-6 overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+  <div class="mb-6 card overflow-hidden p-0">
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead class="bg-gray-50 dark:bg-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-800/50">
           <tr>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+              class="table-th"
             >
               Cleaner
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+              class="table-th"
             >
               Contact
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+              class="table-th"
             >
               Training
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+              class="table-th"
             >
               Rating
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+              class="table-th"
             >
               Availability
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+              class="table-th"
             >
               Status
             </th>
             <th
               scope="col"
-              class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+              class="table-th text-right"
             >
               Actions
             </th>
@@ -267,7 +267,7 @@
             <tr>
               <td
                 colspan="7"
-                class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+                class="table-td py-8 text-center text-gray-500 dark:text-gray-400"
               >
                 No cleaners found
               </td>
@@ -275,13 +275,13 @@
           {:else}
             {#each cleaners as cleaner}
               <tr
-                class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                class="transition-colors hover:bg-primary-50/50 dark:hover:bg-gray-700/50 cursor-pointer"
                 on:click={() => viewCleanerDetails(cleaner.id)}
                 role="link"
                 tabindex="0"
                 on:keydown={(e) => e.key === 'Enter' && viewCleanerDetails(cleaner.id)}
               >
-                <td class="whitespace-nowrap px-6 py-4">
+                <td class="table-td whitespace-nowrap">
                   <div class="flex items-center">
                     <div
                       class="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700"
@@ -312,7 +312,7 @@
                     </div>
                   </div>
                 </td>
-                <td class="whitespace-nowrap px-6 py-4">
+                <td class="table-td whitespace-nowrap">
                   <div class="text-sm text-gray-900 dark:text-white">
                     {cleaner.email}
                   </div>
@@ -322,26 +322,26 @@
                     </div>
                   {/if}
                 </td>
-                <td class="px-6 py-4">
+                <td class="table-td">
                   <div class="flex flex-wrap gap-1">
                     {#if cleaner.cleanerProfile?.trainingCompleted && cleaner.cleanerProfile.trainingCompleted.length > 0}
                       {#each cleaner.cleanerProfile.trainingCompleted as training}
                         <span
-                          class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {training === 'HOME' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300'}"
+                          class="inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium {training === 'HOME' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300'}"
                         >
                           {training === 'HOME' ? 'Home' : 'Office'}
                         </span>
                       {/each}
                     {:else}
                       <span
-                        class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+                        class="inline-flex items-center whitespace-nowrap rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
                       >
                         Needs Training
                       </span>
                     {/if}
                   </div>
                 </td>
-                <td class="whitespace-nowrap px-6 py-4">
+                <td class="table-td whitespace-nowrap">
                   <div class="flex items-center">
                     <Star size={16} class="mr-1 text-yellow-400" />
                     <span class="text-sm text-gray-900 dark:text-white">
@@ -349,16 +349,16 @@
                     </span>
                   </div>
                 </td>
-                <td class="whitespace-nowrap px-6 py-4">
+                <td class="table-td whitespace-nowrap">
                   {#if cleaner.cleanerProfile?.isAvailable}
                     <span
-                      class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                      class="inline-flex items-center whitespace-nowrap rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
                     >
                       Available
                     </span>
                   {:else}
                     <span
-                      class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/20 dark:text-red-300"
+                      class="inline-flex items-center whitespace-nowrap rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/20 dark:text-red-300"
                     >
                       Unavailable
                     </span>
@@ -372,23 +372,23 @@
                     </div>
                   {/if}
                 </td>
-                <td class="whitespace-nowrap px-6 py-4">
+                <td class="table-td whitespace-nowrap">
                   {#if cleaner.isActive === false}
                     <span
-                      class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+                      class="inline-flex items-center whitespace-nowrap rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
                     >
                       Inactive
                     </span>
                   {:else}
                     <span
-                      class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                      class="inline-flex items-center whitespace-nowrap rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
                     >
                       Active
                     </span>
                   {/if}
                 </td>
                 <td
-                  class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium"
+                  class="table-td whitespace-nowrap text-right font-medium"
                   on:click|stopPropagation
                 >
                   <Button

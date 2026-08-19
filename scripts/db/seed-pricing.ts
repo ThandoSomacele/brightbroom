@@ -24,7 +24,7 @@ if (options.help) {
 BrightBroom Pricing & Addons Seeder
 ===================================
 
-Usage: npx tsx scripts/db/seed-pricing.ts [options]
+Usage: pnpm tsx scripts/db/seed-pricing.ts [options]
 
 Options:
   --overwrite, -o   Overwrite existing pricing config and addons

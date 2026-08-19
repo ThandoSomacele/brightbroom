@@ -1,6 +1,7 @@
 // src/routes/admin/applications/+page.server.ts
 import { db } from "$lib/server/db";
 import { cleanerApplication, user } from "$lib/server/db/schema";
+import { hash } from "@node-rs/argon2";
 import { error, fail, redirect } from "@sveltejs/kit";
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
@@ -211,6 +212,3 @@ export const actions: Actions = {
   },
 };
 
-async function hash(password: string): Promise<string> {
-  return `hashed_${password}`;
-}

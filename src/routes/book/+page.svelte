@@ -151,7 +151,7 @@
 
           <div class="grid gap-4 sm:grid-cols-2">
             <!-- Living Room -->
-            <div class="flex items-start gap-3 rounded-lg bg-white p-4 dark:bg-gray-800">
+            <div class="card flex items-start gap-3 p-4">
               <Home class="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
               <div>
                 <h3 class="font-medium text-gray-900 dark:text-white">Living Room</h3>
@@ -164,7 +164,7 @@
             </div>
 
             <!-- Kitchen -->
-            <div class="flex items-start gap-3 rounded-lg bg-white p-4 dark:bg-gray-800">
+            <div class="card flex items-start gap-3 p-4">
               <Utensils class="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
               <div>
                 <h3 class="font-medium text-gray-900 dark:text-white">Kitchen</h3>

@@ -1,6 +1,8 @@
 <!-- src/routes/services/+page.svelte -->
 <script lang="ts">
   import Button from '$lib/components/ui/Button.svelte';
+  import Card from '$lib/components/ui/Card.svelte';
+  import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
   import { Clock, Home, Sparkles, CheckCircle, Building2, MessageSquare } from 'lucide-svelte';
 </script>
 
@@ -52,7 +54,8 @@
   <section class="py-16 md:py-24">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="text-center">
-        <h1 class="text-4xl font-bold text-gray-900 dark:text-white md:text-5xl">
+        <p class="section-eyebrow mb-3">Our Services</p>
+        <h1 class="font-heading text-4xl font-bold text-gray-900 dark:text-white md:text-5xl">
           Build Your Perfect Clean
         </h1>
         <p class="mx-auto mt-6 max-w-2xl text-xl text-gray-600 dark:text-gray-300">
@@ -71,14 +74,16 @@
   <!-- How It Works -->
   <section class="bg-white py-16 dark:bg-gray-800">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <h2 class="mb-12 text-center text-3xl font-bold text-gray-900 dark:text-white">
-        How It Works
-      </h2>
+      <SectionHeading
+        eyebrow="Simple Process"
+        title="How It Works"
+        subtitle="Three quick steps to a personalised clean."
+      />
 
       <div class="grid gap-8 md:grid-cols-3">
-        <div class="text-center">
-          <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30">
-            <Clock class="h-8 w-8 text-primary" />
+        <Card hover class="text-center">
+          <div class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16">
+            <Clock class="h-8 w-8" />
           </div>
           <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
             1. Choose Your Hours
@@ -86,11 +91,11 @@
           <p class="text-gray-600 dark:text-gray-300">
             Select how long you need a cleaner for - from a quick refresh to a thorough deep clean.
           </p>
-        </div>
+        </Card>
 
-        <div class="text-center">
-          <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30">
-            <Home class="h-8 w-8 text-primary" />
+        <Card hover class="text-center">
+          <div class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16">
+            <Home class="h-8 w-8" />
           </div>
           <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
             2. Select Your Rooms
@@ -98,11 +103,11 @@
           <p class="text-gray-600 dark:text-gray-300">
             Tell us which rooms need cleaning so we can match you with the right cleaner.
           </p>
-        </div>
+        </Card>
 
-        <div class="text-center">
-          <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30">
-            <Sparkles class="h-8 w-8 text-primary" />
+        <Card hover class="text-center">
+          <div class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16">
+            <Sparkles class="h-8 w-8" />
           </div>
           <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
             3. Add Extras
@@ -110,7 +115,7 @@
           <p class="text-gray-600 dark:text-gray-300">
             Need oven cleaning, laundry, or inside windows? Add optional extras to your booking.
           </p>
-        </div>
+        </Card>
       </div>
     </div>
   </section>
@@ -118,9 +123,11 @@
   <!-- What's Included -->
   <section class="py-16">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <h2 class="mb-12 text-center text-3xl font-bold text-gray-900 dark:text-white">
-        What's Included
-      </h2>
+      <SectionHeading
+        eyebrow="Every Booking"
+        title="What's Included"
+        subtitle="The essentials covered in every standard clean."
+      />
 
       <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {#each [
@@ -134,7 +141,7 @@
           'Mirror and glass cleaning',
           'General tidying up'
         ] as item (item)}
-          <div class="flex items-start gap-3">
+          <div class="card flex items-start gap-3 p-4 hover:border-primary/50">
             <CheckCircle class="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
             <span class="text-gray-700 dark:text-gray-300">{item}</span>
           </div>
@@ -152,37 +159,35 @@
   <!-- FAQ Section -->
   <section class="bg-white py-16 dark:bg-gray-800">
     <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-      <h2 class="mb-8 text-center text-3xl font-bold text-gray-900 dark:text-white">
-        Frequently Asked Questions
-      </h2>
+      <SectionHeading title="Frequently Asked Questions" />
 
       <div class="space-y-6">
-        <div class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700">
+        <Card hover>
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             Do I need to provide cleaning supplies?
           </h3>
           <p class="mt-2 text-gray-600 dark:text-gray-300">
             Yes, you'll need to provide cleaning supplies and equipment. Our cleaners bring their expertise and hard work.
           </p>
-        </div>
+        </Card>
 
-        <div class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700">
+        <Card hover>
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             How do I pay?
           </h3>
           <p class="mt-2 text-gray-600 dark:text-gray-300">
             Payment is made securely online when you complete your booking. We accept all major payment methods via PayFast.
           </p>
-        </div>
+        </Card>
 
-        <div class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700">
+        <Card hover>
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             Can I reschedule or cancel?
           </h3>
           <p class="mt-2 text-gray-600 dark:text-gray-300">
             Yes, you can reschedule or cancel your booking through your account. Please give at least 24 hours notice for cancellations.
           </p>
-        </div>
+        </Card>
       </div>
     </div>
   </section>
@@ -190,10 +195,10 @@
   <!-- Business Inquiries Section -->
   <section class="border-t border-gray-200 py-16 dark:border-gray-700">
     <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-      <div class="rounded-2xl bg-gray-100 p-8 dark:bg-gray-800 md:p-12">
+      <div class="card rounded-2xl p-8 md:p-12">
         <div class="flex flex-col items-center text-center md:flex-row md:text-left">
-          <div class="mb-6 flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-secondary-100 dark:bg-secondary-900/30 md:mb-0 md:mr-8">
-            <Building2 class="h-8 w-8 text-secondary" />
+          <div class="mb-6 flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-secondary-100 text-secondary dark:bg-secondary-900/30 md:mb-0 md:mr-8">
+            <Building2 class="h-8 w-8" />
           </div>
 
           <div class="flex-1">

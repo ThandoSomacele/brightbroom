@@ -23,7 +23,7 @@ if (options.help) {
 BrightBroom Coupons Seeder
 ==========================
 
-Usage: npx tsx scripts/db/seed-coupons.ts [options]
+Usage: pnpm tsx scripts/db/seed-coupons.ts [options]
 
 Options:
   --overwrite, -o   Overwrite existing coupons with same code

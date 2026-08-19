@@ -539,7 +539,7 @@
     <!-- Booking details -->
     <div class="mb-8 grid gap-6 md:grid-cols-2">
       <!-- Service details with room breakdown -->
-      <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+      <div class="card p-6">
         <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
           Cleaning Details
         </h2>
@@ -656,7 +656,7 @@
       </div>
 
       <!-- Schedule and location -->
-      <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+      <div class="card p-6">
         <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
           Schedule & Location
         </h2>
@@ -836,7 +836,7 @@
 
     <!-- Selected Cleaner -->
     {#if selectedCleanerData}
-      <div class="mb-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+      <div class="mb-8 card p-6">
         <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
           Your Cleaner
         </h2>
@@ -880,7 +880,7 @@
 
     <!-- Special instructions -->
     {#if notes}
-      <div class="mb-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+      <div class="mb-8 card p-6">
         <h2
           class="mb-3 flex items-center text-xl font-semibold text-gray-900 dark:text-white"
         >

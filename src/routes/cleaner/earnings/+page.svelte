@@ -1,7 +1,9 @@
 <!-- src/routes/cleaner/earnings/+page.svelte -->
 <script lang="ts">
-  import { Calendar, DollarSign } from 'lucide-svelte';
+  import { AlertTriangle, Calendar, DollarSign } from 'lucide-svelte';
   import { CustomerSkeleton } from '$lib/components/ui/skeletons';
+  import StatCard from '$lib/components/ui/StatCard.svelte';
+  import EmptyState from '$lib/components/ui/EmptyState.svelte';
 
   export let data;
 
@@ -44,76 +46,40 @@
     <!-- Earnings Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- Total Earnings -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <div class="flex items-center">
-          <div class="flex-shrink-0 w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center dark:bg-primary-900/20">
-            <DollarSign class="h-6 w-6 text-primary" />
-          </div>
-          <div class="ml-5">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Total Earnings
-            </p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-              {formatCurrency(summary.totalEarnings)}
-            </p>
-          </div>
-        </div>
-      </div>
+      <StatCard
+        label="Total Earnings"
+        value={formatCurrency(summary.totalEarnings)}
+        icon={DollarSign}
+        accent="primary"
+      />
 
       <!-- Current Month -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <div class="flex items-center">
-          <div class="flex-shrink-0 w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center dark:bg-primary-900/20">
-            <Calendar class="h-6 w-6 text-primary" />
-          </div>
-          <div class="ml-5">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              This Month
-            </p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-              {formatCurrency(summary.totalEarningsCurrentMonth)}
-            </p>
-          </div>
-        </div>
-      </div>
+      <StatCard
+        label="This Month"
+        value={formatCurrency(summary.totalEarningsCurrentMonth)}
+        icon={Calendar}
+        accent="primary"
+      />
 
       <!-- Last Month -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <div class="flex items-center">
-          <div class="flex-shrink-0 w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center dark:bg-primary-900/20">
-            <Calendar class="h-6 w-6 text-primary" />
-          </div>
-          <div class="ml-5">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Last Month
-            </p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-              {formatCurrency(summary.totalEarningsLastMonth)}
-            </p>
-          </div>
-        </div>
-      </div>
+      <StatCard
+        label="Last Month"
+        value={formatCurrency(summary.totalEarningsLastMonth)}
+        icon={Calendar}
+        accent="primary"
+      />
 
       <!-- Pending Payout -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <div class="flex items-center">
-          <div class="flex-shrink-0 w-12 h-12 bg-secondary-100 rounded-full flex items-center justify-center dark:bg-secondary-900/20">
-            <DollarSign class="h-6 w-6 text-secondary" />
-          </div>
-          <div class="ml-5">
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Pending Payout
-            </p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-              {formatCurrency(summary.pendingPayout)}
-            </p>
-          </div>
-        </div>
-      </div>
+      <StatCard
+        label="Pending Payout"
+        value={formatCurrency(summary.pendingPayout)}
+        icon={DollarSign}
+        accent="secondary"
+      />
     </div>
 
     <!-- Payout Schedule -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+    <div class="card overflow-hidden p-0">
       <div class="p-6 border-b border-gray-200 dark:border-gray-700">
         <h2 class="text-lg font-medium text-gray-900 dark:text-white">
           Upcoming Payouts
@@ -152,7 +118,7 @@
     </div>
 
     <!-- Monthly Earnings Chart -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+    <div class="card overflow-hidden p-0">
       <div class="p-6 border-b border-gray-200 dark:border-gray-700">
         <h2 class="text-lg font-medium text-gray-900 dark:text-white">
           Monthly Earnings
@@ -183,7 +149,7 @@
     </div>
 
     <!-- Completed Bookings (Earnings History) -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+    <div class="card overflow-hidden p-0">
       <div class="p-6 border-b border-gray-200 dark:border-gray-700">
         <h2 class="text-lg font-medium text-gray-900 dark:text-white">
           Earnings History
@@ -192,7 +158,7 @@
 
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead class="bg-gray-50 dark:bg-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-800/50">
             <tr>
               <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Date
@@ -220,7 +186,7 @@
               </tr>
             {:else}
               {#each completedBookings as booking}
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                <tr class="transition-colors hover:bg-primary-50/50 dark:hover:bg-gray-700/50">
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900 dark:text-white">
                       {formatDate(booking.scheduledDate)}
@@ -264,10 +230,9 @@
     </div>
   </div>
 {:catch error}
-  <div class="rounded-lg border border-dashed border-red-300 bg-red-50 p-8 text-center dark:border-red-700 dark:bg-red-900/10">
-    <h3 class="mb-2 text-lg font-medium text-red-800 dark:text-red-300">Failed to load earnings data</h3>
-    <p class="text-red-600 dark:text-red-400">
-      Please try again later or contact support if the problem persists.
-    </p>
-  </div>
+  <EmptyState
+    icon={AlertTriangle}
+    title="Failed to load earnings data"
+    description="Please try again later or contact support if the problem persists."
+  />
 {/await}

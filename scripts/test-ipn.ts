@@ -1,5 +1,5 @@
 // scripts/test-ipn.ts
-// Run with: npx tsx scripts/test-ipn.ts
+// Run with: pnpm tsx scripts/test-ipn.ts
 import fetch from 'node-fetch';
 import { db } from '../src/lib/server/db';
 import { booking, payment } from '../src/lib/server/db/schema';

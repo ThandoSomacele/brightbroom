@@ -62,8 +62,7 @@ export const DEFAULT_SERVICES: ServiceBasicInfo[] = [
  */
 export const SERVICES_BY_CATEGORY = {
   residential: DEFAULT_SERVICES.filter(s => s.category === 'residential'),
-  commercial: DEFAULT_SERVICES.filter(s => s.category === 'commercial'),
-  specialised: DEFAULT_SERVICES.filter(s => s.category === 'specialised')
+  commercial: DEFAULT_SERVICES.filter(s => s.category === 'commercial')
 };
 
 /**

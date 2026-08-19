@@ -307,9 +307,8 @@
           <button
             type="button"
             on:click={() => (isRecurring = false)}
-            class="flex-1 p-4 border-2 rounded-lg transition-all {!isRecurring
-              ? 'border-teal-500 bg-teal-50'
-              : 'border-gray-200 hover:border-gray-300'}"
+            class="flex-1 p-4 border-2 rounded-xl transition-all duration-200 {!isRecurring              ? 'border-primary bg-primary-50 dark:border-primary-400 dark:bg-primary-900/20'
+              : 'border-gray-200 hover:border-primary/50 dark:border-gray-700 dark:hover:border-primary/50'}"
           >
             <p class="font-semibold">One-Time Cleaning</p>
             <p class="text-sm text-gray-600">Book a single cleaning session</p>
@@ -318,9 +317,8 @@
           <button
             type="button"
             on:click={() => (isRecurring = true)}
-            class="flex-1 p-4 border-2 rounded-lg transition-all {isRecurring
-              ? 'border-teal-500 bg-teal-50'
-              : 'border-gray-200 hover:border-gray-300'}"
+            class="flex-1 p-4 border-2 rounded-xl transition-all duration-200 {isRecurring              ? 'border-primary bg-primary-50 dark:border-primary-400 dark:bg-primary-900/20'
+              : 'border-gray-200 hover:border-primary/50 dark:border-gray-700 dark:hover:border-primary/50'}"
           >
             <div class="flex justify-between items-start">
               <div class="text-left">
@@ -372,7 +370,7 @@
             Select a Date
           </h2>
 
-          <div class="rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
+          <div class="card p-4">
             <!-- Calendar Header - Month Navigation -->
             <div class="mb-4 flex items-center justify-between">
               <button
@@ -461,7 +459,7 @@
             Select a Time
           </h2>
 
-          <div class="rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
+          <div class="card p-4">
             {#if timeSlots.length > 0}
               <div
                 class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3"

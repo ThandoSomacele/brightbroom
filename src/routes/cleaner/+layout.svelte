@@ -64,10 +64,10 @@
           {#each navItems as item}
             <a 
               href={item.href}
-              class={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${
+              class={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
                 isActive(item.href)
                   ? 'bg-primary-50 text-primary dark:bg-primary-900/20 dark:text-primary-300'
-                  : 'text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700'
+                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               <svelte:component this={item.icon} class="h-5 w-5 mr-1.5" />
@@ -118,10 +118,10 @@
           {#each navItems as item}
             <a
               href={item.href}
-              class={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
+              class={`flex items-center px-3 py-2 rounded-lg text-base font-medium transition-colors duration-150 ${
                 isActive(item.href)
                   ? 'bg-primary-50 text-primary dark:bg-primary-900/20 dark:text-primary-300'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700'
               }`}
               on:click={() => isMenuOpen = false}
             >
