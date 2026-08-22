@@ -2,7 +2,7 @@
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
   import { enhance } from "$app/forms";
-  import { ArrowLeft, Crown, Users, BrushCleaning, Trash2 } from "lucide-svelte";
+  import { ArrowLeft, Crown, Users, BrushCleaning, Trash2, UserPlus } from "lucide-svelte";
 
   export let data;
   export let form;
@@ -222,5 +222,61 @@
         {/each}
       </div>
     {/if}
+
+    <!-- Add member -->
+    <form
+      method="POST"
+      action="?/addMember"
+      use:enhance
+      class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 space-y-3"
+    >
+      <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+        Add a team member
+      </h3>
+      <p class="text-xs text-gray-500 dark:text-gray-400">
+        The person needs a BrightBroom account already. Adding a customer
+        account promotes it to a tenant admin.
+      </p>
+
+      {#if form?.addMemberError}
+        <div
+          class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3"
+        >
+          <p class="text-sm text-red-800 dark:text-red-400">
+            {form.addMemberError}
+          </p>
+        </div>
+      {/if}
+
+      <div class="flex flex-col sm:flex-row gap-3">
+        <div class="flex-1">
+          <label for="memberEmail" class="sr-only">Email address</label>
+          <input
+            type="email"
+            id="memberEmail"
+            name="email"
+            required
+            placeholder="person@company.co.za"
+            class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-white sm:text-sm"
+          />
+        </div>
+        <div class="sm:w-40">
+          <label for="memberRole" class="sr-only">Role</label>
+          <select
+            id="memberRole"
+            name="role"
+            class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-white sm:text-sm"
+          >
+            <option value="ADMIN">Admin</option>
+            <option value="MANAGER">Manager</option>
+            <option value="OWNER">Owner</option>
+          </select>
+        </div>
+        <Button type="submit" variant="primary">
+          <UserPlus class="h-4 w-4 mr-1" />
+          Add
+        </Button>
+      </div>
+    </form>
   </div>
 </div>
