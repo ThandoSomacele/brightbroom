@@ -221,8 +221,14 @@ if (path.includes('//')) {
       throw error(403, "No tenant association found for your account");
     }
 
-    // Platform-only admin routes that tenant admins cannot access
-    const platformOnlyPaths = ['/admin/tenants', '/admin/pricing'];
+    // Platform-only admin routes that tenant admins cannot access.
+    // Keep this in sync with the `platformOnly` nav items in admin/+layout.svelte.
+    const platformOnlyPaths = [
+      '/admin/tenants',
+      '/admin/pricing',
+      '/admin/users',
+      '/admin/services',
+    ];
     if (user.role === 'TENANT_ADMIN' && platformOnlyPaths.some(p => path.startsWith(p))) {
       throw error(403, "This area is restricted to platform administrators");
     }

@@ -1,6 +1,7 @@
 // src/routes/admin/users/+page.server.ts
 import { db } from "$lib/server/db";
 import { booking, user } from "$lib/server/db/schema";
+import { error } from "@sveltejs/kit";
 import { desc, eq, inArray, like, or, sql } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
 
@@ -121,7 +122,13 @@ async function getUsers(
   }
 }
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ url, locals }) => {
+  // The platform user directory spans every tenant, so it is platform-admin
+  // only. hooks.server.ts blocks the route too; this is defence in depth.
+  if (locals.user?.role !== "ADMIN") {
+    throw error(403, "This area is restricted to platform administrators");
+  }
+
   // Get query parameters for filtering and pagination
   const search = url.searchParams.get("search") || "";
   const role = url.searchParams.get("role") || "";
