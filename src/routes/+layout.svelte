@@ -360,7 +360,12 @@
         <a
           href="/join/cleaner"
           class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          >Join</a
+          >Join as a cleaner</a
+        >
+        <a
+          href="/join/company"
+          class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+          >Partner with us</a
         >
         <a
           href="/contact"

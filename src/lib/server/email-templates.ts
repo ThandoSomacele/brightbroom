@@ -2214,6 +2214,142 @@ This email was sent to ${recipientEmail}.
 }
 
 /**
+ * Generate a welcome email for a cleaning company that has just signed up
+ */
+export function getTenantWelcomeEmailTemplate(
+  recipientEmail: string,
+  details: {
+    firstName: string;
+    companyName: string;
+    commissionRate: string;
+  },
+  data: EmailTemplateData,
+): { subject: string; html: string; text: string } {
+  const dashboardUrl = `${data.appUrl}/admin/dashboard`;
+  const escapedEmail = escapeHtml(recipientEmail);
+  const firstName = escapeHtml(details.firstName);
+  const companyName = escapeHtml(details.companyName);
+  const commissionRate = escapeHtml(details.commissionRate);
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${companyName} is live on ${data.brandName}</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+    }
+    .email-container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; padding: 20px 0; background-color: ${data.primaryColor}; }
+    .header h1 { color: #ffffff; margin: 0; font-size: 24px; }
+    .content { padding: 30px 20px; background-color: #ffffff; }
+    .button {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: ${data.primaryColor};
+      color: #ffffff !important;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .panel {
+      background-color: #f7f7f7;
+      border-left: 4px solid ${data.primaryColor};
+      padding: 15px 20px;
+      margin: 20px 0;
+    }
+    .footer { text-align: center; padding: 20px; font-size: 12px; color: #888888; }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1>${companyName} is live</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${firstName},</p>
+      <p>
+        ${companyName} is now set up on ${data.brandName}. Your admin account is
+        active and you can sign in straight away.
+      </p>
+
+      <p style="text-align: center; margin: 30px 0;">
+        <a href="${dashboardUrl}" class="button">Open your dashboard</a>
+      </p>
+
+      <div class="panel">
+        <p style="margin: 0 0 10px 0;"><strong>Getting started</strong></p>
+        <ul style="margin: 0;">
+          <li>Add your cleaners, or invite them to apply</li>
+          <li>Add your team to the dashboard so they can help manage bookings</li>
+          <li>Review bookings as they come in</li>
+        </ul>
+      </div>
+
+      <p>
+        ${data.brandName} takes a ${commissionRate}% commission on each booking,
+        calculated after payment processing fees. The rest goes to you.
+      </p>
+
+      <p>
+        If anything looks wrong or you need a hand getting set up, just reply to
+        this email.
+      </p>
+
+      <p>Welcome aboard,<br>The ${data.brandName} Team</p>
+    </div>
+    <div class="footer">
+      <p>This email was sent to ${escapedEmail}.</p>
+      <p>&copy; ${new Date().getFullYear()} ${data.brandName}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+  const text = `
+${companyName} is live on ${data.brandName}
+
+Hi ${details.firstName},
+
+${details.companyName} is now set up on ${data.brandName}. Your admin account is
+active and you can sign in straight away.
+
+Open your dashboard: ${dashboardUrl}
+
+Getting started:
+- Add your cleaners, or invite them to apply
+- Add your team to the dashboard so they can help manage bookings
+- Review bookings as they come in
+
+${data.brandName} takes a ${details.commissionRate}% commission on each booking,
+calculated after payment processing fees. The rest goes to you.
+
+If anything looks wrong or you need a hand getting set up, just reply to this email.
+
+Welcome aboard,
+The ${data.brandName} Team
+
+This email was sent to ${recipientEmail}.
+(c) ${new Date().getFullYear()} ${data.brandName}. All rights reserved.
+`;
+
+  return {
+    subject: `${details.companyName} is live on ${data.brandName}`,
+    html,
+    text,
+  };
+}
+
+/**
  * Generate an email template for notifying cleaners about a new assignment
  */
 export function getCleanerJobAssignmentTemplate(

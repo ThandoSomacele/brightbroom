@@ -12,6 +12,7 @@ import {
   getCleanerChangedTemplate,
   getCleanerJobAssignmentTemplate,
   getCleanerWelcomeEmailTemplate,
+  getTenantWelcomeEmailTemplate,
   getContactFormTemplate,
   getPasswordResetConfirmationTemplate,
   getPasswordResetTemplate,
@@ -391,6 +392,49 @@ export async function sendWelcomeEmail(
     return false;
   }
 }
+/**
+ * Send a welcome email to a cleaning company that has just signed up
+ */
+export async function sendTenantWelcomeEmail(
+  email: string,
+  details: {
+    firstName: string;
+    companyName: string;
+    commissionRate: string;
+  },
+): Promise<boolean> {
+  try {
+    if (!resend) {
+      console.error("Resend API key not configured");
+      return false;
+    }
+
+    const template = getTenantWelcomeEmailTemplate(email, details, EMAIL_CONFIG);
+
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+
+    if (error) {
+      console.error("Resend API error:", error);
+      return false;
+    }
+
+    console.log("Tenant welcome email sent successfully:", {
+      company: details.companyName,
+      emailId: data?.id,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error sending tenant welcome email:", error);
+    return false;
+  }
+}
+
 /**
  * Send a booking reminder email
  */

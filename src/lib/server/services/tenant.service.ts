@@ -192,6 +192,36 @@ export const tenantService = {
   },
 
   /**
+   * Turn a company name into a URL-safe slug that is not already taken.
+   *
+   * Self-serve signup means we cannot ask the company to pick a unique slug,
+   * so collisions are resolved by appending a counter.
+   */
+  async generateUniqueSlug(companyName: string): Promise<string> {
+    const base =
+      companyName
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 40) || "company";
+
+    let candidate = base;
+    let suffix = 2;
+
+    // Bounded so a pathological run of collisions cannot spin forever
+    while (suffix < 100) {
+      const existing = await this.getBySlug(candidate);
+      if (!existing) return candidate;
+      candidate = `${base}-${suffix}`;
+      suffix += 1;
+    }
+
+    return `${base}-${crypto.randomUUID().slice(0, 8)}`;
+  },
+
+  /**
    * The commission rate to charge on a tenant's bookings, as a fraction
    * (0.15 for 15%).
    *
