@@ -3,6 +3,7 @@ import { db } from "$lib/server/db";
 import { booking, cleanerPayoutSummary, payment } from "$lib/server/db/schema";
 import { and, eq, sql, or, inArray } from "drizzle-orm";
 import { calculatePayout, type PaymentMethodType } from "$lib/utils/payout-calculator";
+import { tenantService } from "$lib/server/services/tenant.service";
 
 /**
  * Service for managing cleaner earnings and payouts
@@ -316,6 +317,7 @@ export const cleanerEarningsService = {
           scheduledDate: booking.scheduledDate,
           price: booking.price,
           status: booking.status,
+          tenantId: booking.tenantId,
         })
         .from(booking)
         .where(
@@ -329,12 +331,26 @@ export const cleanerEarningsService = {
           )
         );
 
+      // Estimates must quote the same commission the cleaner will actually be
+      // paid at, so resolve each tenant's rate once up front.
+      const commissionRates = new Map<string | null, number | undefined>();
+      for (const tenantId of new Set(upcomingBookings.map((b) => b.tenantId))) {
+        commissionRates.set(
+          tenantId,
+          await tenantService.getCommissionRate(tenantId),
+        );
+      }
+
       // Calculate potential earnings using the payout calculator
       let potentialEarnings = 0;
       const bookingsWithEstimates = upcomingBookings.map((b) => {
         const price = Number(b.price) || 0;
         // Use credit card as default payment method for estimates
-        const payout = calculatePayout(price, "CREDIT_CARD" as PaymentMethodType);
+        const payout = calculatePayout(
+          price,
+          "CREDIT_CARD" as PaymentMethodType,
+          commissionRates.get(b.tenantId),
+        );
         potentialEarnings += payout.cleanerPayout;
 
         return {

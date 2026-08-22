@@ -40,6 +40,15 @@ export const actions: Actions = {
       return { errors: { name: "Company name is required" } };
     }
 
+    // This rate drives real payouts, so reject anything unusable rather than
+    // storing it and silently falling back to the platform rate at payout time.
+    const commissionPercent = Number(commissionRate);
+    if (!Number.isFinite(commissionPercent) || commissionPercent < 0 || commissionPercent > 100) {
+      return {
+        errors: { commissionRate: "Commission must be a number between 0 and 100" },
+      };
+    }
+
     await tenantService.update(params.id, {
       name,
       contactEmail: contactEmail || null,

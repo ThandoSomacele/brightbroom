@@ -44,6 +44,12 @@ export const actions: Actions = {
       errors.slug = "Slug must only contain lowercase letters, numbers, and hyphens";
     }
 
+    // This rate drives real payouts, so reject anything unusable up front.
+    const commissionPercent = Number(commissionRate);
+    if (!Number.isFinite(commissionPercent) || commissionPercent < 0 || commissionPercent > 100) {
+      errors.commissionRate = "Commission must be a number between 0 and 100";
+    }
+
     if (Object.keys(errors).length > 0) {
       return { errors, values: { name, slug, contactEmail, contactPhone, province, commissionRate } };
     }

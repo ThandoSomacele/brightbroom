@@ -1,6 +1,7 @@
 // src/lib/server/services/payment-processor.service.ts
 import { db } from "$lib/server/db";
 import { booking, payment } from "$lib/server/db/schema";
+import { tenantService } from "$lib/server/services/tenant.service";
 import { eq } from "drizzle-orm";
 import { cleanerEarningsService } from "./cleaner-earnings.service";
 import {
@@ -49,6 +50,7 @@ export const paymentProcessorService = {
           id: booking.id,
           userId: booking.userId,
           cleanerId: booking.cleanerId,
+          tenantId: booking.tenantId,
           status: booking.status,
           price: booking.price
         })
@@ -75,11 +77,21 @@ export const paymentProcessorService = {
       // Map external payment method to internal type for fee calculation
       const paymentMethodForCalc = this.mapPaymentMethod(paymentData.paymentMethod) as PaymentMethodType;
 
-      // Calculate payout breakdown including PayFast fees
-      // Formula: PayFast fee deducted first, then 20% commission on net amount
-      const payoutBreakdown = calculatePayout(paymentData.amount, paymentMethodForCalc);
+      // Each tenant negotiates its own commission; fall back to the platform
+      // rate when the booking has no tenant or the stored rate is unusable.
+      const tenantCommissionRate = await tenantService.getCommissionRate(
+        bookingDetails.tenantId,
+      );
 
-      const platformCommissionRate = payoutBreakdown.commissionRate * 100; // Store as percentage (20.00)
+      // Calculate payout breakdown including PayFast fees
+      // Formula: PayFast fee deducted first, then commission on the net amount
+      const payoutBreakdown = calculatePayout(
+        paymentData.amount,
+        paymentMethodForCalc,
+        tenantCommissionRate,
+      );
+
+      const platformCommissionRate = payoutBreakdown.commissionRate * 100; // Store as percentage (15.00)
       const platformCommissionAmount = payoutBreakdown.commissionAmount;
       const cleanerPayoutAmount = payoutBreakdown.cleanerPayout;
       const payFastFeeAmount = payoutBreakdown.payFastFee;

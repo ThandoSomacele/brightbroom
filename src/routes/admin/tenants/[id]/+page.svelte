@@ -171,10 +171,19 @@
           name="commissionRate"
           value={data.tenant.commissionRate}
           min="0"
-          max="50"
+          max="100"
           step="0.5"
           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-white sm:text-sm"
         />
+        {#if form?.errors?.commissionRate}
+          <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+            {form.errors.commissionRate}
+          </p>
+        {/if}
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          Taken from each booking after PayFast fees; the rest goes to the
+          cleaner. Applies to new payments, not ones already processed.
+        </p>
       </div>
     </div>
 

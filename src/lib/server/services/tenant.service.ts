@@ -192,6 +192,37 @@ export const tenantService = {
   },
 
   /**
+   * The commission rate to charge on a tenant's bookings, as a fraction
+   * (0.15 for 15%).
+   *
+   * Tenants negotiate their own rate, stored as a percentage string ("15.00").
+   * Returns undefined when there is no tenant or the stored value is unusable,
+   * so callers fall back to PLATFORM_COMMISSION_RATE rather than charging
+   * something nonsensical.
+   */
+  async getCommissionRate(
+    tenantId: string | null | undefined,
+  ): Promise<number | undefined> {
+    if (!tenantId) return undefined;
+
+    const [row] = await db
+      .select({ commissionRate: tenant.commissionRate })
+      .from(tenant)
+      .where(eq(tenant.id, tenantId))
+      .limit(1);
+
+    const percent = Number(row?.commissionRate);
+    if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
+      console.warn(
+        `Unusable commission rate for tenant ${tenantId}: ${row?.commissionRate}. Falling back to the platform rate.`,
+      );
+      return undefined;
+    }
+
+    return percent / 100;
+  },
+
+  /**
    * Resolve which tenant a booking belongs to.
    *
    * A booking is fulfilled by the company the assigned cleaner works for. When
