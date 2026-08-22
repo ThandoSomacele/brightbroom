@@ -1,7 +1,10 @@
 // src/lib/server/services/cleaner-assignment.service.ts
 import { db } from "$lib/server/db";
 import { address, booking, cleanerProfile, user } from "$lib/server/db/schema";
-import { getDistanceFromLatLonInKm } from "$lib/utils/serviceAreaValidator";
+import {
+  getDistanceFromLatLonInKm,
+  STANDARD_SERVICE_RADIUS_KM,
+} from "$lib/utils/serviceAreaValidator";
 import { and, eq, gte, lt, ne, sql } from "drizzle-orm";
 import { sendCleanerAssignmentNotifications } from "./notification.service";
 
@@ -22,6 +25,9 @@ export const cleanerAssignmentService = {
       rating: number | null;
       distance: number;
       availability: "AVAILABLE" | "LIMITED" | "UNAVAILABLE";
+      // Why a cleaner is not fully AVAILABLE, so admins can tell a missing
+      // coordinate problem apart from a genuine distance one
+      limitedReason?: "OUT_OF_RANGE" | "NO_COORDINATES";
     }>;
     bookingData: any;
   }> {
@@ -253,21 +259,24 @@ export const cleanerAssignmentService = {
         // Determine availability status
         let availability: "AVAILABLE" | "LIMITED" | "UNAVAILABLE" =
           "UNAVAILABLE";
+        let limitedReason: "OUT_OF_RANGE" | "NO_COORDINATES" | undefined;
 
         if (isAvailableOnDay && !hasConflict) {
           if (canCalculateDistance) {
-            // If we can calculate distance, use it to determine availability
-            const workRadius = parseFloat(String(cleaner.workRadius)) || 20; // Default to 20km if not set
-
-            if (distance <= workRadius) {
+            // One standard radius for every cleaner, so how far the platform
+            // reaches does not vary with whatever each profile happens to say
+            if (distance <= STANDARD_SERVICE_RADIUS_KM) {
               availability = "AVAILABLE";
             } else {
-              availability = "LIMITED"; // Available but outside preferred work area
+              availability = "LIMITED"; // Too far to reasonably travel
+              limitedReason = "OUT_OF_RANGE";
             }
           } else {
-            // If we can't calculate distance, default to LIMITED
-            // This ensures cleaners still show up but with a warning
+            // Without coordinates we cannot judge the distance, so show the
+            // cleaner with a warning rather than hiding or auto-assigning them.
+            // Fix by running scripts/update-cleaner-coordinates.
             availability = "LIMITED";
+            limitedReason = "NO_COORDINATES";
           }
         }
 
@@ -278,6 +287,7 @@ export const cleanerAssignmentService = {
           rating: cleaner.rating,
           distance,
           availability,
+          limitedReason,
         };
       });
 

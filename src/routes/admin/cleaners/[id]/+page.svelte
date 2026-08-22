@@ -9,6 +9,7 @@
   import Button from "$lib/components/ui/Button.svelte";
   import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
   import { parseDateTimeString } from "$lib/utils/date-utils.js";
+  import { STANDARD_SERVICE_RADIUS_KM } from "$lib/utils/serviceAreaValidator";
   import {
     getClosestServiceArea,
     isWithinServiceArea,
@@ -763,7 +764,7 @@
                   for="workRadius"
                   class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
-                  Work Radius (km)
+                  Preferred travel distance (km)
                 </label>
                 <input
                   type="number"
@@ -775,6 +776,10 @@
                   required
                   class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  For your records only. Matching uses the standard {STANDARD_SERVICE_RADIUS_KM}km
+                  service radius for every cleaner.
+                </p>
               </div>
 
               <div>

@@ -1,6 +1,24 @@
 // src/lib/utils/serviceAreaValidator.ts
 
 /**
+ * How far a cleaner is expected to travel from their work address to a
+ * customer, in kilometres.
+ *
+ * This is the single standard applied to every cleaner — individual
+ * cleanerProfile.workRadius values are not used for matching, so the reach of
+ * the platform stays predictable.
+ *
+ * Sized against how cleaners actually travel here, on foot or by taxi. Real
+ * pairings sit well inside it: Cosmo City to North Riding is 3.6km, Cosmo City
+ * to Olivedale 5.9km, Zandspruit (Msawawa) to Maroeladal 4.8km and to Fourways
+ * 6.4km, Diepsloot to Fourways 10.5km.
+ *
+ * Note this is straight-line (Haversine) distance, not travel distance — an
+ * actual taxi route runs longer than the number compared against this limit.
+ */
+export const STANDARD_SERVICE_RADIUS_KM = 20;
+
+/**
  * Service areas configuration with geographic coordinates and radii
  * Each service area has a name, center coordinates, and radius in km
  */

@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { user, cleanerProfile } from '$lib/server/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
+import { STANDARD_SERVICE_RADIUS_KM } from '$lib/utils/serviceAreaValidator';
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
@@ -55,9 +56,19 @@ export const GET: RequestHandler = async ({ url }) => {
     // Filter by distance if location provided
     if (lat && lng) {
       cleaners = cleaners.filter(cleaner => {
-        const distance = cleaner.distance || 0;
-        const radius = Number(cleaner.workRadius) || 20;
-        return distance <= radius;
+        // A cleaner without coordinates gets a null distance from the query.
+        // Coercing that to 0 would rank them as the closest match rather than
+        // the unknown they are, so drop them from location-based results.
+        const hasCoordinates =
+          cleaner.workLocationLat !== null &&
+          cleaner.workLocationLng !== null &&
+          cleaner.distance !== null;
+
+        if (!hasCoordinates) return false;
+
+        // One standard radius for every cleaner, matching the assignment
+        // service — a cleaner's own workRadius does not widen their reach
+        return Number(cleaner.distance) <= STANDARD_SERVICE_RADIUS_KM;
       });
     }
 
