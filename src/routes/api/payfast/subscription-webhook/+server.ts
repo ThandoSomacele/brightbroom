@@ -5,6 +5,7 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { subscription, subscriptionPayment, booking } from '$lib/server/db/schema';
 import { payFastSubscriptionService } from '$lib/server/services/payfast-subscription';
+import { tenantService } from '$lib/server/services/tenant.service';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
 
@@ -89,12 +90,17 @@ export const POST: RequestHandler = async ({ request }) => {
         subscriptionData.preferredTimeSlot || '09:00-12:00'
       );
 
+      const bookingTenantId = await tenantService.resolveBookingTenantId(
+        subscriptionData.cleanerId || null,
+      );
+
       await db.insert(booking).values({
         id: bookingId,
         userId: subscriptionData.userId,
         addressId: subscriptionData.addressId,
         serviceId: subscriptionData.serviceId,
         cleanerId: subscriptionData.cleanerId || null,
+        tenantId: bookingTenantId,
         subscriptionId: subscriptionData.id,
         status: 'CONFIRMED',
         scheduledDate,

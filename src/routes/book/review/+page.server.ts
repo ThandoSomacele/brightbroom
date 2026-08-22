@@ -7,6 +7,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { sendBookingConfirmationEmail } from '$lib/server/email-service';
 import { addressService } from '$lib/server/services/address.service';
 import { couponService } from '$lib/server/services/coupon.service';
+import { tenantService } from '$lib/server/services/tenant.service';
 import { parseDateTimeString } from '$lib/utils/date-utils';
 import { getGuestBookingData, storeGuestBookingData } from '$lib/server/guest-booking';
 import { calculateCleaningPrice, validateRoomSelection } from '$lib/utils/pricing';
@@ -344,12 +345,16 @@ export const actions: Actions = {
 
       // Prepare booking data with room counts and coupon fields
       // Note: addressId is only set if user has a saved address, otherwise guestAddress is used
+      // Scope the booking to the company that will fulfil it
+      const bookingTenantId = await tenantService.resolveBookingTenantId(cleanerId);
+
       const bookingData = {
         id: bookingId,
         userId: locals.user?.id || null,
         serviceId: serviceId,
         addressId: addressData ? addressId : null,
         cleanerId: cleanerId,
+        tenantId: bookingTenantId,
         status: 'PENDING' as const,
         scheduledDate: scheduledDateObj,
         duration: priceBreakdown.totalDurationMinutes,

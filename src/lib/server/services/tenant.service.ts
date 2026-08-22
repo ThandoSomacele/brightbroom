@@ -192,6 +192,31 @@ export const tenantService = {
   },
 
   /**
+   * Resolve which tenant a booking belongs to.
+   *
+   * A booking is fulfilled by the company the assigned cleaner works for. When
+   * no cleaner is assigned yet (the common case at checkout) we fall back to
+   * the platform owner so bookings are never left unscoped and therefore
+   * invisible to every tenant-scoped admin view.
+   */
+  async resolveBookingTenantId(
+    cleanerId?: string | null,
+  ): Promise<string | null> {
+    if (cleanerId) {
+      const [profile] = await db
+        .select({ tenantId: cleanerProfile.tenantId })
+        .from(cleanerProfile)
+        .where(eq(cleanerProfile.userId, cleanerId))
+        .limit(1);
+
+      if (profile?.tenantId) return profile.tenantId;
+    }
+
+    const platformOwner = await this.getPlatformOwner();
+    return platformOwner?.id ?? null;
+  },
+
+  /**
    * Check if a user is an admin/owner of a specific tenant
    */
   async isUserTenantAdmin(
