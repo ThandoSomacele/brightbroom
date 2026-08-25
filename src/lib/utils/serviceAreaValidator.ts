@@ -19,24 +19,34 @@
 export const STANDARD_SERVICE_RADIUS_KM = 20;
 
 /**
+ * How far a service area reaches from its centre, in kilometres.
+ *
+ * Uniform across every area so coverage is predictable. Previously these
+ * varied wildly — Diepsloot was set to 100km and Cosmo City to 50km, which
+ * quietly admitted Rustenburg, Vereeniging, Pretoria and Brits, and meant the
+ * out-of-area message almost never fired for anyone in the province.
+ */
+export const SERVICE_AREA_RADIUS_KM = 15;
+
+/**
  * Service areas configuration with geographic coordinates and radii
  * Each service area has a name, center coordinates, and radius in km
  */
 export const SERVICE_AREAS = [
-  { name: "Fourways", lat: -26.0274, lng: 28.0106, radius: 15 },
-  { name: "Bryanston", lat: -26.0525, lng: 28.0074, radius: 15 },
-  { name: "Randburg", lat: -26.1063, lng: 27.9947, radius: 15 },
-  { name: "Midrand", lat: -25.9992, lng: 28.1182, radius: 15 },
-  { name: "North Riding", lat: -26.0469, lng: 27.951, radius: 15 },
+  { name: "Fourways", lat: -26.0274, lng: 28.0106, radius: SERVICE_AREA_RADIUS_KM },
+  { name: "Bryanston", lat: -26.0525, lng: 28.0074, radius: SERVICE_AREA_RADIUS_KM },
+  { name: "Randburg", lat: -26.1063, lng: 27.9947, radius: SERVICE_AREA_RADIUS_KM },
+  { name: "Midrand", lat: -25.9992, lng: 28.1182, radius: SERVICE_AREA_RADIUS_KM },
+  { name: "North Riding", lat: -26.0469, lng: 27.951, radius: SERVICE_AREA_RADIUS_KM },
   {
     name: "Cosmo City, Roodepoort",
     lat: -26.0212639,
     lng: 27.9289995,
-    radius: 50,
+    radius: SERVICE_AREA_RADIUS_KM,
   },
-  { name: "Diepsloot", lat: -25.9412555, lng: 27.96671, radius: 100 },
-  { name: "Honeydew", lat: -26.0225, lng: 27.9475, radius: 30 },
-  { name: "Monaghan Farm, Centurion", lat: -25.904442, lng: 27.454882, radius: 15 },
+  { name: "Diepsloot", lat: -25.9412555, lng: 27.96671, radius: SERVICE_AREA_RADIUS_KM },
+  { name: "Honeydew", lat: -26.0225, lng: 27.9475, radius: SERVICE_AREA_RADIUS_KM },
+  { name: "Monaghan Farm, Centurion", lat: -25.904442, lng: 27.454882, radius: SERVICE_AREA_RADIUS_KM },
 ];
 
 /**
