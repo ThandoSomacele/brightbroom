@@ -18,8 +18,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
   const members = await tenantService.getMembers(params.id);
   const cleanerCount = await tenantService.getCleanerCount(params.id);
+  // The platform owner collects the money rather than being paid out of it
+  const payouts = tenant.isPlatformOwner
+    ? null
+    : await tenantService.getPayoutTotals(params.id);
 
-  return { tenant, members, cleanerCount };
+  return { tenant, members, cleanerCount, payouts };
 };
 
 export const actions: Actions = {
@@ -35,6 +39,14 @@ export const actions: Actions = {
     const province = (formData.get("province") as string)?.trim();
     const commissionRate =
       (formData.get("commissionRate") as string)?.trim() || "15.00";
+
+    // Where this company's share of each booking is paid
+    const payoutMethod = (formData.get("payoutMethod") as string)?.trim();
+    const bankName = (formData.get("bankName") as string)?.trim();
+    const bankAccountNumber = (formData.get("bankAccountNumber") as string)?.trim();
+    const bankBranchCode = (formData.get("bankBranchCode") as string)?.trim();
+    const bankAccountType = (formData.get("bankAccountType") as string)?.trim();
+    const bankAccountHolder = (formData.get("bankAccountHolder") as string)?.trim();
 
     if (!name) {
       return { errors: { name: "Company name is required" } };
@@ -55,6 +67,13 @@ export const actions: Actions = {
       contactPhone: contactPhone || null,
       province: province || null,
       commissionRate,
+      payoutMethod: (payoutMethod as "EFT" | "INSTANT_MONEY") || "EFT",
+      bankName: bankName || null,
+      bankAccountNumber: bankAccountNumber || null,
+      bankBranchCode: bankBranchCode || null,
+      bankAccountType:
+        (bankAccountType as "SAVINGS" | "CHEQUE" | "TRANSMISSION") || null,
+      bankAccountHolder: bankAccountHolder || null,
     });
 
     return { success: true, message: "Tenant updated successfully" };

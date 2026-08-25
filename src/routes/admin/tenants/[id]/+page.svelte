@@ -2,7 +2,15 @@
 <script lang="ts">
   import Button from "$lib/components/ui/Button.svelte";
   import { enhance } from "$app/forms";
-  import { ArrowLeft, Crown, Users, BrushCleaning, Trash2, UserPlus } from "lucide-svelte";
+  import {
+    ArrowLeft,
+    BrushCleaning,
+    Crown,
+    Landmark,
+    Trash2,
+    UserPlus,
+    Users,
+  } from "lucide-svelte";
 
   export let data;
   export let form;
@@ -55,7 +63,11 @@
   {/if}
 
   <!-- Stats -->
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <div
+    class="grid grid-cols-1 gap-4 {data.payouts
+      ? 'sm:grid-cols-2 lg:grid-cols-4'
+      : 'sm:grid-cols-3'}"
+  >
     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
       <div class="flex items-center gap-3">
         <div class="p-2 bg-primary/10 rounded-lg">
@@ -95,6 +107,26 @@
         </div>
       </div>
     </div>
+    {#if data.payouts}
+      <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-primary/10 rounded-lg">
+            <Landmark class="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Owed to them</p>
+            <p class="text-xl font-semibold text-gray-900 dark:text-white">
+              R{data.payouts.pending.toFixed(2)}
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              {data.payouts.pendingBookings}
+              {data.payouts.pendingBookings === 1 ? "booking" : "bookings"}
+              · R{data.payouts.paid.toFixed(2)} paid
+            </p>
+          </div>
+        </div>
+      </div>
+    {/if}
   </div>
 
   <!-- Edit Form -->
@@ -181,11 +213,119 @@
           </p>
         {/if}
         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          Taken from each booking after PayFast fees; the rest goes to the
-          cleaner. Applies to new payments, not ones already processed.
+          Taken from each booking after PayFast fees. The rest goes to
+          {data.tenant.isPlatformOwner
+            ? "the cleaner."
+            : "this company, which pays its own cleaners from it."}
+          Applies to new payments, not ones already processed.
         </p>
       </div>
     </div>
+
+    {#if !data.tenant.isPlatformOwner}
+      <!-- Payout details — not shown for the platform owner, which is the
+           account collecting payment rather than being paid out -->
+      <div class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+        <div>
+          <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+            Payout details
+          </h3>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Where this company's share of each booking is paid.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div>
+            <label for="bankAccountHolder" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Account holder
+            </label>
+            <input
+              type="text"
+              id="bankAccountHolder"
+              name="bankAccountHolder"
+              value={data.tenant.bankAccountHolder ?? ""}
+              class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-white sm:text-sm"
+            />
+          </div>
+          <div>
+            <label for="bankName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Bank
+            </label>
+            <input
+              type="text"
+              id="bankName"
+              name="bankName"
+              value={data.tenant.bankName ?? ""}
+              class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-white sm:text-sm"
+            />
+          </div>
+          <div>
+            <label for="bankAccountNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Account number
+            </label>
+            <input
+              type="text"
+              id="bankAccountNumber"
+              name="bankAccountNumber"
+              value={data.tenant.bankAccountNumber ?? ""}
+              class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-white sm:text-sm"
+            />
+          </div>
+          <div>
+            <label for="bankBranchCode" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Branch code
+            </label>
+            <input
+              type="text"
+              id="bankBranchCode"
+              name="bankBranchCode"
+              value={data.tenant.bankBranchCode ?? ""}
+              class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-white sm:text-sm"
+            />
+          </div>
+          <div>
+            <label for="bankAccountType" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Account type
+            </label>
+            <select
+              id="bankAccountType"
+              name="bankAccountType"
+              class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-white sm:text-sm"
+            >
+              <option value="">Select type</option>
+              {#each ["SAVINGS", "CHEQUE", "TRANSMISSION"] as accountType}
+                <option
+                  value={accountType}
+                  selected={data.tenant.bankAccountType === accountType}
+                >
+                  {accountType.charAt(0) + accountType.slice(1).toLowerCase()}
+                </option>
+              {/each}
+            </select>
+          </div>
+          <div>
+            <label for="payoutMethod" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Payout method
+            </label>
+            <select
+              id="payoutMethod"
+              name="payoutMethod"
+              class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-white sm:text-sm"
+            >
+              {#each [["EFT", "EFT"], ["INSTANT_MONEY", "Instant Money"]] as [methodValue, methodLabel]}
+                <option
+                  value={methodValue}
+                  selected={data.tenant.payoutMethod === methodValue}
+                >
+                  {methodLabel}
+                </option>
+              {/each}
+            </select>
+          </div>
+        </div>
+      </div>
+    {/if}
 
     <div class="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
       <Button type="submit" variant="primary">Save Changes</Button>

@@ -1,6 +1,8 @@
 // src/lib/server/services/tenant.service.ts
 import { db } from "$lib/server/db";
 import {
+  booking,
+  payment,
   tenant,
   tenantMember,
   user,
@@ -9,7 +11,7 @@ import {
   type NewTenant,
   type TenantMember,
 } from "$lib/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import { and, eq, isNotNull, sql } from "drizzle-orm";
 
 /**
  * Tenant service for managing tenants (cleaning companies) on the marketplace
@@ -234,6 +236,40 @@ export const tenantService = {
     tenantId: string | null | undefined,
   ): Promise<number | undefined> {
     return (await this.getPayoutTerms(tenantId)).commissionRate;
+  },
+
+  /**
+   * What the platform owes a company, and what it has already paid them.
+   *
+   * Only counts bookings the company actually owns — the platform owner is
+   * never owed a payout, since it is the account collecting the money.
+   */
+  async getPayoutTotals(tenantId: string): Promise<{
+    pending: number;
+    paid: number;
+    pendingBookings: number;
+  }> {
+    const [row] = await db
+      .select({
+        pending: sql<string>`COALESCE(SUM(${payment.tenantPayoutAmount}) FILTER (WHERE ${payment.isPaidToTenant} = false), 0)`,
+        paid: sql<string>`COALESCE(SUM(${payment.tenantPayoutAmount}) FILTER (WHERE ${payment.isPaidToTenant} = true), 0)`,
+        pendingBookings: sql<number>`COUNT(*) FILTER (WHERE ${payment.isPaidToTenant} = false)`,
+      })
+      .from(payment)
+      .innerJoin(booking, eq(booking.id, payment.bookingId))
+      .where(
+        and(
+          eq(booking.tenantId, tenantId),
+          eq(payment.status, "COMPLETED"),
+          isNotNull(payment.tenantPayoutAmount),
+        ),
+      );
+
+    return {
+      pending: Number(row?.pending ?? 0),
+      paid: Number(row?.paid ?? 0),
+      pendingBookings: Number(row?.pendingBookings ?? 0),
+    };
   },
 
   /**
