@@ -5,9 +5,35 @@ import { cleanerApplication } from "$lib/server/db/schema";
 import { sendCleanerApplicationEmail } from "$lib/server/email-service";
 import { checkRateLimit } from "$lib/server/rate-limiter";
 import { validateHoneypot, logBotDetection } from "$lib/server/honeypot-validator";
+import { s3 } from "$lib/server/s3";
 import { fail } from "@sveltejs/kit";
 import { z } from "zod";
 import type { Actions } from "./$types";
+import mime from "mime-types";
+
+/**
+ * Right to work in South Africa.
+ *
+ * Asylum seekers (Section 22) are deliberately absent: that permit only allows
+ * work if separately endorsed, and an endorsement brings Form 6 filing, visa
+ * record-keeping and renewals every few months. Recognised refugees
+ * (Section 24) may work without further permission.
+ */
+const WORK_AUTH_CATEGORIES = [
+  "SA_CITIZEN", "PERMANENT_RESIDENT", "WORK_PERMIT", "REFUGEE",
+] as const;
+
+/** Categories that must supply a supporting document. Citizens need none. */
+const DOCUMENT_CATEGORIES: string[] = ["PERMANENT_RESIDENT", "WORK_PERMIT", "REFUGEE"];
+
+/** Categories whose permit carries an expiry date we track. */
+const EXPIRY_CATEGORIES: string[] = ["WORK_PERMIT", "REFUGEE"];
+
+// Right-to-work documents are IDs and permits: modest sizes, scannable formats
+const MAX_DOC_BYTES = 10 * 1024 * 1024;
+const ALLOWED_DOC_TYPES = [
+  "application/pdf", "image/jpeg", "image/png", "image/heic", "image/webp",
+];
 
 // Form validation schema
 const joinApplicationSchema = z.object({
@@ -51,10 +77,22 @@ const joinApplicationSchema = z.object({
   bankAccountType: z.string().optional(),
   bankAccountHolder: z.string().optional(),
 
+  // Right to work in South Africa
+  workAuthorisation: z.enum(WORK_AUTH_CATEGORIES, {
+    errorMap: () => ({ message: "Please tell us your right to work in South Africa" }),
+  }),
+  workAuthExpiry: z.string().optional(),
+
   terms: z.literal("on", {
     errorMap: () => ({ message: "You must accept the Terms of Service" }),
   }),
-});
+})
+  // Enforced here rather than only in the UI, so the rule still holds for a
+  // form submitted without JavaScript or posted directly.
+  .refine(
+    (d) => !EXPIRY_CATEGORIES.includes(d.workAuthorisation) || !!d.workAuthExpiry,
+    { message: "Please give the expiry date shown on your permit", path: ["workAuthExpiry"] },
+  );
 
 export const actions: Actions = {
   default: async ({ request, getClientAddress }) => {
@@ -102,6 +140,11 @@ export const actions: Actions = {
     const bio = formData.get("bio")?.toString() || null;
     const petCompatibility = formData.get("petCompatibility")?.toString() || "NONE";
     const hearAboutUs = formData.get("hearAboutUs")?.toString();
+
+    // Right to work in South Africa
+    const workAuthorisation = formData.get("workAuthorisation")?.toString();
+    const workAuthExpiry = formData.get("workAuthExpiry")?.toString();
+    const workAuthDocument = formData.get("workAuthDocument");
 
     // Structured bank details
     const bankName = formData.get("bankName")?.toString() || null;
@@ -172,6 +215,8 @@ export const actions: Actions = {
         bankBranchCode: bankBranchCode || undefined,
         bankAccountType: bankAccountType || undefined,
         bankAccountHolder: bankAccountHolder || undefined,
+        workAuthorisation,
+        workAuthExpiry: workAuthExpiry || undefined,
         terms,
       });
 
@@ -244,6 +289,51 @@ export const actions: Actions = {
 
       // Create the cleaner application record
       const applicationId = crypto.randomUUID();
+
+      // Right-to-work document. Handled inside this action rather than via a
+      // public upload endpoint, so it inherits the honeypot check and the
+      // application rate limit already guarding this form.
+      let workAuthDocumentUrl: string | null = null;
+      const documentRequired = DOCUMENT_CATEGORIES.includes(workAuthorisation!);
+
+      if (workAuthDocument instanceof File && workAuthDocument.size > 0) {
+        if (workAuthDocument.size > MAX_DOC_BYTES) {
+          return fail(400, {
+            error: "That document is larger than 10MB. Please upload a smaller file.",
+            data: createFormDataObject(),
+          });
+        }
+
+        const contentType =
+          workAuthDocument.type ||
+          mime.lookup(workAuthDocument.name) ||
+          "application/octet-stream";
+        if (!ALLOWED_DOC_TYPES.includes(contentType)) {
+          return fail(400, {
+            error: "Please upload your document as a PDF or a photo.",
+            data: createFormDataObject(),
+          });
+        }
+
+        try {
+          const extension =
+            mime.extension(contentType) || workAuthDocument.name.split(".").pop() || "bin";
+          const key = `cleaner-documents/${applicationId}/work-authorisation.${extension}`;
+          const buffer = Buffer.from(await workAuthDocument.arrayBuffer());
+          workAuthDocumentUrl = await s3.uploadFile(buffer, key, contentType);
+        } catch (uploadError) {
+          console.error("Work authorisation document upload failed:", uploadError);
+          return fail(500, {
+            error: "We could not save your document. Please try again.",
+            data: createFormDataObject(),
+          });
+        }
+      } else if (documentRequired) {
+        return fail(400, {
+          error: "Please upload the document showing your right to work in South Africa.",
+          data: createFormDataObject(),
+        });
+      }
       const applicationData = {
         id: applicationId,
         firstName: firstName!,
@@ -255,6 +345,10 @@ export const actions: Actions = {
         longitude: longitude ? String(longitude) : null,
         formattedAddress,
         workRadius: String(workRadius),
+        workAuthorisation: workAuthorisation as
+          | "SA_CITIZEN" | "PERMANENT_RESIDENT" | "WORK_PERMIT" | "REFUGEE",
+        workAuthExpiry: workAuthExpiry ? new Date(workAuthExpiry) : null,
+        workAuthDocumentUrl,
         availability: JSON.stringify(availability),
         ownTransport,
         whatsApp,

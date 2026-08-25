@@ -5,7 +5,7 @@ import {
   getDistanceFromLatLonInKm,
   STANDARD_SERVICE_RADIUS_KM,
 } from "$lib/utils/serviceAreaValidator";
-import { and, eq, gte, isNull, lt, ne, or, sql } from "drizzle-orm";
+import { and, eq, gt, gte, isNull, lt, ne, or, sql } from "drizzle-orm";
 import { sendCleanerAssignmentNotifications } from "./notification.service";
 
 /**
@@ -138,6 +138,13 @@ export const cleanerAssignmentService = {
             eq(user.isActive, true),
             eq(cleanerProfile.isAvailable, true),
             or(isNull(cleanerProfile.tenantId), eq(tenant.isActive, true)),
+            // A lapsed right to work stops a cleaner being assignable here and
+            // now, rather than depending on a job to notice. Null expiry covers
+            // citizens and permanent residents, who have none.
+            or(
+              isNull(cleanerProfile.workAuthExpiry),
+              gt(cleanerProfile.workAuthExpiry, new Date()),
+            ),
           ),
         );
 

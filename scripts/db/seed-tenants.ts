@@ -127,40 +127,49 @@ async function seedTenants() {
     if (options.backfill) {
       console.log("\nBackfilling existing data with BrightBroom tenant ID...");
 
+      // .returning() so the counts below are real. Without it a drizzle update
+      // resolves to something whose .length is 0, which reported "0 updated"
+      // even when rows had in fact been backfilled.
+
       // Backfill cleaner profiles
       const profileResult = await db
         .update(schema.cleanerProfile)
         .set({ tenantId: BRIGHTBROOM_TENANT_ID })
-        .where(isNull(schema.cleanerProfile.tenantId));
-      console.log(`  ✓ Cleaner profiles updated: ${profileResult.length ?? 0}`);
+        .where(isNull(schema.cleanerProfile.tenantId))
+        .returning({ id: schema.cleanerProfile.id });
+      console.log(`  ✓ Cleaner profiles updated: ${profileResult.length}`);
 
       // Backfill bookings
       const bookingResult = await db
         .update(schema.booking)
         .set({ tenantId: BRIGHTBROOM_TENANT_ID })
-        .where(isNull(schema.booking.tenantId));
-      console.log(`  ✓ Bookings updated: ${bookingResult.length ?? 0}`);
+        .where(isNull(schema.booking.tenantId))
+        .returning({ id: schema.booking.id });
+      console.log(`  ✓ Bookings updated: ${bookingResult.length}`);
 
       // Backfill services
       const serviceResult = await db
         .update(schema.service)
         .set({ tenantId: BRIGHTBROOM_TENANT_ID })
-        .where(isNull(schema.service.tenantId));
-      console.log(`  ✓ Services updated: ${serviceResult.length ?? 0}`);
+        .where(isNull(schema.service.tenantId))
+        .returning({ id: schema.service.id });
+      console.log(`  ✓ Services updated: ${serviceResult.length}`);
 
       // Backfill pricing config
       const pricingResult = await db
         .update(schema.pricingConfig)
         .set({ tenantId: BRIGHTBROOM_TENANT_ID })
-        .where(isNull(schema.pricingConfig.tenantId));
-      console.log(`  ✓ Pricing configs updated: ${pricingResult.length ?? 0}`);
+        .where(isNull(schema.pricingConfig.tenantId))
+        .returning({ id: schema.pricingConfig.id });
+      console.log(`  ✓ Pricing configs updated: ${pricingResult.length}`);
 
       // Backfill applications
       const appResult = await db
         .update(schema.cleanerApplication)
         .set({ tenantId: BRIGHTBROOM_TENANT_ID })
-        .where(isNull(schema.cleanerApplication.tenantId));
-      console.log(`  ✓ Applications updated: ${appResult.length ?? 0}`);
+        .where(isNull(schema.cleanerApplication.tenantId))
+        .returning({ id: schema.cleanerApplication.id });
+      console.log(`  ✓ Applications updated: ${appResult.length}`);
     }
 
     console.log("\nDone!");

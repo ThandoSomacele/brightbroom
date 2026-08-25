@@ -49,6 +49,23 @@
   let whatsApp = false;
   let idType = "";
   let idNumber = "";
+
+  // Right to work in South Africa. Asylum seekers are not an option: a
+  // Section 22 permit only allows work if separately endorsed, and that brings
+  // Form 6 filing and renewals every few months.
+  let workAuthorisation = "";
+  let workAuthExpiry = "";
+  const WORK_AUTH_OPTIONS = [
+    { value: "SA_CITIZEN", label: "South African citizen" },
+    { value: "PERMANENT_RESIDENT", label: "Permanent resident" },
+    { value: "WORK_PERMIT", label: "Valid work permit" },
+    { value: "REFUGEE", label: "Refugee status (Section 24)" },
+  ];
+  // Citizens need no paperwork; everyone else must show us something
+  $: needsWorkAuthDocument =
+    ["PERMANENT_RESIDENT", "WORK_PERMIT", "REFUGEE"].includes(workAuthorisation);
+  // Permits run out; permanent residence does not
+  $: needsWorkAuthExpiry = ["WORK_PERMIT", "REFUGEE"].includes(workAuthorisation);
   let hearAboutUs = "";
   let documents: File[] = [];
 
@@ -78,6 +95,8 @@
     whatsApp = false;
     idType = "";
     idNumber = "";
+    workAuthorisation = "";
+    workAuthExpiry = "";
     hearAboutUs = "";
     documents = [];
   }
@@ -903,6 +922,89 @@
                         required
                       />
                     </div>
+                  </div>
+
+                  <!-- Right to work -->
+                  <div class="border-t border-gray-200 dark:border-gray-600 pt-6">
+                    <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-1">
+                      Right to work in South Africa
+                    </h4>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                      We check this for everyone before offering work. Your
+                      documents are stored securely and used only for this.
+                    </p>
+
+                    <div class="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <label
+                          for="workAuthorisation"
+                          class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          Your status <span class="text-red-500">*</span>
+                        </label>
+                        <select
+                          id="workAuthorisation"
+                          name="workAuthorisation"
+                          bind:value={workAuthorisation}
+                          required
+                          class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                        >
+                          <option value="">Select your status...</option>
+                          {#each WORK_AUTH_OPTIONS as option}
+                            <option value={option.value}>{option.label}</option>
+                          {/each}
+                        </select>
+                      </div>
+
+                      {#if needsWorkAuthExpiry}
+                        <div>
+                          <label
+                            for="workAuthExpiry"
+                            class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            Permit expiry date <span class="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="date"
+                            id="workAuthExpiry"
+                            name="workAuthExpiry"
+                            bind:value={workAuthExpiry}
+                            required
+                            class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                          />
+                          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            We'll remind you before it runs out.
+                          </p>
+                        </div>
+                      {/if}
+                    </div>
+
+                    {#if needsWorkAuthDocument}
+                      <div class="mt-4">
+                        <label
+                          for="workAuthDocument"
+                          class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          Upload your document <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="file"
+                          id="workAuthDocument"
+                          name="workAuthDocument"
+                          accept=".pdf,image/*"
+                          required
+                          class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-gray-100 file:px-3 file:py-1 file:text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:file:bg-gray-700 dark:file:text-white"
+                        />
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                          A photo or PDF of your
+                          {workAuthorisation === "PERMANENT_RESIDENT"
+                            ? "permanent residence certificate"
+                            : workAuthorisation === "REFUGEE"
+                              ? "Section 24 refugee permit"
+                              : "work permit"}, up to 10MB.
+                        </p>
+                      </div>
+                    {/if}
                   </div>
 
                   <!-- Bank Details Section -->

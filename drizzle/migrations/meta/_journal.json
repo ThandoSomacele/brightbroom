@@ -148,6 +148,13 @@
       "when": 1787620000000,
       "tag": "0020_add_tenant_verification",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1787700000000,
+      "tag": "0021_add_work_authorisation",
+      "breakpoints": true
     }
   ]
 }

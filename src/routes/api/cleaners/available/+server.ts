@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { user, cleanerProfile, tenant } from '$lib/server/db/schema';
-import { eq, and, isNull, or, sql } from 'drizzle-orm';
+import { eq, and, gt, isNull, or, sql } from 'drizzle-orm';
 import { STANDARD_SERVICE_RADIUS_KM } from '$lib/utils/serviceAreaValidator';
 
 export const GET: RequestHandler = async ({ url }) => {
@@ -50,7 +50,12 @@ export const GET: RequestHandler = async ({ url }) => {
           eq(user.role, 'CLEANER'),
           eq(user.isActive, true),
           eq(cleanerProfile.isAvailable, true),
-          or(isNull(cleanerProfile.tenantId), eq(tenant.isActive, true))
+          or(isNull(cleanerProfile.tenantId), eq(tenant.isActive, true)),
+          // Same right-to-work guard as the assignment service
+          or(
+            isNull(cleanerProfile.workAuthExpiry),
+            gt(cleanerProfile.workAuthExpiry, new Date())
+          )
         )
       );
 

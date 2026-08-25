@@ -31,20 +31,51 @@ const MIGRATIONS_FOLDER = "drizzle/migrations";
 const args = process.argv.slice(2);
 const apply = args.includes("--apply");
 
-// Schema that must exist before we may declare the migrations applied.
-const REQUIRED_TABLES = [
-  "user", "booking", "address", "service", "cleaner_profile",
-  "cleaner_application", "payment", "coupon", "coupon_usage",
-  "tenant", "tenant_member",
-];
-const REQUIRED_COLUMNS: [string, string][] = [
-  ["booking", "tenant_id"],
-  ["cleaner_profile", "tenant_id"],
-  ["cleaner_application", "tenant_id"],
-  ["service", "tenant_id"],
-  ["pricing_config", "tenant_id"],
-  ["booking", "coupon_id"],
-];
+// Record only up to and including this migration. Without it every journal
+// entry is recorded.
+//
+// Needed because a database can be part-way along: production's schema is
+// current through 0017 but genuinely has not run the tenancy migrations, so
+// those must execute rather than be marked done.
+const throughIndex = args.indexOf("--through");
+const throughTag = throughIndex >= 0 ? args[throughIndex + 1] : null;
+
+/**
+ * What each migration introduces, so the safety check can be scoped to the
+ * range actually being recorded.
+ *
+ * Only the migrations that add something worth asserting on appear here. A
+ * migration absent from this map is recorded without a schema assertion — the
+ * checkpoints around it are what make the range safe.
+ */
+const CHECKPOINTS: Record<string, { tables?: string[]; columns?: [string, string][] }> = {
+  // The original schema, whichever migration laid it down
+  "0000_fancy_lilith": {
+    tables: ["user", "booking", "address", "service", "cleaner_profile", "payment"],
+  },
+  "0012_striped_thor": { tables: ["cleaner_application"] },
+  "0017_add_coupons": {
+    tables: ["coupon", "coupon_usage"],
+    columns: [["booking", "coupon_id"]],
+  },
+  "0018_add_tenancy": {
+    tables: ["tenant", "tenant_member"],
+    columns: [
+      ["booking", "tenant_id"],
+      ["cleaner_profile", "tenant_id"],
+      ["cleaner_application", "tenant_id"],
+      ["service", "tenant_id"],
+      ["pricing_config", "tenant_id"],
+    ],
+  },
+  "0019_add_tenant_payouts": {
+    columns: [["payment", "tenant_payout_amount"], ["tenant", "bank_account_number"]],
+  },
+  "0020_add_tenant_verification": {
+    tables: ["tenant_document"],
+    columns: [["tenant", "verification_status"]],
+  },
+};
 
 function readJournalMigrations() {
   const journal = JSON.parse(
@@ -71,27 +102,51 @@ async function main() {
   console.log(`Database: ${new URL(process.env.DATABASE_URL).host}\n`);
 
   try {
-    // --- Safety check: is the schema actually there? ---
+    const allMigrations = readJournalMigrations();
+
+    // Narrow to the range being recorded, if --through was given
+    let migrations = allMigrations;
+    if (throughTag) {
+      const cut = allMigrations.findIndex((m: any) => m.tag === throughTag);
+      if (cut === -1) {
+        console.error(`REFUSING — no migration named "${throughTag}" in the journal.`);
+        process.exit(1);
+      }
+      migrations = allMigrations.slice(0, cut + 1);
+      console.log(`Recording through ${throughTag} (${migrations.length} of ${allMigrations.length} migrations).`);
+      console.log(`The remaining ${allMigrations.length - migrations.length} will be left for drizzle-kit migrate to apply.\n`);
+    }
+
+    // --- Safety check, scoped to what is actually being recorded ---
     const tables: any[] = await sql`
       select table_name from information_schema.tables where table_schema = 'public'`;
     const present = new Set(tables.map((t) => t.table_name));
-    const missingTables = REQUIRED_TABLES.filter((t) => !present.has(t));
-
     const cols: any[] = await sql`
       select table_name, column_name from information_schema.columns where table_schema = 'public'`;
     const colSet = new Set(cols.map((c) => `${c.table_name}.${c.column_name}`));
-    const missingCols = REQUIRED_COLUMNS
-      .filter(([t, c]) => !colSet.has(`${t}.${c}`))
-      .map(([t, c]) => `${t}.${c}`);
+
+    const missingTables: string[] = [];
+    const missingCols: string[] = [];
+    for (const migration of migrations) {
+      const checkpoint = CHECKPOINTS[migration.tag];
+      if (!checkpoint) continue;
+      for (const t of checkpoint.tables ?? []) {
+        if (!present.has(t)) missingTables.push(`${t} (from ${migration.tag})`);
+      }
+      for (const [t, c] of checkpoint.columns ?? []) {
+        if (!colSet.has(`${t}.${c}`)) missingCols.push(`${t}.${c} (from ${migration.tag})`);
+      }
+    }
 
     if (missingTables.length || missingCols.length) {
-      console.error("REFUSING to rebaseline — this database is not fully migrated.");
+      console.error("REFUSING to rebaseline — this database has not actually run everything you are asking to record.");
       if (missingTables.length) console.error("  missing tables:  " + missingTables.join(", "));
       if (missingCols.length) console.error("  missing columns: " + missingCols.join(", "));
-      console.error("\nRun the migrations properly against this database instead.");
+      console.error("\nEither run those migrations properly, or use --through <tag> to record only");
+      console.error("the range this database has genuinely applied.");
       process.exit(1);
     }
-    console.log("Schema check passed — every table and column this would mark as applied exists.\n");
+    console.log("Schema check passed — everything this would mark as applied exists.\n");
 
     await sql`create schema if not exists drizzle`;
     await sql`
@@ -101,7 +156,6 @@ async function main() {
         created_at bigint
       )`;
 
-    const migrations = readJournalMigrations();
     const applied: any[] = await sql`select hash from drizzle.__drizzle_migrations`;
     const appliedHashes = new Set(applied.map((r) => r.hash));
     const toRecord = migrations.filter((m: any) => !appliedHashes.has(m.hash));

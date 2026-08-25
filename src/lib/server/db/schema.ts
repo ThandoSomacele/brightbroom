@@ -89,6 +89,19 @@ export const dayOfWeekEnum = pgEnum("DayOfWeek", [
   "SUNDAY",
 ]);
 export const idTypeEnum = pgEnum("IdType", ["SOUTH_AFRICAN_ID", "PASSPORT"]);
+
+// Right to work in South Africa.
+//
+// Asylum seekers (Section 22) are deliberately absent: that permit only allows
+// work if separately endorsed, and an endorsement brings Form 6 filing, visa
+// record-keeping and renewals every few months. Recognised refugees
+// (Section 24) may work without any further permission.
+export const workAuthorisationEnum = pgEnum("WorkAuthorisation", [
+  "SA_CITIZEN",
+  "PERMANENT_RESIDENT",
+  "WORK_PERMIT",
+  "REFUGEE",
+]);
 export const petCompatibilityEnum = pgEnum("PetCompatibility", [
   "NONE",
   "DOGS",
@@ -510,6 +523,12 @@ export const cleanerProfile = pgTable("cleaner_profile", {
   isAvailable: boolean("is_available").default(true).notNull(),
   profileImageUrl: text("profile_image_url"),
 
+  // Right to work. Expiry is null for citizens and permanent residents; for
+  // permit holders it is enforced at match time, not by a scheduled job.
+  workAuthorisation: workAuthorisationEnum("work_authorisation"),
+  workAuthExpiry: timestamp("work_auth_expiry", { mode: "date" }),
+  workAuthDocumentUrl: text("work_auth_document_url"),
+
   // Payout settings
   payoutMethod: payoutMethodEnum("payout_method").default("INSTANT_MONEY"),
   bankName: text("bank_name"),
@@ -558,6 +577,11 @@ export const cleanerApplication = pgTable("cleaner_application", {
   idNumber: text("id_number"),
   referralSource: text("referral_source"),
   documents: text("documents").array(), // Array of document URLs
+
+  // Right to work, carried across to cleanerProfile on approval
+  workAuthorisation: workAuthorisationEnum("work_authorisation"),
+  workAuthExpiry: timestamp("work_auth_expiry", { mode: "date" }),
+  workAuthDocumentUrl: text("work_auth_document_url"),
   profileImageUrl: text("profile_image_url"), // New field for profile image URL
   status: applicationStatusEnum("status").default("PENDING").notNull(),
   notes: text("notes"), // Admin notes about application

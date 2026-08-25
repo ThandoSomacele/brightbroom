@@ -197,6 +197,11 @@ export const actions: Actions = {
           tenantId: application.tenantId, // Inherit tenant from application
           idType: application.idType || "SOUTH_AFRICAN_ID",
           idNumber: application.idNumber || "PENDING",
+          // Carried across so the expiry guard applies from the moment they
+          // become a cleaner, not just while they were an applicant
+          workAuthorisation: application.workAuthorisation,
+          workAuthExpiry: application.workAuthExpiry,
+          workAuthDocumentUrl: application.workAuthDocumentUrl,
           workAddress: application.formattedAddress || application.city,
           workLocationLat: application.latitude || 0,
           workLocationLng: application.longitude || 0,

@@ -1,6 +1,22 @@
 <!-- src/routes/admin/applications/[id]/+page.svelte -->
 
 <script lang="ts">
+  const WORK_AUTH_LABELS: Record<string, string> = {
+    SA_CITIZEN: "South African citizen",
+    PERMANENT_RESIDENT: "Permanent resident",
+    WORK_PERMIT: "Work permit",
+    REFUGEE: "Refugee status (Section 24)",
+  };
+
+  /**
+   * Days until a permit expires; negative once it has. The matching guard
+   * already stops expired cleaners being assigned — this only tells the
+   * reviewer why.
+   */
+  function daysUntil(expiry: string | Date | null | undefined): number | null {
+    if (!expiry) return null;
+    return Math.ceil((new Date(expiry).getTime() - Date.now()) / 86_400_000);
+  }
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
   import ApplicationApprovalActions from "$lib/components/admin/ApplicationApprovalActions.svelte";
@@ -333,6 +349,50 @@
                 ? "South African ID"
                 : application.idType}: {application.idNumber || "Not provided"}
             </p>
+          </div>
+
+          <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+              Right to work
+            </p>
+            {#if application.workAuthorisation}
+              <p class="text-gray-900 dark:text-white">
+                {WORK_AUTH_LABELS[application.workAuthorisation] ??
+                  application.workAuthorisation}
+                {#if application.workAuthDocumentUrl}
+                  <a
+                    href={application.workAuthDocumentUrl}
+                    target="_blank"
+                    rel="noopener"
+                    class="ml-2 text-sm text-primary hover:underline"
+                  >
+                    View document
+                  </a>
+                {/if}
+              </p>
+              {#if application.workAuthExpiry}
+                {@const daysLeft = daysUntil(application.workAuthExpiry)}
+                <p
+                  class="mt-1 text-sm {daysLeft !== null && daysLeft < 0
+                    ? 'font-medium text-red-600 dark:text-red-400'
+                    : daysLeft !== null && daysLeft <= 30
+                      ? 'font-medium text-amber-600 dark:text-amber-400'
+                      : 'text-gray-500 dark:text-gray-400'}"
+                >
+                  {#if daysLeft !== null && daysLeft < 0}
+                    Expired {Math.abs(daysLeft)}
+                    {Math.abs(daysLeft) === 1 ? "day" : "days"} ago — they cannot
+                    be assigned work
+                  {:else if daysLeft !== null}
+                    Expires in {daysLeft} {daysLeft === 1 ? "day" : "days"}
+                  {/if}
+                </p>
+              {/if}
+            {:else}
+              <p class="text-gray-500 dark:text-gray-400">
+                Not provided — applied before this was collected
+              </p>
+            {/if}
           </div>
         </div>
       </div>
