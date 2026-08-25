@@ -202,8 +202,12 @@ if (path.includes('//')) {
   throw error(404, "Invalid URL format");
 }
   
-  // Admin route protection
-  if (path.startsWith('/admin')) {
+  // Admin route protection.
+  //
+  // /api/admin is covered too. It was previously unguarded here and only half
+  // its endpoints checked the caller themselves, so anyone unauthenticated
+  // could upload or delete documents on a cleaner application.
+  if (path.startsWith('/admin') || path.startsWith('/api/admin')) {
     const user = event.locals.user;
 
     // Check if not authenticated
