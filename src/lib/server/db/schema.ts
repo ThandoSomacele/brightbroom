@@ -24,6 +24,24 @@ export const tenantMemberRoleEnum = pgEnum("TenantMemberRole", [
   "ADMIN",
   "MANAGER",
 ]);
+
+// Where a company sits in the vetting process. SUBMITTED separates "everything
+// is uploaded, waiting on us" from "still gathering documents", so the review
+// queue only shows what is actually actionable.
+export const tenantVerificationStatusEnum = pgEnum("TenantVerificationStatus", [
+  "PENDING",
+  "SUBMITTED",
+  "APPROVED",
+  "REJECTED",
+]);
+
+// The documents a company must provide before it can trade on the platform
+export const tenantDocumentTypeEnum = pgEnum("TenantDocumentType", [
+  "COMPANY_REGISTRATION",
+  "DIRECTOR_ID",
+  "PROOF_OF_ADDRESS",
+  "BANK_LETTER",
+]);
 export const bookingStatusEnum = pgEnum("BookingStatus", [
   "PENDING",
   "CONFIRMED",
@@ -159,8 +177,18 @@ export const tenant = pgTable("tenant", {
   commissionRate: decimal("commission_rate", { precision: 5, scale: 2 })
     .default("15.00")
     .notNull(),
-  isActive: boolean("is_active").default(true).notNull(),
+  // Whether the company can actually trade. A company is inactive until its
+  // documents have been reviewed and approved.
+  isActive: boolean("is_active").default(false).notNull(),
   isPlatformOwner: boolean("is_platform_owner").default(false).notNull(),
+
+  // Verification / vetting
+  verificationStatus: tenantVerificationStatusEnum("verification_status")
+    .default("PENDING")
+    .notNull(),
+  verificationNotes: text("verification_notes"), // Why it was rejected, shown to the company
+  verifiedAt: timestamp("verified_at", { mode: "date" }),
+  verifiedBy: text("verified_by").references(() => user.id),
 
   // Payout settings — where this company's share of each booking is paid.
   // Not used for the platform owner, which is the account collecting payment.
@@ -193,6 +221,29 @@ export const tenantMember = pgTable(
     uniqueTenantUser: unique("unique_tenant_user").on(
       table.tenantId,
       table.userId,
+    ),
+  }),
+);
+
+// Verification documents supplied by a cleaning company.
+// One row per document type — a re-upload replaces the previous file rather
+// than accumulating, which is what the unique constraint enforces.
+export const tenantDocument = pgTable(
+  "tenant_document",
+  {
+    id: text("id").primaryKey().notNull(),
+    tenantId: text("tenant_id")
+      .notNull()
+      .references(() => tenant.id, { onDelete: "cascade" }),
+    type: tenantDocumentTypeEnum("type").notNull(),
+    fileUrl: text("file_url").notNull(),
+    fileName: text("file_name"),
+    uploadedAt: timestamp("uploaded_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqueTenantDocument: unique("unique_tenant_document").on(
+      table.tenantId,
+      table.type,
     ),
   }),
 );
@@ -723,6 +774,9 @@ export type NewTenant = typeof tenant.$inferInsert;
 
 export type TenantMember = typeof tenantMember.$inferSelect;
 export type NewTenantMember = typeof tenantMember.$inferInsert;
+
+export type TenantDocument = typeof tenantDocument.$inferSelect;
+export type NewTenantDocument = typeof tenantDocument.$inferInsert;
 
 export type PasswordResetToken = typeof passwordResetToken.$inferSelect;
 export type NewPasswordResetToken = typeof passwordResetToken.$inferInsert;

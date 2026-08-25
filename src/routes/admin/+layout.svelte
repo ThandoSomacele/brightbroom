@@ -44,6 +44,7 @@
     Users,
     X,
     BrushCleaning,
+    ShieldCheck,
     Tag,
   } from "lucide-svelte";
 
@@ -53,6 +54,24 @@
 
   const isPlatformAdmin = data.isPlatformAdmin;
   const tenantName = data.tenant?.name ?? "BrightBroom";
+
+  // A company can use the dashboard while pending, so it needs a standing
+  // reminder of why it is not receiving work yet.
+  $: verificationStatus = data.tenant?.verificationStatus;
+  $: needsVerification =
+    !isPlatformAdmin && !!verificationStatus && verificationStatus !== "APPROVED";
+  $: verificationHeadline =
+    verificationStatus === "SUBMITTED"
+      ? "Your documents are with us for review"
+      : verificationStatus === "REJECTED"
+        ? "Your verification needs attention"
+        : "Verification not finished";
+  $: verificationDetail =
+    verificationStatus === "SUBMITTED"
+      ? "You can keep setting up. Bookings start once we have approved your company."
+      : verificationStatus === "REJECTED"
+        ? "Something was not right with your documents. Tap to see what to replace."
+        : "Upload your company documents so you can start taking bookings.";
 
   // All nav items with optional platformOnly flag
   const allNavItems = [
@@ -66,6 +85,7 @@
     { label: "Coupons", href: "/admin/coupons", icon: Tag },
     { label: "Payouts", href: "/admin/payouts", icon: Landmark },
     { label: "Services", href: "/admin/services", icon: Settings, platformOnly: true },
+    { label: "Verification", href: "/admin/verification", icon: ShieldCheck, tenantOnly: true },
     {
       label: "Reports",
       href: "/admin/reports",
@@ -75,7 +95,7 @@
 
   // Filter nav items based on user role
   $: navItems = isPlatformAdmin
-    ? allNavItems
+    ? allNavItems.filter((item) => !item.tenantOnly)
     : allNavItems.filter((item) => !item.platformOnly);
 
   function isActive(href: string) {
@@ -159,6 +179,25 @@
     <!-- Main content -->
     <main class="md:ml-20 lg:ml-64 flex-1">
       <div class="max-w-7xl mx-auto px-4 py-6">
+        {#if needsVerification}
+          <!-- Persistent until the company is approved. It can set itself up
+               while pending, so this is the only thing telling it why bookings
+               are not arriving. -->
+          <a
+            href="/admin/verification"
+            class="mb-6 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 transition-colors hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-900/20 dark:hover:bg-amber-900/30"
+          >
+            <ShieldCheck class="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+            <div>
+              <p class="text-sm font-medium text-amber-800 dark:text-amber-400">
+                {verificationHeadline}
+              </p>
+              <p class="text-sm text-amber-700 dark:text-amber-500">
+                {verificationDetail}
+              </p>
+            </div>
+          </a>
+        {/if}
         <slot />
       </div>
     </main>

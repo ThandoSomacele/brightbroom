@@ -1,8 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
-import { user, cleanerProfile } from '$lib/server/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { user, cleanerProfile, tenant } from '$lib/server/db/schema';
+import { eq, and, isNull, or, sql } from 'drizzle-orm';
 import { STANDARD_SERVICE_RADIUS_KM } from '$lib/utils/serviceAreaValidator';
 
 export const GET: RequestHandler = async ({ url }) => {
@@ -41,11 +41,16 @@ export const GET: RequestHandler = async ({ url }) => {
       })
       .from(user)
       .innerJoin(cleanerProfile, eq(cleanerProfile.userId, user.id))
+      // Cleaners from a company that has not passed verification are not
+      // offered to customers. Left join so a cleaner with no company still
+      // qualifies — those are platform cleaners, not unvetted ones.
+      .leftJoin(tenant, eq(tenant.id, cleanerProfile.tenantId))
       .where(
         and(
           eq(user.role, 'CLEANER'),
           eq(user.isActive, true),
-          eq(cleanerProfile.isAvailable, true)
+          eq(cleanerProfile.isAvailable, true),
+          or(isNull(cleanerProfile.tenantId), eq(tenant.isActive, true))
         )
       );
 

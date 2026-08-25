@@ -4,11 +4,13 @@ import {
   booking,
   payment,
   tenant,
+  tenantDocument,
   tenantMember,
   user,
   cleanerProfile,
   type Tenant,
   type NewTenant,
+  type TenantDocument,
   type TenantMember,
 } from "$lib/server/db/schema";
 import { and, eq, isNotNull, sql } from "drizzle-orm";
@@ -236,6 +238,136 @@ export const tenantService = {
     tenantId: string | null | undefined,
   ): Promise<number | undefined> {
     return (await this.getPayoutTerms(tenantId)).commissionRate;
+  },
+
+  /**
+   * Every document a company must supply before it can trade.
+   *
+   * Exported so the upload screen, the review screen and the completeness
+   * check all work from one list rather than three copies that can drift.
+   */
+  requiredDocuments: [
+    { type: "COMPANY_REGISTRATION", label: "Company registration (CIPC)", hint: "CoR 14.3 or CK document" },
+    { type: "DIRECTOR_ID", label: "Director ID", hint: "ID or passport of the person registering the company" },
+    { type: "PROOF_OF_ADDRESS", label: "Proof of business address", hint: "Utility bill or lease, less than three months old" },
+    { type: "BANK_LETTER", label: "Bank letter", hint: "Official bank confirmation for the payout account" },
+  ] as const,
+
+  /**
+   * Documents a company has uploaded so far.
+   */
+  async getDocuments(tenantId: string): Promise<TenantDocument[]> {
+    return db
+      .select()
+      .from(tenantDocument)
+      .where(eq(tenantDocument.tenantId, tenantId));
+  },
+
+  /**
+   * Record an uploaded document, replacing any previous file of that type.
+   *
+   * Moves the company to SUBMITTED once the set is complete, so the review
+   * queue only surfaces companies that are actually waiting on us. A company
+   * that was rejected and is re-uploading goes back into the queue the same way.
+   */
+  async saveDocument(
+    tenantId: string,
+    type: "COMPANY_REGISTRATION" | "DIRECTOR_ID" | "PROOF_OF_ADDRESS" | "BANK_LETTER",
+    fileUrl: string,
+    fileName: string | null,
+  ): Promise<void> {
+    await db
+      .insert(tenantDocument)
+      .values({ id: crypto.randomUUID(), tenantId, type, fileUrl, fileName })
+      .onConflictDoUpdate({
+        target: [tenantDocument.tenantId, tenantDocument.type],
+        set: { fileUrl, fileName, uploadedAt: new Date() },
+      });
+
+    await this.refreshSubmissionState(tenantId);
+  },
+
+  /**
+   * Remove a document and drop the company back out of the review queue.
+   */
+  async deleteDocument(tenantId: string, type: string): Promise<void> {
+    await db
+      .delete(tenantDocument)
+      .where(
+        and(
+          eq(tenantDocument.tenantId, tenantId),
+          eq(tenantDocument.type, type as any),
+        ),
+      );
+
+    await this.refreshSubmissionState(tenantId);
+  },
+
+  /**
+   * Move a company between PENDING and SUBMITTED based on whether the required
+   * set is complete. Never touches an APPROVED company — re-uploading a
+   * document should not switch off a business that is already trading.
+   */
+  async refreshSubmissionState(tenantId: string): Promise<void> {
+    const current = await this.getById(tenantId);
+    if (!current || current.verificationStatus === "APPROVED") return;
+
+    const documents = await this.getDocuments(tenantId);
+    const uploaded = new Set(documents.map((d) => d.type));
+    const complete = this.requiredDocuments.every((r) => uploaded.has(r.type));
+
+    await db
+      .update(tenant)
+      .set({
+        verificationStatus: complete ? "SUBMITTED" : "PENDING",
+        updatedAt: new Date(),
+      })
+      .where(eq(tenant.id, tenantId));
+  },
+
+  /**
+   * Approve a company, which is what actually lets it trade.
+   */
+  async approve(tenantId: string, adminUserId: string): Promise<void> {
+    await db
+      .update(tenant)
+      .set({
+        verificationStatus: "APPROVED",
+        isActive: true,
+        verificationNotes: null,
+        verifiedAt: new Date(),
+        verifiedBy: adminUserId,
+        updatedAt: new Date(),
+      })
+      .where(eq(tenant.id, tenantId));
+  },
+
+  /**
+   * Reject a company with a reason it will see, so it knows what to fix.
+   */
+  async reject(tenantId: string, adminUserId: string, reason: string): Promise<void> {
+    await db
+      .update(tenant)
+      .set({
+        verificationStatus: "REJECTED",
+        isActive: false,
+        verificationNotes: reason,
+        verifiedAt: new Date(),
+        verifiedBy: adminUserId,
+        updatedAt: new Date(),
+      })
+      .where(eq(tenant.id, tenantId));
+  },
+
+  /**
+   * Companies waiting on review, newest first.
+   */
+  async getAwaitingReview(): Promise<Tenant[]> {
+    return db
+      .select()
+      .from(tenant)
+      .where(eq(tenant.verificationStatus, "SUBMITTED"))
+      .orderBy(tenant.createdAt);
   },
 
   /**

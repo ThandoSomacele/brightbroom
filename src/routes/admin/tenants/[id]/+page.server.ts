@@ -23,7 +23,16 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     ? null
     : await tenantService.getPayoutTotals(params.id);
 
-  return { tenant, members, cleanerCount, payouts };
+  // Pair each requirement with what has been uploaded, so the reviewer sees
+  // the gaps as clearly as the files
+  const documents = await tenantService.getDocuments(params.id);
+  const byType = new Map(documents.map((d) => [d.type, d]));
+  const requirements = tenantService.requiredDocuments.map((requirement) => ({
+    ...requirement,
+    document: byType.get(requirement.type) ?? null,
+  }));
+
+  return { tenant, members, cleanerCount, payouts, requirements };
 };
 
 export const actions: Actions = {
@@ -77,6 +86,43 @@ export const actions: Actions = {
     });
 
     return { success: true, message: "Tenant updated successfully" };
+  },
+
+  approve: async ({ params, locals }) => {
+    if (locals.user?.role !== "ADMIN") {
+      throw error(403, "Only platform administrators can manage tenants");
+    }
+
+    // Approving is what lets a company trade, so refuse while anything is
+    // still missing rather than relying on the reviewer to notice
+    const documents = await tenantService.getDocuments(params.id);
+    const uploaded = new Set(documents.map((d) => d.type));
+    const missing = tenantService.requiredDocuments.filter(
+      (r) => !uploaded.has(r.type),
+    );
+    if (missing.length > 0) {
+      return {
+        verificationError: `Still missing: ${missing.map((m) => m.label).join(", ")}`,
+      };
+    }
+
+    await tenantService.approve(params.id, locals.user.id);
+    return { success: true, message: "Company approved and activated" };
+  },
+
+  reject: async ({ request, params, locals }) => {
+    if (locals.user?.role !== "ADMIN") {
+      throw error(403, "Only platform administrators can manage tenants");
+    }
+
+    const formData = await request.formData();
+    const reason = (formData.get("reason") as string)?.trim();
+    if (!reason) {
+      return { verificationError: "Give a reason so the company knows what to fix" };
+    }
+
+    await tenantService.reject(params.id, locals.user.id, reason);
+    return { success: true, message: "Company rejected and deactivated" };
   },
 
   addMember: async ({ request, params, locals }) => {

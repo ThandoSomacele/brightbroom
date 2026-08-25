@@ -15,6 +15,17 @@
   export let data;
   export let form;
 
+  const VERIFICATION_BADGES: Record<string, string> = {
+    APPROVED: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+    SUBMITTED: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+    REJECTED: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+    PENDING: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  };
+
+  $: verificationBadgeClass =
+    VERIFICATION_BADGES[data.tenant.verificationStatus] ??
+    VERIFICATION_BADGES.PENDING;
+
   const provinces = [
     "Eastern Cape",
     "Free State",
@@ -128,6 +139,90 @@
       </div>
     {/if}
   </div>
+
+  {#if !data.tenant.isPlatformOwner}
+    <!-- Verification review -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Verification
+          </h2>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Approving activates the company and lets it take bookings.
+          </p>
+        </div>
+        <span
+          class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {verificationBadgeClass}"
+        >
+          {data.tenant.verificationStatus}
+        </span>
+      </div>
+
+      {#if form?.verificationError}
+        <div class="rounded-md border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
+          <p class="text-sm text-red-800 dark:text-red-400">{form.verificationError}</p>
+        </div>
+      {/if}
+
+      {#if data.tenant.verificationStatus === "REJECTED" && data.tenant.verificationNotes}
+        <p class="text-sm text-gray-600 dark:text-gray-300">
+          <span class="font-medium">Reason given:</span>
+          {data.tenant.verificationNotes}
+        </p>
+      {/if}
+
+      <div class="divide-y divide-gray-200 dark:divide-gray-700">
+        {#each data.requirements as requirement}
+          <div class="flex items-center justify-between py-3">
+            <div>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">
+                {requirement.label}
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                {requirement.document
+                  ? (requirement.document.fileName ?? "Uploaded")
+                  : "Not uploaded"}
+              </p>
+            </div>
+            {#if requirement.document}
+              <Button
+                variant="ghost"
+                size="sm"
+                href={requirement.document.fileUrl}
+                target="_blank"
+              >
+                View
+              </Button>
+            {:else}
+              <span class="text-xs text-amber-600 dark:text-amber-400">Missing</span>
+            {/if}
+          </div>
+        {/each}
+      </div>
+
+      <div class="flex flex-col gap-3 border-t border-gray-200 pt-4 dark:border-gray-700 sm:flex-row sm:items-end">
+        <form method="POST" action="?/reject" use:enhance class="flex-1">
+          <label for="reason" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Reason, if rejecting
+          </label>
+          <div class="mt-1 flex gap-2">
+            <input
+              type="text"
+              id="reason"
+              name="reason"
+              placeholder="What needs to be fixed?"
+              class="block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+            />
+            <Button type="submit" variant="outline">Reject</Button>
+          </div>
+        </form>
+        <form method="POST" action="?/approve" use:enhance>
+          <Button type="submit" variant="primary">Approve</Button>
+        </form>
+      </div>
+    </div>
+  {/if}
 
   <!-- Edit Form -->
   <form

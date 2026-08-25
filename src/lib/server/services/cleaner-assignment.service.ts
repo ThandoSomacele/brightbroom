@@ -1,11 +1,11 @@
 // src/lib/server/services/cleaner-assignment.service.ts
 import { db } from "$lib/server/db";
-import { address, booking, cleanerProfile, user } from "$lib/server/db/schema";
+import { address, booking, cleanerProfile, tenant, user } from "$lib/server/db/schema";
 import {
   getDistanceFromLatLonInKm,
   STANDARD_SERVICE_RADIUS_KM,
 } from "$lib/utils/serviceAreaValidator";
-import { and, eq, gte, lt, ne, sql } from "drizzle-orm";
+import { and, eq, gte, isNull, lt, ne, or, sql } from "drizzle-orm";
 import { sendCleanerAssignmentNotifications } from "./notification.service";
 
 /**
@@ -128,11 +128,16 @@ export const cleanerAssignmentService = {
         })
         .from(user)
         .innerJoin(cleanerProfile, eq(user.id, cleanerProfile.userId))
+        // A cleaner belonging to a company that has not passed verification
+        // must not be assignable. Left join so a cleaner with no company at all
+        // still qualifies — those are platform cleaners, not unvetted ones.
+        .leftJoin(tenant, eq(tenant.id, cleanerProfile.tenantId))
         .where(
           and(
             eq(user.role, "CLEANER"),
             eq(user.isActive, true),
             eq(cleanerProfile.isAvailable, true),
+            or(isNull(cleanerProfile.tenantId), eq(tenant.isActive, true)),
           ),
         );
 

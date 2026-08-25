@@ -153,7 +153,10 @@ export const actions: Actions = {
         contactPhone: contactPhone || null,
         province: province || null,
         commissionRate: DEFAULT_COMMISSION_RATE,
-        isActive: true,
+        // Inactive until the verification documents have been reviewed. The
+        // owner can sign in and set the company up, but it cannot trade yet.
+        isActive: false,
+        verificationStatus: "PENDING",
         isPlatformOwner: false,
       });
 
