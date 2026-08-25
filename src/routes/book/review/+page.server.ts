@@ -11,6 +11,10 @@ import { tenantService } from '$lib/server/services/tenant.service';
 import { parseDateTimeString } from '$lib/utils/date-utils';
 import { getGuestBookingData, storeGuestBookingData } from '$lib/server/guest-booking';
 import { calculateCleaningPrice, validateRoomSelection } from '$lib/utils/pricing';
+import {
+  getOutOfServiceAreaMessage,
+  isWithinServiceArea,
+} from '$lib/utils/serviceAreaValidator';
 
 export const load: PageServerLoad = async ({ locals, ...event }) => {
   // Load guest booking data from session
@@ -239,6 +243,40 @@ export const actions: Actions = {
         }
       } else {
         return { success: false, error: 'Address information is required' };
+      }
+
+      // Server-side service area check. The address autocomplete already blocks
+      // out-of-area addresses, but that is a client-side guard — this stops a
+      // booking we cannot fulfil from being created and paid for regardless of
+      // how the address reached us.
+      const bookingLat = Number(addressData?.lat ?? guestAddress?.lat);
+      const bookingLng = Number(addressData?.lng ?? guestAddress?.lng);
+
+      const hasUsableCoordinates =
+        Number.isFinite(bookingLat) &&
+        Number.isFinite(bookingLng) &&
+        !(bookingLat === 0 && bookingLng === 0);
+
+      if (hasUsableCoordinates) {
+        if (!isWithinServiceArea(bookingLat, bookingLng)) {
+          return {
+            success: false,
+            error: getOutOfServiceAreaMessage(bookingLat, bookingLng),
+          };
+        }
+      } else {
+        // Deliberately allowed through. A saved address from before we captured
+        // coordinates has none, and turning those customers away is worse than
+        // accepting a booking that may need manual assignment — an address we
+        // cannot place is not an address we know to be out of area. Anything
+        // picked from the autocomplete does carry coordinates, so the customers
+        // this check exists for are still caught above.
+        // Backfill with `pnpm update:address-coordinates` to close this gap.
+        console.warn('Booking address has no usable coordinates, skipping service area check', {
+          bookingId: 'pending',
+          hasAddressData: !!addressData,
+          hasGuestAddress: !!guestAddress,
+        });
       }
 
       // Handle recurring booking differently

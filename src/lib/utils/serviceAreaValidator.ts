@@ -118,3 +118,53 @@ export function getClosestServiceArea(
 
   return closestArea;
 }
+
+/**
+ * The suburbs we cover, phrased for display to a customer.
+ *
+ * Derived from SERVICE_AREAS so the list a customer is shown cannot drift
+ * away from the list actually used to accept or reject their address.
+ */
+export function getServiceAreaNames(): string[] {
+  // Entries are stored as "Cosmo City, Roodepoort" — the suburb is enough here
+  return SERVICE_AREAS.map((area) => area.name.split(",")[0].trim());
+}
+
+/**
+ * Format the service areas as a readable list: "A, B and C".
+ */
+export function formatServiceAreaList(): string {
+  const names = getServiceAreaNames();
+  if (names.length === 0) return "";
+  if (names.length === 1) return names[0];
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+/**
+ * The single message shown to a customer whose address we cannot service.
+ *
+ * Kept here rather than written out at each call site so every surface tells
+ * the customer the same thing, and so the named suburbs stay in step with
+ * SERVICE_AREAS.
+ *
+ * Pass coordinates to also name their nearest covered suburb, which is more
+ * useful than a bare rejection when they are only just outside.
+ */
+export function getOutOfServiceAreaMessage(
+  lat?: number,
+  lng?: number,
+): string {
+  const areas = formatServiceAreaList();
+  const base = `BrightBroom isn't in your area yet. We currently clean in ${areas}.`;
+
+  if (typeof lat === "number" && typeof lng === "number") {
+    const closest = getClosestServiceArea(lat, lng);
+    if (closest && !closest.isWithinService) {
+      // Trim to the suburb, matching how the areas are named in the list above
+      const closestName = closest.name.split(",")[0].trim();
+      return `${base} The closest we get is ${closestName}, about ${Math.round(closest.distance)}km away. We're expanding, so do check back.`;
+    }
+  }
+
+  return `${base} We're expanding, so do check back.`;
+}

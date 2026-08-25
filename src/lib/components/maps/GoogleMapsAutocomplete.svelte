@@ -2,6 +2,10 @@
 <script lang="ts">
   import { AlertCircle, Building2, Home, Loader2, MapPin, X } from "lucide-svelte";
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
+  import {
+    getOutOfServiceAreaMessage,
+    isWithinServiceArea,
+  } from "$lib/utils/serviceAreaValidator";
 
   // Props
   export let apiKey: string;
@@ -39,28 +43,17 @@
     placeName: "",
   };
 
-  // Service area boundaries
-  const serviceAreas = [
-    { name: "Fourways", lat: -26.0274, lng: 28.0106, radius: 15 },
-    { name: "Bryanston", lat: -26.0525, lng: 28.0074, radius: 15 },
-    { name: "Randburg", lat: -26.1063, lng: 27.9947, radius: 15 },
-    { name: "Midrand", lat: -25.9992, lng: 28.1182, radius: 15 },
-    { name: "North Riding", lat: -26.0469, lng: 27.951, radius: 15 },
-    {
-      name: "Cosmo City, Roodepoort",
-      lat: -26.0212639,
-      lng: 27.9289995,
-      radius: 50,
-    },
-    { name: "Diepsloot", lat: -25.9412555, lng: 27.96671, radius: 100 },
-    { name: "Honeydew", lat: -26.0225, lng: 27.9475, radius: 30 },
-    { name: "Monaghan Farm, Centurion", lat: -25.904442, lng: 27.454882, radius: 15 },
-  ];
+  // Service areas come from $lib/utils/serviceAreaValidator — see the imports
+  // above. This component used to keep its own copy of the list, which meant a
+  // customer could be told they were covered by one list and rejected by the
+  // other.
 
   // Create custom dispatch events
   const dispatch = createEventDispatcher<{
     select: { address: typeof selectedAddress };
-    outOfServiceArea: { address: string };
+    // Coordinates are included so a listener can report how far out the
+    // address was, rather than only that it was rejected
+    outOfServiceArea: { address: string; lat: number; lng: number };
   }>();
 
   // Local state
@@ -92,42 +85,6 @@
     if (inputElement) {
       inputElement.focus();
     }
-  }
-
-  // Check if an address is within service areas
-  function isWithinServiceArea(lat: number, lng: number): boolean {
-    for (const area of serviceAreas) {
-      const distance = getDistanceFromLatLonInKm(lat, lng, area.lat, area.lng);
-      if (distance <= area.radius) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  // Calculate distance using Haversine formula
-  function getDistanceFromLatLonInKm(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number,
-  ): number {
-    const R = 6371;
-    const dLat = deg2rad(lat2 - lat1);
-    const dLon = deg2rad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(deg2rad(lat1)) *
-        Math.cos(deg2rad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-    return distance;
-  }
-
-  function deg2rad(deg: number): number {
-    return deg * (Math.PI / 180);
   }
 
   // Determine the type of place selected
@@ -292,9 +249,11 @@
 
       // Check if address is within our service areas
       if (!isWithinServiceArea(lat, lng)) {
-        error = "We're not in your neighbourhood yet! BrightBroom currently sparkles in Fourways, Bryanston, Randburg, Midrand, and surrounding areas. We're growing - check back soon!";
+        error = getOutOfServiceAreaMessage(lat, lng);
         dispatch("outOfServiceArea", {
           address: place.formatted_address || "",
+          lat,
+          lng,
         });
         isLoading = false;
         return;
