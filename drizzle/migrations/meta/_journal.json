@@ -120,6 +120,20 @@
       "when": 1769071838384,
       "tag": "0016_equal_toad",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1769155200000,
+      "tag": "0017_add_coupons",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1787097600000,
+      "tag": "0018_add_tenancy",
+      "breakpoints": true
     }
   ]
 }
