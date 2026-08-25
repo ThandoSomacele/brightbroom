@@ -233,23 +233,45 @@ export const tenantService = {
   async getCommissionRate(
     tenantId: string | null | undefined,
   ): Promise<number | undefined> {
-    if (!tenantId) return undefined;
+    return (await this.getPayoutTerms(tenantId)).commissionRate;
+  },
+
+  /**
+   * Everything needed to split a booking's money, in one query.
+   *
+   * `isPlatformOwner` decides who the money left after commission belongs to:
+   * the cleaner directly on the platform's own bookings, or the cleaning
+   * company on everyone else's. It defaults to true when there is no tenant so
+   * an unscoped booking behaves the way it always has.
+   */
+  async getPayoutTerms(
+    tenantId: string | null | undefined,
+  ): Promise<{ commissionRate: number | undefined; isPlatformOwner: boolean }> {
+    if (!tenantId) return { commissionRate: undefined, isPlatformOwner: true };
 
     const [row] = await db
-      .select({ commissionRate: tenant.commissionRate })
+      .select({
+        commissionRate: tenant.commissionRate,
+        isPlatformOwner: tenant.isPlatformOwner,
+      })
       .from(tenant)
       .where(eq(tenant.id, tenantId))
       .limit(1);
 
-    const percent = Number(row?.commissionRate);
-    if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
-      console.warn(
-        `Unusable commission rate for tenant ${tenantId}: ${row?.commissionRate}. Falling back to the platform rate.`,
-      );
-      return undefined;
+    if (!row) {
+      console.warn(`No tenant found for ${tenantId}. Falling back to platform terms.`);
+      return { commissionRate: undefined, isPlatformOwner: true };
     }
 
-    return percent / 100;
+    const percent = Number(row.commissionRate);
+    if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
+      console.warn(
+        `Unusable commission rate for tenant ${tenantId}: ${row.commissionRate}. Falling back to the platform rate.`,
+      );
+      return { commissionRate: undefined, isPlatformOwner: row.isPlatformOwner };
+    }
+
+    return { commissionRate: percent / 100, isPlatformOwner: row.isPlatformOwner };
   },
 
   /**

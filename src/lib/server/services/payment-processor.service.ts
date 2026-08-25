@@ -77,11 +77,11 @@ export const paymentProcessorService = {
       // Map external payment method to internal type for fee calculation
       const paymentMethodForCalc = this.mapPaymentMethod(paymentData.paymentMethod) as PaymentMethodType;
 
-      // Each tenant negotiates its own commission; fall back to the platform
-      // rate when the booking has no tenant or the stored rate is unusable.
-      const tenantCommissionRate = await tenantService.getCommissionRate(
-        bookingDetails.tenantId,
-      );
+      // Each tenant negotiates its own commission, and whether it is the
+      // platform owner decides who receives what is left after that commission.
+      // Both fall back to platform terms when the booking has no tenant.
+      const { commissionRate: tenantCommissionRate, isPlatformOwner } =
+        await tenantService.getPayoutTerms(bookingDetails.tenantId);
 
       // Calculate payout breakdown including PayFast fees
       // Formula: PayFast fee deducted first, then commission on the net amount
@@ -89,11 +89,17 @@ export const paymentProcessorService = {
         paymentData.amount,
         paymentMethodForCalc,
         tenantCommissionRate,
+        isPlatformOwner,
       );
 
-      const platformCommissionRate = payoutBreakdown.commissionRate * 100; // Store as percentage (15.00)
+      const platformCommissionRate = payoutBreakdown.commissionRate * 100; // Store as percentage (20.00)
       const platformCommissionAmount = payoutBreakdown.commissionAmount;
       const cleanerPayoutAmount = payoutBreakdown.cleanerPayout;
+      // Null rather than 0 on platform-owner bookings, so "no company involved"
+      // reads differently from "a company is owed nothing"
+      const tenantPayoutAmount = payoutBreakdown.tenantPayout > 0
+        ? payoutBreakdown.tenantPayout.toString()
+        : null;
       const payFastFeeAmount = payoutBreakdown.payFastFee;
       
       // Create new payment record with PayFast fee tracking
@@ -111,7 +117,9 @@ export const paymentProcessorService = {
           platformCommissionAmount: platformCommissionAmount.toString(),
           payFastFeeAmount: payFastFeeAmount.toString(),
           cleanerPayoutAmount: cleanerPayoutAmount.toString(),
+          tenantPayoutAmount,
           isPaidToProvider: false, // Will be marked as paid when cleaner is paid out
+          isPaidToTenant: false, // Will be marked as paid when the company is paid out
           payFastId: paymentData.transactionId || null,
           merchantReference: bookingId,
           createdAt: new Date(),

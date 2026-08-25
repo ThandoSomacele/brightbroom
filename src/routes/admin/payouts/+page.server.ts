@@ -4,6 +4,7 @@ import {
   booking,
   cleanerProfile,
   payment,
+  tenant,
   user,
 } from "$lib/server/db/schema";
 import { fail } from "@sveltejs/kit";
@@ -37,10 +38,16 @@ async function getPayoutData(tenantId: string | null) {
       .innerJoin(cleanerProfile, eq(cleanerProfile.userId, user.id))
       .where(and(...cleanerConditions));
 
-    // Step 2: Get pending payouts for each cleaner
+    // Step 2: Get pending payouts for each cleaner.
+    //
+    // Only platform-owner bookings count. On a cleaning company's booking the
+    // cleaner payout is that company's liability to its own cleaner, paid out
+    // of the company's share — summing those here would overstate what
+    // BrightBroom owes.
     const pendingPayoutConditions = [
       eq(payment.status, "COMPLETED"),
       eq(payment.isPaidToProvider, false),
+      eq(tenant.isPlatformOwner, true),
     ];
     if (tenantId) {
       pendingPayoutConditions.push(eq(booking.tenantId, tenantId));
@@ -54,6 +61,7 @@ async function getPayoutData(tenantId: string | null) {
       })
       .from(payment)
       .innerJoin(booking, eq(booking.id, payment.bookingId))
+      .innerJoin(tenant, eq(tenant.id, booking.tenantId))
       .where(and(...pendingPayoutConditions))
       .groupBy(booking.cleanerId);
 

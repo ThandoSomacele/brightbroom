@@ -22,7 +22,19 @@ export interface PayoutBreakdown {
   netAfterFees: number;
   commissionRate: number;
   commissionAmount: number;
+  /**
+   * What the cleaner is owed.
+   *
+   * On a booking belonging to a cleaning company this is what THAT COMPANY
+   * owes its cleaner out of its own share — the platform does not pay it.
+   * Only on platform-owner bookings is this a platform liability.
+   */
   cleanerPayout: number;
+  /**
+   * What the cleaning company is owed. Zero on platform-owner bookings, where
+   * there is no third party between the platform and the cleaner.
+   */
+  tenantPayout: number;
 }
 
 /**
@@ -96,14 +108,15 @@ export function calculatePayFastFee(amount: number, paymentMethod: PaymentMethod
 export function calculatePayout(
   bookingAmount: number,
   paymentMethod: PaymentMethodType,
-  customCommissionRate?: number
+  customCommissionRate?: number,
+  isPlatformOwnerBooking: boolean = true
 ): PayoutBreakdown {
   const payFastFee = calculatePayFastFee(bookingAmount, paymentMethod);
   const netAfterFees = roundToTwoDecimals(bookingAmount - payFastFee);
 
   const commissionRate = customCommissionRate ?? PLATFORM_COMMISSION_RATE;
   const commissionAmount = roundToTwoDecimals(netAfterFees * commissionRate);
-  const cleanerPayout = roundToTwoDecimals(netAfterFees - commissionAmount);
+  const remainder = roundToTwoDecimals(netAfterFees - commissionAmount);
 
   return {
     bookingAmount,
@@ -111,8 +124,28 @@ export function calculatePayout(
     netAfterFees,
     commissionRate,
     commissionAmount,
-    cleanerPayout
+    ...splitRemainder(remainder, isPlatformOwnerBooking)
   };
+}
+
+/**
+ * Decide who the money left after commission belongs to.
+ *
+ * On the platform's own bookings it goes straight to the cleaner, as it always
+ * has. On a cleaning company's booking it goes to the company, which pays its
+ * own cleaner from it — so the same figure is reported as the cleaner's due for
+ * the company's records, but it is the company's liability rather than ours.
+ *
+ * Defaults to the platform-owner shape so any caller that has not been taught
+ * about tenants keeps producing today's numbers.
+ */
+function splitRemainder(
+  remainder: number,
+  isPlatformOwnerBooking: boolean
+): { cleanerPayout: number; tenantPayout: number } {
+  return isPlatformOwnerBooking
+    ? { cleanerPayout: remainder, tenantPayout: 0 }
+    : { cleanerPayout: 0, tenantPayout: remainder };
 }
 
 /**
@@ -126,13 +159,14 @@ export function calculatePayout(
 export function calculatePayoutFromStoredFee(
   bookingAmount: number,
   payFastFee: number,
-  customCommissionRate?: number
+  customCommissionRate?: number,
+  isPlatformOwnerBooking: boolean = true
 ): PayoutBreakdown {
   const netAfterFees = roundToTwoDecimals(bookingAmount - payFastFee);
 
   const commissionRate = customCommissionRate ?? PLATFORM_COMMISSION_RATE;
   const commissionAmount = roundToTwoDecimals(netAfterFees * commissionRate);
-  const cleanerPayout = roundToTwoDecimals(netAfterFees - commissionAmount);
+  const remainder = roundToTwoDecimals(netAfterFees - commissionAmount);
 
   return {
     bookingAmount,
@@ -140,7 +174,7 @@ export function calculatePayoutFromStoredFee(
     netAfterFees,
     commissionRate,
     commissionAmount,
-    cleanerPayout
+    ...splitRemainder(remainder, isPlatformOwnerBooking)
   };
 }
 
@@ -158,11 +192,15 @@ export function formatPayoutSummary(breakdown: PayoutBreakdown): string {
   const formatCurrency = (amount: number) =>
     `R${amount.toFixed(2)}`;
 
+  const recipient = breakdown.tenantPayout > 0
+    ? `Company Payout:      ${formatCurrency(breakdown.tenantPayout)}`
+    : `Cleaner Payout:      ${formatCurrency(breakdown.cleanerPayout)}`;
+
   return [
     `Booking Amount:      ${formatCurrency(breakdown.bookingAmount)}`,
     `PayFast Fee:        -${formatCurrency(breakdown.payFastFee)}`,
     `Net After Fees:      ${formatCurrency(breakdown.netAfterFees)}`,
     `Commission (${(breakdown.commissionRate * 100).toFixed(0)}%): -${formatCurrency(breakdown.commissionAmount)}`,
-    `Cleaner Payout:      ${formatCurrency(breakdown.cleanerPayout)}`
+    recipient
   ].join('\n');
 }

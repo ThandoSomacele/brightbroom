@@ -161,6 +161,16 @@ export const tenant = pgTable("tenant", {
     .notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   isPlatformOwner: boolean("is_platform_owner").default(false).notNull(),
+
+  // Payout settings — where this company's share of each booking is paid.
+  // Not used for the platform owner, which is the account collecting payment.
+  payoutMethod: payoutMethodEnum("payout_method").default("EFT"),
+  bankName: text("bank_name"),
+  bankAccountNumber: text("bank_account_number"),
+  bankBranchCode: text("bank_branch_code"),
+  bankAccountType: bankAccountTypeEnum("bank_account_type"),
+  bankAccountHolder: text("bank_account_holder"), // Name on the account
+
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
@@ -387,12 +397,24 @@ export const payment = pgTable("payment", {
     precision: 10,
     scale: 2,
   }),
+  // What the cleaner is owed. On a booking belonging to a tenant this is the
+  // COMPANY's liability to its own cleaner, not the platform's — only amounts
+  // on platform-owner bookings are paid out by us.
   cleanerPayoutAmount: decimal("cleaner_payout_amount", {
+    precision: 10,
+    scale: 2,
+  }),
+  // What the cleaning company is owed for this booking. Null on platform-owner
+  // bookings, where there is no third party between us and the cleaner.
+  tenantPayoutAmount: decimal("tenant_payout_amount", {
     precision: 10,
     scale: 2,
   }),
   isPaidToProvider: boolean("is_paid_to_provider").default(false).notNull(),
   providerPayoutDate: timestamp("provider_payout_date", { mode: "date" }),
+  // Set when the company (not the cleaner) has been paid their share
+  isPaidToTenant: boolean("is_paid_to_tenant").default(false).notNull(),
+  tenantPayoutDate: timestamp("tenant_payout_date", { mode: "date" }),
   payFastId: text("pay_fast_id"),
   payFastToken: text("pay_fast_token"),
   merchantReference: text("merchant_reference"),

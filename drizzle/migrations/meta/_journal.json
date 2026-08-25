@@ -134,6 +134,13 @@
       "when": 1787097600000,
       "tag": "0018_add_tenancy",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1787616000000,
+      "tag": "0019_add_tenant_payouts",
+      "breakpoints": true
     }
   ]
 }
