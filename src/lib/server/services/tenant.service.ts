@@ -16,6 +16,44 @@ import {
 import { and, eq, isNotNull, sql } from "drizzle-orm";
 
 /**
+ * Documents a cleaning company can supply during verification.
+ *
+ * `required` marks the ones that gate activation. Every type here stays
+ * uploadable regardless, so a reviewer can ask for an optional one when a
+ * company needs a closer look.
+ */
+export const TENANT_DOCUMENT_TYPES = [
+  {
+    type: "DIRECTOR_ID",
+    label: "Director or owner ID",
+    hint: "ID or passport of the person registering the company",
+    required: true,
+  },
+  {
+    type: "BANK_LETTER",
+    label: "Bank letter",
+    hint: "Bank confirmation for the account we pay you into",
+    required: true,
+  },
+  {
+    type: "COMPANY_REGISTRATION",
+    label: "Company registration (CIPC)",
+    hint: "CoR 14.3 or CK document, if your company is registered",
+    required: false,
+  },
+  {
+    type: "PROOF_OF_ADDRESS",
+    label: "Proof of business address",
+    hint: "Utility bill or lease, less than three months old",
+    required: false,
+  },
+] as const;
+
+export const TENANT_REQUIRED_DOCUMENTS = TENANT_DOCUMENT_TYPES.filter(
+  (d) => d.required,
+);
+
+/**
  * Tenant service for managing tenants (cleaning companies) on the marketplace
  */
 export const tenantService = {
@@ -241,17 +279,21 @@ export const tenantService = {
   },
 
   /**
-   * Every document a company must supply before it can trade.
+   * Every document a company can supply, required ones first.
    *
-   * Exported so the upload screen, the review screen and the completeness
-   * check all work from one list rather than three copies that can drift.
+   * Only two are mandatory, and both exist to protect the money: the bank
+   * letter proves the payout account belongs to the company, and the ID ties a
+   * real person to it. The other two are accepted and useful when reviewing
+   * something that looks off, but are not gates — requiring CIPC registration
+   * would shut out sole proprietors and informal operators, who are a large
+   * part of this market, and a utility bill does not prevent payout fraud.
    */
-  requiredDocuments: [
-    { type: "COMPANY_REGISTRATION", label: "Company registration (CIPC)", hint: "CoR 14.3 or CK document" },
-    { type: "DIRECTOR_ID", label: "Director ID", hint: "ID or passport of the person registering the company" },
-    { type: "PROOF_OF_ADDRESS", label: "Proof of business address", hint: "Utility bill or lease, less than three months old" },
-    { type: "BANK_LETTER", label: "Bank letter", hint: "Official bank confirmation for the payout account" },
-  ] as const,
+  documentTypes: TENANT_DOCUMENT_TYPES,
+
+  /**
+   * The subset that actually blocks a company from going active.
+   */
+  requiredDocuments: TENANT_REQUIRED_DOCUMENTS,
 
   /**
    * Documents a company has uploaded so far.

@@ -10,7 +10,7 @@
   let errorMessage: string | null = null;
 
   $: status = data.tenant.verificationStatus;
-  $: outstanding = data.requirements.filter((r) => !r.document).length;
+  $: outstanding = data.outstandingRequired;
 
   async function upload(type: string, event: Event) {
     const input = event.target as HTMLInputElement;
@@ -112,8 +112,8 @@
           {outstanding === 1 ? "document" : "documents"} still needed
         </p>
         <p class="text-sm text-amber-700 dark:text-amber-500">
-          Upload all four and we'll review them. You can add your team and cleaners
-          while you wait.
+          Upload what's required and we'll review it. You can add your team and
+          cleaners while you wait.
         </p>
       </div>
     </div>
@@ -133,13 +133,20 @@
           <div class="mt-0.5">
             {#if requirement.document}
               <CheckCircle2 class="h-5 w-5 text-green-600 dark:text-green-400" />
+            {:else if requirement.required}
+              <FileText class="h-5 w-5 text-amber-500" />
             {:else}
-              <FileText class="h-5 w-5 text-gray-400" />
+              <FileText class="h-5 w-5 text-gray-300 dark:text-gray-600" />
             {/if}
           </div>
           <div>
             <p class="text-sm font-medium text-gray-900 dark:text-white">
               {requirement.label}
+              {#if !requirement.required}
+                <span class="ml-1 text-xs font-normal text-gray-500 dark:text-gray-400">
+                  (optional)
+                </span>
+              {/if}
             </p>
             <p class="text-xs text-gray-500 dark:text-gray-400">{requirement.hint}</p>
             {#if requirement.document}
@@ -191,6 +198,7 @@
 
   <p class="text-xs text-gray-500 dark:text-gray-400">
     PDFs or photos, up to 10MB each. Documents are stored securely and used only to
-    verify your company.
+    verify your company. The optional ones aren't needed to get started, but sending
+    them can save a follow-up.
   </p>
 </div>

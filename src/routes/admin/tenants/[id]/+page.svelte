@@ -178,6 +178,11 @@
             <div>
               <p class="text-sm font-medium text-gray-900 dark:text-white">
                 {requirement.label}
+                {#if !requirement.required}
+                  <span class="ml-1 text-xs font-normal text-gray-500 dark:text-gray-400">
+                    (optional)
+                  </span>
+                {/if}
               </p>
               <p class="text-xs text-gray-500 dark:text-gray-400">
                 {requirement.document
@@ -194,8 +199,10 @@
               >
                 View
               </Button>
-            {:else}
+            {:else if requirement.required}
               <span class="text-xs text-amber-600 dark:text-amber-400">Missing</span>
+            {:else}
+              <span class="text-xs text-gray-400 dark:text-gray-500">Not supplied</span>
             {/if}
           </div>
         {/each}

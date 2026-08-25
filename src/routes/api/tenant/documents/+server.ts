@@ -6,7 +6,9 @@ import mime from "mime-types";
 import { nanoid } from "nanoid";
 import type { RequestHandler } from "./$types";
 
-const VALID_TYPES = tenantService.requiredDocuments.map((d) => d.type) as readonly string[];
+// Every known type, not just the required ones — an optional document must
+// still be uploadable, otherwise "optional" would mean "impossible"
+const VALID_TYPES = tenantService.documentTypes.map((d) => d.type) as readonly string[];
 
 // Verification documents are IDs and bank letters, so keep them modest and
 // limited to the formats a company would actually scan or photograph.

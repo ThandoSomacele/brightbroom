@@ -18,11 +18,15 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   return {
     tenant,
-    // Pair each required document with whatever has been uploaded for it, so
-    // the page renders one row per requirement rather than per upload
-    requirements: tenantService.requiredDocuments.map((requirement) => ({
+    // Pair every known document type with whatever has been uploaded for it,
+    // so the page renders one row per type rather than per upload. Optional
+    // ones are shown too — a company can volunteer them.
+    requirements: tenantService.documentTypes.map((requirement) => ({
       ...requirement,
       document: byType.get(requirement.type) ?? null,
     })),
+    outstandingRequired: tenantService.requiredDocuments.filter(
+      (r) => !byType.has(r.type),
+    ).length,
   };
 };

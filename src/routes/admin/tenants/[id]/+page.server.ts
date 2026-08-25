@@ -27,7 +27,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   // the gaps as clearly as the files
   const documents = await tenantService.getDocuments(params.id);
   const byType = new Map(documents.map((d) => [d.type, d]));
-  const requirements = tenantService.requiredDocuments.map((requirement) => ({
+  const requirements = tenantService.documentTypes.map((requirement) => ({
     ...requirement,
     document: byType.get(requirement.type) ?? null,
   }));
