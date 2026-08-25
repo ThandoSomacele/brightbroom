@@ -1,6 +1,10 @@
 // src/routes/admin/tenants/[id]/+page.server.ts
 import { db } from "$lib/server/db";
 import { user } from "$lib/server/db/schema";
+import {
+  sendTenantApprovedEmail,
+  sendTenantRejectedEmail,
+} from "$lib/server/email-service";
 import { tenantService } from "$lib/server/services/tenant.service";
 import { error } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
@@ -34,6 +38,37 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
   return { tenant, members, cleanerCount, payouts, requirements };
 };
+
+/**
+ * Send a company a notification about its verification, without letting a mail
+ * problem surface as a failed action. The decision has already been written to
+ * the database by this point; the admin just needs to know whether the company
+ * heard about it.
+ */
+async function notifyTenant(
+  tenantId: string,
+  send: (
+    recipient: { email: string; firstName?: string },
+    company: { name: string },
+  ) => Promise<boolean>,
+): Promise<boolean> {
+  try {
+    const [recipient, company] = await Promise.all([
+      tenantService.getNotificationRecipient(tenantId),
+      tenantService.getById(tenantId),
+    ]);
+
+    if (!recipient || !company) {
+      console.warn(`No one to notify for tenant ${tenantId}`);
+      return false;
+    }
+
+    return await send(recipient, company);
+  } catch (err) {
+    console.error("Tenant verification email failed:", err);
+    return false;
+  }
+}
 
 export const actions: Actions = {
   update: async ({ request, params, locals }) => {
@@ -107,7 +142,21 @@ export const actions: Actions = {
     }
 
     await tenantService.approve(params.id, locals.user.id);
-    return { success: true, message: "Company approved and activated" };
+
+    // Never let a mail failure undo an approval that has already been written
+    const notified = await notifyTenant(params.id, async (recipient, company) =>
+      sendTenantApprovedEmail(recipient.email, {
+        companyName: company.name,
+        contactFirstName: recipient.firstName,
+      }),
+    );
+
+    return {
+      success: true,
+      message: notified
+        ? "Company approved and activated. They have been emailed."
+        : "Company approved and activated, but we could not email them — tell them directly.",
+    };
   },
 
   reject: async ({ request, params, locals }) => {
@@ -122,7 +171,21 @@ export const actions: Actions = {
     }
 
     await tenantService.reject(params.id, locals.user.id, reason);
-    return { success: true, message: "Company rejected and deactivated" };
+
+    const notified = await notifyTenant(params.id, async (recipient, company) =>
+      sendTenantRejectedEmail(recipient.email, {
+        companyName: company.name,
+        reason,
+        contactFirstName: recipient.firstName,
+      }),
+    );
+
+    return {
+      success: true,
+      message: notified
+        ? "Company rejected. They have been emailed the reason."
+        : "Company rejected, but we could not email them — tell them why directly.",
+    };
   },
 
   addMember: async ({ request, params, locals }) => {

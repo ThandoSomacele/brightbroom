@@ -2350,6 +2350,208 @@ This email was sent to ${recipientEmail}.
 }
 
 /**
+ * Generate the email telling a cleaning company it has passed verification
+ */
+export function getTenantApprovedEmailTemplate(
+  recipientEmail: string,
+  details: { companyName: string; contactFirstName?: string },
+  data: EmailTemplateData,
+): { subject: string; html: string; text: string } {
+  const dashboardUrl = `${data.appUrl}/admin/dashboard`;
+  const escapedEmail = escapeHtml(recipientEmail);
+  const companyName = escapeHtml(details.companyName);
+  const greeting = details.contactFirstName
+    ? `Hi ${escapeHtml(details.contactFirstName)},`
+    : "Hi,";
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${companyName} is verified</title>
+  <style>
+    body, html { margin: 0; padding: 0; font-family: Arial, sans-serif; line-height: 1.6; color: #333333; }
+    .email-container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; padding: 20px 0; background-color: ${data.primaryColor}; }
+    .header h1 { color: #ffffff; margin: 0; font-size: 24px; }
+    .content { padding: 30px 20px; background-color: #ffffff; }
+    .button { display: inline-block; padding: 12px 24px; background-color: ${data.primaryColor}; color: #ffffff !important; text-decoration: none; border-radius: 4px; font-weight: bold; }
+    .panel { background-color: #f7f7f7; border-left: 4px solid ${data.primaryColor}; padding: 15px 20px; margin: 20px 0; }
+    .footer { text-align: center; padding: 20px; font-size: 12px; color: #888888; }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header"><h1>${companyName} is verified</h1></div>
+    <div class="content">
+      <p>${greeting}</p>
+      <p>
+        We have checked your documents and ${companyName} is now active on
+        ${data.brandName}. You can start taking bookings straight away.
+      </p>
+
+      <p style="text-align: center; margin: 30px 0;">
+        <a href="${dashboardUrl}" class="button">Open your dashboard</a>
+      </p>
+
+      <div class="panel">
+        <p style="margin: 0 0 10px 0;"><strong>What happens now</strong></p>
+        <ul style="margin: 0;">
+          <li>Bookings in your service area can be assigned to your cleaners</li>
+          <li>Your share of each booking is tracked and paid to the account you gave us</li>
+          <li>You can keep adding cleaners and team members at any time</li>
+        </ul>
+      </div>
+
+      <p>If anything looks wrong, just reply to this email.</p>
+      <p>Welcome aboard,<br>The ${data.brandName} Team</p>
+    </div>
+    <div class="footer">
+      <p>This email was sent to ${escapedEmail}.</p>
+      <p>&copy; ${new Date().getFullYear()} ${data.brandName}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+  const text = `
+${details.companyName} is verified
+
+${details.contactFirstName ? `Hi ${details.contactFirstName},` : "Hi,"}
+
+We have checked your documents and ${details.companyName} is now active on
+${data.brandName}. You can start taking bookings straight away.
+
+Open your dashboard: ${dashboardUrl}
+
+What happens now:
+- Bookings in your service area can be assigned to your cleaners
+- Your share of each booking is tracked and paid to the account you gave us
+- You can keep adding cleaners and team members at any time
+
+If anything looks wrong, just reply to this email.
+
+Welcome aboard,
+The ${data.brandName} Team
+
+This email was sent to ${recipientEmail}.
+(c) ${new Date().getFullYear()} ${data.brandName}. All rights reserved.
+`;
+
+  return { subject: `${details.companyName} is verified on ${data.brandName}`, html, text };
+}
+
+/**
+ * Generate the email telling a cleaning company its verification needs work.
+ *
+ * Always carries the reason — an unexplained rejection just generates a
+ * support email and leaves the company unable to act.
+ */
+export function getTenantRejectedEmailTemplate(
+  recipientEmail: string,
+  details: { companyName: string; reason: string; contactFirstName?: string },
+  data: EmailTemplateData,
+): { subject: string; html: string; text: string } {
+  const verificationUrl = `${data.appUrl}/admin/verification`;
+  const escapedEmail = escapeHtml(recipientEmail);
+  const companyName = escapeHtml(details.companyName);
+  const reason = escapeHtml(details.reason);
+  const greeting = details.contactFirstName
+    ? `Hi ${escapeHtml(details.contactFirstName)},`
+    : "Hi,";
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>We need something else for ${companyName}</title>
+  <style>
+    body, html { margin: 0; padding: 0; font-family: Arial, sans-serif; line-height: 1.6; color: #333333; }
+    .email-container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; padding: 20px 0; background-color: ${data.secondaryColor}; }
+    .header h1 { color: #ffffff; margin: 0; font-size: 24px; }
+    .content { padding: 30px 20px; background-color: #ffffff; }
+    .button { display: inline-block; padding: 12px 24px; background-color: ${data.primaryColor}; color: #ffffff !important; text-decoration: none; border-radius: 4px; font-weight: bold; }
+    .panel { background-color: #fdf3f0; border-left: 4px solid ${data.secondaryColor}; padding: 15px 20px; margin: 20px 0; }
+    .footer { text-align: center; padding: 20px; font-size: 12px; color: #888888; }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header"><h1>We need something else</h1></div>
+    <div class="content">
+      <p>${greeting}</p>
+      <p>
+        We reviewed the documents for ${companyName} and cannot approve it just
+        yet.
+      </p>
+
+      <div class="panel">
+        <p style="margin: 0;"><strong>What needs fixing</strong></p>
+        <p style="margin: 8px 0 0 0;">${reason}</p>
+      </div>
+
+      <p>
+        Replace the document on your verification page and we will take another
+        look. Nothing else about your account has changed, and your team and
+        cleaners are still there.
+      </p>
+
+      <p style="text-align: center; margin: 30px 0;">
+        <a href="${verificationUrl}" class="button">Update your documents</a>
+      </p>
+
+      <p>If you are not sure what we need, reply to this email and we will explain.</p>
+      <p>Thanks,<br>The ${data.brandName} Team</p>
+    </div>
+    <div class="footer">
+      <p>This email was sent to ${escapedEmail}.</p>
+      <p>&copy; ${new Date().getFullYear()} ${data.brandName}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+  const text = `
+We need something else for ${details.companyName}
+
+${details.contactFirstName ? `Hi ${details.contactFirstName},` : "Hi,"}
+
+We reviewed the documents for ${details.companyName} and cannot approve it just yet.
+
+What needs fixing:
+${details.reason}
+
+Replace the document on your verification page and we will take another look.
+Nothing else about your account has changed, and your team and cleaners are
+still there.
+
+Update your documents: ${verificationUrl}
+
+If you are not sure what we need, reply to this email and we will explain.
+
+Thanks,
+The ${data.brandName} Team
+
+This email was sent to ${recipientEmail}.
+(c) ${new Date().getFullYear()} ${data.brandName}. All rights reserved.
+`;
+
+  return {
+    subject: `Action needed for ${details.companyName} on ${data.brandName}`,
+    html,
+    text,
+  };
+}
+
+/**
  * Generate an email template for notifying cleaners about a new assignment
  */
 export function getCleanerJobAssignmentTemplate(

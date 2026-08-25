@@ -368,6 +368,33 @@ export const tenantService = {
   },
 
   /**
+   * Who to tell about a change to this company.
+   *
+   * Prefers the owner, since that gives a first name to address them by, and
+   * falls back to the company's contact address. Returns null when there is
+   * nobody to write to, so callers can skip sending rather than throw.
+   */
+  async getNotificationRecipient(
+    tenantId: string,
+  ): Promise<{ email: string; firstName?: string } | null> {
+    const [owner] = await db
+      .select({ email: user.email, firstName: user.firstName })
+      .from(tenantMember)
+      .innerJoin(user, eq(tenantMember.userId, user.id))
+      .where(
+        and(eq(tenantMember.tenantId, tenantId), eq(tenantMember.role, "OWNER")),
+      )
+      .limit(1);
+
+    if (owner?.email) {
+      return { email: owner.email, firstName: owner.firstName };
+    }
+
+    const current = await this.getById(tenantId);
+    return current?.contactEmail ? { email: current.contactEmail } : null;
+  },
+
+  /**
    * Approve a company, which is what actually lets it trade.
    */
   async approve(tenantId: string, adminUserId: string): Promise<void> {

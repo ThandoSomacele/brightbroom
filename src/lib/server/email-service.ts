@@ -12,6 +12,8 @@ import {
   getCleanerChangedTemplate,
   getCleanerJobAssignmentTemplate,
   getCleanerWelcomeEmailTemplate,
+  getTenantApprovedEmailTemplate,
+  getTenantRejectedEmailTemplate,
   getTenantWelcomeEmailTemplate,
   getContactFormTemplate,
   getPasswordResetConfirmationTemplate,
@@ -431,6 +433,82 @@ export async function sendTenantWelcomeEmail(
     return true;
   } catch (error) {
     console.error("Error sending tenant welcome email:", error);
+    return false;
+  }
+}
+
+/**
+ * Tell a cleaning company it has passed verification and is now active
+ */
+export async function sendTenantApprovedEmail(
+  email: string,
+  details: { companyName: string; contactFirstName?: string },
+): Promise<boolean> {
+  try {
+    if (!resend) {
+      console.error("Resend API key not configured");
+      return false;
+    }
+
+    const template = getTenantApprovedEmailTemplate(email, details, EMAIL_CONFIG);
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+
+    if (error) {
+      console.error("Resend API error:", error);
+      return false;
+    }
+
+    console.log("Tenant approval email sent:", {
+      company: details.companyName,
+      emailId: data?.id,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error sending tenant approval email:", error);
+    return false;
+  }
+}
+
+/**
+ * Tell a cleaning company its verification needs work, and why
+ */
+export async function sendTenantRejectedEmail(
+  email: string,
+  details: { companyName: string; reason: string; contactFirstName?: string },
+): Promise<boolean> {
+  try {
+    if (!resend) {
+      console.error("Resend API key not configured");
+      return false;
+    }
+
+    const template = getTenantRejectedEmailTemplate(email, details, EMAIL_CONFIG);
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+
+    if (error) {
+      console.error("Resend API error:", error);
+      return false;
+    }
+
+    console.log("Tenant rejection email sent:", {
+      company: details.companyName,
+      emailId: data?.id,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error sending tenant rejection email:", error);
     return false;
   }
 }
