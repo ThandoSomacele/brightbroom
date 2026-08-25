@@ -2,13 +2,16 @@
 //
 // Repairs the drizzle migration ledger.
 //
-// Background: this database's schema has been maintained with `db:push` since
-// April 2025. The ledger (drizzle.__drizzle_migrations) still holds only six
-// rows, and none of them match any migration file currently on disk — the
-// migration set was rewritten at some point. `drizzle-kit migrate` therefore
-// tries to replay every migration from 0000 against a fully populated
-// database, fails on the first CREATE TABLE, and netlify/scripts/deploy-db.sh
-// swallows the error because it does not use `set -e`.
+// Background: drizzle.config.ts had no `out`, so drizzle-kit defaulted to
+// ./drizzle while db:generate wrote to ./drizzle/migrations. For over a year
+// `drizzle-kit migrate` read ./drizzle — an abandoned introspection dump of one
+// empty migration and one commented-out file — reported success, and applied
+// nothing, while every real migration sat unread. The schema was kept current
+// with db:push instead, so it drifted away from the migrations describing it.
+//
+// The config now sets `out` explicitly. This script fixes the other half: the
+// ledger has no record of the real migrations, so without it migrate would try
+// to replay all of them against an already-populated database.
 //
 // This script records every migration in the journal as already applied, so
 // migrate becomes a no-op now and applies only genuinely new migrations later.

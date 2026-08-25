@@ -24,9 +24,10 @@ export NODE_ENV=$DEPLOY_CONTEXT
 
 # Run migrations with the appropriate environment.
 #
-# This step IS fatal. It previously ran unchecked, so when the migration ledger
-# fell out of sync in April 2025 every deploy failed here silently and the
-# schema drifted for over a year without anyone seeing an error.
+# This step IS fatal. It previously ran unchecked, which mattered because for
+# over a year it was reading the wrong folder and applying nothing while
+# reporting success. Now that it points at the real migrations, a genuine
+# failure must stop the deploy rather than let the schema and code drift apart.
 echo "Applying migrations to database..."
 if ! pnpm exec drizzle-kit migrate; then
   echo -e "\e[31mERROR: Database migrations failed.\e[0m"
