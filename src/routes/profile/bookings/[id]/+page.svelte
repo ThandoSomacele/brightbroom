@@ -4,6 +4,7 @@
   import { Calendar, MapPin, Clock, CreditCard, Briefcase, User, MessageSquare } from 'lucide-svelte';
   import { notFound, forbidden } from '$lib/utils/errors';
   import { getBookingReference } from '$lib/utils/strings';
+  import { parseDateTimeString } from '$lib/utils/date-utils';
 
   
   // Get data from the server load function
@@ -13,7 +14,7 @@
   
   // Format date function
   function formatDate(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     return date.toLocaleDateString(undefined, { 
       weekday: 'long', 
       year: 'numeric', 
@@ -24,7 +25,7 @@
   
   // Format time function
   function formatTime(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     return date.toLocaleTimeString(undefined, { 
       hour: '2-digit', 
       minute: '2-digit'
@@ -53,7 +54,7 @@
   // Is the booking in the past?
   function isPastBooking(dateString: string): boolean {
     const now = new Date();
-    const bookingDate = new Date(dateString);
+    const bookingDate = parseDateTimeString(dateString);
     return bookingDate < now;
   }
   

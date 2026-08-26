@@ -99,7 +99,7 @@ export async function sendCleanerAssignmentNotification(
     // Prepare booking data for the email - now with enhanced service details
     const emailData = {
       id: result.booking.id,
-      scheduledDate: result.booking.scheduledDate.toISOString(),
+      scheduledDate: result.booking.scheduledDate,
       duration: result.booking.duration,
       notes: result.booking.notes,
       service: result.service, // This now includes description and details
@@ -213,7 +213,7 @@ export async function sendCleanerJobNotification(
     // Prepare booking data for the cleaner email
     const emailData = {
       id: result.booking.id,
-      scheduledDate: result.booking.scheduledDate.toISOString(),
+      scheduledDate: result.booking.scheduledDate,
       service: result.service,
       address: result.address,
       notes: result.booking.notes,

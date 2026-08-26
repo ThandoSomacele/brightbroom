@@ -351,6 +351,20 @@ export const pricingConfig = pgTable("pricing_config", {
     .default(60),
   bathroomMin: integer("bathroom_min").notNull().default(1),
   bathroomMax: integer("bathroom_max").notNull().default(6),
+  // Payout configuration
+  // Platform commission as a percentage of the net amount after PayFast fees
+  // (e.g. "20.00" = 20%). Applied to new bookings; historical payments keep
+  // their persisted breakdown. See src/lib/utils/payout-calculator.ts.
+  platformCommissionRate: decimal("platform_commission_rate", {
+    precision: 5,
+    scale: 2,
+  })
+    .notNull()
+    .default("20.00"),
+  // Per-method PayFast transaction fees as JSON. Shape matches PayoutConfig.fees
+  // in payout-calculator.ts: { CREDIT_CARD: { percent, fixed, min? }, ... }.
+  // Null falls back to DEFAULT_PAYOUT_CONFIG.fees.
+  payfastFees: json("payfast_fees"),
   // Timestamps
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
@@ -409,7 +423,10 @@ export const booking = pgTable("booking", {
     .references(() => service.id),
   cleanerId: text("cleaner_id").references(() => user.id),
   status: bookingStatusEnum("status").default("PENDING").notNull(),
-  scheduledDate: timestamp("scheduled_date", { mode: "date" }).notNull(),
+  // Stored as a naive wall-clock string (SAST). Using mode "string" keeps the
+  // value timezone-independent: an 8am booking is read back as "08:00" whether
+  // the server runs in SAST (local dev) or UTC (production). See date-utils.ts.
+  scheduledDate: timestamp("scheduled_date", { mode: "string" }).notNull(),
   duration: integer("duration").notNull(), // Duration in minutes
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   notes: text("notes"),

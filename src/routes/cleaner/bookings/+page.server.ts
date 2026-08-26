@@ -27,14 +27,11 @@ async function getBookingsData(params: FilterParams) {
   }
 
   if (dateFrom) {
-    const fromDate = new Date(dateFrom);
-    conditions.push(gte(booking.scheduledDate, fromDate));
+    conditions.push(gte(booking.scheduledDate, `${dateFrom} 00:00:00`));
   }
 
   if (dateTo) {
-    const toDate = new Date(dateTo);
-    toDate.setHours(23, 59, 59, 999);
-    conditions.push(lte(booking.scheduledDate, toDate));
+    conditions.push(lte(booking.scheduledDate, `${dateTo} 23:59:59`));
   }
 
   // Build main query

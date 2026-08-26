@@ -2,6 +2,7 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
+  import { parseDateTimeString } from "$lib/utils/date-utils";
   import {
     Calendar,
     ChevronLeft,
@@ -17,7 +18,7 @@
   export let data;
   export let form;
 
-  const { bookingDetails, communications } = data;
+  const { bookingDetails, communications, cleanerPayout } = data;
 
   let isSubmittingStatus = false;
   let isSubmittingNote = false;
@@ -26,7 +27,7 @@
 
   // Format date
   function formatDate(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     return date.toLocaleDateString("en-ZA", {
       weekday: "long",
       year: "numeric",
@@ -37,7 +38,7 @@
 
   // Format time
   function formatTime(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     return date.toLocaleTimeString("en-ZA", {
       hour: "2-digit",
       minute: "2-digit",
@@ -50,11 +51,6 @@
       style: "currency",
       currency: "ZAR",
     }).format(amount);
-  }
-
-  // Get cleaner earnings (80% of booking price after fees)
-  function getCleanerEarnings(price: number): number {
-    return price * 0.80;
   }
 
   // Get status badge class
@@ -77,14 +73,14 @@
 
   // Check if booking is upcoming (in the future)
   function isUpcoming(dateString: string): boolean {
-    const bookingDate = new Date(dateString);
+    const bookingDate = parseDateTimeString(dateString);
     const now = new Date();
     return bookingDate > now;
   }
 
   // Calculate time relative to now
   function getRelativeTime(dateString: string): string {
-    const bookingDate = new Date(dateString);
+    const bookingDate = parseDateTimeString(dateString);
     const now = new Date();
     const diffMs = bookingDate.getTime() - now.getTime();
 
@@ -117,7 +113,7 @@
 
   // Format relative time for communications
   function formatRelativeTime(dateString: string): string {
-    const date = new Date(dateString);
+    const date = parseDateTimeString(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -321,9 +317,7 @@
                 Earnings from this job
               </p>
               <p class="text-xl font-semibold text-primary mt-1">
-                {formatCurrency(
-                  getCleanerEarnings(bookingDetails.booking.price),
-                )}
+                {formatCurrency(cleanerPayout)}
               </p>
             </div>
           </div>
@@ -684,9 +678,7 @@
               >Your earnings:</span
             >
             <span class="font-bold text-primary text-lg"
-              >{formatCurrency(
-                getCleanerEarnings(bookingDetails.booking.price),
-              )}</span
+              >{formatCurrency(cleanerPayout)}</span
             >
           </div>
 

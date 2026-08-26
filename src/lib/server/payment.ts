@@ -9,9 +9,11 @@ import {
   type Payment,
 } from "$lib/server/db/schema";
 import { postPaymentHooks } from "$lib/server/hooks/post-payment-hooks";
+import { paymentProcessorService } from "$lib/server/services/payment-processor.service";
 import crypto from "crypto";
 import { eq } from "drizzle-orm";
 import { env } from "$env/dynamic/private";
+import { parseDateTimeString } from "$lib/utils/date-utils";
 
 // Get environment variables with fallbacks to sandbox credentials for safety
 const PAYFAST_MERCHANT_ID =
@@ -211,7 +213,7 @@ function generatePayFastUrl(
     m_payment_id: paymentData.id,
     amount: formattedAmount,
     item_name: `BrightBroom ${serviceData.name}`,
-    item_description: `Cleaning service scheduled for ${bookingData.scheduledDate.toISOString().split("T")[0]}`,
+    item_description: `Cleaning service scheduled for ${parseDateTimeString(bookingData.scheduledDate).toISOString().split("T")[0]}`,
     custom_str1: bookingData.id, // Store booking ID for reference
   };
 
@@ -438,6 +440,9 @@ export async function processSuccessfulPayment(
       .where(eq(payment.id, paymentId));
 
     console.log(`Updated payment status to COMPLETED: ${paymentId}`);
+
+    // Persist the payout breakdown (PayFast fee, commission, cleaner payout)
+    await paymentProcessorService.ensurePayoutFields(paymentId);
 
     // Get the booking ID and user info for this payment
     const paymentResult = await db

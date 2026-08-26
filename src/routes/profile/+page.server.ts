@@ -3,11 +3,12 @@ import { db } from '$lib/server/db';
 import { address, booking, service } from '$lib/server/db/schema';
 import { error, redirect } from '@sveltejs/kit';
 import { and, eq, gte } from 'drizzle-orm';
+import { instantToSASTString } from '$lib/utils/date-utils';
 import type { PageServerLoad } from './$types';
 
 // Helper function to fetch upcoming bookings
 async function getUpcomingBookings(userId: string) {
-  const now = new Date();
+  const now = instantToSASTString();
   return db.select({
     id: booking.id,
     status: booking.status,

@@ -54,7 +54,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     // Prepare booking data for the email
     const bookingData = {
       id: result.booking.id,
-      scheduledDate: result.booking.scheduledDate.toISOString(),
+      scheduledDate: result.booking.scheduledDate,
       service: result.service,
       address: result.address,
     };

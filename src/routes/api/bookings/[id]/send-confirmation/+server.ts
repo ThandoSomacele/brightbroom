@@ -50,7 +50,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     const bookingData = {
       id: result.booking.id,
       service: { name: "General Clean" },
-      scheduledDate: result.booking.scheduledDate.toISOString(),
+      scheduledDate: result.booking.scheduledDate,
       address: result.address,
       price: result.booking.price,
       bedroomCount: result.booking.bedroomCount || undefined,

@@ -35,10 +35,11 @@
     .filter((payment) => selectedPayments.has(payment.id))
     .reduce((total, payment) => total + Number(payment.amount), 0);
 
-  // Format currency
-  function formatCurrency(amount: number | string): string {
+  // Format currency. Defensive against null/undefined/NaN (e.g. a payout amount
+  // that was never persisted) so a single bad value can't crash the SSR render.
+  function formatCurrency(amount: number | string | null | undefined): string {
     const value = typeof amount === "string" ? parseFloat(amount) : amount;
-    return `R${value.toFixed(2)}`;
+    return `R${(Number.isFinite(value) ? (value as number) : 0).toFixed(2)}`;
   }
 
   // Format date

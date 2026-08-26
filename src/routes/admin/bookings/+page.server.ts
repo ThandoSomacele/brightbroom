@@ -50,16 +50,17 @@ async function getBookings(
 
     // Date range filters
     if (dateStart) {
-      const startDate = new Date(dateStart);
-      conditions.push(gte(booking.scheduledDate, startDate));
-      countConditions.push(gte(booking.scheduledDate, startDate));
+      // Naive strings, not Date objects: scheduled_date has no timezone, so a
+      // JS Date would shift the range by the local offset
+      const startBound = `${dateStart} 00:00:00`;
+      conditions.push(gte(booking.scheduledDate, startBound));
+      countConditions.push(gte(booking.scheduledDate, startBound));
     }
 
     if (dateEnd) {
-      const endDate = new Date(dateEnd);
-      endDate.setHours(23, 59, 59, 999);
-      conditions.push(lte(booking.scheduledDate, endDate));
-      countConditions.push(lte(booking.scheduledDate, endDate));
+      const endBound = `${dateEnd} 23:59:59`;
+      conditions.push(lte(booking.scheduledDate, endBound));
+      countConditions.push(lte(booking.scheduledDate, endBound));
     }
 
     // Build query

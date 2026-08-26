@@ -1,8 +1,9 @@
 // src/routes/cleaner/bookings/[id]/+page.server.ts
 import { db } from '$lib/server/db';
-import { booking, address, user, adminNote, communicationLog, bookingAddon, addon } from '$lib/server/db/schema';
+import { booking, address, user, adminNote, communicationLog, bookingAddon, addon, payment } from '$lib/server/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
+import { resolveCleanerPayout } from '$lib/utils/payout-calculator';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -76,12 +77,30 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       .where(eq(communicationLog.bookingId, bookingId))
       .orderBy(desc(communicationLog.createdAt));
 
+    // Resolve the cleaner's payout for this booking (uses the amount captured
+    // on the payment record when available, otherwise estimates it).
+    const [paymentRecord] = await db
+      .select({
+        paymentMethod: payment.paymentMethod,
+        cleanerPayoutAmount: payment.cleanerPayoutAmount,
+      })
+      .from(payment)
+      .where(eq(payment.bookingId, bookingId))
+      .limit(1);
+
+    const cleanerPayout = resolveCleanerPayout(
+      bookingDetails[0].booking.price,
+      paymentRecord?.paymentMethod,
+      paymentRecord?.cleanerPayoutAmount,
+    );
+
     return {
       bookingDetails: {
         ...bookingDetails[0],
         addons: bookingAddons,
       },
-      communications
+      communications,
+      cleanerPayout,
     };
   } catch (err) {
     console.error('Error loading booking details:', err);

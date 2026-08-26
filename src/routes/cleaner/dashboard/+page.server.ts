@@ -2,6 +2,7 @@
 import { db } from '$lib/server/db';
 import { booking, user, service, address } from '$lib/server/db/schema';
 import { eq, and, gt, lt, sql } from 'drizzle-orm';
+import { instantToSASTString, toNaiveDateTimeString } from '$lib/utils/date-utils';
 import type { PageServerLoad } from './$types';
 
 // Helper function to fetch cleaner dashboard data
@@ -37,7 +38,7 @@ async function getCleanerDashboardData(cleanerId: string) {
       and(
         eq(booking.cleanerId, cleanerId),
         eq(booking.status, 'CONFIRMED'),
-        gt(booking.scheduledDate, now)
+        gt(booking.scheduledDate, instantToSASTString(now))
       )
     )
     .orderBy(booking.scheduledDate)
@@ -69,7 +70,7 @@ async function getCleanerDashboardData(cleanerId: string) {
       and(
         eq(booking.cleanerId, cleanerId),
         eq(booking.status, 'COMPLETED'),
-        gt(booking.scheduledDate, currentMonth)
+        gt(booking.scheduledDate, toNaiveDateTimeString(currentMonth))
       )
     );
 
@@ -90,8 +91,8 @@ async function getCleanerDashboardData(cleanerId: string) {
       and(
         eq(booking.cleanerId, cleanerId),
         eq(booking.status, 'COMPLETED'),
-        gt(booking.scheduledDate, lastThursday),
-        lt(booking.scheduledDate, nextThursday)
+        gt(booking.scheduledDate, instantToSASTString(lastThursday)),
+        lt(booking.scheduledDate, instantToSASTString(nextThursday))
       )
     );
 

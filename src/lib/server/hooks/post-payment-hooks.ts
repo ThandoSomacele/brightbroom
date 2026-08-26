@@ -8,7 +8,10 @@ import {
   addon,
   user,
 } from "$lib/server/db/schema";
-import { sendBookingConfirmationEmail } from "$lib/server/email-service";
+import {
+  sendAdminNewBookingEmail,
+  sendBookingConfirmationEmail,
+} from "$lib/server/email-service";
 import { cleanerAssignmentService } from "$lib/server/services/cleaner-assignment.service";
 import { eq } from "drizzle-orm";
 
@@ -127,6 +130,9 @@ export const postPaymentHooks = {
           },
           user: {
             email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            phone: user.phone,
           },
           address: {
             street: address.street,
@@ -208,6 +214,50 @@ export const postPaymentHooks = {
         addedBy: "System (Auto)",
         createdAt: new Date(),
       });
+
+      // Notify the operations inbox about the new paid booking (best-effort,
+      // idempotent via the ADMIN_NOTIFICATION_SENT note).
+      const adminAlreadyNotified = existingEmailNotes.some((note) =>
+        note.content.includes("ADMIN_NOTIFICATION_SENT"),
+      );
+      if (!adminAlreadyNotified) {
+        try {
+          const customerName =
+            [bookingData.user.firstName, bookingData.user.lastName]
+              .filter(Boolean)
+              .join(" ") || bookingData.user.email;
+
+          const adminSent = await sendAdminNewBookingEmail({
+            id: bookingData.booking.id,
+            customerName,
+            customerEmail: bookingData.user.email,
+            customerPhone: bookingData.user.phone || undefined,
+            service: "General Clean",
+            scheduledDate: bookingData.booking.scheduledDate,
+            bedroomCount: bookingData.booking.bedroomCount || undefined,
+            bathroomCount: bookingData.booking.bathroomCount || undefined,
+            durationMinutes: bookingData.booking.duration || undefined,
+            price: bookingData.booking.price,
+            address: bookingData.address,
+            notes: bookingData.booking.notes || undefined,
+          });
+
+          await db.insert(adminNote).values({
+            id: crypto.randomUUID(),
+            bookingId,
+            content: adminSent
+              ? `ADMIN_NOTIFICATION_SENT: New booking notification sent to operations`
+              : `Failed to send admin booking notification`,
+            addedBy: "System (Auto)",
+            createdAt: new Date(),
+          });
+        } catch (adminError) {
+          console.error(
+            "[POST-PAYMENT HOOKS] Error sending admin booking notification:",
+            adminError,
+          );
+        }
+      }
 
       return success;
     } catch (error) {

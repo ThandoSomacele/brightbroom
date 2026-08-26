@@ -6,6 +6,7 @@ import {
   STANDARD_SERVICE_RADIUS_KM,
 } from "$lib/utils/serviceAreaValidator";
 import { and, eq, gt, gte, isNull, lt, ne, or, sql } from "drizzle-orm";
+import { toNaiveDateTimeString } from "$lib/utils/date-utils";
 import { sendCleanerAssignmentNotifications } from "./notification.service";
 
 /**
@@ -166,11 +167,11 @@ export const cleanerAssignmentService = {
             // Same day
             gte(
               booking.scheduledDate,
-              new Date(new Date(startTime).setHours(0, 0, 0, 0)),
+              toNaiveDateTimeString(new Date(new Date(startTime).setHours(0, 0, 0, 0))),
             ),
             lt(
               booking.scheduledDate,
-              new Date(new Date(startTime).setHours(23, 59, 59, 999)),
+              toNaiveDateTimeString(new Date(new Date(startTime).setHours(23, 59, 59, 999))),
             ),
             // Not cancelled
             ne(booking.status, "CANCELLED"),

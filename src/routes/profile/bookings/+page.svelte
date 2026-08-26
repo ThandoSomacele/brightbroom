@@ -51,7 +51,7 @@
   // Is the booking in the past?
   function isPastBooking(dateString: string): boolean {
     const now = new Date();
-    const bookingDate = new Date(dateString);
+    const bookingDate = parseDateTimeString(dateString);
     return bookingDate < now;
   }
   

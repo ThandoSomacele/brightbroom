@@ -2,6 +2,7 @@
 import { db } from '$lib/server/db';
 import { booking, cleanerPayoutSummary, service, address, user } from '$lib/server/db/schema';
 import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
+import { toNaiveDateTimeString } from '$lib/utils/date-utils';
 import type { PageServerLoad } from './$types';
 
 // Helper function to get monthly earnings for the last 6 months
@@ -28,8 +29,8 @@ async function getMonthlyEarnings(cleanerId: string) {
           and(
             eq(booking.cleanerId, cleanerId),
             eq(booking.status, 'COMPLETED'),
-            gte(booking.scheduledDate, startDate),
-            lte(booking.scheduledDate, endDate)
+            gte(booking.scheduledDate, toNaiveDateTimeString(startDate)),
+            lte(booking.scheduledDate, toNaiveDateTimeString(endDate))
           )
         );
 

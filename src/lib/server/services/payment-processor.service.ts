@@ -4,6 +4,7 @@ import { booking, payment } from "$lib/server/db/schema";
 import { tenantService } from "$lib/server/services/tenant.service";
 import { eq } from "drizzle-orm";
 import { cleanerEarningsService } from "./cleaner-earnings.service";
+import { payoutConfigService } from "./payout-config.service";
 import {
   calculatePayout,
   PLATFORM_COMMISSION_RATE,
@@ -77,18 +78,25 @@ export const paymentProcessorService = {
       // Map external payment method to internal type for fee calculation
       const paymentMethodForCalc = this.mapPaymentMethod(paymentData.paymentMethod) as PaymentMethodType;
 
-      // Each tenant negotiates its own commission, and whether it is the
-      // platform owner decides who receives what is left after that commission.
-      // Both fall back to platform terms when the booking has no tenant.
+      // Two things decide the split. The admin-configured payout config
+      // supplies the PayFast fee schedule and the platform's default
+      // commission; a tenant that has negotiated its own rate overrides just
+      // the commission on top of it. Whether the tenant is the platform owner
+      // then decides who receives what is left — the cleaner directly, or the
+      // company that will pay its own cleaner.
+      const payoutConfig = await payoutConfigService.getPayoutConfig();
       const { commissionRate: tenantCommissionRate, isPlatformOwner } =
         await tenantService.getPayoutTerms(bookingDetails.tenantId);
 
-      // Calculate payout breakdown including PayFast fees
-      // Formula: PayFast fee deducted first, then commission on the net amount
+      const resolvedConfig =
+        tenantCommissionRate !== undefined
+          ? { ...payoutConfig, commissionRate: tenantCommissionRate }
+          : payoutConfig;
+
       const payoutBreakdown = calculatePayout(
         paymentData.amount,
         paymentMethodForCalc,
-        tenantCommissionRate,
+        resolvedConfig,
         isPlatformOwner,
       );
 
@@ -152,9 +160,61 @@ export const paymentProcessorService = {
   },
   
   /**
+   * Ensure a completed payment has its payout breakdown (PayFast fee, platform
+   * commission and cleaner payout) persisted on the record.
+   *
+   * The payment row is created at booking time and later flipped to COMPLETED,
+   * so this back-fills the payout fields at that point. Idempotent: it only
+   * writes when cleanerPayoutAmount is still null, so it's safe to call from
+   * every success path (success redirect + IPN, including IPN retries).
+   *
+   * @param paymentId The payment ID
+   * @returns true if fields were populated (or already present)
+   */
+  async ensurePayoutFields(paymentId: string): Promise<boolean> {
+    try {
+      const [pymt] = await db
+        .select({
+          id: payment.id,
+          amount: payment.amount,
+          paymentMethod: payment.paymentMethod,
+          cleanerPayoutAmount: payment.cleanerPayoutAmount,
+        })
+        .from(payment)
+        .where(eq(payment.id, paymentId))
+        .limit(1);
+
+      if (!pymt) return false;
+      // Already captured - nothing to do.
+      if (pymt.cleanerPayoutAmount != null) return true;
+
+      const gross = Number(pymt.amount) || 0;
+      const method = (pymt.paymentMethod as PaymentMethodType) || "CREDIT_CARD";
+      const payoutConfig = await payoutConfigService.getPayoutConfig();
+      const breakdown = calculatePayout(gross, method, payoutConfig);
+
+      await db
+        .update(payment)
+        .set({
+          platformCommissionRate: (breakdown.commissionRate * 100).toString(),
+          platformCommissionAmount: breakdown.commissionAmount.toString(),
+          payFastFeeAmount: breakdown.payFastFee.toString(),
+          cleanerPayoutAmount: breakdown.cleanerPayout.toString(),
+          updatedAt: new Date(),
+        })
+        .where(eq(payment.id, paymentId));
+
+      return true;
+    } catch (error) {
+      console.error("Error populating payout fields:", error);
+      return false;
+    }
+  },
+
+  /**
    * Process a payment when a booking is marked as completed
    * This handles the case where the booking status changes from CONFIRMED to COMPLETED
-   * 
+   *
    * @param bookingId The booking ID
    * @returns Success status
    */

@@ -3,7 +3,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { user } from '$lib/server/db/schema';
-import { eq, like, or, desc } from 'drizzle-orm';
+import { eq, like, or, desc, count } from 'drizzle-orm';
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
@@ -39,7 +39,7 @@ export const GET: RequestHandler = async ({ url }) => {
       .orderBy(desc(user.createdAt));
 
     // Count total for pagination
-    const countQuery = db.select({ count: db.fn.count() }).from(user);
+    const countQuery = db.select({ count: count() }).from(user);
     
     if (role) {
       countQuery.where(eq(user.role, role));

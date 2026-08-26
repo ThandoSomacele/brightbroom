@@ -18,6 +18,8 @@
     ToggleLeft,
     ToggleRight,
     Save,
+    Percent,
+    CreditCard,
   } from "lucide-svelte";
   import type { PageData, ActionData } from "./$types";
 
@@ -45,6 +47,47 @@
   let bathroomMin = $state(1);
   let bathroomMax = $state(6);
 
+  // Form values for fees & commission
+  let commissionPercent = $state(20);
+  // Each row: { method, label, percent (%), fixed (R), min (R|null) }
+  let payoutFees: Array<{
+    method: string;
+    label: string;
+    percent: number;
+    fixed: number;
+    min: number | null;
+  }> = $state([]);
+  // Sample booking amount used for the live payout preview
+  let previewAmount = $state(400);
+  let previewMethod = $state("CREDIT_CARD");
+
+  // Human-readable labels for payment methods
+  const METHOD_LABELS: Record<string, string> = {
+    CREDIT_CARD: "Credit Card",
+    DEBIT_CARD: "Debit Card",
+    EFT: "Instant EFT",
+    MOBICRED: "Mobicred",
+    SNAPSCAN: "SnapScan",
+    ZAPPER: "Zapper",
+    OTHER: "Other / Fallback",
+  };
+
+  // Live payout preview for the selected sample amount + method
+  let preview = $derived.by(() => {
+    const row = payoutFees.find((f) => f.method === previewMethod);
+    const amount = Number(previewAmount) || 0;
+    if (!row || amount <= 0) {
+      return { fee: 0, net: 0, commission: 0, payout: 0 };
+    }
+    let fee = amount * (Number(row.percent) / 100) + Number(row.fixed);
+    if (row.min != null) fee = Math.max(fee, Number(row.min));
+    fee = Math.round(fee * 100) / 100;
+    const net = Math.round((amount - fee) * 100) / 100;
+    const commission = Math.round(net * (Number(commissionPercent) / 100) * 100) / 100;
+    const payout = Math.round((net - commission) * 100) / 100;
+    return { fee, net, commission, payout };
+  });
+
   // Form values for new addon
   let newAddonName = $state("");
   let newAddonDescription = $state("");
@@ -69,6 +112,17 @@
         bathroomDurationMinutes = result.pricingConfig.bathroomDurationMinutes;
         bathroomMin = result.pricingConfig.bathroomMin;
         bathroomMax = result.pricingConfig.bathroomMax;
+        // Initialize fees & commission values
+        if (result.payoutConfig) {
+          commissionPercent = result.payoutConfig.commissionPercent;
+          payoutFees = result.payoutConfig.fees.map((f: any) => ({
+            method: f.method,
+            label: METHOD_LABELS[f.method] ?? f.method,
+            percent: f.percent,
+            fixed: f.fixed,
+            min: f.min,
+          }));
+        }
         dataLoaded = true;
       }).catch((err: Error) => {
         console.error("Error loading pricing data:", err);
@@ -353,6 +407,191 @@
           {:else}
             <Save class="h-4 w-4 mr-2" />
             Save Pricing Configuration
+          {/if}
+        </Button>
+      </div>
+    </div>
+  </form>
+
+  <!-- Fees & Commission Section -->
+  <form
+    method="POST"
+    action="?/updatePayoutConfig"
+    use:enhance={() => {
+      isSubmitting = true;
+      return async ({ update }) => {
+        isSubmitting = false;
+        await update();
+      };
+    }}
+  >
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-8">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <Percent class="h-5 w-5 text-secondary-600" />
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Fees &amp; Commission
+          </h2>
+        </div>
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          Controls how cleaner payouts are calculated. Changes apply to
+          <strong>new bookings only</strong> — existing payments keep their saved
+          breakdown.
+        </p>
+      </div>
+
+      <!-- Platform commission -->
+      <div>
+        <div class="flex items-center gap-2 mb-4">
+          <DollarSign class="h-5 w-5 text-primary-600" />
+          <h3 class="font-semibold text-gray-900 dark:text-white">Platform Commission</h3>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-3">
+          <div>
+            <label for="commissionPercent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Commission Rate (%)
+            </label>
+            <div class="relative">
+              <input
+                type="number"
+                id="commissionPercent"
+                name="commissionPercent"
+                step="0.5"
+                min="0"
+                max="100"
+                bind:value={commissionPercent}
+                class="w-full pr-8 pl-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+              />
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
+            </div>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Taken from the net amount after PayFast fees. Cleaner receives the remainder.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PayFast fees per method -->
+      <div>
+        <div class="flex items-center gap-2 mb-4">
+          <CreditCard class="h-5 w-5 text-primary-600" />
+          <h3 class="font-semibold text-gray-900 dark:text-white">PayFast Transaction Fees</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Method</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Percentage (%)</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Fixed (R)</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Minimum (R)</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              {#each payoutFees as fee (fee.method)}
+                <tr>
+                  <td class="px-4 py-3 whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                    {fee.label}
+                  </td>
+                  <td class="px-4 py-3">
+                    <input
+                      type="number"
+                      name={`fee_${fee.method}_percent`}
+                      step="0.001"
+                      min="0"
+                      bind:value={fee.percent}
+                      class="w-28 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </td>
+                  <td class="px-4 py-3">
+                    <input
+                      type="number"
+                      name={`fee_${fee.method}_fixed`}
+                      step="0.01"
+                      min="0"
+                      bind:value={fee.fixed}
+                      class="w-28 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </td>
+                  <td class="px-4 py-3">
+                    <input
+                      type="number"
+                      name={`fee_${fee.method}_min`}
+                      step="0.01"
+                      min="0"
+                      placeholder="—"
+                      bind:value={fee.min}
+                      class="w-28 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+          Fee = (amount × percentage) + fixed, raised to the minimum where set. Leave
+          Minimum blank for no floor.
+        </p>
+      </div>
+
+      <!-- Live preview -->
+      <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 p-4">
+        <h3 class="font-semibold text-gray-900 dark:text-white mb-3">Payout Preview</h3>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-end">
+          <div>
+            <label for="previewAmount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Booking Amount (R)
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">R</span>
+              <input
+                type="number"
+                id="previewAmount"
+                step="0.01"
+                min="0"
+                bind:value={previewAmount}
+                class="w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label for="previewMethod" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Payment Method
+            </label>
+            <select
+              id="previewMethod"
+              bind:value={previewMethod}
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+            >
+              {#each payoutFees as fee (fee.method)}
+                <option value={fee.method}>{fee.label}</option>
+              {/each}
+            </select>
+          </div>
+          <div class="sm:col-span-2 lg:col-span-2">
+            <dl class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+              <dt class="text-gray-500 dark:text-gray-400">PayFast fee</dt>
+              <dd class="text-right text-gray-900 dark:text-white">-R{preview.fee.toFixed(2)}</dd>
+              <dt class="text-gray-500 dark:text-gray-400">Net after fees</dt>
+              <dd class="text-right text-gray-900 dark:text-white">R{preview.net.toFixed(2)}</dd>
+              <dt class="text-gray-500 dark:text-gray-400">Commission ({commissionPercent}%)</dt>
+              <dd class="text-right text-gray-900 dark:text-white">-R{preview.commission.toFixed(2)}</dd>
+              <dt class="font-semibold text-gray-900 dark:text-white">Cleaner payout</dt>
+              <dd class="text-right font-semibold text-primary-600 dark:text-primary-400">R{preview.payout.toFixed(2)}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save Button -->
+      <div class="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+        <Button type="submit" variant="primary" disabled={isSubmitting}>
+          {#if isSubmitting}
+            Saving...
+          {:else}
+            <Save class="h-4 w-4 mr-2" />
+            Save Fees &amp; Commission
           {/if}
         </Button>
       </div>
