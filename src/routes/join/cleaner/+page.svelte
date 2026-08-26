@@ -9,6 +9,7 @@
   import SectionHeading from "$lib/components/ui/SectionHeading.svelte";
 
   import {
+    formatServiceAreaList,
     getClosestServiceArea,
     isWithinServiceArea,
   } from "$lib/utils/serviceAreaValidator";
@@ -144,6 +145,26 @@
   }
 
   // Helper function to validate current step
+  // Derived, not a function call in the markup.
+  //
+  // Svelte works out a template expression's dependencies from the variables it
+  // references and cannot see inside a function, so disabled={!validateCurrentStep()}
+  // never re-ran when the address or availability changed — leaving Next dead
+  // for every applicant, not just out-of-area ones.
+  $: currentStepValid =
+    step === 1
+      ? Boolean(
+          firstName &&
+            lastName &&
+            email &&
+            phone &&
+            selectedAddress.formatted &&
+            !isOutOfServiceArea,
+        )
+      : step === 2
+        ? availability.length > 0
+        : true;
+
   function validateCurrentStep(): boolean {
     if (step === 1) {
       if (
@@ -155,8 +176,8 @@
       ) {
         return false;
       }
-      // We'll still allow applications from outside service areas, but with a warning
-      return true;
+      // Applications are limited to the areas we operate in
+      return !isOutOfServiceArea;
     } else if (step === 2) {
       // Make sure at least one day of availability is selected
       return availability.length > 0;
@@ -278,7 +299,7 @@
                 <span class="text-sm font-semibold">1</span>
               </div>
               <p class="text-gray-700 dark:text-gray-300">
-                South African ID or Passport document
+                South African ID, or a valid permit showing your right to work
               </p>
             </li>
             <li class="flex">
@@ -308,7 +329,7 @@
                 <span class="text-sm font-semibold">4</span>
               </div>
               <p class="text-gray-700 dark:text-gray-300">
-                Smartphone with internet connection to use our app
+                Smartphone with WhatsApp and email for communication
               </p>
             </li>
             <li class="flex">
@@ -661,8 +682,11 @@
                         class="mt-2 text-sm text-amber-600 dark:text-amber-400"
                       >
                         <p>
-                          You're outside our current service areas, but we're
-                          still accepting applications.
+                          We're only taking on cleaners who live in {formatServiceAreaList()}
+                          at the moment, so we can match you to jobs close to home.
+                        </p>
+                        <p class="mt-1">
+                          We're expanding — do check back.
                         </p>
                       </div>
                     {/if}
@@ -1227,7 +1251,7 @@
                   <Button
                     type="button"
                     variant="primary"
-                    disabled={!validateCurrentStep()}
+                    disabled={!currentStepValid}
                     on:click={nextStep}
                   >
                     Next

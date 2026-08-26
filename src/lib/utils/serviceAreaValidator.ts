@@ -38,6 +38,10 @@ export const SERVICE_AREAS = [
   { name: "Randburg", lat: -26.1063, lng: 27.9947, radius: SERVICE_AREA_RADIUS_KM },
   { name: "Midrand", lat: -25.9992, lng: 28.1182, radius: SERVICE_AREA_RADIUS_KM },
   { name: "North Riding", lat: -26.0469, lng: 27.951, radius: SERVICE_AREA_RADIUS_KM },
+  { name: "Sandton", lat: -26.1076, lng: 28.0567, radius: SERVICE_AREA_RADIUS_KM },
+  // Alexandra is primarily a cleaner-supply area: 4.3km from Sandton and
+  // 11.8km from Midrand, both well inside the standard matching radius.
+  { name: "Alexandra", lat: -26.1044, lng: 28.1, radius: SERVICE_AREA_RADIUS_KM },
   {
     name: "Cosmo City, Roodepoort",
     lat: -26.0212639,
