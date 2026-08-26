@@ -128,6 +128,19 @@
     return hasFormattedAddress;
   }
 
+  // Derived, not a function call in the markup.
+  //
+  // Svelte works out a template expression's dependencies from the variables it
+  // references, and cannot see inside a function. Calling isGuestAddressValid()
+  // in the disabled binding meant Svelte never learned it depends on
+  // selectedGoogleAddress, so picking an address left the button stuck
+  // disabled — while the {#if selectedGoogleAddress.formatted} block below did
+  // update, making the unit and instructions fields appear on a form that could
+  // not be submitted.
+  $: canContinue = isAuthenticated
+    ? Boolean(selectedAddress)
+    : Boolean(selectedGoogleAddress.formatted?.trim());
+
   // Continue to next step
   async function continueToNext() {
     // Clear previous errors
@@ -445,9 +458,7 @@
       <Button
         variant="primary"
         on:click={continueToNext}
-        disabled={isLoading ||
-          (isAuthenticated && !selectedAddress) ||
-          (!isAuthenticated && !isGuestAddressValid())}
+        disabled={isLoading || !canContinue}
       >
         {#if isLoading}
           <svg
