@@ -162,7 +162,7 @@
             <Button
               variant="ghost"
               size="sm"
-              href={requirement.document.fileUrl}
+              href="/api/documents?kind=tenant-document&id={requirement.document.id}"
               target="_blank"
             >
               View

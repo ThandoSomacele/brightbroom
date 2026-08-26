@@ -361,7 +361,7 @@
                   application.workAuthorisation}
                 {#if application.workAuthDocumentUrl}
                   <a
-                    href={application.workAuthDocumentUrl}
+                    href="/api/documents?kind=cleaner-work-auth&id={application.id}"
                     target="_blank"
                     rel="noopener"
                     class="ml-2 text-sm text-primary hover:underline"
