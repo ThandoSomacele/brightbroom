@@ -13,7 +13,7 @@ import {
   type TenantDocument,
   type TenantMember,
 } from "$lib/server/db/schema";
-import { and, eq, isNotNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 
 /**
  * Documents a cleaning company can supply during verification.
@@ -471,6 +471,93 @@ export const tenantService = {
       paid: Number(row?.paid ?? 0),
       pendingBookings: Number(row?.pendingBookings ?? 0),
     };
+  },
+
+  /**
+   * Every company the platform owes money to, with what is outstanding.
+   *
+   * The mirror of the cleaner payout list, except the payee is the company —
+   * they settle with their own cleaners out of this. The platform owner is
+   * excluded: it collects the money rather than being paid out of it.
+   */
+  async getTenantsAwaitingPayout(): Promise<
+    Array<{
+      id: string;
+      name: string;
+      pending: number;
+      pendingBookings: number;
+      paid: number;
+      bankName: string | null;
+      bankAccountNumber: string | null;
+      bankAccountHolder: string | null;
+      payoutMethod: string | null;
+      hasBankDetails: boolean;
+    }>
+  > {
+    const rows = await db
+      .select({
+        id: tenant.id,
+        name: tenant.name,
+        bankName: tenant.bankName,
+        bankAccountNumber: tenant.bankAccountNumber,
+        bankAccountHolder: tenant.bankAccountHolder,
+        payoutMethod: tenant.payoutMethod,
+        pending: sql<string>`COALESCE(SUM(${payment.tenantPayoutAmount}) FILTER (WHERE ${payment.isPaidToTenant} = false), 0)`,
+        paid: sql<string>`COALESCE(SUM(${payment.tenantPayoutAmount}) FILTER (WHERE ${payment.isPaidToTenant} = true), 0)`,
+        pendingBookings: sql<number>`COUNT(*) FILTER (WHERE ${payment.isPaidToTenant} = false)`,
+      })
+      .from(tenant)
+      .leftJoin(booking, eq(booking.tenantId, tenant.id))
+      .leftJoin(
+        payment,
+        and(
+          eq(payment.bookingId, booking.id),
+          eq(payment.status, "COMPLETED"),
+          isNotNull(payment.tenantPayoutAmount),
+        ),
+      )
+      .where(eq(tenant.isPlatformOwner, false))
+      .groupBy(tenant.id);
+
+    return rows.map((r) => ({
+      ...r,
+      pending: Number(r.pending ?? 0),
+      paid: Number(r.paid ?? 0),
+      pendingBookings: Number(r.pendingBookings ?? 0),
+      // Surfaced so a reviewer can see why a payout cannot be sent yet
+      hasBankDetails: Boolean(r.bankAccountNumber && r.bankAccountHolder),
+    }));
+  },
+
+  /**
+   * Settle a company's outstanding payments.
+   *
+   * Mirrors the cleaner flow's isPaidToProvider, against the company's own
+   * column so the two ledgers never overwrite each other.
+   */
+  async markTenantPaid(tenantId: string): Promise<number> {
+    const unpaid = await db
+      .select({ paymentId: payment.id })
+      .from(payment)
+      .innerJoin(booking, eq(booking.id, payment.bookingId))
+      .where(
+        and(
+          eq(booking.tenantId, tenantId),
+          eq(payment.status, "COMPLETED"),
+          eq(payment.isPaidToTenant, false),
+          isNotNull(payment.tenantPayoutAmount),
+        ),
+      );
+
+    if (unpaid.length === 0) return 0;
+
+    const now = new Date();
+    await db
+      .update(payment)
+      .set({ isPaidToTenant: true, tenantPayoutDate: now, updatedAt: now })
+      .where(inArray(payment.id, unpaid.map((p) => p.paymentId)));
+
+    return unpaid.length;
   },
 
   /**

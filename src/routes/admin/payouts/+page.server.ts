@@ -7,6 +7,7 @@ import {
   tenant,
   user,
 } from "$lib/server/db/schema";
+import { tenantService } from "$lib/server/services/tenant.service";
 import { fail } from "@sveltejs/kit";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
@@ -159,16 +160,48 @@ async function getPayoutData(tenantId: string | null) {
 export const load: PageServerLoad = async ({ locals }) => {
   // Tenant scoping
   const tenantId = locals.user?.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+  const isPlatformAdmin = locals.user?.role === 'ADMIN';
 
   // Return streamed data
   return {
+    isPlatformAdmin,
     streamed: {
       payoutData: getPayoutData(tenantId),
+      // What the platform owes cleaning companies. Platform admins only — a
+      // company must not be able to mark itself as paid.
+      tenantPayouts: isPlatformAdmin
+        ? tenantService.getTenantsAwaitingPayout()
+        : Promise.resolve([]),
     },
   };
 };
 
 export const actions: Actions = {
+  // Settle a cleaning company's outstanding share
+  markTenantAsPaid: async ({ request, locals }) => {
+    if (locals.user?.role !== "ADMIN") {
+      return fail(403, { error: "Only platform administrators can pay companies" });
+    }
+
+    const formData = await request.formData();
+    const tenantId = formData.get("tenantId")?.toString();
+    if (!tenantId) return fail(400, { error: "No company selected" });
+
+    try {
+      const settled = await tenantService.markTenantPaid(tenantId);
+      if (settled === 0) {
+        return { success: true, message: "Nothing outstanding for that company" };
+      }
+      return {
+        success: true,
+        message: `Marked ${settled} payment${settled === 1 ? "" : "s"} as paid`,
+      };
+    } catch (err) {
+      console.error("Error settling company payout:", err);
+      return fail(500, { error: "Failed to record the payout" });
+    }
+  },
+
   // Mark selected payouts as paid
   markAsPaid: async ({ request }) => {
     const formData = await request.formData();

@@ -106,6 +106,75 @@
   </div>
 {/if}
 
+<!-- Company payouts — the platform's own liability to cleaning companies.
+     Separate from the cleaner list above, which on a company's booking is that
+     company's liability to its own cleaner rather than ours. -->
+{#if data.isPlatformAdmin}
+  {#await data.streamed.tenantPayouts then tenantPayouts}
+    {#if tenantPayouts && tenantPayouts.length > 0}
+      <div class="mb-6 rounded-lg bg-white shadow dark:bg-gray-800">
+        <div class="border-b border-gray-200 p-4 dark:border-gray-700">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Cleaning companies
+          </h2>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Their share of each booking. They pay their own cleaners from it.
+          </p>
+        </div>
+
+        <div class="divide-y divide-gray-200 dark:divide-gray-700">
+          {#each tenantPayouts as company}
+            <div class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div class="min-w-0">
+                <a
+                  href="/admin/tenants/{company.id}"
+                  class="font-medium text-gray-900 hover:text-primary dark:text-white"
+                >
+                  {company.name}
+                </a>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  {company.pendingBookings}
+                  {company.pendingBookings === 1 ? "booking" : "bookings"} outstanding
+                  {#if company.paid > 0}
+                    · R{company.paid.toFixed(2)} paid to date
+                  {/if}
+                </p>
+                {#if !company.hasBankDetails && company.pending > 0}
+                  <p class="mt-1 text-sm text-amber-600 dark:text-amber-400">
+                    No bank details on file — add them before paying out.
+                  </p>
+                {/if}
+              </div>
+
+              <div class="flex shrink-0 items-center gap-4">
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">
+                  R{company.pending.toFixed(2)}
+                </span>
+                {#if company.pending > 0}
+                  <form method="POST" action="?/markTenantAsPaid" use:enhance>
+                    <input type="hidden" name="tenantId" value={company.id} />
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      size="sm"
+                      disabled={!company.hasBankDetails}
+                      title={company.hasBankDetails
+                        ? "Record this company as paid"
+                        : "Add bank details first"}
+                    >
+                      Mark paid
+                    </Button>
+                  </form>
+                {/if}
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
+    {/if}
+  {/await}
+{/if}
+
 {#await data.streamed.payoutData}
   <!-- Summary Cards Skeleton -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
