@@ -5,7 +5,7 @@ import { db } from '$lib/server/db';
 import { subscription, subscriptionPayment, booking } from '$lib/server/db/schema';
 import { payFastSubscriptionService } from '$lib/server/services/payfast-subscription';
 import { tenantService } from '$lib/server/services/tenant.service';
-import { and, eq, lte, or } from 'drizzle-orm';
+import { and, desc, eq, lte, or } from 'drizzle-orm';
 import crypto from 'crypto';
 import { toNaiveDateTimeString } from '$lib/utils/date-utils';
 
@@ -159,7 +159,23 @@ export const POST: RequestHandler = async ({ request }) => {
         );
 
         if (charge.ok) {
-          // The cleaning this charge pays for
+          // The cleaning this charge pays for comes after the last one
+          // already booked - each cycle funds the next visit, not a repeat
+          // of the one the previous payment covered.
+          const [lastBooking] = await db
+            .select({ scheduledDate: booking.scheduledDate })
+            .from(booking)
+            .where(eq(booking.subscriptionId, sub.id))
+            .orderBy(desc(booking.scheduledDate))
+            .limit(1);
+
+          let anchor = sub.startDate;
+          if (lastBooking?.scheduledDate) {
+            const after = new Date(lastBooking.scheduledDate);
+            after.setDate(after.getDate() + 1);
+            anchor = after;
+          }
+
           const bookingId = crypto.randomBytes(16).toString('hex');
           const scheduledDate = toNaiveDateTimeString(
             payFastSubscriptionService.calculateNextCleaningDate(
@@ -167,7 +183,7 @@ export const POST: RequestHandler = async ({ request }) => {
               sub.preferredDays || [],
               sub.monthlyDates || [],
               sub.preferredTimeSlot || '09:00-12:00',
-              sub.startDate
+              anchor
             )
           );
 
