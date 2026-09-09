@@ -400,6 +400,48 @@ export class PayFastSubscriptionService {
     return calculatedSignature === signature;
   }
 
+  /**
+   * Validate the signature on an ITN (webhook) post from PayFast.
+   *
+   * ITN signatures are calculated over the posted fields in the order they
+   * were sent, stopping at the signature field, with the passphrase appended —
+   * a different scheme from the checkout signature above, which uses PayFast's
+   * documented attribute order. Validating webhooks with the checkout scheme
+   * rejected every genuine ITN, which left paid subscriptions PENDING with no
+   * booking ever created.
+   *
+   * Works on the raw body rather than decoded params so the bytes hashed here
+   * are exactly the bytes PayFast signed — no re-encoding to get subtly wrong.
+   */
+  validateItnSignature(rawBody: string): boolean {
+    let paramString = "";
+    let received: string | null = null;
+
+    for (const pair of rawBody.split("&")) {
+      const eq = pair.indexOf("=");
+      const key = eq === -1 ? pair : pair.slice(0, eq);
+      if (key === "signature") {
+        received = eq === -1 ? "" : pair.slice(eq + 1);
+        break; // PayFast signs only the fields posted before the signature
+      }
+      paramString += (paramString ? "&" : "") + pair;
+    }
+
+    // 32 hex chars is an md5 digest; anything else cannot match
+    if (!received || !/^[0-9a-fA-F]{32}$/.test(received)) return false;
+
+    if (this.passphrase && this.passphrase !== "") {
+      const encodedPassphrase = encodeURIComponent(this.passphrase.trim()).replace(/%20/g, "+");
+      paramString += `&passphrase=${encodedPassphrase}`;
+    }
+
+    const expected = crypto.createHash("md5").update(paramString).digest("hex");
+    return crypto.timingSafeEqual(
+      Buffer.from(expected),
+      Buffer.from(received.toLowerCase()),
+    );
+  }
+
   // Calculate next billing date based on frequency
   calculateNextBillingDate(frequency: string, lastBillingDate: Date, preferredDays?: string[]): Date {
     const next = new Date(lastBillingDate);

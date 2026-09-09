@@ -85,6 +85,7 @@ const handleCSRF: Handle = async ({ event, resolve }) => {
     '/api/payments/ipn',
     '/api/payments/success',
     '/api/payments/cancel',
+    '/api/payfast/subscription-webhook', // PayFast ITN; validates its own signature
     '/api/subscriptions/process-recurring' // Cron job endpoint
   ];
 

@@ -21,12 +21,13 @@ export const POST: RequestHandler = async ({ request }) => {
       paramsObject[key] = value;
     });
 
-    // Validate webhook signature
-    const signature = paramsObject.signature;
-    delete paramsObject.signature;
-
-    if (!payFastSubscriptionService.validateWebhookSignature(paramsObject, signature)) {
-      console.error('Invalid PayFast webhook signature');
+    // Validate the ITN signature over the raw body. ITN posts are signed in
+    // the order the fields were sent — not the checkout attribute order — so
+    // this must not go through the checkout signature path.
+    if (!payFastSubscriptionService.validateItnSignature(body)) {
+      console.error('Invalid PayFast webhook signature', {
+        keys: [...params.keys()].filter((k) => k !== 'signature'),
+      });
       return text('Invalid signature', { status: 400 });
     }
 
@@ -71,6 +72,13 @@ export const POST: RequestHandler = async ({ request }) => {
             payFastSubscriptionId: payFastPaymentId,
             updatedAt: new Date(),
           })
+          .where(eq(subscription.id, subscriptionId));
+      } else if (token && !subscriptionData.payFastToken) {
+        // A subscription activated by hand (e.g. after a missed first ITN)
+        // still needs the billing token off the next webhook that carries it
+        await db
+          .update(subscription)
+          .set({ payFastToken: token, updatedAt: new Date() })
           .where(eq(subscription.id, subscriptionId));
       }
 
