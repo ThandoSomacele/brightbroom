@@ -93,6 +93,24 @@ const handleCSRF: Handle = async ({ event, resolve }) => {
     return resolve(event);
   }
 
+  // Cross-origin form submissions are refused here rather than by SvelteKit's
+  // built-in check (disabled in svelte.config.js), because the built-in one
+  // runs before hooks and cannot exempt webhook endpoints - PayFast's ITNs
+  // are form-encoded posts with no Origin header, and were being 403'd before
+  // any of our code ran. Same rule as SvelteKit's: a state-changing request
+  // with a form content type must come from our own origin.
+  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(event.request.method)) {
+    const contentType = event.request.headers.get('content-type')?.split(';')[0].trim().toLowerCase();
+    const isFormPost = ['application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain']
+      .includes(contentType ?? '');
+    const origin = event.request.headers.get('origin');
+
+    if (isFormPost && origin !== event.url.origin) {
+      console.error('Cross-site form submission refused:', { path, origin });
+      throw error(403, `Cross-site ${event.request.method} form submissions are forbidden`);
+    }
+  }
+
   // For state-changing requests, validate CSRF token
   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(event.request.method)) {
     const token = event.cookies.get('csrf');
