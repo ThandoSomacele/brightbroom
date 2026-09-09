@@ -368,10 +368,11 @@ export class PayFastSubscriptionService {
       timestamp: apiTimestamp(),
     };
 
-    // Sandbox is a query parameter on the live host, and it is signed
-    const query: Record<string, string> = PAYFAST_SANDBOX ? { testing: 'true' } : {};
-
-    const signature = this.apiSignature({ ...headers, ...query, ...(body ?? {}) });
+    // Sandbox is the testing=true query parameter on the live host. It is
+    // deliberately NOT part of the signature: PayFast recomputes signatures
+    // from headers and body only, and including it earns a 401 - verified
+    // against /ping, contrary to what their SDK's header-merge suggests.
+    const signature = this.apiSignature({ ...headers, ...(body ?? {}) });
     const url =
       `${PAYFAST_API_BASE}/${path}` + (PAYFAST_SANDBOX ? '?testing=true' : '');
 
