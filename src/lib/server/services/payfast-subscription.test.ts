@@ -109,6 +109,69 @@ describe("ITN signature validation", () => {
   });
 });
 
+describe("calculateNextCleaningDate", () => {
+  // Payment 324512059: paid Monday 31 Aug, start date Monday 7 Sep,
+  // Fridays at 09:00. The old code ignored the start date and would have
+  // booked Friday 4 Sep — before the start the customer chose.
+  const paidAt = new Date("2026-08-31T12:05:22");
+
+  it("books the first matching day on or after a future start date", () => {
+    const next = service.calculateNextCleaningDate(
+      "WEEKLY", ["FRIDAY"], [], "09:00",
+      new Date("2026-09-07T07:39:50"), paidAt,
+    );
+    expect(next.getFullYear()).toBe(2026);
+    expect(next.getMonth()).toBe(8); // September
+    expect(next.getDate()).toBe(11);
+    expect(next.getHours()).toBe(9);
+    expect(next.getMinutes()).toBe(0);
+  });
+
+  it("books the start date itself when it falls on the preferred day", () => {
+    const next = service.calculateNextCleaningDate(
+      "WEEKLY", ["FRIDAY"], [], "09:00",
+      new Date("2026-09-11T00:00:00"), paidAt,
+    );
+    expect(next.getDate()).toBe(11);
+    expect(next.getHours()).toBe(9);
+  });
+
+  it("counts from the payment when the start date has already passed", () => {
+    const next = service.calculateNextCleaningDate(
+      "WEEKLY", ["FRIDAY"], [], "09:00",
+      new Date("2026-08-24T00:00:00"), paidAt,
+    );
+    // Monday 31 Aug -> next Friday is 4 Sep
+    expect(next.getMonth()).toBe(8);
+    expect(next.getDate()).toBe(4);
+  });
+
+  it("counts from the payment when there is no start date at all", () => {
+    const next = service.calculateNextCleaningDate(
+      "WEEKLY", ["FRIDAY"], [], "09:00", null, paidAt,
+    );
+    expect(next.getDate()).toBe(4);
+  });
+
+  it("with no preferred days, a future start date is the first cleaning day", () => {
+    const next = service.calculateNextCleaningDate(
+      "WEEKLY", [], [], "09:00-12:00",
+      new Date("2026-09-07T07:39:50"), paidAt,
+    );
+    expect(next.getDate()).toBe(7);
+    expect(next.getHours()).toBe(9);
+  });
+
+  it("TWICE_WEEKLY picks the nearest preferred day on or after the start", () => {
+    const next = service.calculateNextCleaningDate(
+      "TWICE_WEEKLY", ["MONDAY", "THURSDAY"], [], "09:00",
+      new Date("2026-09-08T00:00:00"), paidAt, // a Tuesday
+    );
+    // Nearest of Mon/Thu on or after Tue 8 Sep is Thu 10 Sep
+    expect(next.getDate()).toBe(10);
+  });
+});
+
 describe("why validateItnSignature exists", () => {
   it("the checkout-order signature does NOT match a genuine ITN — the bug that dropped paid subscription bookings", () => {
     // Decode the ITN body into an object, exactly as the webhook used to

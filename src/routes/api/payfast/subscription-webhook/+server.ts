@@ -86,18 +86,22 @@ export const POST: RequestHandler = async ({ request }) => {
       const nextBillingDate = payFastSubscriptionService.calculateNextBillingDate(
         subscriptionData.frequency,
         new Date(),
-        subscriptionData.preferredDays || undefined,
-        subscriptionData.monthlyDates || undefined
+        subscriptionData.preferredDays || undefined
       );
 
-      // Create a booking for the next scheduled cleaning
+      // Create a booking for the next scheduled cleaning. The start date
+      // matters: a customer who chose to start next week must not be booked
+      // for this one.
       const bookingId = crypto.randomBytes(16).toString('hex');
-      const scheduledDate = toNaiveDateTimeString(calculateNextCleaningDate(
-        subscriptionData.frequency,
-        subscriptionData.preferredDays || [],
-        subscriptionData.monthlyDates || [],
-        subscriptionData.preferredTimeSlot || '09:00-12:00'
-      ));
+      const scheduledDate = toNaiveDateTimeString(
+        payFastSubscriptionService.calculateNextCleaningDate(
+          subscriptionData.frequency,
+          subscriptionData.preferredDays || [],
+          subscriptionData.monthlyDates || [],
+          subscriptionData.preferredTimeSlot || '09:00-12:00',
+          subscriptionData.startDate
+        )
+      );
 
       const bookingTenantId = await tenantService.resolveBookingTenantId(
         subscriptionData.cleanerId || null,
@@ -182,93 +186,3 @@ export const POST: RequestHandler = async ({ request }) => {
     return text('Internal server error', { status: 500 });
   }
 };
-
-// Helper function to calculate the next cleaning date based on preferences
-function calculateNextCleaningDate(
-  frequency: string,
-  preferredDays: string[],
-  monthlyDates: number[],
-  timeSlot: string
-): Date {
-  const now = new Date();
-  const [startTime] = timeSlot.split('-');
-  const [hours, minutes] = startTime.split(':').map(Number);
-
-  let nextDate = new Date();
-  nextDate.setHours(hours, minutes, 0, 0);
-
-  switch (frequency) {
-    case 'WEEKLY':
-      // Find next occurrence of preferred day
-      if (preferredDays.length > 0) {
-        const dayMap: Record<string, number> = {
-          'SUNDAY': 0, 'MONDAY': 1, 'TUESDAY': 2, 'WEDNESDAY': 3,
-          'THURSDAY': 4, 'FRIDAY': 5, 'SATURDAY': 6
-        };
-
-        const targetDay = dayMap[preferredDays[0]];
-        const currentDay = now.getDay();
-        const daysUntilTarget = (targetDay - currentDay + 7) % 7 || 7;
-
-        nextDate.setDate(now.getDate() + daysUntilTarget);
-      } else {
-        // Default to 7 days from now
-        nextDate.setDate(now.getDate() + 7);
-      }
-      break;
-
-    case 'BIWEEKLY':
-      // Similar to weekly but add 14 days
-      if (preferredDays.length > 0) {
-        const dayMap: Record<string, number> = {
-          'SUNDAY': 0, 'MONDAY': 1, 'TUESDAY': 2, 'WEDNESDAY': 3,
-          'THURSDAY': 4, 'FRIDAY': 5, 'SATURDAY': 6
-        };
-
-        const targetDay = dayMap[preferredDays[0]];
-        const currentDay = now.getDay();
-        const daysUntilTarget = (targetDay - currentDay + 14) % 14 || 14;
-
-        nextDate.setDate(now.getDate() + daysUntilTarget);
-      } else {
-        nextDate.setDate(now.getDate() + 14);
-      }
-      break;
-
-    case 'TWICE_WEEKLY':
-      // Find next occurrence of any preferred day (twice per week)
-      if (preferredDays.length > 0) {
-        const dayMap: Record<string, number> = {
-          'SUNDAY': 0, 'MONDAY': 1, 'TUESDAY': 2, 'WEDNESDAY': 3,
-          'THURSDAY': 4, 'FRIDAY': 5, 'SATURDAY': 6
-        };
-
-        let minDays = 7;
-        for (const day of preferredDays) {
-          const targetDay = dayMap[day];
-          const currentDay = now.getDay();
-          const daysUntilTarget = (targetDay - currentDay + 7) % 7;
-
-          if (daysUntilTarget > 0 && daysUntilTarget < minDays) {
-            minDays = daysUntilTarget;
-          }
-        }
-
-        nextDate.setDate(now.getDate() + (minDays === 7 ? 3 : minDays));
-      } else {
-        nextDate.setDate(now.getDate() + 3);
-      }
-      break;
-
-    default:
-      // Monthly - default to 30 days
-      nextDate.setDate(now.getDate() + 30);
-  }
-
-  // Ensure the date is in the future
-  if (nextDate <= now) {
-    nextDate.setDate(nextDate.getDate() + 1);
-  }
-
-  return nextDate;
-}

@@ -442,6 +442,97 @@ export class PayFastSubscriptionService {
     );
   }
 
+  /**
+   * When the next cleaning should happen, from the customer's preferences.
+   *
+   * Counted from the payment that just landed — except that a subscription
+   * whose start date is still in the future must not be cleaned before it:
+   * the first booking lands on the first matching day on or after the start
+   * date, which may be the start date itself. The webhook used to ignore
+   * startDate entirely, which booked customers for the week before the
+   * start they chose.
+   *
+   * `now` is injectable for tests; production callers leave it defaulted.
+   */
+  calculateNextCleaningDate(
+    frequency: string,
+    preferredDays: string[],
+    monthlyDates: number[],
+    timeSlot: string,
+    startDate?: Date | null,
+    now: Date = new Date(),
+  ): Date {
+    const [startTime] = timeSlot.split('-');
+    const [hours, minutes] = startTime.split(':').map(Number);
+
+    // A future start date anchors the search and may itself be the first
+    // cleaning day. From "now", the earliest slot stays at least a day out,
+    // as before — the payment only just landed.
+    const startsLater = !!startDate && startDate > now;
+    const base = startsLater ? new Date(startDate) : new Date(now);
+    const sameDayAllowed = startsLater;
+
+    const dayMap: Record<string, number> = {
+      SUNDAY: 0, MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3,
+      THURSDAY: 4, FRIDAY: 5, SATURDAY: 6,
+    };
+
+    // Days from the base date to the target weekday within a span. Zero means
+    // the base date itself, allowed only when anchored to a future start.
+    const daysUntil = (target: number, span: number): number => {
+      const offset = (target - base.getDay() + span) % span;
+      return offset === 0 && !sameDayAllowed ? span : offset;
+    };
+
+    const nextDate = new Date(base);
+    nextDate.setHours(hours, minutes, 0, 0);
+
+    switch (frequency) {
+      case 'WEEKLY':
+        nextDate.setDate(
+          base.getDate() +
+            (preferredDays.length > 0
+              ? daysUntil(dayMap[preferredDays[0]], 7)
+              : sameDayAllowed ? 0 : 7),
+        );
+        break;
+
+      case 'BIWEEKLY':
+        nextDate.setDate(
+          base.getDate() +
+            (preferredDays.length > 0
+              ? daysUntil(dayMap[preferredDays[0]], 14)
+              : sameDayAllowed ? 0 : 14),
+        );
+        break;
+
+      case 'TWICE_WEEKLY': {
+        if (preferredDays.length > 0) {
+          let minDays = 7;
+          for (const day of preferredDays) {
+            minDays = Math.min(minDays, daysUntil(dayMap[day], 7));
+          }
+          // 7 means no reachable preferred day; fall back to 3, as before
+          nextDate.setDate(base.getDate() + (minDays === 7 ? 3 : minDays));
+        } else {
+          nextDate.setDate(base.getDate() + (sameDayAllowed ? 0 : 3));
+        }
+        break;
+      }
+
+      default:
+        // Monthly frequencies: 30 days out, or the start date itself
+        nextDate.setDate(base.getDate() + (sameDayAllowed ? 0 : 30));
+    }
+
+    // Never book into the past
+    if (nextDate <= now) {
+      nextDate.setDate(nextDate.getDate() + 1);
+    }
+
+    return nextDate;
+  }
+
   // Calculate next billing date based on frequency
   calculateNextBillingDate(frequency: string, lastBillingDate: Date, preferredDays?: string[]): Date {
     const next = new Date(lastBillingDate);
