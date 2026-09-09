@@ -321,15 +321,17 @@ export class PayFastSubscriptionService {
       return { ok: false, detail: `HTTP ${result.status}: ${result.body.slice(0, 500)}` };
     }
 
-    // A successful charge answers {code, status, data: {response: <pf id>}}
+    // A successful charge answers {code, status, data: {response: ...}} -
+    // where response is sometimes just boolean true. Only keep something that
+    // actually looks like a payment id.
     try {
       const parsed = JSON.parse(result.body);
-      const pf = parsed?.data?.response;
-      return {
-        ok: true,
-        detail: result.body.slice(0, 500),
-        pfPaymentId: pf !== undefined && pf !== null ? String(pf) : undefined,
-      };
+      const pf = parsed?.data?.response?.pf_payment_id ?? parsed?.data?.response;
+      const pfPaymentId =
+        typeof pf === 'number' || (typeof pf === 'string' && /^\d+$/.test(pf))
+          ? String(pf)
+          : undefined;
+      return { ok: true, detail: result.body.slice(0, 500), pfPaymentId };
     } catch {
       return { ok: true, detail: result.body.slice(0, 500) };
     }
