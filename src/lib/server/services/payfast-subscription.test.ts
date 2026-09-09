@@ -162,6 +162,26 @@ describe("calculateNextCleaningDate", () => {
     expect(next.getHours()).toBe(9);
   });
 
+  it("TWICE_MONTHLY picks the next configured date of the month", () => {
+    // Paid on the 31st with cleaning dates on the 1st and 15th: this month's
+    // dates are behind us, so the next cleaning is the 1st of next month.
+    const next = service.calculateNextCleaningDate(
+      "TWICE_MONTHLY", [], [1, 15], "09:00", null, paidAt,
+    );
+    expect(next.getMonth()).toBe(8); // September
+    expect(next.getDate()).toBe(1);
+  });
+
+  it("TWICE_MONTHLY honours a future start date, inclusive", () => {
+    // Start on the 7th with dates on the 1st and 15th: first clean is the 15th
+    const next = service.calculateNextCleaningDate(
+      "TWICE_MONTHLY", [], [1, 15], "09:00",
+      new Date("2026-09-07T07:39:50"), paidAt,
+    );
+    expect(next.getMonth()).toBe(8);
+    expect(next.getDate()).toBe(15);
+  });
+
   it("TWICE_WEEKLY picks the nearest preferred day on or after the start", () => {
     const next = service.calculateNextCleaningDate(
       "TWICE_WEEKLY", ["MONDAY", "THURSDAY"], [], "09:00",
@@ -169,6 +189,44 @@ describe("calculateNextCleaningDate", () => {
     );
     // Nearest of Mon/Thu on or after Tue 8 Sep is Thu 10 Sep
     expect(next.getDate()).toBe(10);
+  });
+});
+
+describe("apiSignature", () => {
+  // The PayFast API signature: headers + body + passphrase, alphabetised,
+  // PHP-urlencoded, MD5 (mirrors PayFast's SDK Auth::generateApiSignature).
+  const phpEnc = (v: string) =>
+    encodeURIComponent(v)
+      .replace(/%20/g, "+")
+      .replace(/[!'()*~]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase());
+
+  it("sorts alphabetically, includes the passphrase, and encodes PHP-style", () => {
+    const params = {
+      "merchant-id": "10000100",
+      version: "v1",
+      timestamp: "2026-09-09T14:30:00+0200",
+      amount: "25200",
+      item_name: "Recurring Cleaning Service",
+      m_payment_id: "rc-20260914-sub1",
+    };
+
+    const parts = [
+      ...Object.entries(params).map(([k, v]) => [k, phpEnc(v)] as const),
+      ...(PASSPHRASE ? [["passphrase", phpEnc(PASSPHRASE)] as const] : []),
+    ].sort(([a], [b]) => (a < b ? -1 : 1));
+    const expected = crypto
+      .createHash("md5")
+      .update(parts.map(([k, v]) => `${k}=${v}`).join("&"))
+      .digest("hex");
+
+    expect(service.apiSignature(params)).toBe(expected);
+  });
+
+  it("never signs an incoming signature field", () => {
+    const base = { "merchant-id": "10000100", version: "v1", timestamp: "t" };
+    expect(service.apiSignature({ ...base, signature: "deadbeef" })).toBe(
+      service.apiSignature(base),
+    );
   });
 });
 

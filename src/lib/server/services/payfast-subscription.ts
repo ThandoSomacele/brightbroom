@@ -9,9 +9,11 @@ const PAYFAST_SUBSCRIPTION_URL = (env.PAYFAST_SANDBOX_MODE === 'true' || env.PAY
   ? 'https://sandbox.payfast.co.za/eng/process'
   : 'https://www.payfast.co.za/eng/process';
 
-const PAYFAST_API_URL = (env.PAYFAST_SANDBOX_MODE === 'true' || env.PAYFAST_USE_SANDBOX === 'true')
-  ? 'https://api.payfast.co.za/subscriptions/v1'
-  : 'https://api.payfast.co.za/subscriptions/v1';
+// One API host for live and sandbox; sandbox is selected per request with the
+// testing=true query parameter, which must also be part of the signature.
+const PAYFAST_SANDBOX =
+  env.PAYFAST_SANDBOX_MODE === 'true' || env.PAYFAST_USE_SANDBOX === 'true';
+const PAYFAST_API_BASE = 'https://api.payfast.co.za/subscriptions';
 
 interface PayFastSubscriptionParams {
   // Merchant details
@@ -25,8 +27,8 @@ interface PayFastSubscriptionParams {
   subscription_type: 1 | 2; // 1 = Subscription, 2 = Ad hoc token
   billing_date?: string; // Format: YYYY-MM-DD
   recurring_amount?: number; // Amount for recurring charges (optional for type 1)
-  frequency: 3 | 4 | 5 | 6; // 3 = Monthly, 4 = Quarterly, 5 = Biannual, 6 = Annual
-  cycles: number; // 0 for indefinite
+  frequency?: 3 | 4 | 5 | 6; // 3 = Monthly, 4 = Quarterly, 5 = Biannual, 6 = Annual; type 1 only
+  cycles?: number; // 0 for indefinite; type 1 only
 
   // Subscription notification settings
   email_confirmation?: string; // "1" to send confirmation email
@@ -64,32 +66,27 @@ interface PayFastSubscriptionResponse {
   next_run_date: string;
 }
 
-// Map our frequency to PayFast frequency
-function mapFrequencyToPayFast(frequency: string): 3 | 4 | 5 | 6 {
-  // PayFast only supports monthly for recurring payments
-  // We'll handle weekly and bi-weekly by creating multiple monthly subscriptions
-  // or by using their tokenization for manual billing
-  return 3; // Monthly
+// PHP-style urlencode, which PayFast's API signature is defined against:
+// spaces become +, and the characters encodeURIComponent leaves bare
+// (! ' ( ) * ~) are percent-encoded too.
+function phpUrlencode(value: string): string {
+  return encodeURIComponent(value)
+    .replace(/%20/g, '+')
+    .replace(/[!'()*~]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());
 }
 
-// Calculate cycles based on frequency
-function calculateCycles(frequency: string, endDate?: Date): number {
-  if (!endDate) return 0; // Indefinite
-
-  const now = new Date();
-  const months = (endDate.getFullYear() - now.getFullYear()) * 12 +
-                 (endDate.getMonth() - now.getMonth());
-
-  switch (frequency) {
-    case 'WEEKLY':
-      return Math.ceil(months * 4.33); // Approximate weeks per month
-    case 'BIWEEKLY':
-      return Math.ceil(months * 2.17);
-    case 'TWICE_WEEKLY':
-      return Math.ceil(months * 8.67); // Twice per week
-    default:
-      return months;
-  }
+// PayFast wants Y-m-d\TH:i:sO - seconds precision, zone offset, no colon
+function apiTimestamp(): string {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const offsetMinutes = -d.getTimezoneOffset();
+  const sign = offsetMinutes >= 0 ? '+' : '-';
+  const abs = Math.abs(offsetMinutes);
+  return (
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+    `T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}` +
+    `${sign}${pad(Math.floor(abs / 60))}${pad(abs % 60)}`
+  );
 }
 
 // Generate PayFast signature using PayFast's specific parameter order
@@ -215,8 +212,12 @@ export class PayFastSubscriptionService {
     email: string;
     phone?: string;
   }): Promise<{ redirectUrl: string; token?: string }> {
-    // For all our frequencies, use subscription_type: 1 (standard subscription)
-    // We'll handle custom frequencies (weekly, bi-weekly, etc.) manually via API after initial setup
+    // Ad-hoc token agreement (subscription_type 2): the checkout charges the
+    // first cycle and authorises the card; every later cycle is billed by our
+    // cron on the customer's actual schedule via chargeSubscriptionCycle.
+    // PayFast's native subscriptions only support monthly and longer, so a
+    // weekly plan cannot be billed natively - type 1 here quietly registered
+    // every customer as monthly, whatever schedule they chose.
     const finalPrice = parseFloat(subscription.finalPrice.toString());
 
     // Build params in PayFast's required order - CRITICAL!
@@ -246,23 +247,10 @@ export class PayFastSubscriptionService {
       confirmation_address: customer.email,
 
       // 5. Recurring Billing (must match generateSignature section order!)
-      subscription_type: 1,
-      // billing_date - optional, only for TWICE_MONTHLY
-      // recurring_amount - optional
-      frequency: 3, // Monthly - required field
-      cycles: 0, // Infinite cycles
-      subscription_notify_email: "true",
-      // subscription_notify_webhook - not used
-      subscription_notify_buyer: "true",
+      // Ad-hoc agreement: no frequency, cycles or billing_date - PayFast
+      // never initiates a charge, we do.
+      subscription_type: 2,
     };
-
-    // Set billing date for TWICE_MONTHLY subscriptions (specific dates each month)
-    if (subscription.frequency === 'TWICE_MONTHLY' && subscription.monthlyDates && subscription.monthlyDates.length > 0) {
-      const nextMonth = new Date();
-      nextMonth.setMonth(nextMonth.getMonth() + 1);
-      nextMonth.setDate(subscription.monthlyDates[0]);
-      params.billing_date = nextMonth.toISOString().split('T')[0];
-    }
 
     // Generate signature
     params.signature = generateSignature(params, this.passphrase);
@@ -281,118 +269,137 @@ export class PayFastSubscriptionService {
     };
   }
 
-  // Update subscription (pause, resume, cancel)
+  // Update subscription (pause, resume, cancel). All three are PUTs against
+  // the token's endpoint - cancel included, per PayFast's API.
   async updateSubscriptionStatus(token: string, action: 'pause' | 'unpause' | 'cancel'): Promise<boolean> {
-    if (!this.apiKey) {
-      console.error('PayFast API key not configured');
-      return false;
+    const result = await this.apiRequest('PUT', `${token}/${action}`);
+    if (!result.ok) {
+      console.error(`PayFast ${action} failed (${result.status}):`, result.body);
     }
-
-    const endpoint = `${PAYFAST_API_URL}/${token}/${action}`;
-
-    try {
-      const response = await fetch(endpoint, {
-        method: action === 'cancel' ? 'DELETE' : 'PUT',
-        headers: {
-          'merchant-id': this.merchantId,
-          'version': 'v1',
-          'timestamp': new Date().toISOString(),
-          'signature': this.generateApiSignature(endpoint, action === 'cancel' ? 'DELETE' : 'PUT'),
-        },
-      });
-
-      return response.ok;
-    } catch (error) {
-      console.error(`Error ${action}ing subscription:`, error);
-      return false;
-    }
+    return result.ok;
   }
 
   // Get subscription details
   async getSubscriptionDetails(token: string): Promise<PayFastSubscriptionResponse | null> {
-    if (!this.apiKey) {
-      console.error('PayFast API key not configured');
+    const result = await this.apiRequest('GET', `${token}/fetch`);
+    if (!result.ok) {
+      console.error(`PayFast fetch failed (${result.status}):`, result.body);
       return null;
     }
-
-    const endpoint = `${PAYFAST_API_URL}/${token}`;
-
     try {
-      const response = await fetch(endpoint, {
-        method: 'GET',
-        headers: {
-          'merchant-id': this.merchantId,
-          'version': 'v1',
-          'timestamp': new Date().toISOString(),
-          'signature': this.generateApiSignature(endpoint, 'GET'),
-        },
-      });
-
-      if (response.ok) {
-        return await response.json();
-      }
-
-      return null;
-    } catch (error) {
-      console.error('Error fetching subscription details:', error);
+      return JSON.parse(result.body)?.data?.response ?? null;
+    } catch {
       return null;
     }
   }
 
-  // Process recurring payment for custom frequencies
-  async processCustomRecurringPayment(subscription: Subscription, token: string): Promise<boolean> {
-    if (!this.apiKey) {
-      console.error('PayFast API key not configured');
-      return false;
-    }
+  /**
+   * Charge one billing cycle against the customer's saved card.
+   *
+   * mPaymentId identifies the cycle and comes back in PayFast's ITN, so the
+   * caller must pass a stable, resolvable id (the cycle's payment record id)
+   * — never a random value, or the ITN cannot be matched to anything.
+   * Amount is in cents, per the PayFast API.
+   */
+  async chargeSubscriptionCycle(
+    subscription: Subscription,
+    token: string,
+    mPaymentId: string,
+  ): Promise<{ ok: boolean; detail: string; pfPaymentId?: string }> {
+    const amountCents = Math.round(
+      parseFloat(subscription.finalPrice.toString()) * 100,
+    );
 
-    // Use the ad hoc token to charge the customer
-    const endpoint = `${PAYFAST_API_URL}/adhoc/${token}`;
-
-    const params = {
-      amount: parseFloat(subscription.finalPrice.toString()) * 100, // Amount in cents
+    const result = await this.apiRequest('POST', `${token}/adhoc`, {
+      amount: String(amountCents),
       item_name: 'Recurring Cleaning Service',
       item_description: `${subscription.frequency} cleaning service payment`,
-      m_payment_id: crypto.randomBytes(16).toString('hex'),
+      m_payment_id: mPaymentId,
+    });
+
+    if (!result.ok) {
+      return { ok: false, detail: `HTTP ${result.status}: ${result.body.slice(0, 500)}` };
+    }
+
+    // A successful charge answers {code, status, data: {response: <pf id>}}
+    try {
+      const parsed = JSON.parse(result.body);
+      const pf = parsed?.data?.response;
+      return {
+        ok: true,
+        detail: result.body.slice(0, 500),
+        pfPaymentId: pf !== undefined && pf !== null ? String(pf) : undefined,
+      };
+    } catch {
+      return { ok: true, detail: result.body.slice(0, 500) };
+    }
+  }
+
+  /**
+   * The PayFast API signature: every header and body value plus the
+   * passphrase, sorted alphabetically by key, urlencoded PHP-style, MD5'd —
+   * mirroring PayFast's own SDK (Auth::generateApiSignature). The previous
+   * implementation was an invented HMAC scheme PayFast never accepted, which
+   * is why no API call from this service had ever succeeded.
+   */
+  apiSignature(params: Record<string, string>): string {
+    const data: Record<string, string> = { ...params };
+    if (this.passphrase && this.passphrase !== '') {
+      data.passphrase = this.passphrase.trim();
+    }
+
+    const paramString = Object.keys(data)
+      .filter((key) => key !== 'signature')
+      .sort()
+      .map((key) => `${key}=${phpUrlencode(data[key])}`)
+      .join('&');
+
+    return crypto.createHash('md5').update(paramString).digest('hex');
+  }
+
+  private async apiRequest(
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH',
+    path: string,
+    body?: Record<string, string>,
+  ): Promise<{ ok: boolean; status: number; body: string }> {
+    const headers: Record<string, string> = {
+      'merchant-id': this.merchantId,
+      version: 'v1',
+      timestamp: apiTimestamp(),
     };
 
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'merchant-id': this.merchantId,
-          'version': 'v1',
-          'timestamp': new Date().toISOString(),
-          'signature': this.generateApiSignature(endpoint, 'POST', JSON.stringify(params)),
-        },
-        body: JSON.stringify(params),
-      });
+    // Sandbox is a query parameter on the live host, and it is signed
+    const query: Record<string, string> = PAYFAST_SANDBOX ? { testing: 'true' } : {};
 
-      return response.ok;
+    const signature = this.apiSignature({ ...headers, ...query, ...(body ?? {}) });
+    const url =
+      `${PAYFAST_API_BASE}/${path}` + (PAYFAST_SANDBOX ? '?testing=true' : '');
+
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: {
+          ...headers,
+          signature,
+          ...(body ? { 'Content-Type': 'application/json' } : {}),
+        },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      return {
+        ok: response.ok,
+        status: response.status,
+        body: await response.text(),
+      };
     } catch (error) {
-      console.error('Error processing custom recurring payment:', error);
-      return false;
+      return {
+        ok: false,
+        status: 0,
+        body: error instanceof Error ? error.message : 'network error',
+      };
     }
   }
 
   // Generate API signature for authenticated requests
-  private generateApiSignature(url: string, method: string, body?: string): string {
-    const timestamp = new Date().toISOString();
-    const data = [
-      this.merchantId,
-      url.replace('https://', ''),
-      timestamp,
-      'v1',
-      method.toUpperCase(),
-      body || '',
-    ].join('\n');
-
-    return crypto
-      .createHmac('sha256', this.apiKey || '')
-      .update(data)
-      .digest('hex');
-  }
 
   // Validate webhook signature
   validateWebhookSignature(params: Record<string, any>, signature: string): boolean {
@@ -516,6 +523,28 @@ export class PayFastSubscriptionService {
           nextDate.setDate(base.getDate() + (minDays === 7 ? 3 : minDays));
         } else {
           nextDate.setDate(base.getDate() + (sameDayAllowed ? 0 : 3));
+        }
+        break;
+      }
+
+      case 'TWICE_MONTHLY': {
+        if (monthlyDates && monthlyDates.length > 0) {
+          const dates = [...monthlyDates].sort((a, b) => a - b);
+          const target = sameDayAllowed
+            ? dates.find((d) => d >= base.getDate())
+            : dates.find((d) => d > base.getDate());
+          if (target !== undefined) {
+            nextDate.setDate(target);
+          } else {
+            // Past this month's dates: first date of next month. Pin the day
+            // to 1 before stepping the month, or a base on the 31st rolls
+            // straight through to the month after.
+            nextDate.setDate(1);
+            nextDate.setMonth(nextDate.getMonth() + 1);
+            nextDate.setDate(dates[0]);
+          }
+        } else {
+          nextDate.setDate(base.getDate() + (sameDayAllowed ? 0 : 15));
         }
         break;
       }

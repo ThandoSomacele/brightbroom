@@ -9,13 +9,29 @@ import { and, eq, lte, or } from 'drizzle-orm';
 import crypto from 'crypto';
 import { toNaiveDateTimeString } from '$lib/utils/date-utils';
 
-// This endpoint processes subscriptions that are due for recurring charges
-// CSRF protection is exempted in hooks.server.ts for this endpoint
-// It should be called by a cron job (e.g., Netlify scheduled functions, external cron service)
+/**
+ * Bill every subscription whose cycle has come due, on the customer's actual
+ * schedule (weekly, biweekly, twice weekly, twice monthly - the cycles
+ * PayFast cannot bill natively). Runs daily; CSRF-exempt in hooks.server.ts.
+ *
+ * Money code, so the shape matters:
+ *
+ * - One payment record per cycle, keyed by a deterministic id derived from
+ *   the cycle date. A crashed or double-fired run cannot charge the same
+ *   cycle twice: a COMPLETED row means skip, and a PENDING row left by a
+ *   run that died mid-charge means "may or may not have been charged" and is
+ *   flagged for a human instead of retried blindly.
+ * - The cycle's own due date drives the schedule, not the moment the cron
+ *   happened to run - a charge that lands two days late does not shift every
+ *   later cycle by two days.
+ * - A subscription more than STALE_CYCLE_DAYS overdue is paused rather than
+ *   charged. Nobody expects a surprise catch-up debit for a cycle from weeks
+ *   ago; a human decides what happens to those.
+ */
+const STALE_CYCLE_DAYS = 14;
+
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    // Optional: Add authentication/authorization check here
-    // For example, verify a secret token to prevent unauthorized access
     const authHeader = request.headers.get('authorization');
     const expectedToken = process.env.CRON_SECRET_TOKEN;
 
@@ -26,8 +42,6 @@ export const POST: RequestHandler = async ({ request }) => {
     const now = new Date();
     console.log('[Recurring Charge] Processing subscriptions due on:', now.toISOString());
 
-    // Get all active subscriptions that are due for payment
-    // These are subscriptions where nextBillingDate is today or in the past
     const dueSubscriptions = await db
       .select()
       .from(subscription)
@@ -50,50 +64,112 @@ export const POST: RequestHandler = async ({ request }) => {
       processed: 0,
       succeeded: 0,
       failed: 0,
+      skipped: 0,
       errors: [] as Array<{ subscriptionId: string; error: string }>,
     };
 
-    // Process each subscription
     for (const sub of dueSubscriptions) {
       results.processed++;
 
       try {
-        // Check if subscription has a PayFast token
         if (!sub.payFastToken) {
-          console.error(`[Recurring Charge] Subscription ${sub.id} has no PayFast token`);
           results.failed++;
+          results.errors.push({ subscriptionId: sub.id, error: 'No PayFast token available' });
+          console.error(`[Recurring Charge] Subscription ${sub.id} has no PayFast token`);
+          continue;
+        }
+
+        const cycleDate = sub.nextBillingDate ?? now;
+
+        // A cycle that has sat unpaid for weeks is a conversation, not a debit
+        const daysOverdue = (now.getTime() - cycleDate.getTime()) / 86_400_000;
+        if (daysOverdue > STALE_CYCLE_DAYS) {
+          await db
+            .update(subscription)
+            .set({
+              status: 'PAUSED',
+              pausedAt: now,
+              notes: `${sub.notes ? sub.notes + '\n' : ''}Paused by billing: cycle of ${cycleDate.toISOString().slice(0, 10)} was ${Math.floor(daysOverdue)} days overdue`,
+              updatedAt: now,
+            })
+            .where(eq(subscription.id, sub.id));
+          results.skipped++;
           results.errors.push({
             subscriptionId: sub.id,
-            error: 'No PayFast token available',
+            error: `Paused: cycle ${Math.floor(daysOverdue)} days overdue - needs manual review`,
           });
           continue;
         }
 
-        console.log(`[Recurring Charge] Processing subscription ${sub.id} (${sub.frequency})`);
+        // One record per cycle. The deterministic id is the idempotency lock,
+        // and it travels to PayFast as m_payment_id so the ITN resolves back
+        // to this row.
+        const cycleId = `rc-${cycleDate.toISOString().slice(0, 10).replace(/-/g, '')}-${sub.id}`;
 
-        // Attempt to charge the customer using the ad hoc token
-        const chargeSuccess = await payFastSubscriptionService.processCustomRecurringPayment(
-          sub,
-          sub.payFastToken
+        const [existing] = await db
+          .select()
+          .from(subscriptionPayment)
+          .where(eq(subscriptionPayment.id, cycleId))
+          .limit(1);
+
+        if (existing?.status === 'COMPLETED') {
+          results.skipped++;
+          continue; // already charged this cycle
+        }
+        if (existing && existing.status !== 'FAILED') {
+          // A PENDING row from a run that died mid-charge: the charge may or
+          // may not have gone through. Never re-charge on a guess.
+          results.skipped++;
+          results.errors.push({
+            subscriptionId: sub.id,
+            error: `Cycle ${cycleId} has an unresolved attempt - check PayFast before retrying`,
+          });
+          continue;
+        }
+
+        const nextBillingDate = payFastSubscriptionService.calculateNextBillingDate(
+          sub.frequency,
+          cycleDate,
+          sub.preferredDays || undefined
         );
 
-        if (chargeSuccess) {
-          // Calculate next billing date
-          const nextBillingDate = payFastSubscriptionService.calculateNextBillingDate(
-            sub.frequency,
-            now,
-            sub.preferredDays || undefined,
-            sub.monthlyDates || undefined
-          );
+        if (existing) {
+          // Previous attempt failed; try again under the same cycle id
+          await db
+            .update(subscriptionPayment)
+            .set({ status: 'PENDING' })
+            .where(eq(subscriptionPayment.id, cycleId));
+        } else {
+          await db.insert(subscriptionPayment).values({
+            id: cycleId,
+            subscriptionId: sub.id,
+            amount: sub.finalPrice,
+            status: 'PENDING',
+            paymentMethod: 'CREDIT_CARD',
+            billingPeriodStart: cycleDate,
+            billingPeriodEnd: nextBillingDate,
+          });
+        }
 
-          // Create a booking for the next scheduled cleaning
+        console.log(`[Recurring Charge] Charging ${sub.id} (${sub.frequency}) for cycle ${cycleDate.toISOString().slice(0, 10)}`);
+        const charge = await payFastSubscriptionService.chargeSubscriptionCycle(
+          sub,
+          sub.payFastToken,
+          cycleId
+        );
+
+        if (charge.ok) {
+          // The cleaning this charge pays for
           const bookingId = crypto.randomBytes(16).toString('hex');
-          const scheduledDate = toNaiveDateTimeString(calculateNextCleaningDate(
-            sub.frequency,
-            sub.preferredDays || [],
-            sub.monthlyDates || [],
-            sub.preferredTimeSlot || '09:00-12:00'
-          ));
+          const scheduledDate = toNaiveDateTimeString(
+            payFastSubscriptionService.calculateNextCleaningDate(
+              sub.frequency,
+              sub.preferredDays || [],
+              sub.monthlyDates || [],
+              sub.preferredTimeSlot || '09:00-12:00',
+              sub.startDate
+            )
+          );
 
           const bookingTenantId = await tenantService.resolveBookingTenantId(
             sub.cleanerId || null,
@@ -114,59 +190,49 @@ export const POST: RequestHandler = async ({ request }) => {
             notes: `Recurring booking - ${sub.frequency}`,
           });
 
-          // Record the payment
-          const paymentId = crypto.randomBytes(16).toString('hex');
-          await db.insert(subscriptionPayment).values({
-            id: paymentId,
-            subscriptionId: sub.id,
-            bookingId,
-            amount: sub.finalPrice,
-            status: 'COMPLETED',
-            paymentMethod: 'CREDIT_CARD',
-            billingPeriodStart: now,
-            billingPeriodEnd: nextBillingDate,
-            processedAt: now,
-          });
+          await db
+            .update(subscriptionPayment)
+            .set({
+              status: 'COMPLETED',
+              bookingId,
+              payFastPaymentId: charge.pfPaymentId,
+              payFastReference: charge.pfPaymentId,
+              processedAt: now,
+            })
+            .where(eq(subscriptionPayment.id, cycleId));
 
-          // Update subscription with next billing date
           await db
             .update(subscription)
-            .set({
-              nextBillingDate,
-              updatedAt: now,
-            })
+            .set({ nextBillingDate, updatedAt: now })
             .where(eq(subscription.id, sub.id));
 
           results.succeeded++;
-          console.log(`[Recurring Charge] Successfully charged subscription ${sub.id}`);
+          console.log(`[Recurring Charge] Charged ${sub.id}; booking ${bookingId} for ${scheduledDate}`);
         } else {
-          results.failed++;
-          results.errors.push({
-            subscriptionId: sub.id,
-            error: 'Payment processing failed',
-          });
+          await db
+            .update(subscriptionPayment)
+            .set({
+              status: 'FAILED',
+              failureReason: charge.detail.slice(0, 1000),
+              processedAt: now,
+            })
+            .where(eq(subscriptionPayment.id, cycleId));
 
-          // Optionally: Update subscription status or send notification
-          console.error(`[Recurring Charge] Failed to charge subscription ${sub.id}`);
+          results.failed++;
+          results.errors.push({ subscriptionId: sub.id, error: charge.detail.slice(0, 200) });
+          console.error(`[Recurring Charge] Charge failed for ${sub.id}: ${charge.detail}`);
         }
       } catch (error) {
         results.failed++;
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        results.errors.push({
-          subscriptionId: sub.id,
-          error: errorMessage,
-        });
-
+        results.errors.push({ subscriptionId: sub.id, error: errorMessage });
         console.error(`[Recurring Charge] Error processing subscription ${sub.id}:`, error);
       }
     }
 
     console.log('[Recurring Charge] Processing complete:', results);
 
-    return json({
-      success: true,
-      results,
-    });
+    return json({ success: true, results });
   } catch (error) {
     console.error('[Recurring Charge] Fatal error:', error);
     return json(
@@ -178,110 +244,3 @@ export const POST: RequestHandler = async ({ request }) => {
     );
   }
 };
-
-// Helper function to calculate the next cleaning date based on preferences
-function calculateNextCleaningDate(
-  frequency: string,
-  preferredDays: string[],
-  monthlyDates: number[],
-  timeSlot: string
-): Date {
-  const now = new Date();
-  const [startTime] = timeSlot.split('-');
-  const [hours, minutes] = startTime.split(':').map(Number);
-
-  let nextDate = new Date();
-  nextDate.setHours(hours, minutes, 0, 0);
-
-  switch (frequency) {
-    case 'WEEKLY':
-      // Find next occurrence of preferred day
-      if (preferredDays.length > 0) {
-        const dayMap: Record<string, number> = {
-          'SUNDAY': 0, 'MONDAY': 1, 'TUESDAY': 2, 'WEDNESDAY': 3,
-          'THURSDAY': 4, 'FRIDAY': 5, 'SATURDAY': 6
-        };
-
-        const targetDay = dayMap[preferredDays[0]];
-        const currentDay = now.getDay();
-        const daysUntilTarget = (targetDay - currentDay + 7) % 7 || 7;
-
-        nextDate.setDate(now.getDate() + daysUntilTarget);
-      } else {
-        nextDate.setDate(now.getDate() + 7);
-      }
-      break;
-
-    case 'BIWEEKLY':
-      if (preferredDays.length > 0) {
-        const dayMap: Record<string, number> = {
-          'SUNDAY': 0, 'MONDAY': 1, 'TUESDAY': 2, 'WEDNESDAY': 3,
-          'THURSDAY': 4, 'FRIDAY': 5, 'SATURDAY': 6
-        };
-
-        const targetDay = dayMap[preferredDays[0]];
-        const currentDay = now.getDay();
-        const daysUntilTarget = (targetDay - currentDay + 14) % 14 || 14;
-
-        nextDate.setDate(now.getDate() + daysUntilTarget);
-      } else {
-        nextDate.setDate(now.getDate() + 14);
-      }
-      break;
-
-    case 'TWICE_WEEKLY':
-      // Find next occurrence of any preferred day (twice per week)
-      if (preferredDays.length > 0) {
-        const dayMap: Record<string, number> = {
-          'SUNDAY': 0, 'MONDAY': 1, 'TUESDAY': 2, 'WEDNESDAY': 3,
-          'THURSDAY': 4, 'FRIDAY': 5, 'SATURDAY': 6
-        };
-
-        let minDays = 7;
-        for (const day of preferredDays) {
-          const targetDay = dayMap[day];
-          const currentDay = now.getDay();
-          const daysUntilTarget = (targetDay - currentDay + 7) % 7;
-
-          if (daysUntilTarget > 0 && daysUntilTarget < minDays) {
-            minDays = daysUntilTarget;
-          }
-        }
-
-        nextDate.setDate(now.getDate() + (minDays === 7 ? 3 : minDays));
-      } else {
-        nextDate.setDate(now.getDate() + 3);
-      }
-      break;
-
-    case 'TWICE_MONTHLY':
-      // For twice monthly, use the specified dates
-      if (monthlyDates && monthlyDates.length > 0) {
-        const currentDate = now.getDate();
-        let targetDate = monthlyDates.find(d => d > currentDate);
-
-        if (targetDate) {
-          nextDate.setDate(targetDate);
-        } else {
-          // Move to next month, use first date
-          nextDate.setMonth(nextDate.getMonth() + 1);
-          nextDate.setDate(monthlyDates[0]);
-        }
-      } else {
-        // Default to 15 days
-        nextDate.setDate(now.getDate() + 15);
-      }
-      break;
-
-    default:
-      // Monthly - default to 30 days
-      nextDate.setDate(now.getDate() + 30);
-  }
-
-  // Ensure the date is in the future
-  if (nextDate <= now) {
-    nextDate.setDate(nextDate.getDate() + 1);
-  }
-
-  return nextDate;
-}

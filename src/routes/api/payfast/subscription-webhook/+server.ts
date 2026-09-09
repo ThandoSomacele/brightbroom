@@ -56,6 +56,18 @@ export const POST: RequestHandler = async ({ request }) => {
       .limit(1);
 
     if (!subscriptionData) {
+      // Cycle charges initiated by our cron carry the cycle's payment record
+      // id as m_payment_id. Those are recorded synchronously when the charge
+      // is made, so just acknowledge - otherwise PayFast retries for hours.
+      const [cyclePayment] = await db
+        .select({ id: subscriptionPayment.id })
+        .from(subscriptionPayment)
+        .where(eq(subscriptionPayment.id, subscriptionId))
+        .limit(1);
+      if (cyclePayment) {
+        return text('OK');
+      }
+
       console.error('Subscription not found:', subscriptionId);
       return text('Subscription not found', { status: 404 });
     }
