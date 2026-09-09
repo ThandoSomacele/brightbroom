@@ -8,21 +8,37 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-// Initialise S3 client - load credentials from environment variables
+// One region, used both to reach the bucket and to build the URLs we store.
+// These used to be two separate fallbacks: with AWS_S3_REGION unset we uploaded
+// to Ireland and wrote a Cape Town URL, which meant broken document links and
+// identity documents leaving the country without anyone deciding that they
+// should. Cape Town is the default because that is where this data belongs.
+export const REGION = process.env.AWS_S3_REGION || "af-south-1";
+
+const BUCKET_NAME = process.env.S3_BUCKET_NAME || "brightbroom-upload";
+
+// The bucket is private. Identity documents, permits and bank letters are
+// reached through /api/documents, which checks entitlement and mints a URL that
+// expires. Profile photographs are the one exception: customers see them before
+// they sign in and they are embedded in email, so a URL that expires would
+// break both. They live under this prefix and are served by /api/images.
+export const PUBLIC_IMAGE_PREFIX = "profile-images/";
+
 const s3Client = new S3Client({
-  region: process.env.AWS_S3_REGION || "eu-west-1",
+  region: REGION,
   credentials: {
     accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID || "",
     secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY || "",
   },
 });
 
-// Use environment variable for bucket name
-const BUCKET_NAME = process.env.S3_BUCKET_NAME || "brightbroom-upload";
-
 export const s3 = {
   /**
-   * Upload a file to S3 bucket
+   * Upload a file to the bucket and return the canonical object URL.
+   *
+   * The returned URL is a record of where the object lives, not a way to read
+   * it — the bucket blocks public access. Read it back through /api/documents
+   * or /api/images.
    */
   async uploadFile(
     file: Buffer,
@@ -34,19 +50,12 @@ export const s3 = {
       Key: key,
       Body: file,
       ContentType: contentType,
-      // Removed ACL: "public-read" as bucket doesn't support ACLs
-      // Access should be controlled via bucket policy instead
+      // No ACL: the bucket has ACLs disabled and public access blocked.
     };
 
-    // Get region from config or environment
-    const region = process.env.AWS_S3_REGION || "af-south-1";
-
     try {
-      const command = new PutObjectCommand(params);
-      await s3Client.send(command);
-
-      // Return the public URL with region in the domain
-      return `https://${BUCKET_NAME}.s3.${region}.amazonaws.com/${key}`;
+      await s3Client.send(new PutObjectCommand(params));
+      return `https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com/${key}`;
     } catch (error) {
       console.error("S3 upload error:", error);
       throw new Error("Failed to upload file to S3");
@@ -54,17 +63,13 @@ export const s3 = {
   },
 
   /**
-   * Delete a file from S3 bucket
+   * Delete a file from the bucket
    */
   async deleteFile(key: string): Promise<void> {
-    const params = {
-      Bucket: BUCKET_NAME,
-      Key: key,
-    };
-
     try {
-      const command = new DeleteObjectCommand(params);
-      await s3Client.send(command);
+      await s3Client.send(
+        new DeleteObjectCommand({ Bucket: BUCKET_NAME, Key: key }),
+      );
     } catch (error) {
       console.error("S3 delete error:", error);
       throw new Error("Failed to delete file from S3");
@@ -84,18 +89,56 @@ export const s3 = {
   },
 
   /**
-   * Extract the S3 key from a full URL
+   * Read an object's bytes, for the routes that serve a file themselves rather
+   * than redirecting to a signed URL. Returns null when the object is missing,
+   * so callers can answer 404 rather than 500.
+   */
+  async getObject(
+    key: string,
+  ): Promise<{ body: Uint8Array; contentType: string } | null> {
+    try {
+      const result = await s3Client.send(
+        new GetObjectCommand({ Bucket: BUCKET_NAME, Key: key }),
+      );
+      if (!result.Body) return null;
+
+      return {
+        body: await result.Body.transformToByteArray(),
+        contentType: result.ContentType || "application/octet-stream",
+      };
+    } catch (error) {
+      console.error(`S3 read error for ${key}:`, error);
+      return null;
+    }
+  },
+
+  /**
+   * Extract the S3 key from a full URL.
+   *
+   * Parsed rather than pattern-matched: this decides which object we hand to a
+   * signed URL, so a regex that happened to match the wrong part of a URL would
+   * be a security bug rather than a broken link. Handles both virtual-hosted
+   * (bucket.s3.region.amazonaws.com/key) and path-style
+   * (s3.region.amazonaws.com/bucket/key) URLs.
    */
   getKeyFromUrl(url: string): string | null {
     if (!url) return null;
 
     try {
-      // Match the key pattern after the bucket name in the URL
-      const match = url.match(
-        new RegExp(`${BUCKET_NAME}.s3.[a-z0-9-]+.amazonaws.com/(.+)`),
-      );
-      return match ? match[1] : null;
-    } catch (error) {
+      const parsed = new URL(url);
+      if (!parsed.hostname.endsWith(".amazonaws.com")) return null;
+
+      const path = decodeURIComponent(parsed.pathname).replace(/^\/+/, "");
+      if (!path) return null;
+
+      if (parsed.hostname.startsWith(`${BUCKET_NAME}.`)) {
+        return path;
+      }
+      if (path.startsWith(`${BUCKET_NAME}/`)) {
+        return path.slice(BUCKET_NAME.length + 1) || null;
+      }
+      return null;
+    } catch {
       return null;
     }
   },

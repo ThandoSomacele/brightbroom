@@ -3,6 +3,7 @@
   import { enhance } from "$app/forms";
   import { goto } from "$app/navigation";
   import StepTracker from "$lib/components/booking/StepTracker.svelte";
+  import { imageUrl } from "$lib/utils/media";
   import PriceSummary from "$lib/components/booking/PriceSummary.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { getAPIHeaders } from "$lib/utils/api-helpers";
@@ -843,7 +844,7 @@
 
         <div class="flex items-center space-x-4">
           <img
-            src={selectedCleanerData.profileImageUrl ||
+            src={imageUrl(selectedCleanerData.profileImageUrl) ||
               "/images/default-avatar.svg"}
             alt={selectedCleanerData.name}
             class="w-16 h-16 rounded-full object-cover border-2 border-gray-200"

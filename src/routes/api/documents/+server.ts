@@ -1,8 +1,7 @@
 // src/routes/api/documents/+server.ts
 import { s3 } from "$lib/server/s3";
 import { db } from "$lib/server/db";
-import { cleanerApplication, tenantDocument } from "$lib/server/db/schema";
-import { tenantService } from "$lib/server/services/tenant.service";
+import { cleanerApplication, cleanerProfile, tenantDocument } from "$lib/server/db/schema";
 import { error, redirect } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import type { RequestHandler } from "./$types";
@@ -45,7 +44,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
       throw error(403, "That document belongs to another company");
     }
     fileUrl = doc.fileUrl;
-  } else if (kind === "cleaner-work-auth") {
+  } else if (kind === "cleaner-work-auth" || kind === "application-document") {
     const [application] = await db
       .select()
       .from(cleanerApplication)
@@ -57,7 +56,32 @@ export const GET: RequestHandler = async ({ url, locals }) => {
     if (!isPlatformAdmin && locals.tenant?.id !== application.tenantId) {
       throw error(403, "That application belongs to another company");
     }
-    fileUrl = application.workAuthDocumentUrl;
+
+    if (kind === "cleaner-work-auth") {
+      fileUrl = application.workAuthDocumentUrl;
+    } else {
+      // Supporting documents are an array on the application. Address them by
+      // position rather than by URL, so the caller never gets to name the
+      // object it wants us to sign.
+      const index = Number(url.searchParams.get("i"));
+      const documents = application.documents ?? [];
+      if (!Number.isInteger(index) || index < 0 || index >= documents.length) {
+        throw error(404, "No document at that position");
+      }
+      fileUrl = documents[index];
+    }
+  } else if (kind === "cleaner-profile-work-auth") {
+    const [profile] = await db
+      .select()
+      .from(cleanerProfile)
+      .where(eq(cleanerProfile.id, id))
+      .limit(1);
+    if (!profile) throw error(404, "Cleaner not found");
+
+    if (!isPlatformAdmin && locals.tenant?.id !== profile.tenantId) {
+      throw error(403, "That cleaner belongs to another company");
+    }
+    fileUrl = profile.workAuthDocumentUrl;
   } else {
     throw error(400, "Unknown document type");
   }

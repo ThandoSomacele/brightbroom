@@ -173,7 +173,7 @@
   <!-- Document list -->
   {#if documents.length > 0}
     <div class="space-y-2 max-h-60 overflow-y-auto">
-      {#each documents as document}
+      {#each documents as document, i}
         <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
           <div class="flex items-center truncate pr-2">
             <svelte:component this={getDocumentIcon(document)} size={16} class="mr-2 flex-shrink-0 text-gray-500 dark:text-gray-400" />
@@ -181,7 +181,7 @@
           </div>
           
           <div class="flex items-center space-x-2 flex-shrink-0">
-            <a href={document} target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary-600">
+            <a href="/api/documents?kind=application-document&id={applicationId}&i={i}" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary-600">
               <Button variant="ghost" size="sm" title="View document">
                 <FileText size={14} />
               </Button>

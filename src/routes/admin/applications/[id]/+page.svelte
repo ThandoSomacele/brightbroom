@@ -23,6 +23,7 @@
   import ApplicationEditForm from "$lib/components/admin/ApplicationEditForm.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
+  import { imageUrl } from "$lib/utils/media";
   import { isWithinServiceArea } from "$lib/utils/serviceAreaValidator";
   import {
     ArrowLeft,
@@ -282,7 +283,7 @@
           >
             {#if application.profileImageUrl}
               <img
-                src={application.profileImageUrl}
+                src={imageUrl(application.profileImageUrl)}
                 alt="Profile"
                 class="h-full w-full object-cover"
               />
@@ -665,7 +666,7 @@
                 Documents ({application.documents.length})
               </p>
               <div class="grid grid-cols-1 gap-2">
-                {#each application.documents as document}
+                {#each application.documents as document, i}
                   <div
                     class="flex items-center gap-2 rounded-md border border-gray-200 p-2 dark:border-gray-700 bg-gray-50 dark:bg-gray-700"
                   >
@@ -676,7 +677,7 @@
                       {document.split("/").pop()}
                     </span>
                     <a
-                      href={document}
+                      href="/api/documents?kind=application-document&id={application.id}&i={i}"
                       target="_blank"
                       class="flex-shrink-0 text-primary hover:text-primary-600 hover:underline px-2 py-1"
                     >

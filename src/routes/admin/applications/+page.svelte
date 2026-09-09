@@ -3,6 +3,7 @@
   import { goto } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
   import { TableSkeleton } from "$lib/components/ui/skeletons";
+  import { imageUrl } from "$lib/utils/media";
   import { parseDateTimeString } from "$lib/utils/date-utils.js";
   import {
     ArrowLeft,
@@ -224,7 +225,7 @@
                     >
                       {#if application.profileImageUrl}
                         <img
-                          src={application.profileImageUrl}
+                          src={imageUrl(application.profileImageUrl)}
                           alt="{application.firstName} {application.lastName}"
                           class="h-full w-full object-cover"
                         />

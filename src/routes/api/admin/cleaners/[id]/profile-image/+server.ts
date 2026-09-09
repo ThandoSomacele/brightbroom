@@ -11,7 +11,13 @@ import sharp from "sharp";
 /**
  * Handle profile image upload for cleaners
  */
-export const POST: RequestHandler = async ({ request, params }) => {
+export const POST: RequestHandler = async ({ request, params, locals }) => {
+  // Defence in depth. hooks.server.ts already gates /api/admin, but this
+  // endpoint writes identity documents, so it does not rely on that alone.
+  if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
+    throw error(403, "You don't have permission to do that");
+  }
+
   const cleanerId = params.id;
 
   if (!cleanerId) {
@@ -102,7 +108,13 @@ export const POST: RequestHandler = async ({ request, params }) => {
 /**
  * Delete profile image for cleaner
  */
-export const DELETE: RequestHandler = async ({ params }) => {
+export const DELETE: RequestHandler = async ({ params, locals }) => {
+  // Defence in depth. hooks.server.ts already gates /api/admin, but this
+  // endpoint writes identity documents, so it does not rely on that alone.
+  if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
+    throw error(403, "You don't have permission to do that");
+  }
+
   const cleanerId = params.id;
 
   if (!cleanerId) {

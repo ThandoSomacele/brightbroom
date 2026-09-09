@@ -3,6 +3,7 @@
   import Button from "$lib/components/ui/Button.svelte";
   import { TableSkeleton } from "$lib/components/ui/skeletons";
   import { parseDateTimeString } from "$lib/utils/date-utils.js";
+  import { imageUrl } from "$lib/utils/media";
   import { ArrowLeft, ArrowRight, Download, Map, PlusCircle, Star, User } from "lucide-svelte";
 
   export let data;
@@ -288,7 +289,7 @@
                     >
                       {#if cleaner.cleanerProfile?.profileImageUrl}
                         <img
-                          src={cleaner.cleanerProfile?.profileImageUrl}
+                          src={imageUrl(cleaner.cleanerProfile?.profileImageUrl)}
                           alt="{cleaner.firstName} {cleaner.lastName}"
                           class="h-full w-full object-cover"
                         />

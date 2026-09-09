@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { user, cleanerProfile, tenant } from '$lib/server/db/schema';
 import { eq, and, gt, isNull, or, sql } from 'drizzle-orm';
+import { imageUrl } from '$lib/utils/media';
 import { STANDARD_SERVICE_RADIUS_KM } from '$lib/utils/serviceAreaValidator';
 
 export const GET: RequestHandler = async ({ url }) => {
@@ -106,7 +107,7 @@ export const GET: RequestHandler = async ({ url }) => {
       lastName: cleaner.lastName,
       bio: cleaner.bio || 'Experienced professional cleaner',
       rating: cleaner.rating ? Number(cleaner.rating) : null,
-      profileImageUrl: cleaner.profileImageUrl || '/images/default-avatar.svg',
+      profileImageUrl: imageUrl(cleaner.profileImageUrl) || '/images/default-avatar.svg',
       petCompatibility: cleaner.petCompatibility,
       experienceTypes: cleaner.experienceTypes || [],
       distance: cleaner.distance ? Math.round(cleaner.distance * 10) / 10 : null,

@@ -1,5 +1,6 @@
 // src/lib/server/email-templates.ts
 import { parseDateTimeString } from "$lib/utils/date-utils";
+import { absoluteImageUrl } from "$lib/utils/media";
 import { escapeHtml, getBookingReference } from "$lib/utils/strings";
 
 export interface EmailTemplateData {
@@ -1323,8 +1324,12 @@ export function getCleanerAssignmentTemplate(
   const bookingUrl = `${data.appUrl}/profile/bookings/${booking.id}`;
   const escapedEmail = escapeHtml(recipientEmail);
 
-  // Extract profile image URL from the cleaner object
-  const profileImageUrl = booking.cleaner.profileImageUrl;
+  // Served through /api/images rather than straight off the bucket, which is
+  // private. Absolute, because an email has no origin to resolve against.
+  const profileImageUrl = absoluteImageUrl(
+    booking.cleaner.profileImageUrl,
+    data.appUrl,
+  );
 
   // Default avatar SVG for cleaners without profile images
   const defaultAvatarSvg = `<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -3891,7 +3896,10 @@ export function getCleanerChangedTemplate(
     <path d="M30 15C25.0294 15 21 19.0294 21 24C21 28.9706 25.0294 33 30 33C34.9706 33 39 28.9706 39 24C39 19.0294 34.9706 15 30 15ZM30 39C22.5 39 15 42.5147 15 48V51H45V48C45 42.5147 37.5 39 30 39Z" fill="#9CA3AF"/>
   </svg>`;
 
-  const profileImageUrl = booking.newCleaner.profileImageUrl;
+  const profileImageUrl = absoluteImageUrl(
+    booking.newCleaner.profileImageUrl,
+    data.appUrl,
+  );
 
   const html = `
 <!DOCTYPE html>

@@ -9,7 +9,13 @@ import type { RequestHandler } from "./$types";
 /**
  * Handle document deletion
  */
-export const DELETE: RequestHandler = async ({ params }) => {
+export const DELETE: RequestHandler = async ({ params, locals }) => {
+  // Defence in depth. hooks.server.ts already gates /api/admin, but this
+  // endpoint writes identity documents, so it does not rely on that alone.
+  if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
+    throw error(403, "You don't have permission to do that");
+  }
+
   const { id: applicationId, key: documentKey } = params;
 
   if (!applicationId || !documentKey) {

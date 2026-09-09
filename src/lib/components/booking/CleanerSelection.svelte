@@ -2,6 +2,7 @@
   import { createEventDispatcher, onMount } from "svelte";
   import { fade, slide } from "svelte/transition";
   import { MapPin } from "lucide-svelte";
+  import { imageUrl } from "$lib/utils/media";
 
   export let selectedCleanerId: string | null = null;
   export let serviceId: string | null = null;
@@ -139,7 +140,7 @@
           <div class="flex flex-col items-center">
             <div class="relative mb-3">
               <img
-                src={cleaner.profileImageUrl}
+                src={imageUrl(cleaner.profileImageUrl)}
                 alt={cleaner.name}
                 class="w-24 h-24 rounded-full object-cover border-2 {selectedCleaner?.id ===
                 cleaner.id
