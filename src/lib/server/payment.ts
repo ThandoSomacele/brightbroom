@@ -11,7 +11,7 @@ import {
 import { postPaymentHooks } from "$lib/server/hooks/post-payment-hooks";
 import { paymentProcessorService } from "$lib/server/services/payment-processor.service";
 import crypto from "crypto";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { env } from "$env/dynamic/private";
 import { parseDateTimeString } from "$lib/utils/date-utils";
 
@@ -482,15 +482,15 @@ export async function processSuccessfulPayment(
           name: service.name,
         },
         address: {
-          street: address.street,
-          city: address.city,
-          state: address.state,
-          zipCode: address.zipCode,
+          street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+          city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
+          state: sql<string>`coalesce(${address.state}, ${booking.guestAddress}->>'state', '')`,
+          zipCode: sql<string>`coalesce(${address.zipCode}, ${booking.guestAddress}->>'zipCode', '')`,
         },
       })
       .from(booking)
       .innerJoin(service, eq(booking.serviceId, service.id))
-      .innerJoin(address, eq(booking.addressId, address.id))
+      .leftJoin(address, eq(booking.addressId, address.id))
       .where(eq(booking.id, bookingId))
       .limit(1);
 

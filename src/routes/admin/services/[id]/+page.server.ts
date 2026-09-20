@@ -75,7 +75,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         customerEmail: user.email
       })
       .from(booking)
-      .innerJoin(user, eq(booking.userId, user.id))
+      .leftJoin(user, eq(booking.userId, user.id))
       .where(eq(booking.serviceId, serviceId))
       .orderBy(desc(booking.scheduledDate))
       .limit(10);

@@ -411,13 +411,13 @@
             <div>
               <p class="font-medium text-gray-700 dark:text-gray-300">Name</p>
               <p class="text-gray-900 dark:text-white">
-                {bookingDetails.customer.firstName}
-                {bookingDetails.customer.lastName}
+                {bookingDetails.customer?.firstName ?? 'Guest'}
+                {bookingDetails.customer?.lastName ?? ''}
               </p>
             </div>
           </div>
 
-          {#if bookingDetails.customer.phone}
+          {#if bookingDetails.customer?.phone}
             <div class="flex items-start">
               <Phone class="h-5 w-5 text-primary mr-3 mt-0.5" />
               <div>
@@ -425,7 +425,7 @@
                   Phone
                 </p>
                 <p class="text-gray-900 dark:text-white">
-                  {bookingDetails.customer.phone}
+                  {bookingDetails.customer?.phone}
                 </p>
               </div>
             </div>

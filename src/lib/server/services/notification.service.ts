@@ -8,7 +8,7 @@ import {
   user,
 } from "$lib/server/db/schema";
 import { sendCleanerAssignmentEmail, sendCleanerJobAssignmentEmail } from "$lib/server/email-service";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 /**
  * Send cleaner assignment notification when a cleaner is assigned to a booking
@@ -52,10 +52,10 @@ export async function sendCleanerAssignmentNotification(
           details: service.details, // Add structured service details
         },
         address: {
-          street: address.street,
-          city: address.city,
-          state: address.state,
-          zipCode: address.zipCode,
+          street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+          city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
+          state: sql<string>`coalesce(${address.state}, ${booking.guestAddress}->>'state', '')`,
+          zipCode: sql<string>`coalesce(${address.zipCode}, ${booking.guestAddress}->>'zipCode', '')`,
         },
         user: {
           email: user.email,
@@ -64,8 +64,8 @@ export async function sendCleanerAssignmentNotification(
       .from(booking)
       .where(eq(booking.id, bookingId))
       .innerJoin(service, eq(booking.serviceId, service.id))
-      .innerJoin(address, eq(booking.addressId, address.id))
-      .innerJoin(user, eq(booking.userId, user.id))
+      .leftJoin(address, eq(booking.addressId, address.id))
+      .leftJoin(user, eq(booking.userId, user.id))
       .limit(1);
 
     if (results.length === 0) {
@@ -79,8 +79,8 @@ export async function sendCleanerAssignmentNotification(
     // Using proper SQL syntax for the query:
     const cleanerResults = await db
       .select({
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: sql<string>`coalesce(${user.firstName}, 'Guest')`,
+        lastName: sql<string>`coalesce(${user.lastName}, '')`,
         phone: user.phone,
         profileImageUrl: cleanerProfile.profileImageUrl,
       })
@@ -107,7 +107,12 @@ export async function sendCleanerAssignmentNotification(
       cleaner: cleanerInfo,
     };
 
-    // Send notification to the customer
+    // Send notification to the customer; a guest booking may have no
+    // account email to write to
+    if (!result.user?.email) {
+      console.warn('No customer email on booking; skipping assignment email', { bookingId: result.booking.id });
+      return false;
+    }
     return await sendCleanerAssignmentEmail(result.user.email, emailData);
   } catch (error) {
     console.error('Error sending cleaner assignment notification:', { error });
@@ -158,16 +163,16 @@ export async function sendCleanerJobNotification(
           details: service.details,
         },
         address: {
-          street: address.street,
-          city: address.city,
-          state: address.state,
-          zipCode: address.zipCode,
+          street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+          city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
+          state: sql<string>`coalesce(${address.state}, ${booking.guestAddress}->>'state', '')`,
+          zipCode: sql<string>`coalesce(${address.zipCode}, ${booking.guestAddress}->>'zipCode', '')`,
         },
       })
       .from(booking)
       .where(eq(booking.id, bookingId))
       .innerJoin(service, eq(booking.serviceId, service.id))
-      .innerJoin(address, eq(booking.addressId, address.id))
+      .leftJoin(address, eq(booking.addressId, address.id))
       .limit(1);
 
     if (results.length === 0) {
@@ -181,8 +186,8 @@ export async function sendCleanerJobNotification(
     const cleanerInfo = await db
       .select({
         id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: sql<string>`coalesce(${user.firstName}, 'Guest')`,
+        lastName: sql<string>`coalesce(${user.lastName}, '')`,
         email: user.email,
       })
       .from(user)
@@ -197,8 +202,8 @@ export async function sendCleanerJobNotification(
     // Get customer information
     const customerInfo = await db
       .select({
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: sql<string>`coalesce(${user.firstName}, 'Guest')`,
+        lastName: sql<string>`coalesce(${user.lastName}, '')`,
         phone: user.phone,
       })
       .from(user)

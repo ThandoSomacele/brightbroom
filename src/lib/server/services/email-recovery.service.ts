@@ -86,12 +86,16 @@ export const emailRecoveryService = {
             }
           })
           .from(booking)
-          .innerJoin(address, eq(booking.addressId, address.id))
-          .innerJoin(user, eq(booking.userId, user.id))
+          .leftJoin(address, eq(booking.addressId, address.id))
+          .leftJoin(user, eq(booking.userId, user.id))
           .where(eq(booking.id, paymentData.bookingId))
           .limit(1);
           
           if (bookingDetails.length === 0 || bookingDetails[0].booking.status === "CANCELLED") {
+            continue;
+          }
+          // Guest bookings may have no account email to recover to
+          if (!bookingDetails[0].user?.email) {
             continue;
           }
           

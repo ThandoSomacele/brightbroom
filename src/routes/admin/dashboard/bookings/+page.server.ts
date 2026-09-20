@@ -74,18 +74,22 @@ export const load: PageServerLoad = async ({ url, locals }) => {
       },
       customer: {
         id: user.id,
-        name: sql`${user.firstName} || ' ' || ${user.lastName}`,
+        name: sql`coalesce(${user.firstName} || ' ' || ${user.lastName}, 'Guest')`,
         email: user.email,
       },
       address: {
-        street: address.street,
-        city: address.city,
+        // Guest bookings keep their address in the guestAddress JSON; the
+        // address table row is only there for account-holder addresses.
+        street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+        city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
       }
     })
     .from(booking)
     .innerJoin(service, eq(booking.serviceId, service.id))
-    .innerJoin(user, eq(booking.userId, user.id))
-    .innerJoin(address, eq(booking.addressId, address.id));
+    // Left joins: userId and addressId are nullable for guest bookings; inner
+    // joins here hid every guest-address booking from this list.
+    .leftJoin(user, eq(booking.userId, user.id))
+    .leftJoin(address, eq(booking.addressId, address.id));
 
     if (conditions.length > 0) {
       query = query.where(and(...conditions));
@@ -97,8 +101,8 @@ export const load: PageServerLoad = async ({ url, locals }) => {
     })
     .from(booking)
     .innerJoin(service, eq(booking.serviceId, service.id))
-    .innerJoin(user, eq(booking.userId, user.id))
-    .innerJoin(address, eq(booking.addressId, address.id));
+    .leftJoin(user, eq(booking.userId, user.id))
+    .leftJoin(address, eq(booking.addressId, address.id));
 
     if (countConditions.length > 0) {
       countQuery = countQuery.where(and(...countConditions));

@@ -10,7 +10,7 @@ import { cleanerEarningsService } from "$lib/server/services/cleaner-earnings.se
 import { tenantService } from "$lib/server/services/tenant.service";
 import { hash } from "@node-rs/argon2";
 import { error, fail } from "@sveltejs/kit";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 
 // Helper function to fetch cleaner data
@@ -55,12 +55,12 @@ async function getCleanerData(cleanerId: string, tenantId: string | null) {
       scheduledDate: booking.scheduledDate,
       customer: {
         id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: sql<string>`coalesce(${user.firstName}, 'Guest')`,
+        lastName: sql<string>`coalesce(${user.lastName}, '')`,
       },
     })
     .from(booking)
-    .innerJoin(user, eq(booking.userId, user.id))
+    .leftJoin(user, eq(booking.userId, user.id))
     .where(eq(booking.cleanerId, cleanerId))
     .orderBy(desc(booking.scheduledDate))
     .limit(5);

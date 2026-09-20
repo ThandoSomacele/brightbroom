@@ -2,7 +2,7 @@
 import { db } from '$lib/server/db';
 import { address, booking, service } from '$lib/server/db/schema';
 import { error, redirect } from '@sveltejs/kit';
-import { and, eq, gte } from 'drizzle-orm';
+import { and, eq, gte, sql } from 'drizzle-orm';
 import { instantToSASTString } from '$lib/utils/date-utils';
 import type { PageServerLoad } from './$types';
 
@@ -20,13 +20,13 @@ async function getUpcomingBookings(userId: string) {
     },
     address: {
       id: address.id,
-      street: address.street,
-      city: address.city,
+      street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+      city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
     }
   })
   .from(booking)
   .innerJoin(service, eq(booking.serviceId, service.id))
-  .innerJoin(address, eq(booking.addressId, address.id))
+  .leftJoin(address, eq(booking.addressId, address.id))
   .where(
     and(
       eq(booking.userId, userId),

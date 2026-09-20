@@ -3,7 +3,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { booking, service, address, user } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { sendCleanerAssignmentEmail } from '$lib/server/email-service';
 
 export const POST: RequestHandler = async ({ params, request, locals }) => {
@@ -27,10 +27,10 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
         name: service.name,
       },
       address: {
-        street: address.street,
-        city: address.city,
-        state: address.state,
-        zipCode: address.zipCode,
+        street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+        city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
+        state: sql<string>`coalesce(${address.state}, ${booking.guestAddress}->>'state', '')`,
+        zipCode: sql<string>`coalesce(${address.zipCode}, ${booking.guestAddress}->>'zipCode', '')`,
       },
       user: {
         email: user.email
@@ -44,8 +44,8 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     .from(booking)
     .where(eq(booking.id, bookingId))
     .innerJoin(service, eq(booking.serviceId, service.id))
-    .innerJoin(address, eq(booking.addressId, address.id))
-    .innerJoin(user, eq(booking.userId, user.id))
+    .leftJoin(address, eq(booking.addressId, address.id))
+    .leftJoin(user, eq(booking.userId, user.id))
     .leftJoin(user.as('cleaner'), booking.cleanerId ? eq(booking.cleanerId, user.as('cleaner').id) : undefined)
     .limit(1);
     

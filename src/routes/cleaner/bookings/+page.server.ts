@@ -44,21 +44,22 @@ async function getBookingsData(params: FilterParams) {
       bedroomCount: booking.bedroomCount,
       bathroomCount: booking.bathroomCount,
       address: {
-        street: address.street,
-        city: address.city,
-        state: address.state,
-        zipCode: address.zipCode,
+        // Guest bookings keep their address in the guestAddress JSON
+        street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+        city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
+        state: sql<string>`coalesce(${address.state}, ${booking.guestAddress}->>'state', '')`,
+        zipCode: sql<string>`coalesce(${address.zipCode}, ${booking.guestAddress}->>'zipCode', '')`,
       },
       customer: {
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: sql<string>`coalesce(${user.firstName}, 'Guest')`,
+        lastName: sql<string>`coalesce(${user.lastName}, '')`,
         email: user.email,
         phone: user.phone,
       }
     })
     .from(booking)
-    .innerJoin(address, eq(booking.addressId, address.id))
-    .innerJoin(user, eq(booking.userId, user.id))
+    .leftJoin(address, eq(booking.addressId, address.id))
+    .leftJoin(user, eq(booking.userId, user.id))
     .where(and(...conditions));
 
   // Apply search filter
@@ -77,8 +78,8 @@ async function getBookingsData(params: FilterParams) {
   let countQuery = db
     .select({ count: sql<number>`count(*)`.mapWith(Number) })
     .from(booking)
-    .innerJoin(address, eq(booking.addressId, address.id))
-    .innerJoin(user, eq(booking.userId, user.id))
+    .leftJoin(address, eq(booking.addressId, address.id))
+    .leftJoin(user, eq(booking.userId, user.id))
     .where(and(...conditions));
 
   if (search) {

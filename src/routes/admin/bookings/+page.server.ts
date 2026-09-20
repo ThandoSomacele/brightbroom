@@ -73,6 +73,7 @@ async function getBookings(
       cleanerId: booking.cleanerId,
       bedroomCount: booking.bedroomCount,
       bathroomCount: booking.bathroomCount,
+      guestAddress: booking.guestAddress,
       customer: {
         id: user.id,
         firstName: user.firstName,
@@ -86,8 +87,11 @@ async function getBookings(
       paymentStatus: payment.status
     })
     .from(booking)
-    .innerJoin(user, eq(booking.userId, user.id))
-    .innerJoin(address, eq(booking.addressId, address.id))
+    // Left joins: userId and addressId are nullable for guest bookings, and
+    // inner joins here were silently hiding every booking whose address lives
+    // in the guestAddress JSON - most of them, in production.
+    .leftJoin(user, eq(booking.userId, user.id))
+    .leftJoin(address, eq(booking.addressId, address.id))
     .leftJoin(payment, eq(booking.id, payment.bookingId));
 
     if (conditions.length > 0) {
@@ -99,8 +103,8 @@ async function getBookings(
       count: sql<number>`count(*)`.mapWith(Number)
     })
     .from(booking)
-    .innerJoin(user, eq(booking.userId, user.id))
-    .innerJoin(address, eq(booking.addressId, address.id));
+    .leftJoin(user, eq(booking.userId, user.id))
+    .leftJoin(address, eq(booking.addressId, address.id));
 
     if (countConditions.length > 0) {
       countQuery = countQuery.where(and(...countConditions));
@@ -115,11 +119,25 @@ async function getBookings(
       countQuery
     ]);
 
+    // Fill gaps from the guest booking JSON so the page renders one shape
+    const normalised = bookings.map((b) => {
+      const guest = (b.guestAddress ?? {}) as { street?: string; city?: string };
+      return {
+        ...b,
+        customer: b.customer?.id
+          ? b.customer
+          : { id: null, firstName: 'Guest', lastName: '', email: '' },
+        address: b.address?.street
+          ? b.address
+          : { street: guest.street ?? '(guest address)', city: guest.city ?? '' },
+      };
+    });
+
     const total = countResult[0]?.count || 0;
     const totalPages = Math.ceil(total / limit);
 
     return {
-      bookings,
+      bookings: normalised,
       pagination: {
         page,
         limit,

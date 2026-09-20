@@ -20,20 +20,21 @@ async function getCleanerDashboardData(cleanerId: string) {
         name: service.name,
       },
       address: {
-        street: address.street,
-        city: address.city,
-        state: address.state,
-        zipCode: address.zipCode,
+        // Guest bookings keep their address in the guestAddress JSON
+        street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+        city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
+        state: sql<string>`coalesce(${address.state}, ${booking.guestAddress}->>'state', '')`,
+        zipCode: sql<string>`coalesce(${address.zipCode}, ${booking.guestAddress}->>'zipCode', '')`,
       },
       customer: {
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: sql<string>`coalesce(${user.firstName}, 'Guest')`,
+        lastName: sql<string>`coalesce(${user.lastName}, '')`,
       }
     })
     .from(booking)
     .innerJoin(service, eq(booking.serviceId, service.id))
-    .innerJoin(address, eq(booking.addressId, address.id))
-    .innerJoin(user, eq(booking.userId, user.id))
+    .leftJoin(address, eq(booking.addressId, address.id))
+    .leftJoin(user, eq(booking.userId, user.id))
     .where(
       and(
         eq(booking.cleanerId, cleanerId),

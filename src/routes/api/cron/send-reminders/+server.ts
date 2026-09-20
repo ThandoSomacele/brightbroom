@@ -3,7 +3,7 @@ import { db } from "$lib/server/db";
 import { address, booking, service, user } from "$lib/server/db/schema";
 import { sendBookingReminderEmail } from "$lib/server/email-service";
 import { json } from "@sveltejs/kit";
-import { and, between, eq } from "drizzle-orm";
+import { and, between, eq, sql } from "drizzle-orm";
 import { instantToSASTString } from "$lib/utils/date-utils";
 import type { RequestHandler } from "./$types";
 
@@ -38,24 +38,24 @@ export const GET: RequestHandler = async ({ url, request }) => {
         userId: booking.userId,
         user: {
           email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName: sql<string>`coalesce(${user.firstName}, 'Guest')`,
+          lastName: sql<string>`coalesce(${user.lastName}, '')`,
         },
         service: {
           id: service.id,
           name: service.name,
         },
         address: {
-          street: address.street,
-          city: address.city,
-          state: address.state,
-          zipCode: address.zipCode,
+          street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+          city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
+          state: sql<string>`coalesce(${address.state}, ${booking.guestAddress}->>'state', '')`,
+          zipCode: sql<string>`coalesce(${address.zipCode}, ${booking.guestAddress}->>'zipCode', '')`,
         },
       })
       .from(booking)
-      .innerJoin(user, eq(booking.userId, user.id))
+      .leftJoin(user, eq(booking.userId, user.id))
       .innerJoin(service, eq(booking.serviceId, service.id))
-      .innerJoin(address, eq(booking.addressId, address.id))
+      .leftJoin(address, eq(booking.addressId, address.id))
       .where(
         and(
           eq(booking.status, "CONFIRMED"),
@@ -70,6 +70,10 @@ export const GET: RequestHandler = async ({ url, request }) => {
     // Send reminders
     const results = await Promise.all(
       bookingsToRemind.map(async (booking) => {
+        // Guest bookings may have no account email to remind
+        if (!booking.user?.email) {
+          return { bookingId: booking.id, email: null, success: false };
+        }
         const success = await sendBookingReminderEmail(
           booking.user.email,
           booking,

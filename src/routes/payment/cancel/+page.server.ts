@@ -2,7 +2,7 @@
 import { db } from '$lib/server/db';
 import { booking, service, address } from '$lib/server/db/schema';
 import { error, redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ url, locals }) => {
@@ -36,13 +36,13 @@ export const load: PageServerLoad = async ({ url, locals }) => {
           name: service.name
         },
         address: {
-          street: address.street,
-          city: address.city
+          street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+          city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`
         }
       })
       .from(booking)
       .innerJoin(service, eq(booking.serviceId, service.id))
-      .innerJoin(address, eq(booking.addressId, address.id))
+      .leftJoin(address, eq(booking.addressId, address.id))
       .where(eq(booking.id, bookingId))
       .limit(1);
     

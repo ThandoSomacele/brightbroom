@@ -6,7 +6,7 @@ import { postPaymentHooks } from "$lib/server/hooks/post-payment-hooks";
 import { paymentProcessorService } from "$lib/server/services/payment-processor.service";
 import { validateIpnRequest } from "$lib/server/payment";
 import { json } from "@sveltejs/kit";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 
 /**
@@ -154,19 +154,19 @@ export async function POST({ request }) {
                 email: user.email,
               },
               address: {
-                street: address.street,
-                city: address.city,
-                state: address.state,
-                zipCode: address.zipCode,
+                street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+                city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
+                state: sql<string>`coalesce(${address.state}, ${booking.guestAddress}->>'state', '')`,
+                zipCode: sql<string>`coalesce(${address.zipCode}, ${booking.guestAddress}->>'zipCode', '')`,
               },
             })
             .from(booking)
-            .innerJoin(address, eq(booking.addressId, address.id))
-            .innerJoin(user, eq(booking.userId, user.id))
+            .leftJoin(address, eq(booking.addressId, address.id))
+            .leftJoin(user, eq(booking.userId, user.id))
             .where(eq(booking.id, bookingId))
             .limit(1);
 
-            if (bookingDetails.length > 0) {
+            if (bookingDetails.length > 0 && bookingDetails[0].user?.email) {
               const emailResult = await sendBookingConfirmationEmail(
                 bookingDetails[0].user.email,
                 {

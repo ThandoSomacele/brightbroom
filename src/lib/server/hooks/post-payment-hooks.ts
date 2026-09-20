@@ -13,7 +13,7 @@ import {
   sendBookingConfirmationEmail,
 } from "$lib/server/email-service";
 import { cleanerAssignmentService } from "$lib/server/services/cleaner-assignment.service";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 /**
  * Hooks that run after a successful payment
@@ -130,20 +130,20 @@ export const postPaymentHooks = {
           },
           user: {
             email: user.email,
-            firstName: user.firstName,
-            lastName: user.lastName,
+            firstName: sql<string>`coalesce(${user.firstName}, 'Guest')`,
+            lastName: sql<string>`coalesce(${user.lastName}, '')`,
             phone: user.phone,
           },
           address: {
-            street: address.street,
-            city: address.city,
-            state: address.state,
-            zipCode: address.zipCode,
+            street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+            city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
+            state: sql<string>`coalesce(${address.state}, ${booking.guestAddress}->>'state', '')`,
+            zipCode: sql<string>`coalesce(${address.zipCode}, ${booking.guestAddress}->>'zipCode', '')`,
           },
         })
         .from(booking)
-        .innerJoin(address, eq(booking.addressId, address.id))
-        .innerJoin(user, eq(booking.userId, user.id))
+        .leftJoin(address, eq(booking.addressId, address.id))
+        .leftJoin(user, eq(booking.userId, user.id))
         .where(eq(booking.id, bookingId))
         .limit(1);
 
@@ -162,6 +162,16 @@ export const postPaymentHooks = {
           `[POST-PAYMENT HOOKS] Skipping confirmation email for cancelled booking: ${bookingId}`,
         );
         return true; // Return true to indicate we handled this correctly (by not sending)
+      }
+
+      // A guest booking may have no account attached; without an email
+      // address there is nobody to write to
+      const bookingUser = bookingData.user;
+      if (!bookingUser?.email) {
+        console.warn(
+          `[POST-PAYMENT HOOKS] No customer email on booking ${bookingId}; skipping confirmation email`,
+        );
+        return true;
       }
 
       // Fetch booking add-ons with their names and prices
@@ -186,7 +196,7 @@ export const postPaymentHooks = {
 
       // Send the confirmation email with the explicit payment status and full booking details
       const success = await sendBookingConfirmationEmail(
-        bookingData.user.email,
+        bookingUser.email,
         {
           id: bookingData.booking.id,
           status: bookingData.booking.status,
@@ -223,15 +233,15 @@ export const postPaymentHooks = {
       if (!adminAlreadyNotified) {
         try {
           const customerName =
-            [bookingData.user.firstName, bookingData.user.lastName]
+            [bookingUser.firstName, bookingUser.lastName]
               .filter(Boolean)
-              .join(" ") || bookingData.user.email;
+              .join(" ") || bookingUser.email;
 
           const adminSent = await sendAdminNewBookingEmail({
             id: bookingData.booking.id,
             customerName,
-            customerEmail: bookingData.user.email,
-            customerPhone: bookingData.user.phone || undefined,
+            customerEmail: bookingUser.email,
+            customerPhone: bookingUser.phone || undefined,
             service: "General Clean",
             scheduledDate: bookingData.booking.scheduledDate,
             bedroomCount: bookingData.booking.bedroomCount || undefined,

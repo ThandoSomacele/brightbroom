@@ -349,7 +349,7 @@
                 </div>
                 
                 <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                  {booking.customer.firstName} {booking.customer.lastName}
+                  {booking.customer?.firstName ?? 'Guest'} {booking.customer?.lastName ?? ''}
                 </div>
                 
                 <div class="mt-3">

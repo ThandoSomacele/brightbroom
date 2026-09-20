@@ -3,7 +3,7 @@ import { db } from "$lib/server/db";
 import { address, booking, user, adminNote } from "$lib/server/db/schema";
 import { sendBookingConfirmationEmail } from "$lib/server/email-service";
 import { json } from "@sveltejs/kit";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { RequestHandler } from "./$types";
 
 /**
@@ -57,19 +57,19 @@ export const POST: RequestHandler = async ({ request }) => {
         },
         user: {
           email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName: sql<string>`coalesce(${user.firstName}, 'Guest')`,
+          lastName: sql<string>`coalesce(${user.lastName}, '')`,
         },
         address: {
-          street: address.street,
-          city: address.city,
-          state: address.state,
-          zipCode: address.zipCode,
+          street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+          city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
+          state: sql<string>`coalesce(${address.state}, ${booking.guestAddress}->>'state', '')`,
+          zipCode: sql<string>`coalesce(${address.zipCode}, ${booking.guestAddress}->>'zipCode', '')`,
         },
       })
       .from(booking)
-      .innerJoin(address, eq(booking.addressId, address.id))
-      .innerJoin(user, eq(booking.userId, user.id))
+      .leftJoin(address, eq(booking.addressId, address.id))
+      .leftJoin(user, eq(booking.userId, user.id))
       .where(eq(booking.id, bookingId))
       .limit(1);
     
@@ -89,6 +89,10 @@ export const POST: RequestHandler = async ({ request }) => {
       });
     }
     
+    if (!bookingData.user?.email) {
+      return json({ success: false, message: 'This booking has no customer email' }, { status: 400 });
+    }
+
     console.log(`[DIRECT EMAIL] Sending confirmation email to ${bookingData.user.email}`);
     
     // Force payment status to COMPLETED (this is crucial)

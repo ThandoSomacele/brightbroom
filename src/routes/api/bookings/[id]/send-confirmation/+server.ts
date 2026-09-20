@@ -3,7 +3,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { booking, address, user } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { sendBookingConfirmationEmail } from '$lib/server/email-service';
 
 export const POST: RequestHandler = async ({ params, request, locals }) => {
@@ -23,21 +23,21 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     const results = await db.select({
       booking: booking,
       address: {
-        street: address.street,
-        city: address.city,
-        state: address.state,
-        zipCode: address.zipCode
+        street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+        city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
+        state: sql<string>`coalesce(${address.state}, ${booking.guestAddress}->>'state', '')`,
+        zipCode: sql<string>`coalesce(${address.zipCode}, ${booking.guestAddress}->>'zipCode', '')`
       },
       user: {
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: sql<string>`coalesce(${user.firstName}, 'Guest')`,
+        lastName: sql<string>`coalesce(${user.lastName}, '')`,
         email: user.email
       }
     })
     .from(booking)
     .where(eq(booking.id, bookingId))
-    .innerJoin(address, eq(booking.addressId, address.id))
-    .innerJoin(user, eq(booking.userId, user.id))
+    .leftJoin(address, eq(booking.addressId, address.id))
+    .leftJoin(user, eq(booking.userId, user.id))
     .limit(1);
     
     if (results.length === 0) {
@@ -58,7 +58,10 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     };
     
     // Use override email if provided, otherwise use user's email
-    const emailTo = overrideEmail || result.user.email;
+    const emailTo = overrideEmail || result.user?.email;
+    if (!emailTo) {
+      return json({ error: 'This booking has no customer email; supply an override address' }, { status: 400 });
+    }
     
     // Send confirmation email
     const success = await sendBookingConfirmationEmail(emailTo, bookingData);

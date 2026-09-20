@@ -252,7 +252,7 @@
                           class="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400"
                         >
                           <MapPin size={14} class="mr-1" />
-                          {booking.address.street}, {booking.address.city}
+                          {booking.address?.street ?? '(guest address)'}, {booking.address?.city ?? ''}
                         </p>
                         <p
                           class="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400"

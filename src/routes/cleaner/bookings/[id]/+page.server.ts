@@ -1,7 +1,7 @@
 // src/routes/cleaner/bookings/[id]/+page.server.ts
 import { db } from '$lib/server/db';
 import { booking, address, user, adminNote, communicationLog, bookingAddon, addon, payment } from '$lib/server/db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, sql } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import { resolveCleanerPayout } from '$lib/utils/payout-calculator';
 import type { PageServerLoad, Actions } from './$types';
@@ -26,22 +26,23 @@ export const load: PageServerLoad = async ({ params, locals }) => {
           bathroomCount: booking.bathroomCount,
         },
         address: {
-          street: address.street,
-          city: address.city,
-          state: address.state,
-          zipCode: address.zipCode,
+          // Guest bookings keep their address in the guestAddress JSON
+          street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+          city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
+          state: sql<string>`coalesce(${address.state}, ${booking.guestAddress}->>'state', '')`,
+          zipCode: sql<string>`coalesce(${address.zipCode}, ${booking.guestAddress}->>'zipCode', '')`,
         },
         customer: {
           id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName: sql<string>`coalesce(${user.firstName}, 'Guest')`,
+          lastName: sql<string>`coalesce(${user.lastName}, '')`,
           email: user.email,
           phone: user.phone,
         }
       })
       .from(booking)
-      .innerJoin(address, eq(booking.addressId, address.id))
-      .innerJoin(user, eq(booking.userId, user.id))
+      .leftJoin(address, eq(booking.addressId, address.id))
+      .leftJoin(user, eq(booking.userId, user.id))
       .where(
         and(
           eq(booking.id, bookingId),
@@ -188,7 +189,7 @@ export const actions: Actions = {
       // Get cleaner info for the name
       const cleanerInfo = await db
         .select({
-          firstName: user.firstName,
+          firstName: sql<string>`coalesce(${user.firstName}, 'Guest')`,
           lastName: user.lastName
         })
         .from(user)

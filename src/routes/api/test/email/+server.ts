@@ -4,7 +4,7 @@ import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { db } from "$lib/server/db";
 import { booking, service, address, user, payment } from "$lib/server/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { sendBookingConfirmationEmail } from "$lib/server/email-service";
 
 /**
@@ -44,16 +44,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
           name: service.name,
         },
         address: {
-          street: address.street,
-          city: address.city,
-          state: address.state,
-          zipCode: address.zipCode,
+          street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+          city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
+          state: sql<string>`coalesce(${address.state}, ${booking.guestAddress}->>'state', '')`,
+          zipCode: sql<string>`coalesce(${address.zipCode}, ${booking.guestAddress}->>'zipCode', '')`,
         },
       })
       .from(booking)
       .innerJoin(service, eq(booking.serviceId, service.id))
-      .innerJoin(address, eq(booking.addressId, address.id))
-      .innerJoin(user, eq(booking.userId, user.id))
+      .leftJoin(address, eq(booking.addressId, address.id))
+      .leftJoin(user, eq(booking.userId, user.id))
       .where(eq(booking.id, bookingId))
       .limit(1);
 
@@ -73,6 +73,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     const paymentStatus = payments.length > 0 ? payments[0].status : null;
 
     console.log(`[EMAIL TEST] Booking found, payment status: ${paymentStatus || 'Not found'}`);
+
+    if (!bookingData.user?.email) {
+      return json({ success: false, message: 'This booking has no customer email' }, { status: 400 });
+    }
 
     // Force sending confirmation email with COMPLETED status
     const success = await sendBookingConfirmationEmail(
