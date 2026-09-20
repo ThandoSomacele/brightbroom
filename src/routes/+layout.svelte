@@ -13,6 +13,10 @@
 
   // Access user data from the page store
   $: user = $page.data.user;
+  // While bookings are paused, the CTAs point at the explanation page rather
+  // than a funnel that would only redirect there anyway
+  $: bookingsPaused = $page.data.bookingsPaused;
+  $: bookHref = bookingsPaused ? "/bookings-paused" : "/book";
 
   // Get site URL for canonical URLs
   const siteUrl = import.meta.env.VITE_SITE_URL || "https://brightbroom.com";
@@ -163,7 +167,9 @@
           </form>
         {:else}
           <Button variant="outline" href="/auth/login">Login</Button>
-          <Button variant="secondary" href="/book">Book Now</Button>
+          <Button variant="secondary" href={bookHref}>
+            {bookingsPaused ? "Coming Soon" : "Book Now"}
+          </Button>
         {/if}
       </div>
 
@@ -307,10 +313,10 @@
               >Login</a
             >
             <a
-              href="/book"
+              href={bookHref}
               on:click={closeMenu}
               class="block px-3 py-2 text-white bg-secondary hover:bg-secondary-600 hover:text-white dark:bg-secondary dark:hover:bg-secondary-600 rounded-md"
-              >Book Now</a
+              >{bookingsPaused ? "Coming Soon" : "Book Now"}</a
             >
           </div>
         {/if}

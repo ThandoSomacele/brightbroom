@@ -12,7 +12,7 @@ import {
   service,
   user,
 } from "$lib/server/db/schema";
-import { sendCleanerChangedEmail } from "$lib/server/email-service";
+import { sendBookingCancelledEmail, sendCleanerChangedEmail } from "$lib/server/email-service";
 import { cleanerAssignmentService } from "$lib/server/services/cleaner-assignment.service";
 import { sendCleanerAssignmentNotifications } from "$lib/server/services/notification.service";
 import { error, fail, redirect } from "@sveltejs/kit";
@@ -338,6 +338,54 @@ export const actions: Actions = {
         addedBy: `${locals.user.firstName} ${locals.user.lastName}`,
         createdAt: new Date(),
       });
+
+      // A cancellation is news the customer must hear. Tell them, mentioning
+      // the refund when the payment record shows one has been processed.
+      if (status === "CANCELLED") {
+        const [cancelled] = await db
+          .select({
+            id: booking.id,
+            scheduledDate: booking.scheduledDate,
+            street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
+            city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
+            email: user.email,
+          })
+          .from(booking)
+          .leftJoin(user, eq(booking.userId, user.id))
+          .leftJoin(address, eq(booking.addressId, address.id))
+          .where(eq(booking.id, bookingId))
+          .limit(1);
+
+        if (cancelled?.email) {
+          const [refunded] = await db
+            .select({ amount: payment.amount })
+            .from(payment)
+            .where(
+              and(eq(payment.bookingId, bookingId), eq(payment.status, "REFUNDED")),
+            )
+            .limit(1);
+
+          const sent = await sendBookingCancelledEmail(cancelled.email, {
+            id: cancelled.id,
+            scheduledDate: cancelled.scheduledDate,
+            service: { name: "General Clean" },
+            address: { street: cancelled.street, city: cancelled.city },
+            refundAmount: refunded?.amount ?? null,
+          });
+
+          await db.insert(adminNote).values({
+            id: crypto.randomUUID(),
+            bookingId,
+            content: sent
+              ? `Cancellation email sent to ${cancelled.email}${refunded ? ` (refund of R${refunded.amount} mentioned)` : ""}`
+              : `Failed to send cancellation email to ${cancelled.email}`,
+            addedBy: "System (Auto)",
+            createdAt: new Date(),
+          });
+        } else {
+          console.warn(`No customer email on booking ${bookingId}; cancellation email skipped`);
+        }
+      }
 
       return {
         success: true,

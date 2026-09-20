@@ -1,6 +1,7 @@
 // src/hooks.server.ts
-import { error, type Handle } from '@sveltejs/kit';
+import { error, json, redirect, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
+import { env as publicEnv } from '$env/dynamic/public';
 import { validateSessionToken } from '$lib/server/auth';
 import type { User } from '$lib/server/db/schema';
 import { tenantService } from '$lib/server/services/tenant.service';
@@ -220,6 +221,25 @@ if (path.includes('//')) {
   // Double slashes in URL path - redirect to corrected URL
   throw error(404, "Invalid URL format");
 }
+
+  // Bookings pause. Set PUBLIC_BOOKINGS_PAUSED=true (production context only)
+  // while there are no trained cleaners to fulfil bookings: the funnel
+  // redirects to an explanation page and the two payment-initiating endpoints
+  // refuse, so no direct URL or scripted POST can take a customer's money.
+  // Everything else - marketing, SEO pages, /join/cleaner, admin, cleaner
+  // portal - stays up. The development branch deploy leaves this unset and
+  // keeps the full sandbox flow for showcasing.
+  if (publicEnv.PUBLIC_BOOKINGS_PAUSED === 'true') {
+    if (path === '/book' || path.startsWith('/book/')) {
+      throw redirect(302, '/bookings-paused');
+    }
+    if (path === '/api/payments/process' || path === '/api/subscription/create') {
+      return json(
+        { error: 'Bookings are paused while we onboard cleaners. Please check back soon.' },
+        { status: 503 },
+      );
+    }
+  }
   
   // Admin route protection.
   //

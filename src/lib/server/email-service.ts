@@ -6,6 +6,7 @@ import { db } from "./db";
 import { adminNote, payment } from "./db/schema";
 import {
   getAdminBookingPaidTemplate,
+  getBookingCancelledTemplate,
   getBookingConfirmationTemplate,
   getBookingReminderTemplate,
   getCleanerApplicationTemplate,
@@ -913,6 +914,52 @@ export async function sendCleanerChangedEmail(
     return true;
   } catch (error) {
     console.error("Error sending cleaner changed notification email:", error);
+    return false;
+  }
+}
+
+/**
+ * Tell a customer their booking has been cancelled, optionally confirming a
+ * refund that has already been processed.
+ */
+export async function sendBookingCancelledEmail(
+  email: string,
+  booking: {
+    id: string;
+    scheduledDate: string;
+    service: { name: string };
+    address: { street: string; city: string };
+    refundAmount?: string | null;
+  },
+): Promise<boolean> {
+  try {
+    if (!resend) {
+      console.error("Resend API key not configured");
+      return false;
+    }
+
+    const template = getBookingCancelledTemplate(email, booking, EMAIL_CONFIG);
+
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+
+    if (error) {
+      console.error("Resend API error:", error);
+      return false;
+    }
+
+    console.log("Booking cancelled email sent successfully:", {
+      bookingId: booking.id,
+      emailId: data?.id,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error sending booking cancelled email:", error);
     return false;
   }
 }

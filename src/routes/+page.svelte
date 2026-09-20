@@ -7,7 +7,9 @@
   import { CalendarCheck, Clock, Home, Sparkles } from "lucide-svelte";
 
   // Get user data from loader
-  export let data;
+  // Layout data (user, bookingsPaused). The generated PageData resolves to {}
+  // for this page, so type loosely rather than fight stale codegen.
+  export let data: Record<string, any>;
 
   $: user = data.user;
 
@@ -159,10 +161,10 @@
       <!-- CTA Buttons -->
       <div class="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
         <a
-          href="/book"
+          href={data.bookingsPaused ? "/bookings-paused" : "/book"}
           class="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-secondary text-white font-semibold rounded-lg hover:bg-secondary-600 transition-colors text-sm sm:text-base"
         >
-          Book Now
+          {data.bookingsPaused ? "Coming Soon" : "Book Now"}
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
           </svg>

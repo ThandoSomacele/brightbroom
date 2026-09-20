@@ -4232,3 +4232,142 @@ export function getAdminBookingPaidTemplate(
 
   return { subject, html, text };
 }
+
+/**
+ * Tell a customer their booking has been cancelled, with an optional line
+ * confirming a refund that has already been processed.
+ */
+export function getBookingCancelledTemplate(
+  recipientEmail: string,
+  booking: {
+    id: string;
+    scheduledDate: string;
+    service: { name: string };
+    address: { street: string; city: string };
+    refundAmount?: string | null;
+  },
+  data: EmailTemplateData,
+): { subject: string; html: string; text: string } {
+  const escapedEmail = escapeHtml(recipientEmail);
+  const reference = getBookingReference(booking.id);
+
+  const scheduledDate = parseDateTimeString(booking.scheduledDate);
+  const dateString = scheduledDate.toLocaleDateString("en-ZA", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const timeString = scheduledDate.toLocaleTimeString("en-ZA", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const refundHtml = booking.refundAmount
+    ? `<div class="info-box" style="background-color: #E8F5E9; border-left: 4px solid #4CAF50;">
+        <strong>Your refund is on its way.</strong><br>
+        R${escapeHtml(booking.refundAmount)} has been refunded to your original payment
+        method. Depending on your bank it can take 3&ndash;5 business days to reflect.
+      </div>`
+    : "";
+  const refundText = booking.refundAmount
+    ? `\nYour refund is on its way: R${booking.refundAmount} has been refunded to your original payment method. Depending on your bank it can take 3-5 business days to reflect.\n`
+    : "";
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Cancelled</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background-color: ${data.primaryColor};
+    }
+    .content {
+      padding: 30px 20px;
+      background-color: #ffffff;
+    }
+    .booking-box {
+      background-color: #F5F5F5;
+      border-left: 4px solid ${data.primaryColor};
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .info-box {
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .footer {
+      font-size: 12px;
+      text-align: center;
+      color: #888888;
+      padding: 20px;
+    }
+    @media only screen and (max-width: 480px) {
+      .email-container { padding: 10px; }
+      .content { padding: 20px 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1 style="color: #ffffff; margin: 0;">${data.brandName}</h1>
+    </div>
+    <div class="content">
+      <h2>Your booking has been cancelled</h2>
+      <p>We're sorry &mdash; we've had to cancel your upcoming cleaning. We know this is
+      disappointing, and we apologise for the inconvenience.</p>
+      <div class="booking-box">
+        <strong>${escapeHtml(booking.service.name)}</strong> &middot; Ref ${reference}<br>
+        ${dateString} at ${timeString}<br>
+        ${escapeHtml(booking.address.street)}, ${escapeHtml(booking.address.city)}
+      </div>
+      ${refundHtml}
+      <p>If you have any questions, just reply to this email or reach us at
+      <a href="${data.appUrl}/contact">${data.appUrl.replace("https://", "")}/contact</a>
+      &mdash; we're happy to help.</p>
+      <p>&mdash; The ${data.brandName} team</p>
+    </div>
+    <div class="footer">
+      <p>This email was sent to ${escapedEmail} about booking ${reference}.</p>
+      <p>&copy; ${new Date().getFullYear()} ${data.brandName}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const text = `Your booking has been cancelled
+
+We're sorry - we've had to cancel your upcoming cleaning. We know this is disappointing, and we apologise for the inconvenience.
+
+${booking.service.name} - Ref ${reference}
+${dateString} at ${timeString}
+${booking.address.street}, ${booking.address.city}
+${refundText}
+If you have any questions, reply to this email or visit ${data.appUrl}/contact - we're happy to help.
+
+- The ${data.brandName} team`;
+
+  return {
+    subject: `Your ${data.brandName} booking on ${dateString} has been cancelled`,
+    html,
+    text,
+  };
+}

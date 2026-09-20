@@ -54,12 +54,14 @@ export const actions: Actions = {
           updatedAt: new Date()
         })
         .where(eq(booking.id, bookingId));
-      
-      // Redirect to booking details page
-      throw redirect(302, `/profile/bookings/${bookingId}?cancelled=true`);
     } catch (err) {
       console.error('Error cancelling booking:', err);
       return fail(500, { error: 'Failed to cancel booking' });
     }
+
+    // Redirects are thrown, so this must live outside the try or the catch
+    // above swallows it and the customer gets a 500 instead of their
+    // confirmation page
+    throw redirect(302, `/profile/bookings/${bookingId}?cancelled=true`);
   }
 };
