@@ -560,10 +560,10 @@
     </div>
     <div class="p-4 border-t border-gray-200 dark:border-gray-700 text-center">
       <a
-        href="#!"
+        href="/admin/bookings"
         class="text-primary hover:text-primary-600 text-sm font-medium hover:underline"
       >
-        View all activity
+        View all bookings
       </a>
     </div>
   </div>

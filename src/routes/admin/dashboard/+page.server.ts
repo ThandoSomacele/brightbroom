@@ -1,6 +1,6 @@
 // src/routes/admin/dashboard/+page.server.ts
 import { db } from "$lib/server/db";
-import { booking, payment, user, cleanerProfile } from "$lib/server/db/schema";
+import { booking, payment, user, cleanerProfile, subscription, subscriptionPayment } from "$lib/server/db/schema";
 import { and, desc, eq, gte, lt, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
@@ -249,39 +249,121 @@ async function getRevenueTrends(tenantId: string | null) {
   }
 }
 
-// Helper function to get recent activity
-async function getRecentActivity() {
-  const now = new Date();
-  return [
-    {
-      type: "BOOKING",
-      description: "New booking created",
-      user: "Sarah Johnson",
-      date: new Date(now.getTime() - 1000 * 60 * 30).toISOString(),
-      link: "/admin/bookings/123",
-    },
-    {
-      type: "PAYMENT",
-      description: "Payment completed",
-      user: "John Smith",
-      date: new Date(now.getTime() - 1000 * 60 * 120).toISOString(),
-      link: "/admin/bookings/456",
-    },
-    {
-      type: "USER",
-      description: "New user registered",
-      user: "Emma Wilson",
-      date: new Date(now.getTime() - 1000 * 60 * 180).toISOString(),
-      link: "/admin/users/789",
-    },
-    {
-      type: "BOOKING",
-      description: "Booking completed",
-      user: "Michael Brown",
-      date: new Date(now.getTime() - 1000 * 60 * 240).toISOString(),
-      link: "/admin/bookings/012",
-    },
-  ];
+// Recent activity: the latest bookings, completed payments (once-off and
+// subscription cycles) and registrations, merged newest-first. Tenant admins
+// see only their own company's bookings and payments; registrations are
+// platform-level data and stay platform-only, matching /admin/users access.
+async function getRecentActivity(tenantId: string | null) {
+  const LIMIT = 8;
+
+  try {
+    const tenantFilter = bookingTenantCondition(tenantId);
+    const fullName = (first: string | null, last: string | null) =>
+      first ? `${first} ${last ?? ""}`.trim() : "Guest";
+    const rand = (amount: string) => `R${Number(amount).toFixed(2)}`;
+
+    const recentBookings = await db
+      .select({
+        id: booking.id,
+        createdAt: booking.createdAt,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      })
+      .from(booking)
+      .leftJoin(user, eq(booking.userId, user.id))
+      .where(tenantFilter)
+      .orderBy(desc(booking.createdAt))
+      .limit(LIMIT);
+
+    const recentPayments = await db
+      .select({
+        bookingId: payment.bookingId,
+        amount: payment.amount,
+        createdAt: payment.createdAt,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      })
+      .from(payment)
+      .leftJoin(user, eq(payment.userId, user.id))
+      .leftJoin(booking, eq(payment.bookingId, booking.id))
+      .where(
+        tenantFilter
+          ? and(eq(payment.status, "COMPLETED"), tenantFilter)
+          : eq(payment.status, "COMPLETED"),
+      )
+      .orderBy(desc(payment.createdAt))
+      .limit(LIMIT);
+
+    const recentCyclePayments = await db
+      .select({
+        bookingId: subscriptionPayment.bookingId,
+        amount: subscriptionPayment.amount,
+        createdAt: subscriptionPayment.createdAt,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      })
+      .from(subscriptionPayment)
+      .innerJoin(subscription, eq(subscriptionPayment.subscriptionId, subscription.id))
+      .leftJoin(user, eq(subscription.userId, user.id))
+      .leftJoin(booking, eq(subscriptionPayment.bookingId, booking.id))
+      .where(
+        tenantFilter
+          ? and(eq(subscriptionPayment.status, "COMPLETED"), tenantFilter)
+          : eq(subscriptionPayment.status, "COMPLETED"),
+      )
+      .orderBy(desc(subscriptionPayment.createdAt))
+      .limit(LIMIT);
+
+    const recentUsers = tenantId
+      ? []
+      : await db
+          .select({
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+            createdAt: user.createdAt,
+          })
+          .from(user)
+          .orderBy(desc(user.createdAt))
+          .limit(LIMIT);
+
+    return [
+      ...recentBookings.map((b) => ({
+        type: "BOOKING",
+        description: "Booking created",
+        user: fullName(b.firstName, b.lastName),
+        date: b.createdAt.toISOString(),
+        link: `/admin/bookings/${b.id}`,
+      })),
+      ...recentPayments.map((p) => ({
+        type: "PAYMENT",
+        description: `Payment of ${rand(p.amount)} completed`,
+        user: fullName(p.firstName, p.lastName),
+        date: p.createdAt.toISOString(),
+        link: p.bookingId ? `/admin/bookings/${p.bookingId}` : "/admin/bookings",
+      })),
+      ...recentCyclePayments.map((p) => ({
+        type: "PAYMENT",
+        description: `Subscription payment of ${rand(p.amount)}`,
+        user: fullName(p.firstName, p.lastName),
+        date: p.createdAt.toISOString(),
+        link: p.bookingId ? `/admin/bookings/${p.bookingId}` : "/admin/bookings",
+      })),
+      ...recentUsers.map((u) => ({
+        type: "USER",
+        description: `New ${u.role.toLowerCase().replace("_", " ")} registered`,
+        user: fullName(u.firstName, u.lastName),
+        date: u.createdAt.toISOString(),
+        link: `/admin/users/${u.id}`,
+      })),
+    ]
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, LIMIT);
+  } catch (error) {
+    console.error("Error loading recent activity:", error);
+    return [];
+  }
 }
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -294,7 +376,7 @@ export const load: PageServerLoad = async ({ locals }) => {
       pendingCleaners: getPendingCleaners(tenantId),
       bookingTrends: getBookingTrends(tenantId),
       revenueTrends: getRevenueTrends(tenantId),
-      recentActivity: getRecentActivity(),
+      recentActivity: getRecentActivity(tenantId),
     },
   };
 };
