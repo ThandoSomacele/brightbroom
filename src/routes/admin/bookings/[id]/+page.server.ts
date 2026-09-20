@@ -41,6 +41,7 @@ async function getBookingData(bookingId: string, tenantId: string | null) {
         cleanerId: booking.cleanerId,
         serviceId: booking.serviceId,
         addressId: booking.addressId,
+        guestAddress: booking.guestAddress,
         bedroomCount: booking.bedroomCount,
         bathroomCount: booking.bathroomCount,
       })
@@ -64,13 +65,16 @@ async function getBookingData(bookingId: string, tenantId: string | null) {
         .limit(1)
         .then((results) => results[0] || null),
 
-      // Get address info
-      db
-        .select()
-        .from(address)
-        .where(eq(address.id, bookingData.addressId))
-        .limit(1)
-        .then((results) => results[0] || null),
+      // Get address info; guest bookings have no address row - their address
+      // lives in the guestAddress JSON and is mapped below
+      bookingData.addressId
+        ? db
+            .select()
+            .from(address)
+            .where(eq(address.id, bookingData.addressId))
+            .limit(1)
+            .then((results) => results[0] || null)
+        : Promise.resolve(null),
 
       // Get payment info
       db
@@ -98,13 +102,15 @@ async function getBookingData(bookingId: string, tenantId: string | null) {
         .where(eq(bookingAddon.bookingId, bookingId)),
     ]);
 
-    // Step 3: Fetch customer info
-    const customerData = await db
-      .select()
-      .from(user)
-      .where(eq(user.id, bookingData.userId))
-      .limit(1)
-      .then((results) => results[0] || null);
+    // Step 3: Fetch customer info (guest bookings have no account)
+    const customerData = bookingData.userId
+      ? await db
+          .select()
+          .from(user)
+          .where(eq(user.id, bookingData.userId))
+          .limit(1)
+          .then((results) => results[0] || null)
+      : null;
 
     // Step 4: Fetch cleaner info if assigned
     let cleanerData = null;
@@ -143,32 +149,36 @@ async function getBookingData(bookingId: string, tenantId: string | null) {
         .orderBy(desc(communicationLog.createdAt)),
     ]);
 
-    // Step 6: Get related bookings from the same customer
-    const relatedBookings = await db
-      .select({
-        id: booking.id,
-        status: booking.status,
-        scheduledDate: booking.scheduledDate,
-        bedroomCount: booking.bedroomCount,
-        bathroomCount: booking.bathroomCount,
-      })
-      .from(booking)
-      .where(
-        and(
-          eq(booking.userId, bookingData.userId),
-          sql`${booking.id} != ${bookingId}`, // Exclude current booking
-        ),
-      )
-      .orderBy(desc(booking.scheduledDate))
-      .limit(5);
+    // Step 6: Get related bookings from the same customer (none for guests)
+    const relatedBookings = bookingData.userId
+      ? await db
+          .select({
+            id: booking.id,
+            status: booking.status,
+            scheduledDate: booking.scheduledDate,
+            bedroomCount: booking.bedroomCount,
+            bathroomCount: booking.bathroomCount,
+          })
+          .from(booking)
+          .where(
+            and(
+              eq(booking.userId, bookingData.userId),
+              sql`${booking.id} != ${bookingId}`, // Exclude current booking
+            ),
+          )
+          .orderBy(desc(booking.scheduledDate))
+          .limit(5)
+      : [];
 
-    // Step 7: Get customer booking count - FIXED VERSION
-    const bookingCountResult = await db
-      .select({
-        count: sql<number>`count(*)`.mapWith(Number),
-      })
-      .from(booking)
-      .where(eq(booking.userId, bookingData.userId));
+    // Step 7: Get customer booking count
+    const bookingCountResult = bookingData.userId
+      ? await db
+          .select({
+            count: sql<number>`count(*)`.mapWith(Number),
+          })
+          .from(booking)
+          .where(eq(booking.userId, bookingData.userId))
+      : [{ count: 1 }];
 
     let bookingsCount = 0;
     if (
@@ -179,11 +189,20 @@ async function getBookingData(bookingId: string, tenantId: string | null) {
       bookingsCount = bookingCountResult[0].count;
     }
 
-    // Step 8: Get all active cleaners for the assignment dropdown
-    const {
-      cleaners: availableCleanersData,
-      bookingData: assignmentBookingData,
-    } = await cleanerAssignmentService.findAvailableCleaners(bookingId);
+    // Step 8: Get all active cleaners for the assignment dropdown. A failure
+    // here degrades the dropdown, never the page.
+    let availableCleanersData: Awaited<
+      ReturnType<typeof cleanerAssignmentService.findAvailableCleaners>
+    >["cleaners"] = [];
+    try {
+      ({ cleaners: availableCleanersData } =
+        await cleanerAssignmentService.findAvailableCleaners(bookingId));
+    } catch (err) {
+      console.error("Could not load available cleaners for booking:", {
+        bookingId,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
 
     // Transform the data to match the expected format
     const availableCleaners = availableCleanersData.map((cleaner) => ({
@@ -198,14 +217,35 @@ async function getBookingData(bookingId: string, tenantId: string | null) {
     }));
 
     // Assemble the final booking detail object
+    // Guest bookings: surface the JSON address in the page's address shape
+    const guest = (bookingData.guestAddress ?? null) as {
+      street?: string; aptUnit?: string; city?: string; state?: string;
+      zipCode?: string; instructions?: string; lat?: number; lng?: number;
+    } | null;
+    const resolvedAddress =
+      addressData ??
+      (guest
+        ? {
+            id: null,
+            street: guest.street ?? "(guest address)",
+            aptUnit: guest.aptUnit ?? null,
+            city: guest.city ?? "",
+            state: guest.state ?? "",
+            zipCode: guest.zipCode ?? "",
+            instructions: guest.instructions ?? null,
+            lat: guest.lat ?? null,
+            lng: guest.lng ?? null,
+          }
+        : null);
+
     const bookingDetail = {
       ...bookingData,
       service: serviceData,
-      address: addressData,
+      address: resolvedAddress,
       payment: paymentData,
       addons: bookingAddons,
       customer: {
-        ...customerData,
+        ...(customerData ?? { id: null, firstName: "Guest", lastName: "", email: null, phone: null }),
         bookingsCount: bookingsCount,
       },
       cleaner: cleanerData

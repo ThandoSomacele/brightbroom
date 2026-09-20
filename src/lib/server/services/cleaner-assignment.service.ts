@@ -39,6 +39,7 @@ export const cleanerAssignmentService = {
           id: booking.id,
           serviceId: booking.serviceId,
           addressId: booking.addressId,
+          guestAddress: booking.guestAddress,
           scheduledDate: booking.scheduledDate,
           duration: booking.duration,
         })
@@ -52,18 +53,25 @@ export const cleanerAssignmentService = {
 
       const bookingData = bookingDetails[0];
 
-      // Get booking address coordinates
-      const addressDetails = await db
-        .select()
-        .from(address)
-        .where(eq(address.id, bookingData.addressId))
-        .limit(1);
+      // Get booking coordinates. Guest bookings have no address table row -
+      // their address, coordinates included, lives in the guestAddress JSON.
+      let bookingAddress: { lat?: unknown; lng?: unknown };
+      if (bookingData.addressId) {
+        const addressDetails = await db
+          .select()
+          .from(address)
+          .where(eq(address.id, bookingData.addressId))
+          .limit(1);
 
-      if (addressDetails.length === 0) {
-        throw new Error('Address not found for booking');
+        if (addressDetails.length === 0) {
+          throw new Error('Address not found for booking');
+        }
+        bookingAddress = addressDetails[0];
+      } else if (bookingData.guestAddress) {
+        bookingAddress = bookingData.guestAddress as { lat?: unknown; lng?: unknown };
+      } else {
+        throw new Error('Booking has neither an address nor a guest address');
       }
-
-      const bookingAddress = addressDetails[0];
 
       // Extract and validate booking address coordinates
       let bookingLat: number | null = null;
