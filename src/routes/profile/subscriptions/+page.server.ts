@@ -5,6 +5,7 @@ import { error, redirect } from '@sveltejs/kit';
 import { eq, desc } from 'drizzle-orm';
 import type { PageServerLoad, Actions } from './$types';
 import { payFastSubscriptionService } from '$lib/server/services/payfast-subscription';
+import { sendSubscriptionCancelledEmail } from '$lib/server/email-service';
 
 export const load: PageServerLoad = async ({ locals }) => {
   // Check if the user is logged in
@@ -198,6 +199,19 @@ export const actions: Actions = {
           updatedAt: new Date()
         })
         .where(eq(subscription.id, subscriptionId));
+
+      // Confirm it in writing; a failed email never fails the cancellation
+      const [svc] = await db
+        .select({ name: service.name })
+        .from(service)
+        .where(eq(service.id, sub.serviceId))
+        .limit(1);
+      await sendSubscriptionCancelledEmail(
+        locals.user.email,
+        { id: sub.id, serviceName: svc?.name ?? 'Cleaning Service', frequency: sub.frequency },
+        'user',
+        reason,
+      );
 
       return { success: true };
     }

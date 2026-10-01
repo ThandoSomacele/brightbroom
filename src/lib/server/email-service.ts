@@ -21,6 +21,7 @@ import {
   getPasswordResetConfirmationTemplate,
   getPasswordResetTemplate,
   getPaymentReceiptTemplate,
+  getSubscriptionCancelledTemplate,
   getWelcomeEmailTemplate,
 } from "./email-templates";
 
@@ -960,6 +961,54 @@ export async function sendBookingCancelledEmail(
     return true;
   } catch (error) {
     console.error("Error sending booking cancelled email:", error);
+    return false;
+  }
+}
+
+/**
+ * Tell a customer their subscription has been cancelled - by them, or by the
+ * system/merchant side (e.g. a cancellation at PayFast).
+ */
+export async function sendSubscriptionCancelledEmail(
+  email: string,
+  details: { id: string; serviceName: string; frequency: string },
+  cancelledBy: "user" | "system",
+  reason?: string,
+): Promise<boolean> {
+  try {
+    if (!resend) {
+      console.error("Resend API key not configured");
+      return false;
+    }
+
+    const template = getSubscriptionCancelledTemplate(
+      email,
+      { id: details.id, service: { name: details.serviceName }, frequency: details.frequency },
+      cancelledBy,
+      reason,
+      EMAIL_CONFIG,
+    );
+
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+
+    if (error) {
+      console.error("Resend API error:", error);
+      return false;
+    }
+
+    console.log("Subscription cancelled email sent successfully:", {
+      subscriptionId: details.id,
+      emailId: data?.id,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error sending subscription cancelled email:", error);
     return false;
   }
 }

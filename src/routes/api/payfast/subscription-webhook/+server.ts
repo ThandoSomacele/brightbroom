@@ -3,8 +3,9 @@
 import { text } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
-import { subscription, subscriptionPayment, booking } from '$lib/server/db/schema';
+import { subscription, subscriptionPayment, booking, service, user } from '$lib/server/db/schema';
 import { payFastSubscriptionService } from '$lib/server/services/payfast-subscription';
+import { sendSubscriptionCancelledEmail } from '$lib/server/email-service';
 import { tenantService } from '$lib/server/services/tenant.service';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
@@ -74,6 +75,26 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // Handle different payment statuses
     if (payment_status === 'COMPLETE') {
+      // A payment notification for a cancelled subscription must never create
+      // bookings or revive billing. It can still teach us the billing token
+      // we may have missed - needed to manage the subscription at PayFast -
+      // and is acknowledged so PayFast stops retrying. This also makes an ITN
+      // resend from the PayFast dashboard a clean token-capture mechanism.
+      if (subscriptionData.status === 'CANCELLED') {
+        if (token && !subscriptionData.payFastToken) {
+          await db
+            .update(subscription)
+            .set({ payFastToken: token, updatedAt: new Date() })
+            .where(eq(subscription.id, subscriptionId));
+          console.log('Stored billing token from ITN for cancelled subscription:', subscriptionId);
+        }
+        console.warn('COMPLETE ITN for cancelled subscription acknowledged without processing:', {
+          subscriptionId,
+          payFastPaymentId,
+        });
+        return text('OK');
+      }
+
       // Update subscription status if this is the first payment
       if (subscriptionData.status === 'PENDING') {
         await db
@@ -173,6 +194,29 @@ export const POST: RequestHandler = async ({ request }) => {
         .where(eq(subscription.id, subscriptionId));
 
       console.log('Subscription cancelled:', subscriptionId);
+
+      // Tell the customer - but only on the actual transition, so an ITN
+      // retry or a cancellation we already processed does not email twice
+      if (subscriptionData.status !== 'CANCELLED' && subscriptionData.userId) {
+        const [[customer], [svc]] = await Promise.all([
+          db.select({ email: user.email }).from(user)
+            .where(eq(user.id, subscriptionData.userId)).limit(1),
+          db.select({ name: service.name }).from(service)
+            .where(eq(service.id, subscriptionData.serviceId)).limit(1),
+        ]);
+        if (customer?.email) {
+          await sendSubscriptionCancelledEmail(
+            customer.email,
+            {
+              id: subscriptionData.id,
+              serviceName: svc?.name ?? 'Cleaning Service',
+              frequency: subscriptionData.frequency,
+            },
+            'system',
+            'Your subscription was cancelled with our payment provider',
+          );
+        }
+      }
     } else if (payment_status === 'FAILED') {
       // Record failed payment attempt
       const paymentId = crypto.randomBytes(16).toString('hex');

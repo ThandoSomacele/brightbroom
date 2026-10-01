@@ -3390,7 +3390,7 @@ export function getSubscriptionCancelledTemplate(
     frequency: string;
   },
   cancelledBy: 'user' | 'system',
-  reason?: string,
+  reason: string | undefined,
   data: EmailTemplateData,
 ): { subject: string; html: string; text: string } {
   const bookingUrl = `${data.appUrl}/book`;
