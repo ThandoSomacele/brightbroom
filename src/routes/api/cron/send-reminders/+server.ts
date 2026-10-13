@@ -16,11 +16,9 @@ export const GET: RequestHandler = async ({ url, request }) => {
   const authHeader = request.headers.get("authorization");
   const token = authHeader?.split(" ")[1]; // "Bearer <token>"
 
-  // Simple auth check (use a more secure method in production)
-  if (
-    process.env.NODE_ENV === "production" &&
-    token !== process.env.CRON_SECRET
-  ) {
+  // Same secret the scheduled functions send (CRON_SECRET kept for older setups); fails closed when unset
+  const expected = process.env.CRON_SECRET_TOKEN || process.env.CRON_SECRET;
+  if (process.env.NODE_ENV === "production" && (!expected || token !== expected)) {
     return new Response("Unauthorized", { status: 401 });
   }
 

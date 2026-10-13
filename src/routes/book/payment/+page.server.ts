@@ -126,6 +126,7 @@ export const actions: Actions = {
     }
     
     // After successful authentication and session creation, redirect
-    throw redirect(302, redirectTo);
+    // Only follow same-site paths: a crafted redirectTo must not send a fresh login elsewhere
+    throw redirect(302, redirectTo.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : '/payment/process');
   }
 };

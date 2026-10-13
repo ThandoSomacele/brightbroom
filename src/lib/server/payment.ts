@@ -85,8 +85,9 @@ export async function createPaymentForBooking(
     // Construct callback URLs using the current domain
     const returnUrl = `${origin}/payment/success`;
     const cancelUrl = `${origin}/api/payments/cancel`;
-    // const notifyUrl = `${origin}/payfast-ipn`;
-    const notifyUrl = `${origin}/.netlify/functions/payfast-ipn`;
+    // The SvelteKit IPN route validates PayFast's signature and runs the
+    // post-payment hooks in-process; the old Netlify function did neither.
+    const notifyUrl = `${origin}/api/payments/ipn`;
     // Log the dynamic URLs
     console.log("Using PayFast callback URLs:");
     console.log(`- Return URL: ${returnUrl}`);
@@ -553,18 +554,9 @@ export function generatePayFastData(
   // Use the app URL as the base for return URLs
   const appUrl = options.origin || process.env.VITE_APP_URL || 'https://brightbroom.com';
   
-  // Define the return URLs
-  // IMPORTANT: For IPN, prioritize the Netlify function endpoint for production
-  const isProduction = process.env.NODE_ENV === 'production';
-  let notifyUrl;
-  
-  if (isProduction) {
-    // In production, use the Netlify function endpoint for IPN
-    notifyUrl = `${appUrl}/.netlify/functions/payfast-ipn`;
-  } else {
-    // In development or testing, use the SvelteKit route
-    notifyUrl = `${appUrl}/api/payments/ipn`;
-  }
+  // The SvelteKit IPN route validates PayFast's signature and runs the
+  // post-payment hooks in-process (the old Netlify function did neither).
+  const notifyUrl = `${appUrl}/api/payments/ipn`;
   
   // Configure return, cancel and notify URLs
   const returnUrl = `${appUrl}/payment/success?booking_id=${booking.id}`;
