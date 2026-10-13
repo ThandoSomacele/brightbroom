@@ -6,6 +6,7 @@
   import { AlertTriangle, CheckCircle } from 'lucide-svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { formatDate, formatTime } from '$lib/utils/date-utils';
+  import { secureAPIFetch } from '$lib/utils/api-helpers';
   
   // Get booking ID from URL params - try multiple possible parameters
   let bookingId = $page.url.searchParams.get('m_payment_id');
@@ -18,7 +19,7 @@
   async function executeWebhook(bookingId: string) {
     try {
       console.log('Executing webhook for booking:', bookingId);
-      const response = await fetch('/api/bookings/execute-webhook', {
+      const response = await secureAPIFetch('/api/bookings/execute-webhook', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

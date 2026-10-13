@@ -23,8 +23,6 @@
 | Path | Description |
 |------|-------------|
 | `/.netlify/functions-internal/sveltekit-render.mjs` | Server-side renderer created by adapter |
-| `/netlify/functions/handler.js` | Entry point for handling SSR requests |
-| `/netlify/functions/auth.js` | Entry point for auth requests |
 | `/.svelte-kit/netlify` | Build output directory |
 | `/_redirects` | Netlify redirect rules |
 

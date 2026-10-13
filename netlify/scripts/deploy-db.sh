@@ -5,19 +5,10 @@
 DEPLOY_CONTEXT=${CONTEXT:-development}
 echo "Running database deployment in $DEPLOY_CONTEXT context"
 
-# Only generate migrations in development or when explicitly requested.
-#
-# Deliberately not fatal: drizzle-kit generate prompts interactively when it
-# cannot tell a created table from a renamed one, which no CI runner can answer.
-# Generate migrations locally and commit them rather than relying on this.
-if [ "$DEPLOY_CONTEXT" == "development" ] || [ "$GENERATE_MIGRATIONS" == "true" ]; then
-  echo "Generating database migrations..."
-  if ! pnpm exec drizzle-kit generate --schema=./src/lib/server/db/schema.ts --out=./drizzle/migrations --dialect=postgresql; then
-    echo "WARNING: migration generation failed or needed input. Continuing with the committed migrations."
-  fi
-else
-  echo "Skipping migration generation in $DEPLOY_CONTEXT environment"
-fi
+# Migrations are never generated on the build server. The journal's history is
+# hand-maintained (see CLAUDE.md), and drizzle-kit generate against it would
+# produce a migration that does not match the database. Write migrations
+# locally, commit them, and this script only applies them.
 
 # Set NODE_ENV based on context for migrations
 export NODE_ENV=$DEPLOY_CONTEXT

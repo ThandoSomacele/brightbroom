@@ -581,7 +581,7 @@
                   {formatCurrency(payout.amount)}
                 </td>
                 <td class="table-td whitespace-nowrap text-right font-medium text-gray-900 dark:text-white">
-                  {formatCurrency(payout.cleanerPayoutAmount)}
+                  {formatCurrency(payout.cleanerPayoutAmount ?? 0)}
                 </td>
               </tr>
             {/each}

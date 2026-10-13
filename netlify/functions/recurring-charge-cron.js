@@ -4,16 +4,11 @@
  *
  * This function runs on a schedule to process recurring subscription charges.
  *
- * To set up the schedule:
- * 1. Go to your Netlify site dashboard
- * 2. Navigate to Functions
- * 3. Find this function and click "Configure"
- * 4. Set the schedule (e.g., "0 2 * * *" for 2 AM daily)
- *
- * Or configure via netlify.toml:
- * [[functions]]
- *   name = "recurring-charge-cron"
- *   schedule = "0 2 * * *"  # Runs daily at 2 AM UTC
+ * The schedule is declared in netlify.toml as
+ *   [functions."recurring-charge-cron"]
+ *     schedule = "0 2 * * *"
+ * (a [[functions]] array would clash with the [functions] table and break the
+ * config). The endpoint it calls checks CRON_SECRET_TOKEN.
  */
 
 exports.handler = async (event, context) => {

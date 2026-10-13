@@ -21,27 +21,20 @@
     "react/jsx-runtime"
   ]
 
-# Note: Scheduled function 'recurring-charge-cron' is configured via Netlify UI
-# Schedule: "0 2 * * *" (daily at 2 AM UTC)
-# This processes recurring subscription charges
+# Scheduled functions. Declared here (not in the Netlify UI) so a new site gets
+# them on first deploy. Both call API routes that check CRON_SECRET_TOKEN.
+[functions."recurring-charge-cron"]
+  schedule = "0 2 * * *"  # 02:00 UTC daily: recurring subscription charges
 
-
-
-# Set CORS headers for PayFast IPN requests
-[[headers]]
-  for = "/.netlify/functions/payfast-ipn"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Access-Control-Allow-Methods = "POST, OPTIONS"
-    Access-Control-Allow-Headers = "Content-Type"
+[functions."booking-reminders-cron"]
+  schedule = "0 6 * * *"  # 06:00 UTC = 08:00 SAST: next-day booking reminders
 
 [context.production]
   environment = { NODE_ENV = "production" }
   
+# Migrations are hand-written and committed; no context generates them during a build.
 [context.development]
-  command = "pnpm install --frozen-lockfile --prod=false && ./netlify/scripts/pre-build.sh && pnpm exec svelte-kit sync && pnpm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
   environment = { NODE_ENV = "development" }
 
 [context.branch-deploy]
-  command = "pnpm install --frozen-lockfile --prod=false && ./netlify/scripts/pre-build.sh && pnpm exec svelte-kit sync && pnpm run build && GENERATE_MIGRATIONS=true ./netlify/scripts/deploy-db.sh"
   environment = { NODE_ENV = "development" }

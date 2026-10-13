@@ -45,7 +45,7 @@ async function main() {
     
     // Determine endpoint
     const endpoint = process.env.NODE_ENV === 'production' 
-      ? 'https://brightbroom.com/.netlify/functions/payfast-ipn'
+      ? 'https://brightbroom.com/api/payments/ipn'
       : 'http://localhost:5173/api/payments/ipn';
     
     console.log(`Sending IPN notification to: ${endpoint}`);
