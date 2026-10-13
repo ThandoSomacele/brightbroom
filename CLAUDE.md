@@ -255,7 +255,8 @@ Key environment variables (see .env.example):
 - Use existing email templates and extend as needed
 - Validate all user input on the server side
 - Decimal/money fields stored as strings in DB, convert with `Number()` when calculating
-- Use `db:push` for dev schema changes, `db:generate` + `db:migrate` for production migrations
+- Schema changes ship as **hand-written idempotent SQL** in `drizzle/migrations/` (follow the 0017+ files: `IF NOT EXISTS`, `DO $$ … duplicate_object` guards, `--> statement-breakpoint`) with a hand-added entry in `meta/_journal.json`. Do NOT run `db:generate` — the journal history is broken (missing 0007, duplicate 0009s, snapshots frozen at 0016) and it cannot diff cleanly. Enum value additions go in their own migration file.
+- Before writing or applying a migration, audit the target DB read-only with `pnpm db:introspect` (set `DATABASE_URL_PRODUCTION` for prod); back up first with `pnpm db:backup:full`. `db:push` is for throwaway local databases only.
 
 ### Build Configuration Notes
 
@@ -311,6 +312,9 @@ We use git worktrees for parallel feature development. Each worktree gets its ow
 | Feature | Directory | Branch |
 |---------|-----------|--------|
 | WhatsApp notifications | `../brightbroom-whatsapp` | `feature/whatsapp-notifications` |
+| Driver pivot — Phase 0 (safety/introspection) | `../brightbroom-pivot-safety` | `feature/pivot-safety` |
+
+Note: inside a worktree with a symlinked `node_modules`, run binaries directly (`./node_modules/.bin/tsx …`, `./node_modules/.bin/svelte-check …`). `pnpm <script>` triggers a dependency re-verify that tries to purge the shared `node_modules`.
 
 ## Instructions
 

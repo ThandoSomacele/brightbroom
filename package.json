@@ -35,6 +35,7 @@
     "db:migrate:training": "tsx scripts/db/migrate-training.ts",
     "db:backup": "tsx scripts/db/backup.ts",
     "db:backup:full": "tsx scripts/db/backup.ts --full",
+    "db:introspect": "tsx scripts/db/introspect-prod.ts",
     "db:deduplicate": "tsx scripts/deduplicate-addresses.ts",
     "services:update": "tsx scripts/services/update.ts",
     "services:update:sort": "tsx scripts/services/update.ts --sort-order",

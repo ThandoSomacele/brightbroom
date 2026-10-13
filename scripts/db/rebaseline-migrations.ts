@@ -34,9 +34,10 @@ const apply = args.includes("--apply");
 // Record only up to and including this migration. Without it every journal
 // entry is recorded.
 //
-// Needed because a database can be part-way along: production's schema is
-// current through 0017 but genuinely has not run the tenancy migrations, so
-// those must execute rather than be marked done.
+// Needed because a database can be part-way along (production once sat at 0017
+// with the tenancy migrations still to run). As of 2026-10-01 production's
+// ledger is complete through 0022 — check with `pnpm db:introspect` before
+// assuming either way.
 const throughIndex = args.indexOf("--through");
 const throughTag = throughIndex >= 0 ? args[throughIndex + 1] : null;
 
