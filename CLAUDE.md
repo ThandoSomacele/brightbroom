@@ -282,6 +282,14 @@ Key environment variables (see .env.example):
 - Uses inline CSS styles (no Tailwind CDN to avoid production warnings)
 - Automatically served by Netlify for non-existent routes
 
+## Two products, two repos (13 Oct 2026)
+
+This repo is the **cleaning marketplace** (brightbroom.com). The driver / vehicle-relocation marketplace lives in its own repo (`ThandoSomacele/zuba`, remote `driver` here) with its own Netlify site and Neon database.
+
+- The migration journal here ends at `0022_add_payout_config`. New cleaning migrations are hand-written, idempotent `0023+` files with cleaning names. Migrations `0023_add_driver_role`–`0026_add_trip_handover` belong to the driver product only (tag `split/driver-marketplace`) and must never be applied to this database.
+- Never `git merge` from the `driver` remote. Carry a fix across with `git cherry-pick -n <sha>` and review the diff; never take anything under `drizzle/`.
+- Run `pnpm db:introspect` before planning any migration; the prod ledger must equal the journal.
+
 ## Git Worktrees
 
 We use git worktrees for parallel feature development. Each worktree gets its own directory alongside the main repo.
@@ -311,7 +319,6 @@ We use git worktrees for parallel feature development. Each worktree gets its ow
 
 | Feature | Directory | Branch |
 |---------|-----------|--------|
-| WhatsApp notifications | `../brightbroom-whatsapp` | `feature/whatsapp-notifications` |
 | Driver pivot — Phase 0 (safety/introspection) | `../brightbroom-pivot-safety` | `feature/pivot-safety` |
 
 Note: inside a worktree with a symlinked `node_modules`, run binaries directly (`./node_modules/.bin/tsx …`, `./node_modules/.bin/svelte-check …`). `pnpm <script>` triggers a dependency re-verify that tries to purge the shared `node_modules`.
