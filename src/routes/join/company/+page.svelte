@@ -316,14 +316,15 @@
               for="terms"
               class="text-sm text-gray-600 dark:text-gray-300"
             >
-              I accept the
-              <a href="/terms" class="text-primary-700 hover:underline">
-                Terms of Service
-              </a>
-              and
-              <a href="/privacy" class="text-primary-700 hover:underline">
-                Privacy Policy
-              </a>
+              I am authorised to act for this company, and on its behalf I accept the
+              <a href="/partner-terms" target="_blank" rel="noopener" class="text-primary-700 hover:underline">
+                Cleaning Partner Agreement</a>,
+              the
+              <a href="/terms" target="_blank" rel="noopener" class="text-primary-700 hover:underline">
+                Terms of Use</a>
+              and the
+              <a href="/privacy" target="_blank" rel="noopener" class="text-primary-700 hover:underline">
+                Privacy Policy</a>.
             </label>
           </div>
 

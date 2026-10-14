@@ -110,7 +110,7 @@
   <!-- Privacy -->
   <url>
     <loc>https://brightbroom.com/privacy</loc>
-    <lastmod>2025-01-15T00:00:00+00:00</lastmod>
+    <lastmod>2026-10-14T00:00:00+00:00</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -118,7 +118,15 @@
   <!-- Terms -->
   <url>
     <loc>https://brightbroom.com/terms</loc>
-    <lastmod>2025-01-15T00:00:00+00:00</lastmod>
+    <lastmod>2026-10-14T00:00:00+00:00</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Cleaning Partner Agreement -->
+  <url>
+    <loc>https://brightbroom.com/partner-terms</loc>
+    <lastmod>2026-10-14T00:00:00+00:00</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
