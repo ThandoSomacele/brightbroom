@@ -1,18 +1,12 @@
 <!-- src/routes/admin/applications/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
   import { TableSkeleton } from "$lib/components/ui/skeletons";
   import { imageUrl } from "$lib/utils/media";
   import { parseDateTimeString } from "$lib/utils/date-utils.js";
-  import {
-    ArrowLeft,
-    ArrowRight,
-    Filter,
-    Search,
-    User,
-  } from "lucide-svelte";
-
+  
   export let data;
   let { filters } = data;
 
@@ -90,7 +84,7 @@
       <div
         class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
       >
-        <Search size={16} class="text-gray-400" />
+        <Icon name="magnifying-glass" size={16} class="text-gray-400" />
       </div>
       <input
         type="text"
@@ -102,7 +96,7 @@
 
     <div>
       <Button variant="outline" on:click={() => (showFilters = !showFilters)}>
-        <Filter size={16} class="mr-1" />
+        <Icon name="funnel" size={16} class="mr-1" />
         Filters
       </Button>
     </div>
@@ -138,7 +132,7 @@
         <button
           type="button"
           on:click={resetFilters}
-          class="text-sm text-primary hover:text-primary-600 hover:underline focus:outline-none"
+          class="text-sm text-primary-700 hover:text-primary-800 hover:underline focus:outline-none"
         >
           Reset Filters
         </button>
@@ -230,7 +224,7 @@
                           class="h-full w-full object-cover"
                         />
                       {:else}
-                        <User
+                        <Icon name="user"
                           size={20}
                           class="text-gray-500 dark:text-gray-400"
                         />
@@ -306,7 +300,7 @@
                     variant="ghost"
                     size="sm"
                     href={`/admin/applications/${application.id}`}
-                    class="text-primary hover:text-primary-600"
+                    class="text-primary-700 hover:text-primary-800"
                   >
                     View
                   </Button>
@@ -344,7 +338,7 @@
               disabled={pagination.page === 1}
               on:click={() => goToPage(pagination.page - 1, pagination.totalPages)}
             >
-              <ArrowLeft size={16} />
+              <Icon name="arrow-left" size={16} />
             </Button>
 
             {#each Array(pagination.totalPages) as _, i}
@@ -370,7 +364,7 @@
               disabled={pagination.page === pagination.totalPages}
               on:click={() => goToPage(pagination.page + 1, pagination.totalPages)}
             >
-              <ArrowRight size={16} />
+              <Icon name="arrow-right" size={16} />
             </Button>
           </div>
         </div>

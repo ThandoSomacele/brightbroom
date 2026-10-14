@@ -1,5 +1,6 @@
 <!-- src/routes/admin/+layout.svelte -->
 <script lang="ts" context="module">
+  import Icon from "$lib/components/ui/Icon.svelte";
   // Create stores for admin notifications that can be imported from anywhere
   import { writable } from "svelte/store";
 
@@ -30,24 +31,7 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import UpdateStatusIndicator from "$lib/components/admin/UpdateStatusIndicator.svelte";
-  import {
-    Banknote,
-    Building2,
-    Landmark,
-    Calendar,
-    ChartNoAxesColumnIncreasing,
-    FileText,
-    Home,
-    Menu,
-    Settings,
-    User,
-    Users,
-    X,
-    BrushCleaning,
-    ShieldCheck,
-    Tag,
-  } from "lucide-svelte";
-
+  
   export let data;
 
   let showMobileMenu = false;
@@ -75,21 +59,21 @@
 
   // All nav items with optional platformOnly flag
   const allNavItems = [
-    { label: "Dashboard", href: "/admin/dashboard", icon: Home },
-    { label: "Bookings", href: "/admin/bookings", icon: Calendar },
-    { label: "Applications", href: "/admin/applications", icon: FileText },
-    { label: "Cleaners", href: "/admin/cleaners", icon: BrushCleaning },
-    { label: "Users", href: "/admin/users", icon: User, platformOnly: true },
-    { label: "Tenants", href: "/admin/tenants", icon: Building2, platformOnly: true },
-    { label: "Pricing", href: "/admin/pricing", icon: Banknote, platformOnly: true },
-    { label: "Coupons", href: "/admin/coupons", icon: Tag },
-    { label: "Payouts", href: "/admin/payouts", icon: Landmark },
-    { label: "Services", href: "/admin/services", icon: Settings, platformOnly: true },
-    { label: "Verification", href: "/admin/verification", icon: ShieldCheck, tenantOnly: true },
+    { label: "Dashboard", href: "/admin/dashboard", icon: "house" },
+    { label: "Bookings", href: "/admin/bookings", icon: "calendar-blank" },
+    { label: "Applications", href: "/admin/applications", icon: "file-text" },
+    { label: "Cleaners", href: "/admin/cleaners", icon: "broom" },
+    { label: "Users", href: "/admin/users", icon: "user", platformOnly: true },
+    { label: "Tenants", href: "/admin/tenants", icon: "buildings", platformOnly: true },
+    { label: "Pricing", href: "/admin/pricing", icon: "money", platformOnly: true },
+    { label: "Coupons", href: "/admin/coupons", icon: "tag" },
+    { label: "Payouts", href: "/admin/payouts", icon: "bank" },
+    { label: "Services", href: "/admin/services", icon: "gear", platformOnly: true },
+    { label: "Verification", href: "/admin/verification", icon: "shield-check", tenantOnly: true },
     {
       label: "Reports",
       href: "/admin/reports",
-      icon: ChartNoAxesColumnIncreasing,
+      icon: "chart-bar",
     },
   ];
 
@@ -117,15 +101,15 @@
     class="md:hidden bg-white dark:bg-gray-800 shadow p-4 flex justify-between items-center"
   >
     <div class="flex items-center">
-      <span class="font-bold text-primary text-xl">{tenantName}</span>
+      <span class="font-bold text-primary-700 text-xl">{tenantName}</span>
       <span class="ml-2 font-semibold text-gray-900 dark:text-white">Admin</span
       >
     </div>
     <button on:click={() => (showMobileMenu = !showMobileMenu)}>
       {#if showMobileMenu}
-        <X size={24} />
+        <Icon name="x" size={24} />
       {:else}
-        <Menu size={24} />
+        <Icon name="list" size={24} />
       {/if}
     </button>
   </div>
@@ -141,11 +125,11 @@
     >
       <!-- Compact logo for tablet icon rail -->
       <div class="hidden md:flex lg:hidden p-4 justify-center">
-        <span class="font-bold text-primary text-2xl">B</span>
+        <span class="font-bold text-primary-700 text-2xl">B</span>
       </div>
       <!-- Full logo for desktop -->
       <div class="p-4 hidden lg:flex items-center">
-        <span class="font-bold text-primary text-xl">{tenantName}</span>
+        <span class="font-bold text-primary-700 text-xl">{tenantName}</span>
         <span class="ml-2 font-semibold text-gray-900 dark:text-white"
           >Admin</span
         >
@@ -161,13 +145,12 @@
               md:justify-center md:px-2 lg:justify-start lg:px-4
               ${
                 isActive(item.href)
-                  ? "border-primary bg-primary-50 text-primary dark:bg-primary-900/20"
+                  ? "border-primary bg-primary-50 text-primary-700 dark:bg-primary-900/20"
                   : "border-transparent text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
               }
             `}
           >
-            <svelte:component
-              this={item.icon}
+            <Icon name={item.icon}
               class="h-5 w-5 flex-shrink-0 mr-3 md:mr-0 lg:mr-3"
             />
             <span class="md:hidden lg:inline">{item.label}</span>
@@ -187,7 +170,7 @@
             href="/admin/verification"
             class="mb-6 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 transition-colors hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-900/20 dark:hover:bg-amber-900/30"
           >
-            <ShieldCheck class="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+            <Icon name="shield-check" size={20} class="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
             <div>
               <p class="text-sm font-medium text-amber-800 dark:text-amber-400">
                 {verificationHeadline}

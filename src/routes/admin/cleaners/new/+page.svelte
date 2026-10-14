@@ -20,7 +20,7 @@
   </p>
   <a
     href="/admin/applications/new"
-    class="text-primary hover:text-primary-600 underline"
+    class="text-primary-700 hover:text-primary-800 underline"
   >
     Click here if you are not redirected
   </a>

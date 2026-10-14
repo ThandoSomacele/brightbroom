@@ -1,8 +1,8 @@
 <!-- src/routes/profile/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import Skeleton from "$lib/components/ui/Skeleton.svelte";
-  import { Calendar, Clock, MapPin, Settings, User } from "lucide-svelte";
   import { formatDate, formatTime } from "$lib/utils/date-utils";
 
   // Get data from the server load function
@@ -33,9 +33,9 @@
         <div class="card p-6">
           <div class="mb-6 flex items-center">
             <div
-              class="flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/20"
+              class="flex h-16 w-16 items-center justify-center rounded-full bg-primary-50 text-primary-800 dark:bg-primary-900/20"
             >
-              <User size={32} />
+              <Icon name="user" size={32} />
             </div>
             <div class="ml-4">
               <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
@@ -82,7 +82,7 @@
                   >Account Type</span
                 >
                 <span
-                  class="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-sm font-medium text-primary dark:bg-primary-900/20"
+                  class="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-sm font-medium text-primary-700 dark:bg-primary-900/20"
                 >
                   {user.role === "CUSTOMER"
                     ? "Customer"
@@ -100,7 +100,7 @@
               href="/profile/edit"
               class="w-full justify-start"
             >
-              <Settings size={18} class="mr-2" />
+              <Icon name="gear" size={18} class="mr-2" />
               Edit Profile
             </Button>
 
@@ -109,7 +109,7 @@
               href="/profile/addresses"
               class="w-full justify-start"
             >
-              <MapPin size={18} class="mr-2" />
+              <Icon name="map-pin" size={18} class="mr-2" />
               Manage Addresses
             </Button>
 
@@ -154,9 +154,9 @@
               href="/book"
               class="flex h-auto flex-col items-center justify-center p-6"
             >
-              <Calendar size={32} class="mb-3" />
+              <Icon name="calendar-blank" size={32} class="mb-3" />
               <span class="text-lg font-medium">Book Now</span>
-              <span class="mt-1 text-sm text-white/80"
+              <span class="mt-1 text-sm"
                 >Schedule your next service</span
               >
             </Button>
@@ -166,9 +166,9 @@
               href="/profile/bookings"
               class="flex h-auto flex-col items-center justify-center p-6"
             >
-              <Clock size={32} class="mb-3" />
+              <Icon name="clock" size={32} class="mb-3" />
               <span class="text-lg font-medium">View Bookings</span>
-              <span class="mt-1 text-sm text-white/80"
+              <span class="mt-1 text-sm"
                 >Manage your appointments</span
               >
             </Button>
@@ -178,24 +178,9 @@
               href="/profile/subscriptions"
               class="flex h-auto flex-col items-center justify-center p-6"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="mb-3"
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
-                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
-                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
-              </svg>
+              <Icon name="wallet" size={32} class="mb-3" />
               <span class="text-lg font-medium">Subscriptions</span>
-              <span class="mt-1 text-sm text-white/80"
+              <span class="mt-1 text-sm"
                 >Manage recurring services</span
               >
             </Button>
@@ -251,13 +236,13 @@
                         <p
                           class="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400"
                         >
-                          <MapPin size={14} class="mr-1" />
+                          <Icon name="map-pin" size={14} class="mr-1" />
                           {booking.address?.street ?? '(guest address)'}, {booking.address?.city ?? ''}
                         </p>
                         <p
                           class="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400"
                         >
-                          <Calendar size={14} class="mr-1" />
+                          <Icon name="calendar-blank" size={14} class="mr-1" />
                           {formatDate(booking.scheduledDate)} at {formatTime(booking.scheduledDate)}
                         </p>
                       </div>
@@ -276,7 +261,7 @@
                           {booking.status}
                         </span>
 
-                        <p class="mt-2 text-lg font-bold text-primary">
+                        <p class="mt-2 text-lg font-bold text-primary-700">
                           R{typeof booking.price === "number"
                             ? booking.price.toFixed(2)
                             : parseFloat(booking.price).toFixed(2)}

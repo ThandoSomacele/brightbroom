@@ -5,6 +5,7 @@ import type { RequestHandler } from './$types';
 import { env } from '$env/dynamic/private';
 import { Resend } from 'resend';
 
+import { brandColors } from "$lib/config/theme";
 // Initialise Resend with API key from environment variable
 const RESEND_API_KEY = env.RESEND_API_KEY;
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
@@ -16,8 +17,8 @@ const FROM_EMAIL = 'BrightBroom <notifications@brightbroom.com>';
 const EMAIL_CONFIG = {
   appUrl: env.PUBLIC_URL || 'https://brightbroom.com',
   brandName: 'BrightBroom',
-  primaryColor: '#20C3AF',
-  secondaryColor: '#C2511F',
+  primaryColor: brandColors.primary,
+  secondaryColor: brandColors.secondary,
 };
 
 // Ensure we only expose this endpoint in development

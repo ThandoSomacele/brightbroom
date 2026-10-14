@@ -1,21 +1,10 @@
 <!-- src/routes/admin/bookings/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { TableSkeleton } from "$lib/components/ui/skeletons";
   import { parseDateTimeString } from "$lib/utils/date-utils.js";
-  import {
-    AlertCircle,
-    ArrowLeft,
-    ArrowRight,
-    CheckCircle,
-    Clock,
-    Download,
-    Filter,
-    Search,
-    Users,
-    XCircle,
-  } from "lucide-svelte";
-
+  
   // Get data from server
   export let data;
   let { filters, statusOptions } = data;
@@ -74,17 +63,17 @@
   function getStatusIcon(status: string) {
     switch (status) {
       case "CONFIRMED":
-        return CheckCircle;
+        return "check-circle";
       case "PENDING":
-        return Clock;
+        return "clock";
       case "IN_PROGRESS":
-        return Users;
+        return "users";
       case "COMPLETED":
-        return CheckCircle;
+        return "check-circle";
       case "CANCELLED":
-        return XCircle;
+        return "x-circle";
       default:
-        return AlertCircle;
+        return "warning-circle";
     }
   }
 
@@ -220,7 +209,7 @@
   <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Bookings</h1>
   <div class="mt-4 sm:mt-0 flex gap-2">
     <Button variant="outline" on:click={exportBookings}>
-      <Download size={16} class="mr-1" />
+      <Icon name="download-simple" size={16} class="mr-1" />
       Export
     </Button>
     <Button
@@ -306,7 +295,7 @@
       <div
         class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
       >
-        <Search size={16} class="text-gray-400" />
+        <Icon name="magnifying-glass" size={16} class="text-gray-400" />
       </div>
       <input
         type="text"
@@ -318,7 +307,7 @@
 
     <div>
       <Button variant="outline" on:click={() => (showFilters = !showFilters)}>
-        <Filter size={16} class="mr-1" />
+        <Icon name="funnel" size={16} class="mr-1" />
         {showFilters ? "Hide Filters" : "Show Filters"}
       </Button>
     </div>
@@ -384,7 +373,7 @@
         <button
           type="button"
           on:click={resetFilters}
-          class="text-primary hover:text-primary-600 hover:underline focus:outline-none text-sm"
+          class="text-primary-700 hover:text-primary-800 hover:underline focus:outline-none text-sm"
         >
           Reset Filters
         </button>
@@ -411,7 +400,7 @@
                 applyFilters();
               }}
             >
-              <XCircle size={14} />
+              <Icon name="x-circle" size={14} />
             </button>
           </div>
         {/if}
@@ -428,7 +417,7 @@
                 applyFilters();
               }}
             >
-              <XCircle size={14} />
+              <Icon name="x-circle" size={14} />
             </button>
           </div>
         {/if}
@@ -445,7 +434,7 @@
                 applyFilters();
               }}
             >
-              <XCircle size={14} />
+              <Icon name="x-circle" size={14} />
             </button>
           </div>
         {/if}
@@ -462,7 +451,7 @@
                 applyFilters();
               }}
             >
-              <XCircle size={14} />
+              <Icon name="x-circle" size={14} />
             </button>
           </div>
         {/if}
@@ -490,7 +479,7 @@
                   type="checkbox"
                   checked={allSelected}
                   on:change={(e) => toggleSelectAll(e, bookings)}
-                  class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
                 />
               </th>
             {/if}
@@ -571,7 +560,7 @@
                       type="checkbox"
                       checked={selectedBookings.has(booking.id)}
                       on:change={() => toggleBookingSelection(booking.id)}
-                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
                     />
                   </td>
                 {/if}
@@ -612,8 +601,7 @@
                   <span
                     class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(booking.status)}`}
                   >
-                    <svelte:component
-                      this={getStatusIcon(booking.status)}
+                    <Icon name={getStatusIcon(booking.status)}
                       class="h-3.5 w-3.5 mr-1"
                     />
                     {booking.status}
@@ -643,10 +631,7 @@
                         : "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
                     }`}
                   >
-                    <svelte:component
-                      this={booking.cleanerId ? CheckCircle : AlertCircle}
-                      class="h-3.5 w-3.5 mr-1"
-                    />
+                    <Icon name={booking.cleanerId ? "check-circle" : "warning-circle"} size={14} class="mr-1" />
                     {booking.cleanerId ? "Assigned" : "Unassigned"}
                   </span>
                 </td>
@@ -658,7 +643,7 @@
                     variant="ghost"
                     size="sm"
                     on:click={() => viewBookingDetails(booking.id)}
-                    class="text-primary hover:text-primary-600"
+                    class="text-primary-700 hover:text-primary-800"
                   >
                     View
                   </Button>
@@ -696,7 +681,7 @@
               disabled={pagination.page === 1}
               on:click={() => goToPage(pagination.page - 1, pagination.totalPages)}
             >
-              <ArrowLeft size={16} />
+              <Icon name="arrow-left" size={16} />
             </Button>
 
             {#each Array(pagination.totalPages) as _, i}
@@ -722,7 +707,7 @@
               disabled={pagination.page === pagination.totalPages}
               on:click={() => goToPage(pagination.page + 1, pagination.totalPages)}
             >
-              <ArrowRight size={16} />
+              <Icon name="arrow-right" size={16} />
             </Button>
           </div>
         </div>

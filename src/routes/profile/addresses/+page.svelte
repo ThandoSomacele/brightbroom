@@ -1,8 +1,8 @@
 <!-- src/routes/profile/addresses/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import DeleteAddressModal from "$lib/components/addresses/DeleteAddressModal.svelte";
-  import { Edit, MapPin, Plus, Star, Trash2, AlertTriangle, CheckCircle } from "lucide-svelte";
   import { enhance, applyAction, deserialize } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
@@ -208,7 +208,7 @@
         transition:fly={{ y: -20, duration: 300 }}
         class="fixed top-4 right-4 z-50 flex items-start rounded-lg bg-green-50 p-4 shadow-md dark:bg-green-900/30"
       >
-        <CheckCircle class="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-green-500 dark:text-green-400" />
+        <Icon name="check-circle" size={20} class="mt-0.5 mr-2 flex-shrink-0 text-green-500 dark:text-green-400" />
         <div>
           <p class="text-green-800 dark:text-green-200">{successMessage}</p>
         </div>
@@ -228,7 +228,7 @@
       <div
         class="mb-6 rounded-md bg-red-50 p-4 text-red-600 dark:bg-red-900/20 dark:text-red-200 flex items-start"
       >
-        <AlertTriangle class="h-5 w-5 mt-0.5 mr-2 flex-shrink-0" />
+        <Icon name="warning" size={20} class="mt-0.5 mr-2 flex-shrink-0" />
         <p>{form?.error || pageError}</p>
       </div>
     {/if}
@@ -237,7 +237,7 @@
     <div class="mb-4 bg-blue-50 p-4 rounded-lg dark:bg-blue-900/20 flex items-start">
       <button
         type="button"
-        class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-primary-50 hover:bg-primary-100 hover:text-primary-700 rounded-md transition-colors dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40 mr-2 flex-shrink-0"
+        class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 hover:text-primary-700 rounded-md transition-colors dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40 mr-2 flex-shrink-0"
       >
         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -271,12 +271,12 @@
     <div class="mb-6">
       {#if hasReachedLimit}
         <Button variant="primary" disabled={true} title="You have reached the maximum limit of addresses">
-          <Plus size={18} class="mr-2" />
+          <Icon name="plus" size={18} class="mr-2" />
           Add New Address (Limit Reached)
         </Button>
       {:else}
         <Button variant="primary" href="/profile/addresses/new">
-          <Plus size={18} class="mr-2" />
+          <Icon name="plus" size={18} class="mr-2" />
           Add New Address ({maxAddresses - addresses.length} remaining)
         </Button>
       {/if}
@@ -291,9 +291,9 @@
               <div class="flex items-start">
                 <div class="flex-shrink-0">
                   <div
-                    class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/20"
+                    class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-50 text-primary-800 dark:bg-primary-900/20"
                   >
-                    <MapPin size={20} />
+                    <Icon name="map-pin" size={20} />
                   </div>
                 </div>
 
@@ -306,16 +306,16 @@
                     </h3>
                     {#if address.isDefault}
                       <span
-                        class="ml-2 inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary dark:bg-primary-900/20"
+                        class="ml-2 inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-900/20"
                       >
-                        <Star size={12} class="mr-1" />
+                        <Icon name="star" size={12} class="mr-1" />
                         Default
                       </span>
                     {:else}
                       <!-- Add set as default button -->
                       <button
                         type="button"
-                        class="ml-2 text-xs text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary-400"
+                        class="ml-2 text-xs text-gray-500 hover:text-primary-700 dark:text-gray-400 dark:hover:text-primary-400"
                         on:click={() => setAsDefault(address.id)}
                       >
                         Set as default
@@ -348,9 +348,9 @@
                   variant="outline"
                   size="sm"
                   href={`/profile/addresses/${address.id}/edit`}
-                  class="text-primary"
+                  class="text-primary-700"
                 >
-                  <Edit size={16} class="mr-1" />
+                  <Icon name="pencil-simple" size={16} class="mr-1" />
                   Edit
                 </Button>
 
@@ -360,7 +360,7 @@
                   class="text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
                   on:click={() => confirmDelete(address)}
                 >
-                  <Trash2 size={16} class="mr-1" />
+                  <Icon name="trash" size={16} class="mr-1" />
                   Delete
                 </Button>
               </div>
@@ -374,7 +374,7 @@
           <div
             class="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700"
           >
-            <MapPin size={24} class="text-gray-500 dark:text-gray-400" />
+            <Icon name="map-pin" size={24} class="text-gray-500 dark:text-gray-400" />
           </div>
           <h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">
             No addresses found
@@ -384,7 +384,7 @@
             cleaning bookings.
           </p>
           <Button variant="primary" href="/profile/addresses/new">
-            <Plus size={18} class="mr-2" />
+            <Icon name="plus" size={18} class="mr-2" />
             Add New Address
           </Button>
         </div>

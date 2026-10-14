@@ -1,7 +1,7 @@
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { createEventDispatcher, onMount } from "svelte";
   import { fade, slide } from "svelte/transition";
-  import { MapPin } from "lucide-svelte";
   import { imageUrl } from "$lib/utils/media";
 
   export let selectedCleanerId: string | null = null;
@@ -153,7 +153,7 @@
               />
               {#if selectedCleaner?.id === cleaner.id}
                 <div
-                  class="absolute -bottom-1 -right-1 bg-primary text-white rounded-full p-1"
+                  class="absolute -bottom-1 -right-1 bg-primary text-primary-950 rounded-full p-1"
                   transition:fade
                 >
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -185,7 +185,7 @@
                 >
               {/if}
               {#if cleaner.distance}
-                <span class="text-gray-600 flex items-center gap-1"><MapPin class="h-4 w-4" /> {cleaner.distance} km</span>
+                <span class="text-gray-600 flex items-center gap-1"><Icon name="map-pin" size={16} /> {cleaner.distance} km</span>
               {/if}
             </div>
 
@@ -195,7 +195,7 @@
 
             <button
               type="button"
-              class="text-primary hover:text-primary/80 text-sm font-medium"
+              class="text-primary-700 hover:text-primary/80 text-sm font-medium"
               on:click|stopPropagation={() => toggleProfile(cleaner.id)}
             >
               {showProfile === cleaner.id ? "Hide" : "View"} Profile

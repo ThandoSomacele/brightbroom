@@ -1,7 +1,7 @@
 <!-- src/lib/components/booking/ServiceDetailsModal.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { createEventDispatcher } from "svelte";
-  import { ArrowLeft, CheckCircle, X } from "lucide-svelte";
   import type { Service } from "$lib/types/db";
   
   // Service props
@@ -64,7 +64,7 @@
         on:click={close}
         aria-label="Close"
       >
-        <X size={24} />
+        <Icon name="x" size={24} />
       </button>
     </div>
     
@@ -76,7 +76,7 @@
         <div class="flex flex-wrap gap-4">
           <div class="bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-md">
             <p class="text-sm text-gray-500 dark:text-gray-400">Base Price</p>
-            <p class="text-lg font-bold text-primary">R{typeof service.basePrice === 'number' 
+            <p class="text-lg font-bold text-primary-700">R{typeof service.basePrice === 'number' 
               ? service.basePrice.toFixed(2) 
               : parseFloat(service.basePrice.toString()).toFixed(2)}</p>
           </div>
@@ -98,8 +98,8 @@
               <ul class="space-y-2">
                 {#each item.details as detail}
                   <li class="flex items-start">
-                    <span class="mr-2 mt-1 text-primary">
-                      <CheckCircle size={16} />
+                    <span class="mr-2 mt-1 text-primary-700">
+                      <Icon name="check-circle" size={16} />
                     </span>
                     <span class="text-gray-700 dark:text-gray-300">{detail}</span>
                   </li>
@@ -116,7 +116,7 @@
     <!-- Modal footer -->
     <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end">
       <button 
-        class="bg-primary hover:bg-primary-600 text-white px-4 py-2 rounded-md transition-colors"
+        class="bg-primary hover:bg-primary-600 text-primary-950 px-4 py-2 rounded-md transition-colors"
         on:click={close}
       >
         Close

@@ -25,6 +25,7 @@ import {
   getWelcomeEmailTemplate,
 } from "./email-templates";
 
+import { brandColors } from "$lib/config/theme";
 // Initialise Resend with API key from environment variable
 const RESEND_API_KEY = env.RESEND_API_KEY;
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
@@ -54,8 +55,8 @@ interface CleanerApplicationEmailData {
 const EMAIL_CONFIG = {
   appUrl: APP_URL,
   brandName: "BrightBroom",
-  primaryColor: "#20C3AF",
-  secondaryColor: "#C2511F",
+  primaryColor: brandColors.primary,
+  secondaryColor: brandColors.secondary,
 };
 
 // Log configuration for debugging

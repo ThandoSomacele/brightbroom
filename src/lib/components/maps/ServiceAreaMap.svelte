@@ -1,5 +1,6 @@
 <!-- src/lib/components/maps/ServiceAreaMap.svelte -->
 <script lang="ts">
+  import { orange, teal } from "$lib/config/theme";
   import {
     SERVICE_AREAS,
     type ServiceArea,
@@ -104,10 +105,10 @@
 
     // Create the circle
     const circle = new google.maps.Circle({
-      strokeColor: isSelected ? "#C2511F" : "#20C3AF",
+      strokeColor: isSelected ? orange.DEFAULT : teal.DEFAULT,
       strokeOpacity: 0.8,
       strokeWeight: 2,
-      fillColor: isSelected ? "#C2511F" : "#20C3AF",
+      fillColor: isSelected ? orange.DEFAULT : teal.DEFAULT,
       fillOpacity: 0.2,
       map,
       center: { lat: area.lat, lng: area.lng },
@@ -128,7 +129,7 @@
         },
         label: {
           text: area.name,
-          color: isSelected ? "#C2511F" : "#20C3AF",
+          color: isSelected ? orange.DEFAULT : teal.DEFAULT,
           fontWeight: "bold",
           fontSize: "14px",
         },

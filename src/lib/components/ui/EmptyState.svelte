@@ -1,6 +1,7 @@
 <!-- src/lib/components/ui/EmptyState.svelte -->
 <script lang="ts">
-  export let icon: any = undefined;
+  import Icon from "$lib/components/ui/Icon.svelte";
+  export let icon: string | undefined = undefined;
   export let title: string;
   export let description: string | undefined = undefined;
 </script>
@@ -10,7 +11,7 @@
 >
   {#if icon}
     <div class="icon-chip mb-4 h-14 w-14">
-      <svelte:component this={icon} size={28} />
+      <Icon name={icon} size={28} accent />
     </div>
   {/if}
   <h3 class="font-heading text-lg font-semibold text-gray-900 dark:text-white">

@@ -1,18 +1,13 @@
 <!-- src/routes/join/company/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { page } from "$app/stores";
   import HoneypotField from "$lib/components/forms/HoneypotField.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import Card from "$lib/components/ui/Card.svelte";
   import SectionHeading from "$lib/components/ui/SectionHeading.svelte";
-  import {
-    CalendarCheck,
-    LayoutDashboard,
-    Users,
-    Wallet,
-  } from "lucide-svelte";
-
+  
   export let data;
   export let form;
 
@@ -38,13 +33,13 @@
 
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
   <!-- Hero -->
-  <div class="bg-primary py-16 text-white">
+  <div class="bg-primary-700 py-16 text-white">
     <div class="container mx-auto px-4">
       <div class="mx-auto max-w-3xl text-center">
         <h1 class="mb-4 font-heading text-4xl font-bold md:text-5xl">
           Grow your cleaning company with BrightBroom
         </h1>
-        <p class="mb-8 text-lg text-white/90">
+        <p class="mb-8 text-lg text-primary-50">
           Bring your team onto a platform that already has customers looking for
           cleaners. Set up in a couple of minutes — no contracts, no monthly fee.
         </p>
@@ -67,7 +62,7 @@
       <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
         <Card hover class="text-center">
           <div class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16">
-            <CalendarCheck size={24} />
+            <Icon name="calendar-check" size={24} accent />
           </div>
           <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
             Bookings that find you
@@ -80,7 +75,7 @@
 
         <Card hover class="text-center">
           <div class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16">
-            <Users size={24} />
+            <Icon name="users" size={24} accent />
           </div>
           <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
             Your team, your rules
@@ -93,7 +88,7 @@
 
         <Card hover class="text-center">
           <div class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16">
-            <Wallet size={24} />
+            <Icon name="wallet" size={24} accent />
           </div>
           <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
             Paid without chasing
@@ -106,7 +101,7 @@
 
         <Card hover class="text-center">
           <div class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16">
-            <LayoutDashboard size={24} />
+            <Icon name="squares-four" size={24} accent />
           </div>
           <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
             One place to look
@@ -315,18 +310,18 @@
               id="terms"
               name="terms"
               required
-              class="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600"
+              class="mt-1 h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary dark:border-gray-600"
             />
             <label
               for="terms"
               class="text-sm text-gray-600 dark:text-gray-300"
             >
               I accept the
-              <a href="/terms" class="text-primary hover:underline">
+              <a href="/terms" class="text-primary-700 hover:underline">
                 Terms of Service
               </a>
               and
-              <a href="/privacy" class="text-primary hover:underline">
+              <a href="/privacy" class="text-primary-700 hover:underline">
                 Privacy Policy
               </a>
             </label>
@@ -338,7 +333,7 @@
 
           <p class="text-center text-sm text-gray-500 dark:text-gray-400">
             Already registered?
-            <a href="/auth/login" class="text-primary hover:underline">Log in</a>
+            <a href="/auth/login" class="text-primary-700 hover:underline">Log in</a>
           </p>
         </form>
       </Card>

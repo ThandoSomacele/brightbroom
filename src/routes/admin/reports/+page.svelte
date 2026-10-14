@@ -1,21 +1,11 @@
 <!-- src/routes/admin/reports/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import { navigating, page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
   import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
-  import {
-    BarChart,
-    Briefcase,
-    Calendar,
-    ChevronDown,
-    Filter,
-    TrendingDown,
-    TrendingUp,
-    Users,
-    Wallet,
-  } from "lucide-svelte";
-
+  
   // Get data from server
   export let data;
 
@@ -79,7 +69,7 @@
   }
 
   function getTrendIcon(value: number) {
-    return value >= 0 ? TrendingUp : TrendingDown;
+    return value >= 0 ? "trend-up" : "trend-down";
   }
 
   // Update period filter
@@ -225,9 +215,9 @@
           size="sm"
           on:click={() => (showDatePicker = !showDatePicker)}
         >
-          <Calendar size={14} class="mr-1" />
+          <Icon name="calendar-blank" size={14} class="mr-1" />
           Custom Range
-          <ChevronDown size={14} class="ml-1" />
+          <Icon name="caret-down" size={14} class="ml-1" />
         </Button>
       </div>
 
@@ -321,15 +311,14 @@
         {/if}
       </div>
       <div class="p-2 rounded-full bg-green-100 dark:bg-green-900/20">
-        <Wallet size={20} class="text-green-600 dark:text-green-400" />
+        <Icon name="wallet" size={20} class="text-green-600 dark:text-green-400" />
       </div>
     </div>
     <div class="mt-4 flex items-center">
       {#if isLoading}
         <div class="h-4 w-36 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
       {:else}
-        <svelte:component
-          this={getTrendIcon(metrics.revenue.percentageChange)}
+        <Icon name={getTrendIcon(metrics.revenue.percentageChange)}
           size={16}
           class={getTrendClass(metrics.revenue.percentageChange)}
         />
@@ -357,7 +346,7 @@
         {/if}
       </div>
       <div class="p-2 rounded-full bg-blue-100 dark:bg-blue-900/20">
-        <Calendar size={20} class="text-blue-600 dark:text-blue-400" />
+        <Icon name="calendar-blank" size={20} class="text-blue-600 dark:text-blue-400" />
       </div>
     </div>
     <div class="mt-4 flex items-center">
@@ -399,7 +388,7 @@
         {/if}
       </div>
       <div class="p-2 rounded-full bg-purple-100 dark:bg-purple-900/20">
-        <Users size={20} class="text-purple-600 dark:text-purple-400" />
+        <Icon name="users" size={20} class="text-purple-600 dark:text-purple-400" />
       </div>
     </div>
     <div class="mt-4 grid grid-cols-7 gap-1">
@@ -433,7 +422,7 @@
         {/if}
       </div>
       <div class="p-2 rounded-full bg-amber-100 dark:bg-amber-900/20">
-        <Briefcase size={20} class="text-amber-600 dark:text-amber-400" />
+        <Icon name="briefcase" size={20} class="text-amber-600 dark:text-amber-400" />
       </div>
     </div>
     <div class="mt-4 flex justify-between text-sm">
@@ -516,7 +505,7 @@
           <path
             d={generateLinePath(metrics.revenue.trend, 400, 200, 50)}
             fill="none"
-            stroke="#20C3AF"
+            class="stroke-primary"
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -532,8 +521,7 @@
               cx={x}
               cy={y}
               r="4"
-              fill="#20C3AF"
-              class="hover:r-6 transition-all"
+              class="fill-primary transition-all hover:r-6"
             />
             <title>{formatChartDate(point.date)}: {formatCurrency(point.value)}</title>
           {/each}
@@ -671,7 +659,7 @@
         {#if isLoading}
           <div class="h-9 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mx-auto"></div>
         {:else}
-          <p class="text-3xl font-bold text-primary">
+          <p class="text-3xl font-bold text-primary-700">
             {Math.floor((metrics.bookingInsights?.averageDuration || 0) / 60)}h {(metrics.bookingInsights?.averageDuration || 0) % 60}m
           </p>
         {/if}
@@ -681,7 +669,7 @@
         {#if isLoading}
           <div class="h-9 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mx-auto"></div>
         {:else}
-          <p class="text-3xl font-bold text-primary">
+          <p class="text-3xl font-bold text-primary-700">
             {formatCurrency(metrics.bookingInsights?.averagePrice || 0)}
           </p>
         {/if}
@@ -951,7 +939,7 @@
       Cleaner Performance
     </h2>
     <Button variant="outline" size="sm">
-      <Filter size={14} class="mr-1" />
+      <Icon name="funnel" size={14} class="mr-1" />
       Filter
     </Button>
   </div>
@@ -1114,7 +1102,7 @@
 >
   <div>
     <Button variant="outline">
-      <BarChart size={16} class="mr-2" />
+      <Icon name="chart-bar" size={16} class="mr-2" />
       Export Report
     </Button>
   </div>

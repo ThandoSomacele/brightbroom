@@ -1,9 +1,9 @@
 <!-- src/routes/about/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import Card from "$lib/components/ui/Card.svelte";
-  import { Award, CheckCircle, TrendingUp, Users } from "lucide-svelte";
-
+  
   // Page data - in a real app, this might come from a CMS or API
   // const stats = [
   //   { label: "Happy Customers", value: "2,500+" },
@@ -17,25 +17,25 @@
       title: "Quality Service",
       description:
         "We're committed to providing exceptional cleaning services that exceed your expectations every time.",
-      icon: CheckCircle,
+      icon: "check-circle",
     },
     {
       title: "Reliable Team",
       description:
         "Our professional cleaners are thoroughly vetted, trained, and dedicated to delivering consistent results.",
-      icon: Users,
+      icon: "users",
     },
     {
       title: "Transparent Pricing",
       description:
         "No hidden fees or surprises. We believe in clear, upfront pricing for all our services.",
-      icon: Award,
+      icon: "medal",
     },
     {
       title: "Continuous Improvement",
       description:
         "We constantly seek feedback and improve our processes to provide better service.",
-      icon: TrendingUp,
+      icon: "trend-up",
     },
   ];
 
@@ -195,7 +195,7 @@
 </section> -->
 
 <!-- Core Values Section -->
-<section class="bg-primary py-16 dark:bg-gray-800">
+<section class="bg-primary-700 py-16 dark:bg-gray-800">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-12">
       <h2 class="text-3xl font-bold text-white dark:text-white">
@@ -209,8 +209,8 @@
     <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
       {#each coreValues as value}
         <Card hover>
-          <div class="mb-4 text-primary">
-            <svelte:component this={value.icon} class="h-8 w-8" />
+          <div class="mb-4 text-primary-700">
+            <Icon name={value.icon} size={32} accent />
           </div>
           <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
             {value.title}
@@ -269,7 +269,7 @@
             <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
               {member.name}
             </h3>
-            <p class="text-primary font-medium">{member.role}</p>
+            <p class="text-primary-700 font-medium">{member.role}</p>
             <p class="mt-4 text-gray-600 dark:text-gray-300">
               {member.bio}
             </p>

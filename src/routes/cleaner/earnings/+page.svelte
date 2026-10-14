@@ -1,7 +1,6 @@
 <!-- src/routes/cleaner/earnings/+page.svelte -->
 <script lang="ts">
-  import { AlertTriangle, Calendar, DollarSign } from 'lucide-svelte';
-  import { CustomerSkeleton } from '$lib/components/ui/skeletons';
+    import { CustomerSkeleton } from '$lib/components/ui/skeletons';
   import StatCard from '$lib/components/ui/StatCard.svelte';
   import EmptyState from '$lib/components/ui/EmptyState.svelte';
 
@@ -49,7 +48,7 @@
       <StatCard
         label="Total Earnings"
         value={formatCurrency(summary.totalEarnings)}
-        icon={DollarSign}
+        icon="money"
         accent="primary"
       />
 
@@ -57,7 +56,7 @@
       <StatCard
         label="This Month"
         value={formatCurrency(summary.totalEarningsCurrentMonth)}
-        icon={Calendar}
+        icon="calendar-blank"
         accent="primary"
       />
 
@@ -65,7 +64,7 @@
       <StatCard
         label="Last Month"
         value={formatCurrency(summary.totalEarningsLastMonth)}
-        icon={Calendar}
+        icon="calendar-blank"
         accent="primary"
       />
 
@@ -73,7 +72,7 @@
       <StatCard
         label="Pending Payout"
         value={formatCurrency(summary.pendingPayout)}
-        icon={DollarSign}
+        icon="money"
         accent="secondary"
       />
     </div>
@@ -97,7 +96,7 @@
                 {formatDate(date)}
               </p>
               {#if i === 0}
-                <p class="text-sm text-primary mt-1">
+                <p class="text-sm text-primary-700 mt-1">
                   Next payout
                 </p>
               {/if}
@@ -231,7 +230,7 @@
   </div>
 {:catch error}
   <EmptyState
-    icon={AlertTriangle}
+    icon="warning"
     title="Failed to load earnings data"
     description="Please try again later or contact support if the problem persists."
   />

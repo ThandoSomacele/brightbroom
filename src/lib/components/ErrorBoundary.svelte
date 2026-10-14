@@ -1,7 +1,7 @@
 <!-- src/lib/components/ErrorBoundary.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { onMount } from 'svelte';
-  import { AlertTriangle, RefreshCw } from 'lucide-svelte';
   import Button from './ui/Button.svelte';
   
   export let fallback: boolean = true;
@@ -58,8 +58,8 @@
   <div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
     <div class="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
       <div class="text-center mb-6">
-        <AlertTriangle 
-          class="mx-auto h-12 w-12 text-red-500 mb-4" 
+        <Icon name="warning" size={48} 
+          class="mx-auto text-red-500 mb-4" 
           aria-hidden="true"
         />
         <h1 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -92,7 +92,7 @@
           class="flex-1" 
           on:click={retry}
         >
-          <RefreshCw class="w-4 h-4 mr-2" />
+          <Icon name="arrows-clockwise" size={16} class="mr-2" />
           Retry
         </Button>
         
@@ -108,7 +108,7 @@
       <div class="mt-4 text-center">
         <a 
           href="/"
-          class="text-sm text-primary hover:text-primary-600 dark:text-primary-400"
+          class="text-sm text-primary-700 hover:text-primary-800 dark:text-primary-400"
         >
           Return to Home
         </a>

@@ -1,12 +1,12 @@
 <!-- src/routes/+error.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import Forbidden403 from '$lib/components/errors/Forbidden403.svelte';
-  import { AlertTriangle, Home, RefreshCw, Mail, Calendar } from 'lucide-svelte';
-  
+    
   // Get error information from the page store
   $: status = $page.status;
   $: message = $page.error?.message || 'Something went wrong';
@@ -17,9 +17,9 @@
 
   // Helpful pages for navigation
   const helpfulPages = [
-    { title: 'Book Cleaning', href: '/book', description: 'Schedule your cleaning service', icon: Calendar },
+    { title: 'Book Cleaning', href: '/book', description: 'Schedule your cleaning service', icon: "calendar-blank" },
     { title: 'Our Services', href: '/services', description: 'View all cleaning services' },
-    { title: 'Contact Us', href: '/contact', description: 'Get help from our team', icon: Mail },
+    { title: 'Contact Us', href: '/contact', description: 'Get help from our team', icon: "envelope-simple" },
     { title: 'Join as Cleaner', href: '/join/cleaner', description: 'Start earning with us' },
   ];
 
@@ -83,9 +83,9 @@
         <!-- Error illustration/icon -->
         <div class="mx-auto mb-8 flex h-32 w-32 items-center justify-center rounded-full bg-primary/10">
           {#if is404}
-            <div class="text-6xl font-bold text-primary">404</div>
+            <div class="text-6xl font-bold text-primary-700">404</div>
           {:else}
-            <AlertTriangle class="h-16 w-16 text-primary" />
+            <Icon name="warning" size={64} class="text-primary-700" />
           {/if}
         </div>
 
@@ -104,9 +104,9 @@
             <p>Error {status}: {message}</p>
             <button
               on:click={refresh}
-              class="mt-2 inline-flex items-center space-x-1 text-primary hover:text-primary-600 transition-colors"
+              class="mt-2 inline-flex items-center space-x-1 text-primary-700 hover:text-primary-800 transition-colors"
             >
-              <RefreshCw size={14} />
+              <Icon name="arrows-clockwise" size={14} />
               <span>Try refreshing the page</span>
             </button>
           </div>
@@ -115,18 +115,18 @@
         <!-- Action buttons -->
         <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
           <Button variant="primary" href="/" class="inline-flex items-center space-x-2">
-            <Home size={16} />
+            <Icon name="house" size={16} />
             <span>Return Home</span>
           </Button>
           
           {#if is404}
             <Button variant="outline" href="/contact" class="inline-flex items-center space-x-2">
-              <Mail size={16} />
+              <Icon name="envelope-simple" size={16} />
               <span>Contact Support</span>
             </Button>
           {:else}
             <Button variant="outline" on:click={refresh} class="inline-flex items-center space-x-2">
-              <RefreshCw size={16} />
+              <Icon name="arrows-clockwise" size={16} />
               <span>Try Again</span>
             </Button>
           {/if}
@@ -145,7 +145,7 @@
                 class="group relative rounded-lg border border-gray-200 bg-white p-6 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600 transition-all duration-200"
               >
                 <div>
-                  <h3 class="text-lg font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+                  <h3 class="text-lg font-medium text-gray-900 dark:text-white group-hover:text-primary-700 transition-colors">
                     {pageLink.title}
                   </h3>
                   <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -154,7 +154,7 @@
                 </div>
                 <div class="absolute top-6 right-6">
                   <svg
-                    class="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors"
+                    class="h-5 w-5 text-gray-400 group-hover:text-primary-700 transition-colors"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -171,14 +171,14 @@
         <div class="mt-12 text-center text-sm text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
           <p>
             If you followed a link from another website, please let us know at 
-            <a href="mailto:support@brightbroom.com" class="text-primary hover:underline">
+            <a href="mailto:support@brightbroom.com" class="text-primary-700 hover:underline">
               support@brightbroom.com
             </a>
           </p>
           <p class="mt-2">
             Looking for cleaning services in South Africa? 
-            <a href="/services" class="text-primary hover:underline">View our services</a> or 
-            <a href="/book" class="text-primary hover:underline">book now</a>.
+            <a href="/services" class="text-primary-700 hover:underline">View our services</a> or 
+            <a href="/book" class="text-primary-700 hover:underline">book now</a>.
           </p>
         </div>
       {/if}

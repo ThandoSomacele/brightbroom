@@ -1,7 +1,7 @@
 <!-- src/routes/admin/bookings/[id]/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from '$app/forms';
-  import { Calendar, MapPin, User, Clock, CreditCard, Home, MessageSquare, ChevronLeft } from 'lucide-svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { parseDateTimeString } from '$lib/utils/date-utils';
 
@@ -86,7 +86,7 @@
 <!-- Page header with back button -->
 <div class="mb-6 flex items-center">
   <a href="/admin/bookings" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 mr-3">
-    <ChevronLeft size={20} />
+    <Icon name="caret-left" size={20} />
   </a>
   <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Booking Details</h1>
 </div>
@@ -142,7 +142,7 @@
       
       <div class="space-y-4">
         <div class="flex items-start">
-          <Home size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+          <Icon name="house" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
           <div>
             <p class="font-medium text-gray-900 dark:text-white">Service Type</p>
             <p class="text-gray-600 dark:text-gray-300">{booking.service.name}</p>
@@ -150,7 +150,7 @@
         </div>
         
         <div class="flex items-start">
-          <Calendar size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+          <Icon name="calendar-blank" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
           <div>
             <p class="font-medium text-gray-900 dark:text-white">Date</p>
             <p class="text-gray-600 dark:text-gray-300">{formatDate(booking.scheduledDate)}</p>
@@ -158,7 +158,7 @@
         </div>
         
         <div class="flex items-start">
-          <Clock size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+          <Icon name="clock" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
           <div>
             <p class="font-medium text-gray-900 dark:text-white">Time</p>
             <p class="text-gray-600 dark:text-gray-300">{formatTime(booking.scheduledDate)}</p>
@@ -166,7 +166,7 @@
         </div>
         
         <div class="flex items-start">
-          <MapPin size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+          <Icon name="map-pin" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
           <div>
             <p class="font-medium text-gray-900 dark:text-white">Location</p>
             <p class="text-gray-600 dark:text-gray-300">
@@ -178,7 +178,7 @@
         
         {#if booking.notes}
           <div class="flex items-start pt-3 border-t border-gray-200 dark:border-gray-700">
-            <MessageSquare size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+            <Icon name="chat-text" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
             <div>
               <p class="font-medium text-gray-900 dark:text-white">Customer Notes</p>
               <p class="text-gray-600 dark:text-gray-300">{booking.notes}</p>
@@ -194,7 +194,7 @@
       
       <div class="space-y-4">
         <div class="flex items-start">
-          <User size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+          <Icon name="user" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
           <div>
             <p class="font-medium text-gray-900 dark:text-white">Name</p>
             <p class="text-gray-600 dark:text-gray-300">{booking.customer.firstName} {booking.customer.lastName}</p>
@@ -202,7 +202,7 @@
         </div>
         
         <div class="flex items-start">
-          <svg xmlns="http://www.w3.org/2000/svg" class="mr-3 mt-0.5 flex-shrink-0 text-primary h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" class="mr-3 mt-0.5 flex-shrink-0 text-primary-700 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
             <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
           </svg>
@@ -214,7 +214,7 @@
         
         {#if booking.customer.phone}
           <div class="flex items-start">
-            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3 mt-0.5 flex-shrink-0 text-primary h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3 mt-0.5 flex-shrink-0 text-primary-700 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
             </svg>
             <div>
@@ -227,7 +227,7 @@
         <div class="flex justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
           <a 
             href={`/admin/users/${booking.customer.id}`}
-            class="text-primary hover:text-primary-600 font-medium text-sm"
+            class="text-primary-700 hover:text-primary-800 font-medium text-sm"
           >
             View Customer Profile
           </a>
@@ -242,7 +242,7 @@
         
         <div class="space-y-4">
           <div class="flex items-start">
-            <User size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+            <Icon name="user" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
             <div>
               <p class="font-medium text-gray-900 dark:text-white">Name</p>
               <p class="text-gray-600 dark:text-gray-300">{booking.cleaner.firstName} {booking.cleaner.lastName}</p>
@@ -250,7 +250,7 @@
           </div>
           
           <div class="flex items-start">
-            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3 mt-0.5 flex-shrink-0 text-primary h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3 mt-0.5 flex-shrink-0 text-primary-700 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
               <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
             </svg>
@@ -262,7 +262,7 @@
           
           {#if booking.cleaner.phone}
             <div class="flex items-start">
-              <svg xmlns="http://www.w3.org/2000/svg" class="mr-3 mt-0.5 flex-shrink-0 text-primary h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="mr-3 mt-0.5 flex-shrink-0 text-primary-700 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
               </svg>
               <div>
@@ -274,7 +274,7 @@
           
           {#if booking.cleaner.cleanerProfile && booking.cleaner.cleanerProfile.rating}
             <div class="flex items-start">
-              <svg xmlns="http://www.w3.org/2000/svg" class="mr-3 mt-0.5 flex-shrink-0 text-primary h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="mr-3 mt-0.5 flex-shrink-0 text-primary-700 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
               <div>
@@ -287,7 +287,7 @@
           <div class="flex justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
             <a 
               href={`/admin/cleaners/${booking.cleaner.id}`}
-              class="text-primary hover:text-primary-600 font-medium text-sm"
+              class="text-primary-700 hover:text-primary-800 font-medium text-sm"
             >
               View Cleaner Profile
             </a>
@@ -342,7 +342,7 @@
       {#if booking.payment}
         <div class="mt-4 flex justify-end">
           <Button variant="outline" size="sm">
-            <CreditCard size={16} class="mr-1" />
+            <Icon name="credit-card" size={16} class="mr-1" />
             View Receipt
           </Button>
         </div>

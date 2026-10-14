@@ -1,9 +1,9 @@
 <!-- src/lib/components/admin/ProfileImageUpload.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { createEventDispatcher, onMount } from 'svelte';
   import Button from '$lib/components/ui/Button.svelte';
-  import { Upload, X, Camera } from 'lucide-svelte';
-  
+    
   // Props
   export let currentImageUrl: string | null = null;
   export let userId: string;
@@ -169,7 +169,7 @@
             on:click={() => fileInput?.click()}
             disabled={disabled || isUploading}
           >
-            <Camera size={16} />
+            <Icon name="camera" size={16} />
           </button>
           
           {#if currentImageUrl}
@@ -179,14 +179,14 @@
               on:click={removeImage}
               disabled={disabled || isUploading}
             >
-              <X size={16} />
+              <Icon name="x" size={16} />
             </button>
           {/if}
         </div>
       </div>
     {:else}
       <div class="flex flex-col items-center justify-center text-center">
-        <Camera size={24} class="mb-2 text-gray-400" />
+        <Icon name="camera" size={24} class="mb-2 text-gray-400" />
         <span class="text-xs text-gray-500">No image</span>
       </div>
     {/if}
@@ -206,7 +206,7 @@
           <div class="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-opacity-20 border-t-white"></div>
           Uploading...
         {:else}
-          <Upload size={16} class="mr-1" />
+          <Icon name="upload-simple" size={16} class="mr-1" />
           Upload Image
         {/if}
       </Button>
@@ -217,7 +217,7 @@
         on:click={() => fileInput?.click()}
         disabled={isUploading || disabled}
       >
-        <Camera size={16} class="mr-1" />
+        <Icon name="camera" size={16} class="mr-1" />
         {currentImageUrl ? 'Change Image' : 'Add Image'}
       </Button>
     {/if}

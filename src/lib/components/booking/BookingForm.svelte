@@ -1,5 +1,6 @@
 <!-- src/lib/components/booking/BookingForm.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import ServiceDetailsModal from "$lib/components/booking/ServiceDetailsModal.svelte";
   import {
@@ -10,7 +11,6 @@
   } from "$lib/stores/services";
   import type { Service } from "@prisma/client";
   import { format } from "date-fns";
-  import { Calendar, Clock, CreditCard, Home, MapPin } from "lucide-svelte";
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
 
@@ -156,9 +156,9 @@
             class={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
             ${
               i + 1 < currentStep
-                ? "bg-primary text-white"
+                ? "bg-primary text-primary-950"
                 : i + 1 === currentStep
-                  ? "bg-primary-100 text-primary-600 border-2 border-primary"
+                  ? "bg-primary-50 text-primary-800 border-2 border-primary"
                   : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
             }`}
           >
@@ -189,7 +189,7 @@
         <h2
           class="text-xl font-semibold text-gray-800 dark:text-white flex items-center"
         >
-          <Home class="mr-2 text-primary" size={20} />
+          <Icon name="house" class="mr-2 text-primary-700" size={20} />
           Select Cleaning Service
         </h2>
 
@@ -206,7 +206,7 @@
             </p>
             <button
               type="button"
-              class="mt-2 text-primary hover:underline"
+              class="mt-2 text-primary-700 hover:underline"
               on:click={loadServices}
             >
               Try Again
@@ -233,7 +233,7 @@
                     name="service"
                     value={service.id}
                     bind:group={selectedService}
-                    class="mt-1 text-primary focus:ring-primary"
+                    class="mt-1 text-primary-700 focus:ring-primary"
                   />
                   <div class="ml-3">
                     <h3 class="font-medium text-gray-900 dark:text-white">
@@ -242,7 +242,7 @@
                     <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
                       {service.description}
                     </p>
-                    <p class="text-primary font-medium mt-2">
+                    <p class="text-primary-700 font-medium mt-2">
                       R{service.basePrice} · {service.durationHours}
                       {service.durationHours === 1 ? "hour" : "hours"}
                     </p>
@@ -253,7 +253,7 @@
                   type="button"
                   on:click|preventDefault|stopPropagation={() =>
                     showDetails(service)}
-                  class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-primary-50 hover:bg-primary-100 hover:text-primary-700 rounded-md transition-colors dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40"
+                  class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 hover:text-primary-700 rounded-md transition-colors dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40"
                 >
                   <svg
                     class="w-3 h-3"
@@ -289,7 +289,7 @@
         <h2
           class="text-xl font-semibold text-gray-800 dark:text-white flex items-center"
         >
-          <MapPin class="mr-2 text-primary" size={20} />
+          <Icon name="map-pin" class="mr-2 text-primary-700" size={20} />
           Select Cleaning Location
         </h2>
 
@@ -302,7 +302,7 @@
             </p>
             <button
               type="button"
-              class="inline-flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 bg-primary hover:bg-primary-600 text-white focus-visible:ring-primary-500"
+              class="inline-flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 bg-primary hover:bg-primary-600 text-primary-950 focus-visible:ring-primary-500"
               on:click={() => goto("/profile/addresses/new?redirect=booking")}
             >
               Add New Address
@@ -322,7 +322,7 @@
                   name="address"
                   value={address.id}
                   bind:group={selectedAddress}
-                  class="mt-1 text-primary focus:ring-primary"
+                  class="mt-1 text-primary-700 focus:ring-primary"
                 />
                 <div class="ml-3">
                   <h3 class="font-medium text-gray-900 dark:text-white">
@@ -340,7 +340,7 @@
           <button
             type="button"
             class="w-full py-2 px-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg
-              text-gray-600 dark:text-gray-300 hover:border-primary hover:text-primary transition-colors"
+              text-gray-600 dark:text-gray-300 hover:border-primary hover:text-primary-700 transition-colors"
             on:click={() => goto("/profile/addresses/new?redirect=booking")}
           >
             + Add New Address
@@ -355,7 +355,7 @@
         <h2
           class="text-xl font-semibold text-gray-800 dark:text-white flex items-center"
         >
-          <Calendar class="mr-2 text-primary" size={20} />
+          <Icon name="calendar-blank" class="mr-2 text-primary-700" size={20} />
           Select Date & Time
         </h2>
 
@@ -392,11 +392,11 @@
                     class={`text-center py-2 px-2 rounded-md border transition-colors
                     ${
                       selectedTime === time
-                        ? "bg-primary text-white border-primary"
+                        ? "bg-primary text-primary-950 border-primary"
                         : "border-gray-300 dark:border-gray-600 hover:border-primary-200"
                     }`}
                   >
-                    <Clock size={16} class="mx-auto mb-1" />
+                    <Icon name="clock" size={16} class="mx-auto mb-1" />
                     <span class="text-sm">{time}</span>
                   </div>
                 </label>
@@ -413,7 +413,7 @@
         <h2
           class="text-xl font-semibold text-gray-800 dark:text-white flex items-center"
         >
-          <CreditCard class="mr-2 text-primary" size={20} />
+          <Icon name="credit-card" class="mr-2 text-primary-700" size={20} />
           Review & Confirm
         </h2>
 
@@ -453,7 +453,7 @@
               <span class="font-medium text-gray-900 dark:text-white"
                 >Total:</span
               >
-              <span class="font-bold text-primary">{formattedPrice}</span>
+              <span class="font-bold text-primary-700">{formattedPrice}</span>
             </div>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Prices include VAT.
@@ -498,7 +498,7 @@
       <button
         type="submit"
         disabled={!isValidStep(currentStep) || isLoading}
-        class="px-6 py-2 bg-primary hover:bg-primary-600 text-white rounded-md
+        class="px-6 py-2 bg-primary hover:bg-primary-600 text-primary-950 rounded-md
           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary
           disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >

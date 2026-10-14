@@ -1,14 +1,7 @@
 <!-- src/routes/coupon/[code]/+page.svelte -->
 <script lang="ts">
-  import {
-    AlertCircle,
-    Calendar,
-    Clock,
-    Scissors,
-    Sparkles,
-    Tag,
-  } from "lucide-svelte";
-
+  import Icon from "$lib/components/ui/Icon.svelte";
+  
   let { data } = $props();
   const coupon = $derived(data.coupon);
   const isExpired = $derived(data.isExpired);
@@ -55,7 +48,7 @@
 </svelte:head>
 
 <div
-  class="min-h-screen bg-gradient-to-br from-teal-50 via-white to-orange-50 py-8 px-4 flex items-center justify-center"
+  class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 py-8 px-4 flex items-center justify-center"
 >
   <div class="w-full max-w-md">
     <!-- Coupon Card -->
@@ -64,7 +57,7 @@
       <div
         class="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10 bg-white rounded-full p-2 shadow-lg"
       >
-        <Scissors size={24} class="text-gray-400 rotate-90" />
+        <Icon name="scissors" size={24} class="text-gray-400 rotate-90" />
       </div>
 
       <!-- Main coupon card -->
@@ -73,7 +66,7 @@
       >
         <!-- Header section with brand colors -->
         <div
-          class="bg-gradient-to-r from-primary to-primary-600 p-6 text-center relative overflow-hidden"
+          class="bg-gradient-to-r from-primary-700 to-primary-800 p-6 text-center relative overflow-hidden"
         >
           <!-- Background pattern -->
           <div class="absolute inset-0 opacity-10">
@@ -88,11 +81,11 @@
           <div class="relative z-10">
             <!-- Logo/Brand -->
             <div class="flex items-center justify-center gap-2 mb-3">
-              <Sparkles size={20} class="text-white/80" />
+              <Icon name="sparkle" size={20} class="text-white/80" />
               <span class="text-white font-bold text-xl tracking-wide"
                 >BrightBroom</span
               >
-              <Sparkles size={20} class="text-white/80" />
+              <Icon name="sparkle" size={20} class="text-white/80" />
             </div>
 
             <!-- Discount amount -->
@@ -110,10 +103,10 @@
         <!-- Perforated edge effect -->
         <div class="relative h-6 bg-white">
           <div
-            class="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1/2 w-6 h-6 bg-gradient-to-br from-teal-50 via-white to-orange-50 rounded-full"
+            class="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1/2 w-6 h-6 bg-gradient-to-br from-primary-50 via-white to-secondary-50 rounded-full"
           ></div>
           <div
-            class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 w-6 h-6 bg-gradient-to-br from-teal-50 via-white to-orange-50 rounded-full"
+            class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 w-6 h-6 bg-gradient-to-br from-primary-50 via-white to-secondary-50 rounded-full"
           ></div>
           <div
             class="absolute inset-x-8 top-1/2 border-t-2 border-dashed border-gray-200"
@@ -131,7 +124,7 @@
             class="bg-gray-100 rounded-xl py-4 px-6 inline-block border-2 border-gray-200"
           >
             <div class="flex items-center gap-3">
-              <Tag size={20} class="text-primary" />
+              <Icon name="tag" size={20} class="text-primary-700" />
               <span
                 class="font-mono text-2xl font-black text-gray-800 tracking-wider"
               >
@@ -148,14 +141,14 @@
               <div
                 class="flex items-center justify-center gap-2 bg-red-50 text-red-700 py-3 px-4 rounded-lg"
               >
-                <AlertCircle size={18} />
+                <Icon name="warning-circle" size={18} />
                 <span class="font-medium">This coupon has expired</span>
               </div>
             {:else if isNotYetValid}
               <div
                 class="flex items-center justify-center gap-2 bg-amber-50 text-amber-700 py-3 px-4 rounded-lg"
               >
-                <Clock size={18} />
+                <Icon name="clock" size={18} />
                 <span class="font-medium"
                   >Valid from {formatDate(coupon.validFrom)}</span
                 >
@@ -164,7 +157,7 @@
               <div
                 class="flex items-center justify-center gap-2 bg-gray-100 text-gray-600 py-3 px-4 rounded-lg"
               >
-                <AlertCircle size={18} />
+                <Icon name="warning-circle" size={18} />
                 <span class="font-medium"
                   >This coupon is not currently active</span
                 >
@@ -195,7 +188,7 @@
 
             <div class="flex justify-between items-center text-gray-600">
               <div class="flex items-center gap-1">
-                <Calendar size={14} />
+                <Icon name="calendar-blank" size={14} />
                 <span>Valid until:</span>
               </div>
               <span class="font-semibold text-gray-800">
@@ -215,7 +208,7 @@
             href="/book"
             class="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-secondary-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
           >
-            <Sparkles size={18} />
+            <Icon name="sparkle" size={18} />
             Book Now
           </a>
           <p class="text-xs text-gray-500 mt-3">Apply this code at checkout</p>

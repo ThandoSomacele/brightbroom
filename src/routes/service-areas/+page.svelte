@@ -1,11 +1,11 @@
 <!-- src/routes/service-areas/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import Card from "$lib/components/ui/Card.svelte";
   import SectionHeading from "$lib/components/ui/SectionHeading.svelte";
   import { SERVICE_AREAS } from "$lib/utils/serviceAreaValidator";
-  import { MapPin, Check } from "lucide-svelte";
-
+  
   // Local state
   let selectedArea: string | null = null;
 
@@ -55,15 +55,15 @@
                   >
                     <div class="flex items-center justify-between">
                       <div class="flex items-center">
-                        <MapPin class="mr-3 h-5 w-5 text-primary" />
+                        <Icon name="map-pin" size={20} class="mr-3 text-primary-700" />
                         <span class="font-medium text-gray-900 dark:text-white">
                           {area.name}
                         </span>
                       </div>
 
                       {#if selectedArea === area.name}
-                        <div class="rounded-full bg-primary p-1 text-white">
-                          <Check class="h-4 w-4" />
+                        <div class="rounded-full bg-primary p-1 text-primary-950">
+                          <Icon name="check" size={16} />
                         </div>
                       {/if}
                     </div>
@@ -161,7 +161,7 @@
     </div>
 
     <!-- CTA section -->
-    <div class="rounded-lg bg-primary p-8 text-center text-white">
+    <div class="rounded-lg bg-primary-700 p-8 text-center text-white">
       <h2 class="mb-4 text-2xl font-bold">Ready to Book a Cleaning?</h2>
       <p class="mb-6 text-white/90">
         Experience our professional cleaning services in your area today.

@@ -1,6 +1,6 @@
 <!-- src/routes/business-plan/+page.svelte -->
 <script lang="ts">
-  import { ArrowUp } from "lucide-svelte";
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { onMount } from "svelte";
   import type { PageData } from './$types';
 
@@ -69,7 +69,7 @@
   <header class="bg-white shadow-lg dark:bg-gray-800">
     <div class="container mx-auto px-6 py-12">
       <div class="text-center">
-        <h1 class="mb-4 text-5xl font-bold text-primary md:text-6xl">
+        <h1 class="mb-4 text-5xl font-bold text-primary-700 md:text-6xl">
           BrightBroom
         </h1>
         <h2 class="text-2xl font-light text-gray-600 dark:text-gray-300">
@@ -92,26 +92,26 @@
   >
     <div class="container mx-auto px-6">
       <div class="flex flex-wrap justify-center gap-4 text-sm">
-        <a href="#executive-summary" class="hover:text-primary"
+        <a href="#executive-summary" class="hover:text-primary-700"
           >Executive Summary</a
         >
-        <a href="#problem-solution" class="hover:text-primary"
+        <a href="#problem-solution" class="hover:text-primary-700"
           >Problem & Solution</a
         >
-        <a href="#market-opportunity" class="hover:text-primary"
+        <a href="#market-opportunity" class="hover:text-primary-700"
           >Market Opportunity</a
         >
-        <a href="#business-model" class="hover:text-primary">Business Model</a>
-        <a href="#competitive-analysis" class="hover:text-primary"
+        <a href="#business-model" class="hover:text-primary-700">Business Model</a>
+        <a href="#competitive-analysis" class="hover:text-primary-700"
           >Competitive Analysis</a
         >
-        <a href="#team" class="hover:text-primary">Management Team</a>
-        <a href="#operations" class="hover:text-primary">Operations Plan</a>
-        <a href="#financials" class="hover:text-primary"
+        <a href="#team" class="hover:text-primary-700">Management Team</a>
+        <a href="#operations" class="hover:text-primary-700">Operations Plan</a>
+        <a href="#financials" class="hover:text-primary-700"
           >Financial Projections</a
         >
-        <a href="#funding" class="hover:text-primary">Funding Request</a>
-        <a href="#roadmap" class="hover:text-primary">Strategic Roadmap</a>
+        <a href="#funding" class="hover:text-primary-700">Funding Request</a>
+        <a href="#roadmap" class="hover:text-primary-700">Strategic Roadmap</a>
       </div>
     </div>
   </nav>
@@ -120,7 +120,7 @@
   <main class="container mx-auto px-6 py-12">
     <!-- Executive Summary -->
     <section id="executive-summary" class="mb-16">
-      <h2 class="mb-8 text-4xl font-bold text-primary">Executive Summary</h2>
+      <h2 class="mb-8 text-4xl font-bold text-primary-700">Executive Summary</h2>
       <div class="rounded-xl bg-white p-8 shadow-lg dark:bg-gray-800">
         <div class="grid gap-8 md:grid-cols-2">
           <div>
@@ -184,7 +184,7 @@
 
     <!-- Problem & Solution -->
     <section id="problem-solution" class="mb-16">
-      <h2 class="mb-8 text-4xl font-bold text-primary">Problem & Solution</h2>
+      <h2 class="mb-8 text-4xl font-bold text-primary-700">Problem & Solution</h2>
 
       <div class="mb-8 rounded-xl bg-white p-8 shadow-lg dark:bg-gray-800">
         <h3 class="mb-6 text-2xl font-semibold">Market Problems</h3>
@@ -233,7 +233,7 @@
               class="mb-4 mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/20"
             >
               <svg
-                class="h-8 w-8 text-primary"
+                class="h-8 w-8 text-primary-700"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -260,7 +260,7 @@
               class="mb-4 mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/20"
             >
               <svg
-                class="h-8 w-8 text-primary"
+                class="h-8 w-8 text-primary-700"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -287,7 +287,7 @@
               class="mb-4 mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/20"
             >
               <svg
-                class="h-8 w-8 text-primary"
+                class="h-8 w-8 text-primary-700"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -314,7 +314,7 @@
 
     <!-- Market Opportunity -->
     <section id="market-opportunity" class="mb-16">
-      <h2 class="mb-8 text-4xl font-bold text-primary">Market Opportunity</h2>
+      <h2 class="mb-8 text-4xl font-bold text-primary-700">Market Opportunity</h2>
 
       <div class="mb-8 grid gap-8 md:grid-cols-3">
         <div
@@ -412,7 +412,7 @@
 
     <!-- Business Model -->
     <section id="business-model" class="mb-16">
-      <h2 class="mb-8 text-4xl font-bold text-primary">Business Model</h2>
+      <h2 class="mb-8 text-4xl font-bold text-primary-700">Business Model</h2>
 
       <div class="mb-8 grid gap-8 md:grid-cols-2">
         <div class="rounded-xl bg-white p-8 shadow-lg dark:bg-gray-800">
@@ -456,7 +456,7 @@
               <h4 class="font-semibold text-gray-900 dark:text-white">
                 Residential Cleaning
               </h4>
-              <p class="text-2xl font-bold text-primary">R350 - R550</p>
+              <p class="text-2xl font-bold text-primary-700">R350 - R550</p>
               <p class="text-sm text-gray-600 dark:text-gray-400">
                 Per service (based on home size and requirements)
               </p>
@@ -466,7 +466,7 @@
               <h4 class="font-semibold text-gray-900 dark:text-white">
                 Commercial Cleaning
               </h4>
-              <p class="text-2xl font-bold text-primary">R450 - R650</p>
+              <p class="text-2xl font-bold text-primary-700">R450 - R650</p>
               <p class="text-sm text-gray-600 dark:text-gray-400">
                 Per booking (based on facility type and frequency)
               </p>
@@ -479,11 +479,11 @@
               <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <p class="font-medium">
-                    Average Booking Value: <span class="text-primary">R450</span
+                    Average Booking Value: <span class="text-primary-700">R450</span
                     >
                   </p>
                   <p class="font-medium">
-                    Platform Revenue (25%): <span class="text-primary"
+                    Platform Revenue (25%): <span class="text-primary-700"
                       >R112.50</span
                     >
                   </p>
@@ -509,14 +509,14 @@
 
     <!-- Competitive Analysis -->
     <section id="competitive-analysis" class="mb-16">
-      <h2 class="mb-8 text-4xl font-bold text-primary">Competitive Analysis</h2>
+      <h2 class="mb-8 text-4xl font-bold text-primary-700">Competitive Analysis</h2>
 
       <div class="mb-8 rounded-xl bg-white p-8 shadow-lg dark:bg-gray-800">
         <h3 class="mb-6 text-2xl font-semibold">Competitive Advantages</h3>
         <div class="grid gap-6 md:grid-cols-2">
           <div class="space-y-4">
             <div class="rounded-lg bg-primary/10 p-4">
-              <h4 class="font-semibold text-primary">Technology Edge</h4>
+              <h4 class="font-semibold text-primary-700">Technology Edge</h4>
               <p class="text-gray-700 dark:text-gray-300">
                 Custom matching algorithm that pairs customers with available
                 cleaners based on location, service needs, and preferences
@@ -561,7 +561,7 @@
             <thead>
               <tr class="border-b border-gray-200 dark:border-gray-700">
                 <th class="py-3 text-left font-semibold">Features</th>
-                <th class="py-3 text-center font-semibold text-primary"
+                <th class="py-3 text-center font-semibold text-primary-700"
                   >BrightBroom</th
                 >
                 <th class="py-3 text-center font-semibold"
@@ -636,7 +636,7 @@
 
     <!-- Management Team -->
     <section id="team" class="mb-16">
-      <h2 class="mb-8 text-4xl font-bold text-primary">Management Team</h2>
+      <h2 class="mb-8 text-4xl font-bold text-primary-700">Management Team</h2>
 
       <div class="mb-8 grid gap-8 md:grid-cols-2">
         {#each teamMembers as member}
@@ -659,7 +659,7 @@
                   }}
                 />
                 <div
-                  class="hidden h-full w-full items-center justify-center rounded-full bg-primary/20 text-2xl font-bold text-primary"
+                  class="hidden h-full w-full items-center justify-center rounded-full bg-primary/20 text-2xl font-bold text-primary-700"
                 >
                   {member.name.charAt(0)}
                 </div>
@@ -675,13 +675,13 @@
                 <div class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
                   <p>
                     <a
-                      class="hover:text-primary transition-colors"
+                      class="hover:text-primary-700 transition-colors"
                       href="mailto:{member.email}">{member.email}</a
                     >
                   </p>
                   <p>
                     <a
-                      class="hover:text-primary transition-colors"
+                      class="hover:text-primary-700 transition-colors"
                       href="tel:{member.phone}">{member.phone}</a
                     >
                   </p>
@@ -733,7 +733,7 @@
 
     <!-- Operations Plan -->
     <section id="operations" class="mb-16">
-      <h2 class="mb-8 text-4xl font-bold text-primary">Operations Plan</h2>
+      <h2 class="mb-8 text-4xl font-bold text-primary-700">Operations Plan</h2>
 
       <div class="mb-8 grid gap-8 md:grid-cols-2">
         <div class="rounded-xl bg-white p-8 shadow-lg dark:bg-gray-800">
@@ -741,7 +741,7 @@
           <div class="space-y-4">
             <div class="flex items-start">
               <div
-                class="mr-4 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-bold"
+                class="mr-4 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-950 text-sm font-bold"
               >
                 1
               </div>
@@ -756,7 +756,7 @@
 
             <div class="flex items-start">
               <div
-                class="mr-4 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-bold"
+                class="mr-4 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-950 text-sm font-bold"
               >
                 2
               </div>
@@ -771,7 +771,7 @@
 
             <div class="flex items-start">
               <div
-                class="mr-4 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-bold"
+                class="mr-4 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-950 text-sm font-bold"
               >
                 3
               </div>
@@ -786,7 +786,7 @@
 
             <div class="flex items-start">
               <div
-                class="mr-4 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-bold"
+                class="mr-4 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-950 text-sm font-bold"
               >
                 4
               </div>
@@ -801,7 +801,7 @@
 
             <div class="flex items-start">
               <div
-                class="mr-4 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-bold"
+                class="mr-4 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-950 text-sm font-bold"
               >
                 5
               </div>
@@ -881,7 +881,7 @@
 
     <!-- Financial Projections -->
     <section id="financials" class="mb-16">
-      <h2 class="mb-8 text-4xl font-bold text-primary">
+      <h2 class="mb-8 text-4xl font-bold text-primary-700">
         Financial Projections
       </h2>
 
@@ -891,7 +891,7 @@
         </h3>
         <div class="grid gap-6 md:grid-cols-3">
           <div class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700">
-            <h4 class="mb-3 text-xl font-semibold text-primary">Year 1</h4>
+            <h4 class="mb-3 text-xl font-semibold text-primary-700">Year 1</h4>
             <div class="space-y-3">
               <div class="flex justify-between">
                 <span class="text-gray-600 dark:text-gray-400">Revenue</span>
@@ -909,7 +909,7 @@
           </div>
 
           <div class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700">
-            <h4 class="mb-3 text-xl font-semibold text-primary">Year 2</h4>
+            <h4 class="mb-3 text-xl font-semibold text-primary-700">Year 2</h4>
             <div class="space-y-3">
               <div class="flex justify-between">
                 <span class="text-gray-600 dark:text-gray-400">Revenue</span>
@@ -927,7 +927,7 @@
           </div>
 
           <div class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700">
-            <h4 class="mb-3 text-xl font-semibold text-primary">Year 3</h4>
+            <h4 class="mb-3 text-xl font-semibold text-primary-700">Year 3</h4>
             <div class="space-y-3">
               <div class="flex justify-between">
                 <span class="text-gray-600 dark:text-gray-400">Revenue</span>
@@ -982,7 +982,7 @@
 
     <!-- Funding Request -->
     <section id="funding" class="mb-16">
-      <h2 class="mb-8 text-4xl font-bold text-primary">Funding Request</h2>
+      <h2 class="mb-8 text-4xl font-bold text-primary-700">Funding Request</h2>
 
       <div class="mb-8 grid gap-8 md:grid-cols-2">
         <div class="rounded-xl bg-white p-8 shadow-lg dark:bg-gray-800">
@@ -990,7 +990,7 @@
             Investment Ask
           </h3>
           <div class="mb-6 rounded-lg bg-primary/10 p-8 text-center">
-            <p class="text-5xl font-bold text-primary">R2,000,000</p>
+            <p class="text-5xl font-bold text-primary-700">R2,000,000</p>
             <p class="text-xl text-gray-700 dark:text-gray-300">
               Seed Investment Round
             </p>
@@ -1126,14 +1126,14 @@
 
     <!-- Strategic Roadmap -->
     <section id="roadmap" class="mb-16">
-      <h2 class="mb-8 text-4xl font-bold text-primary">Strategic Roadmap</h2>
+      <h2 class="mb-8 text-4xl font-bold text-primary-700">Strategic Roadmap</h2>
 
       <div class="mb-8 rounded-xl bg-white p-8 shadow-lg dark:bg-gray-800">
         <h3 class="mb-6 text-2xl font-semibold">Next 18 Months</h3>
         <div class="relative ml-6 border-l-4 border-primary pl-8">
           <div class="mb-8">
             <div
-              class="absolute -left-[14px] flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white font-bold"
+              class="absolute -left-[14px] flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-950 font-bold"
             >
               1
             </div>
@@ -1149,7 +1149,7 @@
 
           <div class="mb-8">
             <div
-              class="absolute -left-[14px] flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white font-bold"
+              class="absolute -left-[14px] flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-950 font-bold"
             >
               2
             </div>
@@ -1166,7 +1166,7 @@
 
           <div class="mb-8">
             <div
-              class="absolute -left-[14px] flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white font-bold"
+              class="absolute -left-[14px] flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-950 font-bold"
             >
               3
             </div>
@@ -1183,7 +1183,7 @@
 
           <div class="mb-8">
             <div
-              class="absolute -left-[14px] flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white font-bold"
+              class="absolute -left-[14px] flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-950 font-bold"
             >
               4
             </div>
@@ -1200,7 +1200,7 @@
 
           <div>
             <div
-              class="absolute -left-[14px] flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white font-bold"
+              class="absolute -left-[14px] flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-950 font-bold"
             >
               5
             </div>
@@ -1271,7 +1271,7 @@
 
     <!-- Risk Analysis -->
     <section id="risks" class="mb-16">
-      <h2 class="mb-8 text-4xl font-bold text-primary">
+      <h2 class="mb-8 text-4xl font-bold text-primary-700">
         Risk Analysis & Mitigation
       </h2>
 
@@ -1288,8 +1288,8 @@
               </p>
             </div>
 
-            <div class="rounded-lg bg-orange-50 p-4 dark:bg-orange-900/20">
-              <h4 class="font-semibold text-orange-700 dark:text-orange-400">
+            <div class="rounded-lg bg-secondary-50 p-4 dark:bg-secondary-900/20">
+              <h4 class="font-semibold text-secondary-700 dark:text-secondary-400">
                 Economic Downturn
               </h4>
               <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">
@@ -1350,8 +1350,8 @@
               </p>
             </div>
 
-            <div class="rounded-lg bg-teal-50 p-4 dark:bg-teal-900/20">
-              <h4 class="font-semibold text-teal-700 dark:text-teal-400">
+            <div class="rounded-lg bg-primary-50 p-4 dark:bg-primary-900/20">
+              <h4 class="font-semibold text-primary-700 dark:text-primary-400">
                 Quality Systems
               </h4>
               <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">
@@ -1427,10 +1427,10 @@
   {#if showScrollTop}
     <button
       on:click={scrollToTop}
-      class="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all duration-200 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+      class="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-950 shadow-lg transition-all duration-200 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
       aria-label="Scroll to top"
     >
-      <ArrowUp size={20} />
+      <Icon name="arrow-up" size={20} />
     </button>
   {/if}
 </div>

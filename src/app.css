@@ -7,8 +7,11 @@
 
 /* Custom global styles */
 :root {
-  --primary: 32, 195, 175; /* #20C3AF in RGB */
-  --secondary: 194, 81, 31; /* #C2511F in RGB */
+  /* Colour values live in src/lib/config/theme.ts */
+  --primary: 32, 195, 175; /* teal #20C3AF */
+  --secondary: 194, 81, 31; /* orange #C2511F */
+  --background: 255, 255, 255;
+  --foreground: 15, 15, 15;
 
   /* Semantic color tokens */
   --color-background: #F8FAFB;
@@ -32,12 +35,6 @@
   --color-text-primary: #F9FAFB;
   --color-text-secondary: #D1D5DB;
   --color-text-tertiary: #9CA3AF;
-}
-
-/* Define your light theme palette */
-:root {
-  --background: 255, 255, 255;
-  --foreground: 15, 15, 15;
 }
 
 @layer base {
@@ -65,14 +62,14 @@
 
   /* Focus styles for accessibility */
   *:focus-visible {
-    outline: 2px solid #20C3AF;
+    outline: 2px solid theme('colors.primary.700');
     outline-offset: 2px;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply rounded-md bg-primary px-4 py-2 text-white transition-colors hover:bg-primary-600;
+    @apply rounded-md bg-primary px-4 py-2 text-primary-950 transition-colors hover:bg-primary-400;
   }
 
   .btn-secondary {
@@ -111,17 +108,17 @@
 
   /* Circular icon badge used in feature/step/stat cards */
   .icon-chip {
-    @apply flex items-center justify-center rounded-full bg-primary-100 text-primary transition-colors duration-200 dark:bg-primary-900/30;
+    @apply flex items-center justify-center rounded-full bg-primary-100 text-primary-700 transition-colors duration-200 dark:bg-primary-900/30;
   }
 
   /* Icon chip fills with brand colour when its parent .group is hovered */
   .icon-chip-interactive {
-    @apply group-hover:bg-primary group-hover:text-white;
+    @apply group-hover:bg-primary group-hover:text-primary-950;
   }
 
   /* Section heading typography */
   .section-eyebrow {
-    @apply text-sm font-semibold uppercase tracking-wider text-primary;
+    @apply text-sm font-semibold uppercase tracking-wider text-primary-700;
   }
 
   .section-title {
@@ -150,6 +147,20 @@
   .table-td {
     @apply px-4 py-3.5 text-sm;
   }
+}
+
+/* Phosphor duotone: colour the soft back layer orange on branded icons.
+   The element selector outranks the package's .ph-duotone.ph-<name>:before rule. */
+i.ph-duotone.ph-accent::before {
+  color: theme('colors.secondary.DEFAULT');
+  opacity: 0.45;
+}
+
+/* Teal text links need the deeper teal to pass contrast; keep them underlined */
+a.text-primary-700.hover\:underline {
+  text-decoration-line: underline;
+  text-decoration-color: theme('colors.primary.300');
+  text-underline-offset: 3px;
 }
 
 /* Respect users who prefer reduced motion: disable transform-based hovers */

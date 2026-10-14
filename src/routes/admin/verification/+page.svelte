@@ -1,9 +1,9 @@
 <!-- src/routes/admin/verification/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { invalidateAll } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
-  import { CheckCircle2, Clock, FileText, Trash2, Upload, XCircle } from "lucide-svelte";
-
+  
   export let data;
 
   let uploading: string | null = null;
@@ -73,7 +73,7 @@
   <!-- Status -->
   {#if status === "APPROVED"}
     <div class="flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
-      <CheckCircle2 class="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
+      <Icon name="check-circle" size={20} class="mt-0.5 shrink-0 text-green-600 dark:text-green-400" />
       <div>
         <p class="font-medium text-green-800 dark:text-green-400">Verified</p>
         <p class="text-sm text-green-700 dark:text-green-500">
@@ -83,7 +83,7 @@
     </div>
   {:else if status === "SUBMITTED"}
     <div class="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
-      <Clock class="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
+      <Icon name="clock" size={20} class="mt-0.5 shrink-0 text-blue-600 dark:text-blue-400" />
       <div>
         <p class="font-medium text-blue-800 dark:text-blue-400">With us for review</p>
         <p class="text-sm text-blue-700 dark:text-blue-500">
@@ -94,7 +94,7 @@
     </div>
   {:else if status === "REJECTED"}
     <div class="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-      <XCircle class="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
+      <Icon name="x-circle" size={20} class="mt-0.5 shrink-0 text-red-600 dark:text-red-400" />
       <div>
         <p class="font-medium text-red-800 dark:text-red-400">Needs attention</p>
         <p class="text-sm text-red-700 dark:text-red-500">
@@ -105,7 +105,7 @@
     </div>
   {:else}
     <div class="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
-      <Clock class="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+      <Icon name="clock" size={20} class="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
       <div>
         <p class="font-medium text-amber-800 dark:text-amber-400">
           {outstanding}
@@ -132,11 +132,11 @@
         <div class="flex items-start gap-3">
           <div class="mt-0.5">
             {#if requirement.document}
-              <CheckCircle2 class="h-5 w-5 text-green-600 dark:text-green-400" />
+              <Icon name="check-circle" size={20} class="text-green-600 dark:text-green-400" />
             {:else if requirement.required}
-              <FileText class="h-5 w-5 text-amber-500" />
+              <Icon name="file-text" size={20} class="text-amber-500" />
             {:else}
-              <FileText class="h-5 w-5 text-gray-300 dark:text-gray-600" />
+              <Icon name="file-text" size={20} class="text-gray-300 dark:text-gray-600" />
             {/if}
           </div>
           <div>
@@ -174,13 +174,13 @@
               disabled={uploading === requirement.type}
               on:click={() => remove(requirement.type)}
             >
-              <Trash2 class="h-4 w-4" />
+              <Icon name="trash" size={16} />
             </button>
           {:else}
             <label
               class="inline-flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
             >
-              <Upload class="h-4 w-4" />
+              <Icon name="upload-simple" size={16} />
               {uploading === requirement.type ? "Uploading..." : "Upload"}
               <input
                 type="file"

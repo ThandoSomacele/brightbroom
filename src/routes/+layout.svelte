@@ -6,10 +6,11 @@
   import CookieConsentBanner from "$lib/components/CookieConsentBanner.svelte";
   import ErrorBoundary from "$lib/components/ErrorBoundary.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-    import { performanceMonitor } from "$lib/utils/performance";
+  import { performanceMonitor } from "$lib/utils/performance";
   import posthog from "posthog-js";
   import { onMount } from "svelte";
   import "../app.css";
+  import "@phosphor-icons/web/duotone";
 
   // Access user data from the page store
   $: user = $page.data.user;
@@ -93,7 +94,7 @@
 <!-- Skip link for accessibility -->
 <a
   href="#main-content"
-  class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-primary text-white p-3 z-50 focus:z-50"
+  class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-primary text-primary-950 p-3 z-50 focus:z-50"
 >
   Skip to main content
 </a>
@@ -109,7 +110,7 @@
           class="flex items-center"
           aria-label="BrightBroom home page"
         >
-          <span class="text-2xl font-bold text-primary">BrightBroom</span>
+          <span class="text-2xl font-bold text-primary-700">BrightBroom</span>
         </a>
       </div>
 
@@ -117,33 +118,33 @@
       <nav class="hidden space-x-4 lg:flex">
         <a
           href="/"
-          class="px-3 py-2 text-gray-700 hover:text-primary dark:text-gray-200"
+          class="px-3 py-2 text-gray-700 hover:text-primary-700 dark:text-gray-200"
           >Home</a
         >
         <a
           href="/services"
-          class="px-3 py-2 text-gray-700 hover:text-primary dark:text-gray-200"
+          class="px-3 py-2 text-gray-700 hover:text-primary-700 dark:text-gray-200"
           >Services</a
         >
         <a
           href="/about"
-          class="px-3 py-2 text-gray-700 hover:text-primary dark:text-gray-200"
+          class="px-3 py-2 text-gray-700 hover:text-primary-700 dark:text-gray-200"
           >About</a
         >
         <a
           href="/magazine"
-          class="px-3 py-2 text-gray-700 hover:text-primary dark:text-gray-200"
+          class="px-3 py-2 text-gray-700 hover:text-primary-700 dark:text-gray-200"
           >Magazine</a
         >
         <a
           href="/contact"
-          class="px-3 py-2 text-gray-700 hover:text-primary dark:text-gray-200"
+          class="px-3 py-2 text-gray-700 hover:text-primary-700 dark:text-gray-200"
           >Contact</a
         >
         {#if user && user.role === "ADMIN"}
           <a
             href="/admin/dashboard"
-            class="px-3 py-2 font-medium text-primary hover:text-primary-600 dark:text-primary-400"
+            class="px-3 py-2 font-medium text-primary-700 hover:text-primary-800 dark:text-primary-400"
             >Admin</a
           >
         {/if}
@@ -229,32 +230,32 @@
         <a
           href="/"
           on:click={closeMenu}
-          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
+          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-200 dark:hover:bg-gray-700"
           >Home</a
         >
         <a
           href="/services"
           on:click={closeMenu}
-          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
+          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-200 dark:hover:bg-gray-700"
           >Services</a
         >
         <a
           href="/about"
           on:click={closeMenu}
-          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
+          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-200 dark:hover:bg-gray-700"
           >About</a
         >
         <a
           href="/magazine"
           on:click={closeMenu}
-          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
+          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-200 dark:hover:bg-gray-700"
           >Magazine</a
         >
 
         <a
           href="/contact"
           on:click={closeMenu}
-          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
+          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-200 dark:hover:bg-gray-700"
           >Contact</a
         >
       </div>
@@ -276,14 +277,14 @@
             <a
               href="/profile"
               on:click={closeMenu}
-              class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
+              class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-200 dark:hover:bg-gray-700"
               >Your Profile</a
             >
             {#if user.role === "ADMIN"}
               <a
                 href="/admin/dashboard"
                 on:click={closeMenu}
-                class="block px-3 py-2 font-medium text-primary hover:bg-gray-50 hover:text-primary-600 dark:text-primary-400 dark:hover:bg-gray-700"
+                class="block px-3 py-2 font-medium text-primary-700 hover:bg-gray-50 hover:text-primary-800 dark:text-primary-400 dark:hover:bg-gray-700"
                 >Admin Dashboard</a
               >
             {/if}
@@ -298,7 +299,7 @@
             >
               <button
                 type="submit"
-                class="block w-full px-3 py-2 text-left text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
+                class="block w-full px-3 py-2 text-left text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-200 dark:hover:bg-gray-700"
               >
                 Sign out
               </button>
@@ -309,7 +310,7 @@
             <a
               href="/auth/login"
               on:click={closeMenu}
-              class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
+              class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-200 dark:hover:bg-gray-700"
               >Login</a
             >
             <a
@@ -341,7 +342,7 @@
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="md:flex md:items-center md:justify-between">
       <div class="mb-6 md:mb-0">
-        <span class="text-xl font-bold text-primary">BrightBroom</span>
+        <span class="text-xl font-bold text-primary-700">BrightBroom</span>
         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
           Cleaner Bookings Made Simple
         </p>

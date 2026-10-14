@@ -57,7 +57,7 @@
       >
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
           <h2
-            class="text-lg font-bold text-primary-600 dark:text-primary-400 mb-4"
+            class="text-lg font-bold text-primary-700 dark:text-primary-400 mb-4"
           >
             Table of Contents
           </h2>
@@ -82,7 +82,7 @@
             <div class="flex justify-center mb-6">
               <!-- Logo placeholder (replace with actual logo) -->
               <div
-                class="w-64 h-16 rounded-md bg-primary-500 flex items-center justify-center text-white font-bold text-xl"
+                class="w-64 h-16 rounded-md bg-primary-500 flex items-center justify-center text-primary-950 font-bold text-xl"
               >
                 BrightBroom
               </div>
@@ -1107,7 +1107,7 @@
                 <div
                   class="mt-4 pl-4 pr-2 text-gray-700 dark:text-gray-300 space-y-4"
                 >
-                  <p class="text-primary-600 dark:text-primary-400 font-medium">
+                  <p class="text-primary-700 dark:text-primary-400 font-medium">
                     This section contains important limitations on our
                     liability. Please read carefully.
                   </p>
@@ -1433,13 +1433,13 @@
                     communications. You may give notice to us under or in
                     connection with these Terms by emailing <a
                       href="mailto:support@brightbroom.com"
-                      class="text-primary-600 dark:text-primary-400 hover:underline"
+                      class="text-primary-700 dark:text-primary-400 hover:underline"
                       >support@brightbroom.com</a
                     >
                     or alternatively
                     <a
                       href="mailto:info@brightbroom.com"
-                      class="text-primary-600 dark:text-primary-400 hover:underline"
+                      class="text-primary-700 dark:text-primary-400 hover:underline"
                       >info@brightbroom.com</a
                     >
                   </p>
@@ -1522,7 +1522,7 @@
   /* Improve link styling */
   a {
     text-decoration: none;
-    color: #20c3af;
+    color: #15776D;
     transition: color 0.2s;
   }
 

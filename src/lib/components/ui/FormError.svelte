@@ -1,7 +1,7 @@
 <!-- src/lib/components/ui/FormError.svelte -->
 <script lang="ts">
-  import { AlertCircle } from 'lucide-svelte';
-  
+  import Icon from "$lib/components/ui/Icon.svelte";
+    
   export let error: string | null = null;
   export let fieldId: string | null = null;
   export let id: string = fieldId ? `${fieldId}-error` : 'error-message';
@@ -14,7 +14,7 @@
     role="alert"
     aria-live="polite"
   >
-    <AlertCircle size={16} aria-hidden="true" />
+    <Icon name="warning-circle" size={16} aria-hidden="true" />
     <span>{error}</span>
   </div>
 {/if}

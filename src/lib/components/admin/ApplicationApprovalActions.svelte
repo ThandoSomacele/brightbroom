@@ -1,8 +1,8 @@
 <!-- src/lib/components/admin/ApplicationApprovalActions.svelte -->
 
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import { CheckCircle, Edit, XCircle } from "lucide-svelte";
   import { createEventDispatcher } from "svelte";
 
   // Props
@@ -142,10 +142,10 @@
   {#if status === "PENDING"}
     <Button
       variant="outline"
-      class="border-primary bg-primary-50 text-primary hover:bg-primary-100 dark:bg-primary-900/20 dark:border-primary-700"
+      class="border-primary bg-primary-50 text-primary-700 hover:bg-primary-100 dark:bg-primary-900/20 dark:border-primary-700"
       on:click={handleEdit}
     >
-      <Edit size={16} class="mr-1" />
+      <Icon name="pencil-simple" size={16} class="mr-1" />
       Edit Details
     </Button>
 
@@ -155,7 +155,7 @@
       on:click={handleApprove}
       disabled={isProcessing || disabled}
     >
-      <CheckCircle size={16} class="mr-1" />
+      <Icon name="check-circle" size={16} class="mr-1" />
       {#if isProcessing && !showRejectDialog}
         <div
           class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
@@ -172,21 +172,21 @@
       on:click={openRejectDialog}
       disabled={isProcessing || disabled}
     >
-      <XCircle size={16} class="mr-1" />
+      <Icon name="x-circle" size={16} class="mr-1" />
       Reject
     </Button>
   {:else if status === "APPROVED"}
     <div
       class="flex items-center text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-md border border-green-200 dark:border-green-800"
     >
-      <CheckCircle size={16} class="mr-2" />
+      <Icon name="check-circle" size={16} class="mr-2" />
       Application Approved
     </div>
   {:else if status === "REJECTED"}
     <div
       class="flex items-center text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-md border border-red-200 dark:border-red-800"
     >
-      <XCircle size={16} class="mr-2" />
+      <Icon name="x-circle" size={16} class="mr-2" />
       Application Rejected
     </div>
   {/if}
@@ -241,7 +241,7 @@
             ></div>
             Processing...
           {:else}
-            <XCircle size={16} class="mr-1" />
+            <Icon name="x-circle" size={16} class="mr-1" />
             Confirm Rejection
           {/if}
         </Button>

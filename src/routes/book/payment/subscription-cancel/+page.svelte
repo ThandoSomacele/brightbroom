@@ -1,7 +1,7 @@
 <!-- src/routes/book/payment/subscription-cancel/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from '$app/navigation';
-  import { XCircle } from 'lucide-svelte';
   import Button from '$lib/components/ui/Button.svelte';
 
   // Navigate functions
@@ -24,9 +24,9 @@
 
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-4">
 <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-  <div class="bg-orange-400 p-4">
+  <div class="bg-secondary-400 p-4">
     <div class="flex justify-center">
-      <XCircle size={80} class="text-white" />
+      <Icon name="x-circle" size={80} class="text-white" />
     </div>
   </div>
 
@@ -49,7 +49,7 @@
     <div class="space-y-3">
       <Button
         on:click={tryAgain}
-        class="w-full px-6 py-2 bg-primary hover:bg-primary-600 text-white rounded-md
+        class="w-full px-6 py-2 bg-primary hover:bg-primary-600 text-primary-950 rounded-md
           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
       >
         Try Again

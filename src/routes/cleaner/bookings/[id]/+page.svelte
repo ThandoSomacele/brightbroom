@@ -1,20 +1,10 @@
 <!-- src/routes/cleaner/bookings/[id]/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
   import { parseDateTimeString } from "$lib/utils/date-utils";
-  import {
-    Calendar,
-    ChevronLeft,
-    Clock,
-    DollarSign,
-    MapPin,
-    MessageSquare,
-    Phone,
-    Play,
-    User,
-  } from "lucide-svelte";
-
+  
   export let data;
   export let form;
 
@@ -143,7 +133,7 @@
       href="/cleaner/bookings"
       class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 mr-3"
     >
-      <ChevronLeft size={20} />
+      <Icon name="caret-left" size={20} />
     </a>
     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
       Booking Details
@@ -205,7 +195,7 @@
         >
           <input type="hidden" name="status" value="IN_PROGRESS" />
           <Button type="submit" variant="primary" disabled={isSubmittingStatus}>
-            <Play size={16} class="mr-1" />
+            <Icon name="play" size={16} class="mr-1" />
             Start Job
           </Button>
         </form>
@@ -232,7 +222,7 @@
       {/if}
 
       <Button variant="outline" on:click={() => (showAddNote = !showAddNote)}>
-        <MessageSquare size={16} class="mr-1" />
+        <Icon name="chat-text" size={16} class="mr-1" />
         Add Note
       </Button>
     </div>
@@ -311,19 +301,19 @@
 
         <div class="space-y-4">
           <div class="flex items-start">
-            <DollarSign class="h-5 w-5 text-primary mr-3 mt-0.5" />
+            <Icon name="money" size={20} class="text-primary-700 mr-3 mt-0.5" />
             <div>
               <p class="font-medium text-gray-700 dark:text-gray-300">
                 Earnings from this job
               </p>
-              <p class="text-xl font-semibold text-primary mt-1">
+              <p class="text-xl font-semibold text-primary-700 mt-1">
                 {formatCurrency(cleanerPayout)}
               </p>
             </div>
           </div>
 
           <div class="flex items-start">
-            <Calendar class="h-5 w-5 text-primary mr-3 mt-0.5" />
+            <Icon name="calendar-blank" size={20} class="text-primary-700 mr-3 mt-0.5" />
             <div>
               <p class="font-medium text-gray-700 dark:text-gray-300">Date</p>
               <p class="text-gray-900 dark:text-white">
@@ -333,7 +323,7 @@
           </div>
 
           <div class="flex items-start">
-            <Clock class="h-5 w-5 text-primary mr-3 mt-0.5" />
+            <Icon name="clock" size={20} class="text-primary-700 mr-3 mt-0.5" />
             <div>
               <p class="font-medium text-gray-700 dark:text-gray-300">Time</p>
               <p class="text-gray-900 dark:text-white">
@@ -343,7 +333,7 @@
           </div>
 
           <div class="flex items-start">
-            <MapPin class="h-5 w-5 text-primary mr-3 mt-0.5" />
+            <Icon name="map-pin" size={20} class="text-primary-700 mr-3 mt-0.5" />
             <div>
               <p class="font-medium text-gray-700 dark:text-gray-300">
                 Location
@@ -407,7 +397,7 @@
 
         <div class="space-y-4">
           <div class="flex items-start">
-            <User class="h-5 w-5 text-primary mr-3 mt-0.5" />
+            <Icon name="user" size={20} class="text-primary-700 mr-3 mt-0.5" />
             <div>
               <p class="font-medium text-gray-700 dark:text-gray-300">Name</p>
               <p class="text-gray-900 dark:text-white">
@@ -419,7 +409,7 @@
 
           {#if bookingDetails.customer?.phone}
             <div class="flex items-start">
-              <Phone class="h-5 w-5 text-primary mr-3 mt-0.5" />
+              <Icon name="phone" size={20} class="text-primary-700 mr-3 mt-0.5" />
               <div>
                 <p class="font-medium text-gray-700 dark:text-gray-300">
                   Phone
@@ -445,7 +435,7 @@
             size="sm"
             on:click={() => (showAddNote = !showAddNote)}
           >
-            <MessageSquare size={16} class="mr-1" />
+            <Icon name="chat-text" size={16} class="mr-1" />
             Add Note
           </Button>
         </div>
@@ -578,7 +568,7 @@
         <div
           class="bg-primary-50 dark:bg-primary-900/10 rounded-lg shadow p-6 border border-primary-100 dark:border-primary-700/30"
         >
-          <h3 class="text-lg font-medium text-primary mb-2">Ready to start?</h3>
+          <h3 class="text-lg font-medium text-primary-700 mb-2">Ready to start?</h3>
           <p class="text-gray-700 dark:text-gray-300 mb-4">
             When you arrive at the location and begin cleaning, mark this job as
             "In Progress".
@@ -603,7 +593,7 @@
               class="w-full"
               disabled={isSubmittingStatus}
             >
-              <Play size={16} class="mr-1" />
+              <Icon name="play" size={16} class="mr-1" />
               Start Job
             </Button>
           </form>
@@ -677,7 +667,7 @@
             <span class="font-medium text-gray-900 dark:text-white"
               >Your earnings:</span
             >
-            <span class="font-bold text-primary text-lg"
+            <span class="font-bold text-primary-700 text-lg"
               >{formatCurrency(cleanerPayout)}</span
             >
           </div>

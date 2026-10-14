@@ -1,5 +1,6 @@
 <!-- src/routes/admin/bookings/[id]/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
   import AutoAssignCleanerButton from "$lib/components/admin/AutoAssignCleanerButton.svelte";
@@ -8,23 +9,7 @@
   import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
   import { calculatePayout } from "$lib/utils/payout-calculator";
   import { parseDateTimeString } from "$lib/utils/date-utils";
-  import {
-    AlertTriangle,
-    Calendar,
-    ChevronLeft,
-    ClipboardList,
-    Clock,
-    CreditCard,
-    History,
-    Home,
-    Mail,
-    MapPin,
-    MessageSquare,
-    Phone,
-    Send,
-    User,
-  } from "lucide-svelte";
-
+  
   export let data;
   export let form;
 
@@ -247,7 +232,7 @@
     }
   }
 
-  // Send SMS to customer
+  // "paper-plane-tilt" SMS to customer
   async function sendSMS(phoneNumber: string, message: string) {
     try {
       const response = await fetch(`/api/admin/communications/sms`, {
@@ -273,7 +258,7 @@
     }
   }
 
-  // Send email to customer
+  // "paper-plane-tilt" email to customer
   async function sendEmail(email: string, subject: string, message: string) {
     try {
       const response = await fetch(`/api/admin/communications/email`, {
@@ -330,7 +315,7 @@
       href="/admin/bookings"
       class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 mr-3"
     >
-      <ChevronLeft size={20} />
+      <Icon name="caret-left" size={20} />
     </a>
     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
       Booking Details
@@ -370,7 +355,7 @@
       <span
         class="ml-2 flex items-center text-amber-600 dark:text-amber-400 text-sm"
       >
-        <AlertTriangle size={16} class="mr-1" />
+        <Icon name="warning" size={16} class="mr-1" />
         Past due
       </span>
     {/if}
@@ -427,7 +412,7 @@
 
       <div class="space-y-4">
         <div class="flex items-start">
-          <Home size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+          <Icon name="house" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
           <div>
             <p class="font-medium text-gray-900 dark:text-white">
               General Clean
@@ -444,7 +429,7 @@
 
         {#if booking.addons && booking.addons.length > 0}
           <div class="flex items-start">
-            <svg class="mr-3 mt-0.5 flex-shrink-0 text-primary w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="mr-3 mt-0.5 flex-shrink-0 text-primary-700 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
             <div>
@@ -459,7 +444,7 @@
         {/if}
 
         <div class="flex items-start">
-          <Calendar size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+          <Icon name="calendar-blank" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
           <div>
             <p class="font-medium text-gray-900 dark:text-white">Date</p>
             <p class="text-gray-600 dark:text-gray-300">
@@ -469,7 +454,7 @@
         </div>
 
         <div class="flex items-start">
-          <Clock size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+          <Icon name="clock" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
           <div>
             <p class="font-medium text-gray-900 dark:text-white">Time</p>
             <p class="text-gray-600 dark:text-gray-300">
@@ -479,7 +464,7 @@
         </div>
 
         <div class="flex items-start">
-          <MapPin size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+          <Icon name="map-pin" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
           <div>
             <p class="font-medium text-gray-900 dark:text-white">Location</p>
             <p class="text-gray-600 dark:text-gray-300">
@@ -494,9 +479,9 @@
           <div
             class="flex items-start pt-3 border-t border-gray-200 dark:border-gray-700"
           >
-            <MessageSquare
+            <Icon name="chat-text"
               size={20}
-              class="mr-3 mt-0.5 flex-shrink-0 text-primary"
+              class="mr-3 mt-0.5 flex-shrink-0 text-primary-700"
             />
             <div>
               <p class="font-medium text-gray-900 dark:text-white">
@@ -522,7 +507,7 @@
 
       <div class="space-y-4">
         <div class="flex items-start">
-          <User size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+          <Icon name="user" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
           <div>
             <p class="font-medium text-gray-900 dark:text-white">Name</p>
             <p class="text-gray-600 dark:text-gray-300">
@@ -533,7 +518,7 @@
         </div>
 
         <div class="flex items-start">
-          <Mail size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+          <Icon name="envelope-simple" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
           <div>
             <p class="font-medium text-gray-900 dark:text-white">Email</p>
             <div class="flex items-center">
@@ -543,7 +528,7 @@
               <Button
                 variant="ghost"
                 size="sm"
-                class="ml-2 text-primary"
+                class="ml-2 text-primary-700"
                 on:click={() => {
                   showAddCommentModal = true;
                   setTimeout(() => {
@@ -561,7 +546,7 @@
 
         {#if booking.customer.phone}
           <div class="flex items-start">
-            <Phone size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+            <Icon name="phone" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
             <div>
               <p class="font-medium text-gray-900 dark:text-white">Phone</p>
               <div class="flex items-center">
@@ -571,7 +556,7 @@
                 <Button
                   variant="ghost"
                   size="sm"
-                  class="ml-2 text-primary"
+                  class="ml-2 text-primary-700"
                   on:click={() => {
                     showAddCommentModal = true;
                     setTimeout(() => {
@@ -589,7 +574,7 @@
         {/if}
 
         <div class="flex items-start">
-          <History size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+          <Icon name="clock-counter-clockwise" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
           <div>
             <p class="font-medium text-gray-900 dark:text-white">
               Customer Since
@@ -603,9 +588,9 @@
         <div
           class="flex items-start pt-3 border-t border-gray-200 dark:border-gray-700"
         >
-          <ClipboardList
+          <Icon name="clipboard-text"
             size={20}
-            class="mr-3 mt-0.5 flex-shrink-0 text-primary"
+            class="mr-3 mt-0.5 flex-shrink-0 text-primary-700"
           />
           <div>
             <p class="font-medium text-gray-900 dark:text-white">
@@ -638,7 +623,7 @@
 
         <div class="space-y-4">
           <div class="flex items-start">
-            <User size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+            <Icon name="user" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
             <div>
               <p class="font-medium text-gray-900 dark:text-white">Name</p>
               <p class="text-gray-600 dark:text-gray-300">
@@ -649,7 +634,7 @@
           </div>
 
           <div class="flex items-start">
-            <Mail size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+            <Icon name="envelope-simple" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
             <div>
               <p class="font-medium text-gray-900 dark:text-white">Email</p>
               <p class="text-gray-600 dark:text-gray-300">
@@ -660,7 +645,7 @@
 
           {#if booking.cleaner.phone}
             <div class="flex items-start">
-              <Phone size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+              <Icon name="phone" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
               <div>
                 <p class="font-medium text-gray-900 dark:text-white">Phone</p>
                 <p class="text-gray-600 dark:text-gray-300">
@@ -674,7 +659,7 @@
             <div class="flex items-start">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="mr-3 mt-0.5 flex-shrink-0 text-primary h-5 w-5"
+                class="mr-3 mt-0.5 flex-shrink-0 text-primary-700 h-5 w-5"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -702,7 +687,7 @@
                 booking.status === "COMPLETED" ||
                 isPastBooking()}
             >
-              <Send size={14} class="mr-1" />
+              <Icon name="paper-plane-tilt" size={14} class="mr-1" />
               Notify Change
             </Button>
             <Button
@@ -873,7 +858,7 @@
       {#if booking.payment}
         <div class="mt-4 flex justify-end">
           <Button variant="outline" size="sm">
-            <CreditCard size={16} class="mr-1" />
+            <Icon name="credit-card" size={16} class="mr-1" />
             View Receipt
           </Button>
         </div>
@@ -931,7 +916,7 @@
         <!-- Cleaner Payout -->
         <div class="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
           <span class="font-medium text-gray-900 dark:text-white">Cleaner Payout:</span>
-          <span class="font-bold text-lg text-primary">
+          <span class="font-bold text-lg text-primary-700">
             {formatPrice(payoutBreakdown.cleanerPayout)}
           </span>
         </div>
@@ -1558,7 +1543,7 @@
               </svg>
               Sending...
             {:else}
-              <Send size={16} class="mr-1" />
+              <Icon name="paper-plane-tilt" size={16} class="mr-1" />
               Send Notification
             {/if}
           </Button>

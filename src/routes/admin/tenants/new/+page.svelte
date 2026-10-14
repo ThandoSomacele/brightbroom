@@ -1,9 +1,9 @@
 <!-- src/routes/admin/tenants/new/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { enhance } from "$app/forms";
-  import { ArrowLeft } from "lucide-svelte";
-
+  
   export let form;
 
   const provinces = [
@@ -56,7 +56,7 @@
       href="/admin/tenants"
       class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
     >
-      <ArrowLeft class="h-5 w-5" />
+      <Icon name="arrow-left" size={20} />
     </a>
     <div>
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">

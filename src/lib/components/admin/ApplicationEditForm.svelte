@@ -257,7 +257,7 @@
               type="checkbox"
               value={day}
               bind:group={availabilityDays}
-              class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
             />
             <span class="ml-2 text-gray-700 dark:text-gray-300">
               {day.charAt(0) + day.slice(1).toLowerCase()}
@@ -327,7 +327,7 @@
                 type="checkbox"
                 checked={!editableApplication.documentsPending}
                 on:change={(e) => editableApplication.documentsPending = !e.currentTarget.checked}
-                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
               />
               <span class="ml-2 text-gray-700 dark:text-gray-300">
                 All required documents have been uploaded

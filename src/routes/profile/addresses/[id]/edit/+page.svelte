@@ -1,16 +1,9 @@
 <!-- src/routes/profile/addresses/[id]/edit/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
-  import { 
-    MapPin, 
-    Building, 
-    Map, 
-    Globe, 
-    Hash, 
-    Star
-  } from "lucide-svelte";
-  
+    
   // Get data from the server
   export let data;
   const { address } = data;
@@ -64,7 +57,7 @@
         </label>
         <div class="relative">
           <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500 dark:text-gray-400">
-            <MapPin size={18} />
+            <Icon name="map-pin" size={18} />
           </div>
           <input
             type="text"
@@ -88,7 +81,7 @@
         </label>
         <div class="relative">
           <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500 dark:text-gray-400">
-            <Building size={18} />
+            <Icon name="building" size={18} />
           </div>
           <input
             type="text"
@@ -111,7 +104,7 @@
         </label>
         <div class="relative">
           <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500 dark:text-gray-400">
-            <Map size={18} />
+            <Icon name="map-trifold" size={18} />
           </div>
           <input
             type="text"
@@ -135,7 +128,7 @@
         </label>
         <div class="relative">
           <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500 dark:text-gray-400">
-            <Globe size={18} />
+            <Icon name="globe-hemisphere-east" size={18} />
           </div>
           <input
             type="text"
@@ -159,7 +152,7 @@
         </label>
         <div class="relative">
           <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500 dark:text-gray-400">
-            <Hash size={18} />
+            <Icon name="hash" size={18} />
           </div>
           <input
             type="text"
@@ -196,14 +189,14 @@
           id="isDefault"
           name="isDefault"
           type="checkbox"
-          class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary dark:focus:ring-primary dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
+          class="w-4 h-4 text-primary-700 bg-gray-100 border-gray-300 rounded focus:ring-primary dark:focus:ring-primary dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
           checked={address.isDefault}
         />
         <label
           for="isDefault"
           class="flex items-center ml-2 text-sm font-medium text-gray-900 dark:text-white"
         >
-          <Star size={16} class="mr-1 text-yellow-400" />
+          <Icon name="star" size={16} class="mr-1 text-yellow-400" />
           Set as default address
         </label>
       </div>

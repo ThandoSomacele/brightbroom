@@ -1,7 +1,7 @@
 <!-- src/lib/components/admin/EmailTriggerButton.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { createEventDispatcher } from 'svelte';
-  import { Mail } from 'lucide-svelte';
   import Button from '$lib/components/ui/Button.svelte';
 
   // Props
@@ -84,7 +84,7 @@
       </svg>
       Sent!
     {:else}
-      <Mail size={16} class="mr-2" />
+      <Icon name="envelope-simple" size={16} class="mr-2" />
       {emailType === 'confirmation' ? 'Send Confirmation' : 'Send Receipt'}
     {/if}
   </Button>

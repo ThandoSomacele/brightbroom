@@ -55,14 +55,14 @@
             website.
             <a
               href="/cookie-preferences"
-              class="text-primary underline hover:text-primary-600 dark:text-primary-400"
+              class="text-primary-700 underline hover:text-primary-800 dark:text-primary-400"
             >
               View details and manage preferences
             </a>
             or read our
             <a
               href="/privacy"
-              class="text-primary underline hover:text-primary-600 dark:text-primary-400"
+              class="text-primary-700 underline hover:text-primary-800 dark:text-primary-400"
             >
               Privacy Policy
             </a>.

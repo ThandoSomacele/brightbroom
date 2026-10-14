@@ -1,12 +1,12 @@
 <!-- src/routes/auth/register/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
   import HoneypotField from "$lib/components/forms/HoneypotField.svelte";
-  import { Eye, EyeOff, Loader2, Tag } from "lucide-svelte";
-
+  
   // Get possible error from form action
   export let form;
 
@@ -55,7 +55,7 @@
 >
   <div class="w-full max-w-md">
     <div class="mb-8 text-center">
-      <h1 class="text-3xl font-bold text-primary">BrightBroom</h1>
+      <h1 class="text-3xl font-bold text-primary-700">BrightBroom</h1>
       <p class="mt-2 text-gray-600 dark:text-gray-300">Create a new account</p>
     </div>
 
@@ -66,7 +66,7 @@
           class="mb-6 rounded-md bg-primary-50 p-4 text-primary-700 dark:bg-primary-900/20 dark:text-primary-200"
         >
           <div class="flex items-center gap-2">
-            <Tag class="h-5 w-5 flex-shrink-0" />
+            <Icon name="tag" size={20} class="flex-shrink-0" />
             <p>Create an account to apply your coupon code.</p>
           </div>
         </div>
@@ -210,9 +210,9 @@
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {#if showPassword}
-                <EyeOff class="h-5 w-5" />
+                <Icon name="eye-slash" size={20} />
               {:else}
-                <Eye class="h-5 w-5" />
+                <Icon name="eye" size={20} />
               {/if}
             </Button>
           </div>
@@ -228,15 +228,15 @@
               type="checkbox"
               name="terms"
               required
-              class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
             />
             <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">
               I agree to the
-              <a href="/terms" class="text-primary hover:underline"
+              <a href="/terms" class="text-primary-700 hover:underline"
                 >Terms of Service</a
               >
               and
-              <a href="/privacy" class="text-primary hover:underline"
+              <a href="/privacy" class="text-primary-700 hover:underline"
                 >Privacy Policy</a
               > <span class="text-red-500">*</span>
             </span>
@@ -254,7 +254,7 @@
           class="w-full"
         >
           {#if isLoading}
-            <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+            <Icon name="spinner-gap" size={16} class="mr-2 animate-spin" />
             Creating account...
           {:else}
             Create account
@@ -267,7 +267,7 @@
           Already have an account?
           <a
             href="/auth/login{redirectTo !== '/profile' ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}{hasPendingCoupon ? (redirectTo !== '/profile' ? '&' : '?') + 'coupon=pending' : ''}"
-            class="font-medium text-primary hover:underline"
+            class="font-medium text-primary-700 hover:underline"
           >
             Sign in
           </a>

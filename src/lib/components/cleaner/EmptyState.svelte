@@ -1,10 +1,11 @@
 <!-- src/lib/components/cleaner/EmptyState.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from '$lib/components/ui/Button.svelte';
   
   export let title = "No data found";
   export let message = "There's nothing here yet.";
-  export let icon: any = undefined; // Lucide icon component
+  export let icon: string | undefined = undefined; // Phosphor icon name
   export let buttonLabel: string | undefined = undefined;
   export let buttonHref: string | undefined = undefined;
   export let buttonVariant: "primary" | "secondary" | "outline" = "primary";
@@ -13,7 +14,7 @@
 <div class="flex flex-col items-center justify-center py-12 px-4 text-center">
   {#if icon}
     <div class="mb-4 bg-gray-100 dark:bg-gray-700 p-4 rounded-full">
-      <svelte:component this={icon} class="h-8 w-8 text-gray-500 dark:text-gray-400" />
+      <Icon name={icon} size={32} class="text-gray-500 dark:text-gray-400" />
     </div>
   {/if}
   

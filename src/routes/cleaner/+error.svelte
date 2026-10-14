@@ -12,7 +12,7 @@
   <div class="w-full max-w-md">
     <!-- Error Icon/Illustration -->
     <div class="mb-6 flex justify-center">
-      <div class="flex h-24 w-24 items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/20">
+      <div class="flex h-24 w-24 items-center justify-center rounded-full bg-primary-50 text-primary-800 dark:bg-primary-900/20">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path 
             stroke-linecap="round" 

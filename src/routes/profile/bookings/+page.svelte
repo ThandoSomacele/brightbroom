@@ -1,8 +1,8 @@
 <!-- src/routes/profile/bookings/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from '$lib/components/ui/Button.svelte';
   import Skeleton from '$lib/components/ui/Skeleton.svelte';
-  import { Calendar, MapPin, Clock, CreditCard } from 'lucide-svelte';
   import { getBookingReference } from '$lib/utils/strings';
   import { formatDate, formatTime, parseDateTimeString } from '$lib/utils/date-utils';
 
@@ -131,25 +131,25 @@
         <div class="flex flex-wrap gap-2">
           <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2 py-2">Status:</span>
           <button 
-            class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'all' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
+            class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'all' ? 'bg-primary text-primary-950' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
             on:click={() => filterStatus = 'all'}
           >
             All
           </button>
           <button 
-            class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'CONFIRMED' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
+            class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'CONFIRMED' ? 'bg-primary text-primary-950' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
             on:click={() => filterStatus = 'CONFIRMED'}
           >
             Confirmed
           </button>
           <button 
-            class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'PENDING' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
+            class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'PENDING' ? 'bg-primary text-primary-950' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
             on:click={() => filterStatus = 'PENDING'}
           >
             Pending
           </button>
           <button 
-            class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'COMPLETED' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
+            class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === 'COMPLETED' ? 'bg-primary text-primary-950' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'}`}
             on:click={() => filterStatus = 'COMPLETED'}
           >
             Completed
@@ -158,7 +158,7 @@
       </div>
       
       <Button variant="primary" href="/book">
-        <Calendar size={18} class="mr-2" />
+        <Icon name="calendar-blank" size={18} class="mr-2" />
         Book New Cleaning
       </Button>
     </div>
@@ -230,18 +230,18 @@
                 
                 <div class="space-y-2">
                   <p class="flex items-center text-gray-600 dark:text-gray-300">
-                    <Calendar size={18} class="mr-2 text-primary" />
+                    <Icon name="calendar-blank" size={18} class="mr-2 text-primary-700" />
                     {formatDate(booking.scheduledDate)}
                   </p>
                   
                   <p class="flex items-center text-gray-600 dark:text-gray-300">
-                    <Clock size={18} class="mr-2 text-primary" />
+                    <Icon name="clock" size={18} class="mr-2 text-primary-700" />
                     {formatTime(booking.scheduledDate)} 
                     ({booking.duration / 60} {booking.duration / 60 === 1 ? 'hour' : 'hours'})
                   </p>
                   
                   <p class="flex items-center text-gray-600 dark:text-gray-300">
-                    <MapPin size={18} class="mr-2 text-primary" />
+                    <Icon name="map-pin" size={18} class="mr-2 text-primary-700" />
                     {(() => {
                       const addr = getAddressDisplay(booking);
                       return `${addr.street}${addr.street ? ', ' : ''}${addr.city}`;
@@ -250,7 +250,7 @@
                   
                   {#if booking.payment}
                     <p class="flex items-center text-gray-600 dark:text-gray-300">
-                      <CreditCard size={18} class="mr-2 text-primary" />
+                      <Icon name="credit-card" size={18} class="mr-2 text-primary-700" />
                       Payment: {booking.payment.status}
                     </p>
                   {/if}
@@ -260,7 +260,7 @@
               <!-- Right column: Price and actions -->
               <div class="flex flex-col items-end justify-between">
                 <div class="text-right">
-                  <div class="mb-2 text-2xl font-bold text-primary">
+                  <div class="mb-2 text-2xl font-bold text-primary-700">
                     R{typeof booking.price === 'number' 
                         ? booking.price.toFixed(2) 
                         : parseFloat(booking.price).toFixed(2)}

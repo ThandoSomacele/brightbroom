@@ -1,10 +1,11 @@
 <!-- src/lib/components/ui/StatCard.svelte -->
 <script lang="ts">
-  import { TrendingDown, TrendingUp } from "lucide-svelte";
-
+  import Icon from "$lib/components/ui/Icon.svelte";
+  
   export let label: string;
   export let value: string;
-  export let icon: any = undefined;
+  /** Phosphor icon name */
+  export let icon: string | undefined = undefined;
   export let accent: "primary" | "secondary" | "green" | "red" | "amber" = "primary";
   export let trend: { value: string; direction: "up" | "down" | "flat" } | undefined =
     undefined;
@@ -12,7 +13,7 @@
 
   // Literal class maps so Tailwind's JIT sees the full class names
   const chipAccents = {
-    primary: "bg-primary-100 text-primary dark:bg-primary-900/30",
+    primary: "bg-primary-50 text-primary-800 dark:bg-primary-900/30",
     secondary: "bg-secondary-100 text-secondary dark:bg-secondary-900/30",
     green: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
     red: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
@@ -40,9 +41,9 @@
       {#if trend}
         <p class="mt-1 flex items-center gap-1 text-sm {trendColors[trend.direction]}">
           {#if trend.direction === "up"}
-            <TrendingUp size={14} />
+            <Icon name="trend-up" size={14} />
           {:else if trend.direction === "down"}
-            <TrendingDown size={14} />
+            <Icon name="trend-down" size={14} />
           {/if}
           {trend.value}
         </p>
@@ -50,7 +51,7 @@
     </div>
     {#if icon}
       <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full transition-colors duration-200 {chipAccents[accent]}">
-        <svelte:component this={icon} size={24} />
+        <Icon name={icon} size={24} accent />
       </div>
     {/if}
   </div>

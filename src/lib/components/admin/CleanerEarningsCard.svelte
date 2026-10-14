@@ -1,6 +1,6 @@
 <!-- src/lib/components/admin/CleanerEarningsCard.svelte -->
 <script lang="ts">
-  import { Calendar, TrendingUp, ArrowUpRight, Wallet, Clock } from "lucide-svelte";
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
 
   // Props
@@ -47,13 +47,13 @@
   <div class="p-6">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-        <Wallet class="mr-2 text-primary" size={20} />
+        <Icon name="wallet" class="mr-2 text-primary-700" size={20} />
         Earnings Summary
       </h2>
       
       <Button variant="outline" size="sm" href={`/admin/cleaners/${cleanerId}/earnings`}>
         <span>View Details</span>
-        <ArrowUpRight size={16} class="ml-1" />
+        <Icon name="arrow-up-right" size={16} class="ml-1" />
       </Button>
     </div>
     
@@ -71,14 +71,14 @@
         <!-- Total Payout (Earned) -->
         <div class="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg">
           <p class="text-sm text-gray-500 dark:text-gray-400">Total Earned</p>
-          <p class="text-2xl font-bold text-primary">{formatCurrency(earnings.totalPayout)}</p>
+          <p class="text-2xl font-bold text-primary-700">{formatCurrency(earnings.totalPayout)}</p>
           <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">From completed bookings</p>
         </div>
 
         <!-- Potential Earnings (Upcoming) -->
         <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
           <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-            <Clock size={14} class="mr-1" />
+            <Icon name="clock" size={14} class="mr-1" />
             Incoming
           </p>
           <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{formatCurrency(upcomingEarnings.potentialEarnings)}</p>
@@ -108,14 +108,14 @@
         </div>
         <div class="flex justify-between items-center text-sm mt-1 pt-1 border-t border-gray-200 dark:border-gray-600">
           <span class="font-medium text-gray-700 dark:text-gray-300">Cleaner Payout</span>
-          <span class="font-medium text-primary">{formatCurrency(earnings.totalPayout)}</span>
+          <span class="font-medium text-primary-700">{formatCurrency(earnings.totalPayout)}</span>
         </div>
       </div>
       
       <!-- Recent earnings section -->
       <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
         <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-          <Calendar size={16} class="inline mr-1" />
+          <Icon name="calendar-blank" size={16} class="inline mr-1" />
           Recent Earnings
         </h3>
         
@@ -140,7 +140,7 @@
       <!-- Payout status -->
       <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
         <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-          <TrendingUp size={16} class="inline mr-1" />
+          <Icon name="trend-up" size={16} class="inline mr-1" />
           Payout Status
         </h3>
         

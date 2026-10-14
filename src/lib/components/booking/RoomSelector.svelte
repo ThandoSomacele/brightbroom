@@ -1,6 +1,6 @@
 <!-- src/lib/components/booking/RoomSelector.svelte -->
 <script lang="ts">
-  import { Bed, Bath, Minus, Plus, Info, X, AlertCircle } from "lucide-svelte";
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { MAX_BOOKING_DURATION_MINUTES } from "$lib/utils/pricing";
 
   // Props using Svelte 5 runes
@@ -104,7 +104,7 @@
         class="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
         aria-label="View what's included in each room"
       >
-        <Info class="h-4 w-4" />
+        <Icon name="info" size={16} />
       </button>
     </div>
 
@@ -119,14 +119,14 @@
             class="flex h-6 w-6 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300 flex-shrink-0"
             aria-label="Close"
           >
-            <X class="h-4 w-4" />
+            <Icon name="x" size={16} />
           </button>
         </div>
 
         <div class="space-y-4">
           <div>
             <h5 class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-              <Bed class="h-4 w-4 text-primary-500" />
+              <Icon name="bed" size={16} class="text-primary-700" />
               Each bedroom includes:
             </h5>
             <ul class="space-y-1 text-sm text-gray-600 dark:text-gray-400 pl-6">
@@ -147,7 +147,7 @@
 
           <div>
             <h5 class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-              <Bath class="h-4 w-4 text-secondary-500" />
+              <Icon name="bathtub" size={16} class="text-secondary-500" />
               Each bathroom includes:
             </h5>
             <ul class="space-y-1 text-sm text-gray-600 dark:text-gray-400 pl-6">
@@ -175,7 +175,7 @@
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30">
-          <Bed class="h-5 w-5 text-primary-600 dark:text-primary-400" />
+          <Icon name="bed" size={20} class="text-primary-700 dark:text-primary-400" />
         </div>
         <div>
           <h3 class="font-semibold text-gray-900 dark:text-white">Bedrooms</h3>
@@ -193,7 +193,7 @@
           class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           aria-label="Decrease bedrooms"
         >
-          <Minus class="h-5 w-5" />
+          <Icon name="minus" size={20} />
         </button>
 
         <span class="w-8 text-center text-xl font-bold text-gray-900 dark:text-white">
@@ -207,7 +207,7 @@
           class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           aria-label="Increase bedrooms"
         >
-          <Plus class="h-5 w-5" />
+          <Icon name="plus" size={20} />
         </button>
       </div>
     </div>
@@ -218,7 +218,7 @@
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="flex h-10 w-10 items-center justify-center rounded-full bg-secondary-100 dark:bg-secondary-900/30">
-          <Bath class="h-5 w-5 text-secondary-600 dark:text-secondary-400" />
+          <Icon name="bathtub" size={20} class="text-secondary-600 dark:text-secondary-400" />
         </div>
         <div>
           <h3 class="font-semibold text-gray-900 dark:text-white">Bathrooms</h3>
@@ -236,7 +236,7 @@
           class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           aria-label="Decrease bathrooms"
         >
-          <Minus class="h-5 w-5" />
+          <Icon name="minus" size={20} />
         </button>
 
         <span class="w-8 text-center text-xl font-bold text-gray-900 dark:text-white">
@@ -250,7 +250,7 @@
           class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           aria-label="Increase bathrooms"
         >
-          <Plus class="h-5 w-5" />
+          <Icon name="plus" size={20} />
         </button>
       </div>
     </div>
@@ -259,7 +259,7 @@
   <!-- Duration limit warning -->
   {#if atDurationLimit}
     <div class="flex items-start gap-2 rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20">
-      <AlertCircle class="h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+      <Icon name="warning-circle" size={20} class="flex-shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
       <p class="text-sm text-amber-700 dark:text-amber-300">
         Maximum booking duration (10 hours) reached. Remove items to add more rooms.
       </p>

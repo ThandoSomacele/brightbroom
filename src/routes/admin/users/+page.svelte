@@ -1,6 +1,6 @@
 <!-- src/routes/admin/users/+page.svelte -->
 <script lang="ts">
-  import { Search, Filter, Download, Users, Mail, Phone, Calendar, ArrowRight, ArrowLeft } from 'lucide-svelte';
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from '$lib/components/ui/Button.svelte';
   import { TableSkeleton } from '$lib/components/ui/skeletons';
 
@@ -91,7 +91,7 @@
   <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Users</h1>
   <div class="mt-4 sm:mt-0">
     <Button variant="outline" on:click={exportUsers}>
-      <Download size={16} class="mr-1" />
+      <Icon name="download-simple" size={16} class="mr-1" />
       Export
     </Button>
   </div>
@@ -102,7 +102,7 @@
   <div class="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
     <div class="flex-1 relative">
       <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <Search size={16} class="text-gray-400" />
+        <Icon name="magnifying-glass" size={16} class="text-gray-400" />
       </div>
       <input
         type="text"
@@ -114,7 +114,7 @@
 
     <div>
       <Button variant="outline" on:click={() => showFilters = !showFilters}>
-        <Filter size={16} class="mr-1" />
+        <Icon name="funnel" size={16} class="mr-1" />
         Filters
       </Button>
     </div>
@@ -147,7 +147,7 @@
         <button
           type="button"
           on:click={resetFilters}
-          class="text-primary hover:text-primary-600 hover:underline focus:outline-none text-sm"
+          class="text-primary-700 hover:text-primary-800 hover:underline focus:outline-none text-sm"
         >
           Reset Filters
         </button>
@@ -207,7 +207,7 @@
                 <td class="table-td whitespace-nowrap">
                   <div class="flex items-center">
                     <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                      <Users size={20} class="text-gray-500 dark:text-gray-400" />
+                      <Icon name="users" size={20} class="text-gray-500 dark:text-gray-400" />
                     </div>
                     <div class="ml-4">
                       <div class="text-sm font-medium text-gray-900 dark:text-white">
@@ -218,12 +218,12 @@
                 </td>
                 <td class="table-td whitespace-nowrap">
                   <div class="flex items-center text-sm text-gray-900 dark:text-white">
-                    <Mail size={16} class="mr-2 text-gray-400" />
+                    <Icon name="envelope-simple" size={16} class="mr-2 text-gray-400" />
                     {user.email}
                   </div>
                   {#if user.phone}
                     <div class="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      <Phone size={16} class="mr-2 text-gray-400" />
+                      <Icon name="phone" size={16} class="mr-2 text-gray-400" />
                       {user.phone}
                     </div>
                   {/if}
@@ -235,7 +235,7 @@
                 </td>
                 <td class="table-td whitespace-nowrap">
                   <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                    <Calendar size={16} class="mr-2 text-gray-400" />
+                    <Icon name="calendar-blank" size={16} class="mr-2 text-gray-400" />
                     {formatDate(user.createdAt)}
                   </div>
                 </td>
@@ -247,7 +247,7 @@
                     variant="ghost"
                     size="sm"
                     on:click={() => viewUserDetails(user.id)}
-                    class="text-primary hover:text-primary-600"
+                    class="text-primary-700 hover:text-primary-800"
                   >
                     View
                   </Button>
@@ -273,7 +273,7 @@
               disabled={pagination.page === 1}
               on:click={() => goToPage(pagination.page - 1, pagination.totalPages)}
             >
-              <ArrowLeft size={16} />
+              <Icon name="arrow-left" size={16} />
             </Button>
 
             {#each Array(pagination.totalPages) as _, i}
@@ -296,7 +296,7 @@
               disabled={pagination.page === pagination.totalPages}
               on:click={() => goToPage(pagination.page + 1, pagination.totalPages)}
             >
-              <ArrowRight size={16} />
+              <Icon name="arrow-right" size={16} />
             </Button>
           </div>
         </div>

@@ -1,9 +1,9 @@
 <!-- src/routes/payment/success/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { AlertTriangle, CheckCircle } from 'lucide-svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { formatDate, formatTime } from '$lib/utils/date-utils';
   import { secureAPIFetch } from '$lib/utils/api-helpers';
@@ -106,12 +106,12 @@
     </div>
   {:else if error}
     <div class="p-8 text-center">
-      <AlertTriangle class="h-12 w-12 text-red-500 mx-auto mb-4" />
+      <Icon name="warning" size={48} class="text-red-500 mx-auto mb-4" />
       <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Something went wrong</h2>
       <p class="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
       <Button
         on:click={backToHome}
-        class="px-6 py-2 bg-primary hover:bg-primary-600 text-white rounded-md 
+        class="px-6 py-2 bg-primary hover:bg-primary-600 text-primary-950 rounded-md 
           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
       >
         Back to Home
@@ -120,7 +120,7 @@
   {:else}
     <div class="bg-primary-400 p-4">
       <div class="flex justify-center">
-        <CheckCircle size={80} class="text-white" />
+        <Icon name="check-circle" size={80} class="text-white" />
       </div>
     </div>
     
@@ -162,7 +162,7 @@
           <div class="pt-2 border-t border-gray-200 dark:border-gray-600">
             <div class="flex justify-between text-lg">
               <span class="text-gray-600 dark:text-gray-400">Amount Paid:</span>
-              <span class="font-bold text-primary">
+              <span class="font-bold text-primary-700">
                 R{typeof booking.price === 'number' 
                     ? booking.price.toFixed(2) 
                     : parseFloat(booking.price).toFixed(2)}
@@ -175,7 +175,7 @@
       <div class="space-y-3">
         <Button
           on:click={viewBookingDetails}
-          class="w-full px-6 py-2 bg-primary hover:bg-primary-600 text-white rounded-md 
+          class="w-full px-6 py-2 bg-primary hover:bg-primary-600 text-primary-950 rounded-md 
             focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
         >
           View Booking Details

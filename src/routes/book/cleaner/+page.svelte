@@ -1,9 +1,9 @@
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import CleanerSelection from "$lib/components/booking/CleanerSelection.svelte";
   import StepTracker from "$lib/components/booking/StepTracker.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import { ArrowLeft, ArrowRight } from "lucide-svelte";
   import { onMount } from "svelte";
 
   let selectedCleanerId: string | null = null;
@@ -119,7 +119,7 @@
         on:click={goBack}
         class="flex items-center gap-2"
       >
-        <ArrowLeft class="w-4 h-4" />
+        <Icon name="arrow-left" size={16} />
         Back to Schedule
       </Button>
 
@@ -136,7 +136,7 @@
           class="flex items-center gap-2"
         >
           Continue to Review
-          <ArrowRight class="w-4 h-4" />
+          <Icon name="arrow-right" size={16} />
         </Button>
       </div>
     </div>

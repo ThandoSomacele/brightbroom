@@ -1,10 +1,10 @@
 <!-- src/routes/admin/applications/new/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import { ArrowLeft, Save, Zap } from "lucide-svelte";
-
+  
   export let form;
 
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -43,7 +43,7 @@
     href="/admin/applications"
     class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 mr-3"
   >
-    <ArrowLeft size={20} />
+    <Icon name="arrow-left" size={20} />
   </a>
   <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
     Create Application
@@ -305,7 +305,7 @@
                     type="checkbox"
                     name={`day-${day}`}
                     id={`day-${day}`}
-                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
                     checked={form?.data?.availableDays?.includes(day) || false}
                   />
                   <span class="text-sm text-gray-700 dark:text-gray-300">
@@ -323,7 +323,7 @@
                 type="checkbox"
                 name="ownTransport"
                 id="ownTransport"
-                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
                 checked={form?.data?.ownTransport || false}
               />
               <span class="text-sm text-gray-700 dark:text-gray-300">
@@ -336,7 +336,7 @@
                 type="checkbox"
                 name="whatsApp"
                 id="whatsApp"
-                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
                 checked={form?.data?.whatsApp || false}
               />
               <span class="text-sm text-gray-700 dark:text-gray-300">
@@ -454,11 +454,11 @@
             name="autoApprove"
             id="autoApprove"
             bind:checked={autoApprove}
-            class="h-5 w-5 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary"
+            class="h-5 w-5 mt-0.5 rounded border-gray-300 text-primary-700 focus:ring-primary"
           />
           <div>
             <span class="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
-              <Zap size={16} class="text-primary" />
+              <Icon name="lightning" size={16} class="text-primary-700" />
               Auto-approve and create cleaner account
             </span>
             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -484,10 +484,10 @@
           ></div>
           Creating...
         {:else if autoApprove}
-          <Zap size={16} class="mr-2" />
+          <Icon name="lightning" size={16} class="mr-2" />
           Create & Approve
         {:else}
-          <Save size={16} class="mr-2" />
+          <Icon name="floppy-disk" size={16} class="mr-2" />
           Create Application
         {/if}
       </Button>

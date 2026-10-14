@@ -1,6 +1,7 @@
 <!-- src/routes/admin/applications/[id]/+page.svelte -->
 
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   const WORK_AUTH_LABELS: Record<string, string> = {
     SA_CITIZEN: "South African citizen",
     PERMANENT_RESIDENT: "Permanent resident",
@@ -25,20 +26,7 @@
   import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
   import { imageUrl } from "$lib/utils/media";
   import { isWithinServiceArea } from "$lib/utils/serviceAreaValidator";
-  import {
-    ArrowLeft,
-    Briefcase,
-    Calendar,
-    Check,
-    Clipboard,
-    FileText,
-    Mail,
-    MapPin,
-    Phone,
-    User,
-    X,
-  } from "lucide-svelte";
-
+  
   export let data;
 
   let isProcessing = false;
@@ -181,7 +169,7 @@
     href="/admin/applications"
     class="mr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
   >
-    <ArrowLeft size={20} />
+    <Icon name="arrow-left" size={20} />
   </a>
   <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
     Application Details
@@ -195,14 +183,14 @@
   >
     <div class="flex">
       <div class="flex-shrink-0">
-        <X class="h-5 w-5 text-red-400" />
+        <Icon name="x" size={20} class="text-red-400" />
       </div>
       <div class="ml-3">
         <p class="text-sm font-medium">{errorMessage}</p>
       </div>
       <div class="ml-auto pl-3">
         <button on:click={closeAlert} class="text-red-400 hover:text-red-500">
-          <X size={16} />
+          <Icon name="x" size={16} />
         </button>
       </div>
     </div>
@@ -215,7 +203,7 @@
   >
     <div class="flex">
       <div class="flex-shrink-0">
-        <Check class="h-5 w-5 text-green-400" />
+        <Icon name="check" size={20} class="text-green-400" />
       </div>
       <div class="ml-3">
         <p class="text-sm font-medium">{successMessage}</p>
@@ -225,7 +213,7 @@
           on:click={closeAlert}
           class="text-green-400 hover:text-green-500"
         >
-          <X size={16} />
+          <Icon name="x" size={16} />
         </button>
       </div>
     </div>
@@ -289,7 +277,7 @@
               />
             {:else}
               <div class="flex items-center justify-center h-full w-full">
-                <User size={24} class="text-gray-400" />
+                <Icon name="user" size={24} class="text-gray-400" />
               </div>
             {/if}
           </div>
@@ -308,7 +296,7 @@
         <h2
           class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center"
         >
-          <User class="mr-2 text-primary" size={20} />
+          <Icon name="user" class="mr-2 text-primary-700" size={20} />
           Personal Information
         </h2>
 
@@ -365,7 +353,7 @@
                     href="/api/documents?kind=cleaner-work-auth&id={application.id}"
                     target="_blank"
                     rel="noopener"
-                    class="ml-2 text-sm text-primary hover:underline"
+                    class="ml-2 text-sm text-primary-700 hover:underline"
                   >
                     View document
                   </a>
@@ -403,7 +391,7 @@
         <h2
           class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center"
         >
-          <MapPin class="mr-2 text-primary" size={20} />
+          <Icon name="map-pin" class="mr-2 text-primary-700" size={20} />
           Location Information
         </h2>
 
@@ -453,14 +441,14 @@
                 <div
                   class="inline-flex items-center rounded-md bg-green-50 px-3 py-1 text-sm font-medium text-green-700 dark:bg-green-900/20 dark:text-green-300"
                 >
-                  <Check class="mr-1 h-4 w-4" />
+                  <Icon name="check" size={16} class="mr-1" />
                   Within Service Area
                 </div>
               {:else}
                 <div
                   class="inline-flex items-center rounded-md bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700 dark:bg-amber-900/20 dark:text-amber-300"
                 >
-                  <X class="mr-1 h-4 w-4" />
+                  <Icon name="x" size={16} class="mr-1" />
                   Outside Service Area
                 </div>
               {/if}
@@ -474,7 +462,7 @@
         <h2
           class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center"
         >
-          <Briefcase class="mr-2 text-primary" size={20} />
+          <Icon name="briefcase" class="mr-2 text-primary-700" size={20} />
           Documents & Availability
         </h2>
 
@@ -488,14 +476,14 @@
                 <span
                   class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
                 >
-                  <X class="mr-1 h-3 w-3" />
+                  <Icon name="x" size={12} class="mr-1" />
                   Documents Pending
                 </span>
               {:else}
                 <span
                   class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-300"
                 >
-                  <Check class="mr-1 h-3 w-3" />
+                  <Icon name="check" size={12} class="mr-1" />
                   Documents Complete
                 </span>
               {/if}
@@ -560,7 +548,7 @@
           <h2
             class="mb-4 text-xl font-semibold text-gray-900 dark:text-white flex items-center"
           >
-            <FileText class="mr-2 text-primary" size={20} />
+            <Icon name="file-text" class="mr-2 text-primary-700" size={20} />
             Additional Information
           </h2>
 
@@ -670,7 +658,7 @@
                   <div
                     class="flex items-center gap-2 rounded-md border border-gray-200 p-2 dark:border-gray-700 bg-gray-50 dark:bg-gray-700"
                   >
-                    <FileText size={16} class="text-primary flex-shrink-0" />
+                    <Icon name="file-text" size={16} class="text-primary-700 flex-shrink-0" />
                     <span
                       class="text-sm text-gray-900 dark:text-white truncate flex-grow"
                     >
@@ -679,7 +667,7 @@
                     <a
                       href="/api/documents?kind=application-document&id={application.id}&i={i}"
                       target="_blank"
-                      class="flex-shrink-0 text-primary hover:text-primary-600 hover:underline px-2 py-1"
+                      class="flex-shrink-0 text-primary-700 hover:text-primary-800 hover:underline px-2 py-1"
                     >
                       View
                     </a>
@@ -733,7 +721,7 @@
                 ></textarea>
               </div>
               <Button type="submit" variant="outline" class="w-full">
-                <Clipboard size={16} class="mr-2" />
+                <Icon name="clipboard" size={16} class="mr-2" />
                 Save Note
               </Button>
             </form>
@@ -746,7 +734,7 @@
                 variant="outline"
                 class="w-full"
               >
-                <Mail size={14} class="mr-2" />
+                <Icon name="envelope-simple" size={14} class="mr-2" />
                 Email Applicant
               </Button>
 
@@ -756,7 +744,7 @@
                   variant="outline"
                   class="w-full"
                 >
-                  <Phone size={14} class="mr-2" />
+                  <Icon name="phone" size={14} class="mr-2" />
                   Call Applicant
                 </Button>
               {/if}
@@ -765,7 +753,7 @@
             <div class="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
               <div class="flex">
                 <div class="flex-shrink-0">
-                  <Check class="h-5 w-5 text-green-400" />
+                  <Icon name="check" size={20} class="text-green-400" />
                 </div>
                 <div class="ml-3">
                   <h3
@@ -791,7 +779,7 @@
             <div class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
               <div class="flex">
                 <div class="flex-shrink-0">
-                  <X class="h-5 w-5 text-red-400" />
+                  <Icon name="x" size={20} class="text-red-400" />
                 </div>
                 <div class="ml-3">
                   <h3
@@ -818,7 +806,7 @@
           <h2
             class="mb-4 text-lg font-semibold text-gray-900 dark:text-white flex items-center"
           >
-            <Calendar class="mr-2 text-primary" size={18} />
+            <Icon name="calendar-blank" class="mr-2 text-primary-700" size={18} />
             Notes History
           </h2>
 

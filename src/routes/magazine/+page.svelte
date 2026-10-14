@@ -1,12 +1,12 @@
 <!-- src/routes/magazine/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
   import Card from "$lib/components/ui/Card.svelte";
   import { CustomerSkeleton } from "$lib/components/ui/skeletons";
   import { formatDate } from "$lib/utils/markdown";
-  import { Calendar, Clock, Filter, MapPin, Search, Tag } from "lucide-svelte";
   import type { PageData } from "./$types";
 
   export let data: PageData;
@@ -85,10 +85,10 @@
 </script>
 
 <!-- Hero Section -->
-<section class="bg-gradient-to-br from-primary to-primary-600 text-white">
+<section class="bg-gradient-to-br from-primary-700 to-primary-800 text-white">
   <div class="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
     <div class="text-center">
-      <p class="section-eyebrow mb-3 text-primary-100">Magazine</p>
+      <p class="section-eyebrow mb-3 text-primary-50">Magazine</p>
       <h1 class="font-heading text-4xl md:text-6xl font-bold mb-6">BrightBroom Magazine</h1>
       <p class="text-xl md:text-2xl mb-8 text-primary-100 max-w-3xl mx-auto">
         Transform your space with expert tips on organisation, design, and
@@ -99,7 +99,7 @@
       <div class="max-w-xl mx-auto">
         <div class="flex gap-2">
           <div class="flex-1 relative">
-            <Search
+            <Icon name="magnifying-glass"
               class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
               size={20}
             />
@@ -158,10 +158,10 @@
             on:click={() => (showFilters = !showFilters)}
             class="flex items-center gap-2"
           >
-            <Filter size={16} />
+            <Icon name="funnel" size={16} />
             Filters
             {#if getActiveFiltersCount() > 0}
-              <span class="bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              <span class="bg-primary text-primary-950 text-xs rounded-full w-5 h-5 flex items-center justify-center">
                 {getActiveFiltersCount()}
               </span>
             {/if}
@@ -176,7 +176,7 @@
             <!-- Categories -->
             <div>
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <Tag size={18} />
+                <Icon name="tag" size={18} />
                 Categories
               </h3>
               <div class="flex flex-wrap gap-2">
@@ -186,7 +186,7 @@
                     on:click={() => handleFilter("category", category)}
                     class={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                       data.filters.category === category
-                        ? "bg-primary text-white"
+                        ? "bg-primary text-primary-950"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
                     }`}
                   >
@@ -199,7 +199,7 @@
             <!-- Service Areas -->
             <div>
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <MapPin size={18} />
+                <Icon name="map-pin" size={18} />
                 Service Areas
               </h3>
               <div class="flex flex-wrap gap-2">
@@ -209,7 +209,7 @@
                     on:click={() => handleFilter("area", area)}
                     class={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                       data.filters.area === area
-                        ? "bg-primary text-white"
+                        ? "bg-primary text-primary-950"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
                     }`}
                   >
@@ -254,17 +254,17 @@
                   class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
                 >
                   <span class="flex items-center gap-1">
-                    <Calendar size={16} />
+                    <Icon name="calendar-blank" size={16} />
                     {formatDate(article.publishedAt)}
                   </span>
                   <span class="flex items-center gap-1">
-                    <Clock size={16} />
+                    <Icon name="clock" size={16} />
                     {article.readingTime} min read
                   </span>
                 </div>
 
                 <h3
-                  class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors"
+                  class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-primary-700 transition-colors"
                 >
                   {article.title}
                 </h3>
@@ -275,7 +275,7 @@
 
                 <div class="flex items-center justify-between">
                   <span
-                    class="inline-block rounded-full bg-primary-100 text-primary px-3 py-1 text-xs font-medium dark:bg-primary-900/30"
+                    class="inline-block rounded-full bg-primary-50 text-primary-800 px-3 py-1 text-xs font-medium dark:bg-primary-900/30"
                   >
                     {categoryNames[article.category] || article.category}
                   </span>
@@ -330,11 +330,11 @@
             on:click={() => (showFilters = !showFilters)}
             class="flex items-center gap-2"
           >
-            <Filter size={16} />
+            <Icon name="funnel" size={16} />
             Filters
             {#if getActiveFiltersCount() > 0}
               <span
-                class="bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                class="bg-primary text-primary-950 text-xs rounded-full w-5 h-5 flex items-center justify-center"
               >
                 {getActiveFiltersCount()}
               </span>
@@ -354,7 +354,7 @@
               <h3
                 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"
               >
-                <Tag size={18} />
+                <Icon name="tag" size={18} />
                 Categories
               </h3>
               <div class="flex flex-wrap gap-2">
@@ -364,7 +364,7 @@
                     on:click={() => handleFilter("category", category)}
                     class={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                       data.filters.category === category
-                        ? "bg-primary text-white"
+                        ? "bg-primary text-primary-950"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
                     }`}
                   >
@@ -379,7 +379,7 @@
               <h3
                 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"
               >
-                <MapPin size={18} />
+                <Icon name="map-pin" size={18} />
                 Service Areas
               </h3>
               <div class="flex flex-wrap gap-2">
@@ -389,7 +389,7 @@
                     on:click={() => handleFilter("area", area)}
                     class={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                       data.filters.area === area
-                        ? "bg-primary text-white"
+                        ? "bg-primary text-primary-950"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
                     }`}
                   >
@@ -420,17 +420,17 @@
                   class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
                 >
                   <span class="flex items-center gap-1">
-                    <Calendar size={16} />
+                    <Icon name="calendar-blank" size={16} />
                     {formatDate(article.publishedAt)}
                   </span>
                   <span class="flex items-center gap-1">
-                    <Clock size={16} />
+                    <Icon name="clock" size={16} />
                     {article.readingTime} min read
                   </span>
                 </div>
 
                 <h3
-                  class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2"
+                  class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-primary-700 transition-colors line-clamp-2"
                 >
                   {article.title}
                 </h3>
@@ -444,7 +444,7 @@
                 >
                   <div class="flex items-center gap-2">
                     <span
-                      class="inline-block rounded-full bg-primary-100 text-primary px-3 py-1 text-xs font-medium dark:bg-primary-900/30"
+                      class="inline-block rounded-full bg-primary-50 text-primary-800 px-3 py-1 text-xs font-medium dark:bg-primary-900/30"
                     >
                       {categoryNames[article.category] || article.category}
                     </span>
@@ -453,7 +453,7 @@
                       <span
                         class="inline-block rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
                       >
-                        <MapPin size={12} class="inline mr-1" />
+                        <Icon name="map-pin" size={12} class="inline mr-1" />
                         {areaNames[article.serviceAreas[0]] ||
                           article.serviceAreas[0]}
                         {#if article.serviceAreas.length > 1}
@@ -475,7 +475,7 @@
         <!-- No articles found -->
         <div class="text-center py-16">
           <div class="text-gray-400 dark:text-gray-600 mb-4">
-            <Search size={64} class="mx-auto" />
+            <Icon name="magnifying-glass" size={64} class="mx-auto" />
           </div>
           <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
             No articles found
@@ -499,7 +499,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center py-16">
         <div class="text-red-400 dark:text-red-600 mb-4">
-          <Search size={64} class="mx-auto" />
+          <Icon name="magnifying-glass" size={64} class="mx-auto" />
         </div>
         <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
           Failed to load articles

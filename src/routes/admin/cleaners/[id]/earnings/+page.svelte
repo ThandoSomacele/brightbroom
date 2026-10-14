@@ -1,19 +1,10 @@
 <!-- src/routes/admin/cleaners/[id]/earnings/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
-  import {
-    ArrowLeft,
-    Calendar,
-    ChevronDown,
-    ChevronUp,
-    Download,
-    FileText,
-    TrendingUp,
-    Wallet,
-  } from "lucide-svelte";
-
+  
   // Get data from server
   export let data;
   const { cleaner, earnings, upcomingEarnings, paymentHistory, pendingPayouts } = data;
@@ -100,7 +91,7 @@
     href={`/admin/cleaners/${cleaner.id}`}
     class="mr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
   >
-    <ArrowLeft size={20} />
+    <Icon name="arrow-left" size={20} />
   </a>
   <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
     Earnings for {cleaner.firstName}
@@ -133,7 +124,7 @@
         <h2
           class="text-lg font-semibold text-gray-900 dark:text-white flex items-center mb-4"
         >
-          <Wallet class="mr-2 text-primary" size={20} />
+          <Icon name="wallet" class="mr-2 text-primary-700" size={20} />
           Earnings Summary
         </h2>
 
@@ -141,7 +132,7 @@
           <!-- Total Payout (Earned) -->
           <div class="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg">
             <p class="text-sm text-gray-500 dark:text-gray-400">Total Earned</p>
-            <p class="text-2xl font-bold text-primary">
+            <p class="text-2xl font-bold text-primary-700">
               {formatCurrency(earnings.totalPayout)}
             </p>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -173,7 +164,7 @@
           </div>
           <div class="flex justify-between items-center text-sm mt-1 pt-1 border-t border-gray-200 dark:border-gray-600">
             <span class="font-medium text-gray-700 dark:text-gray-300">Net Payout</span>
-            <span class="font-medium text-primary">{formatCurrency(earnings.totalPayout)}</span>
+            <span class="font-medium text-primary-700">{formatCurrency(earnings.totalPayout)}</span>
           </div>
         </div>
 
@@ -182,7 +173,7 @@
           <h3
             class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center"
           >
-            <Calendar size={16} class="mr-2" />
+            <Icon name="calendar-blank" size={16} class="mr-2" />
             Period Summary
           </h3>
 
@@ -221,7 +212,7 @@
           <h3
             class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center"
           >
-            <TrendingUp size={16} class="mr-2" />
+            <Icon name="trend-up" size={16} class="mr-2" />
             Platform Commission
           </h3>
 
@@ -286,7 +277,7 @@
                     <div class="flex items-center">
                       <input
                         type="checkbox"
-                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
                         checked={selectedPayments.size ===
                           pendingPayouts.length && pendingPayouts.length > 0}
                         on:change={toggleAllPayments}
@@ -322,7 +313,7 @@
                       <div class="flex items-center">
                         <input
                           type="checkbox"
-                          class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
                           checked={selectedPayments.has(payment.id)}
                           on:change={() => togglePayment(payment.id)}
                         />
@@ -338,7 +329,7 @@
                     >
                       <a
                         href={`/admin/bookings/${payment.bookingId}`}
-                        class="text-primary hover:underline"
+                        class="text-primary-700 hover:underline"
                       >
                         {payment.bookingId.slice(0, 8)}...
                       </a>
@@ -379,12 +370,12 @@
           <h2
             class="text-lg font-semibold text-gray-900 dark:text-white flex items-center"
           >
-            <FileText class="mr-2 text-primary" size={20} />
+            <Icon name="file-text" class="mr-2 text-primary-700" size={20} />
             Payment History
           </h2>
 
           <Button variant="outline" size="sm">
-            <Download size={16} class="mr-1" />
+            <Icon name="download-simple" size={16} class="mr-1" />
             Export
           </Button>
         </div>
@@ -461,7 +452,7 @@
                     >
                       <a
                         href={`/admin/bookings/${payment.bookingId}`}
-                        class="text-primary hover:underline"
+                        class="text-primary-700 hover:underline"
                       >
                         {payment.bookingId.slice(0, 8)}...
                       </a>
@@ -482,7 +473,7 @@
                       -{formatCurrency(payment.commission || 0)}
                     </td>
                     <td
-                      class="px-3 py-4 whitespace-nowrap text-sm font-medium text-primary text-right"
+                      class="px-3 py-4 whitespace-nowrap text-sm font-medium text-primary-700 text-right"
                     >
                       {formatCurrency(payment.payout || 0)}
                     </td>
@@ -511,14 +502,14 @@
             <div class="mt-4 text-center">
               <button
                 type="button"
-                class="inline-flex items-center text-sm text-primary hover:text-primary-600 hover:underline"
+                class="inline-flex items-center text-sm text-primary-700 hover:text-primary-800 hover:underline"
                 on:click={() => (showAllPayments = !showAllPayments)}
               >
                 {#if showAllPayments}
-                  <ChevronUp size={16} class="mr-1" />
+                  <Icon name="caret-up" size={16} class="mr-1" />
                   Show Less
                 {:else}
-                  <ChevronDown size={16} class="mr-1" />
+                  <Icon name="caret-down" size={16} class="mr-1" />
                   Show All ({paymentHistory.length} entries)
                 {/if}
               </button>
@@ -544,7 +535,7 @@
 
       <p class="text-gray-700 dark:text-gray-300 mb-4">
         Are you sure you want to process a payout of <span
-          class="font-bold text-primary"
+          class="font-bold text-primary-700"
           >{formatCurrency(selectedPayoutAmount)}</span
         >
         for {selectedPayments.size} payment{selectedPayments.size !== 1

@@ -1,6 +1,6 @@
 <!-- src/lib/components/maps/GoogleMapsAutocomplete.svelte -->
 <script lang="ts">
-  import { AlertCircle, Building2, Home, Loader2, MapPin, X } from "lucide-svelte";
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
   import {
     getOutOfServiceAreaMessage,
@@ -376,7 +376,7 @@
       <div
         class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
       >
-        <MapPin class="h-5 w-5 text-gray-400" />
+        <Icon name="map-pin" size={20} class="text-gray-400" />
       </div>
 
       <!-- Input field -->
@@ -402,14 +402,14 @@
           on:click={clearInput}
           aria-label="Clear address"
         >
-          <X class="h-5 w-5" />
+          <Icon name="x" size={20} />
         </button>
       {/if}
 
       <!-- Loading spinner -->
       {#if isLoading}
         <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-          <Loader2 class="h-5 w-5 animate-spin text-primary" />
+          <Icon name="spinner-gap" size={20} class="animate-spin text-primary-700" />
         </div>
       {/if}
     </div>
@@ -427,8 +427,8 @@
         class="mt-1 rounded-md bg-yellow-50 p-2 text-xs dark:bg-yellow-900/20"
       >
         <div class="flex items-start">
-          <AlertCircle
-            class="mr-1 h-4 w-4 flex-shrink-0 text-yellow-600 dark:text-yellow-400"
+          <Icon name="warning-circle" size={16}
+            class="mr-1 flex-shrink-0 text-yellow-600 dark:text-yellow-400"
           />
           <div>
             <p class="text-yellow-800 dark:text-yellow-200">
@@ -459,15 +459,15 @@
 
     <!-- Place type indicator -->
     {#if selectedAddress.placeType && selectedAddress.placeType !== "address"}
-      <div class="mt-1 flex items-center gap-1 text-xs text-primary dark:text-primary-400">
+      <div class="mt-1 flex items-center gap-1 text-xs text-primary-700 dark:text-primary-400">
         {#if selectedAddress.placeType === "establishment"}
-          <MapPin class="h-3 w-3" /> Estate/Complex selected
+          <Icon name="map-pin" size={12} /> Estate/Complex selected
         {:else if selectedAddress.placeType === "point_of_interest"}
-          <Building2 class="h-3 w-3" /> Point of interest selected
+          <Icon name="buildings" size={12} /> Point of interest selected
         {:else if selectedAddress.placeType === "sublocality"}
-          <Home class="h-3 w-3" /> Area selected
+          <Icon name="house" size={12} /> Area selected
         {:else}
-          <MapPin class="h-3 w-3" /> Location selected
+          <Icon name="map-pin" size={12} /> Location selected
         {/if}
       </div>
     {/if}

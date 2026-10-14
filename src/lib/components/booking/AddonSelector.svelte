@@ -1,21 +1,7 @@
 <!-- src/lib/components/booking/AddonSelector.svelte -->
 <script lang="ts">
-  import {
-    Check,
-    Sparkles,
-    Info,
-    X,
-    Shirt,
-    Snowflake,
-    Flame,
-    DoorOpen,
-    PaintBucket,
-    SquareStack,
-    AlertCircle,
-    type Icon
-  } from "lucide-svelte";
+  import Icon from "$lib/components/ui/Icon.svelte";
   import type { Addon } from "$lib/server/db/schema";
-  import type { ComponentType } from "svelte";
   import { MAX_BOOKING_DURATION_MINUTES } from "$lib/utils/pricing";
 
   // Props using Svelte 5 runes
@@ -33,27 +19,27 @@
     onchange,
   }: Props = $props();
 
-  // Check if we're at or near the duration limit
+  // "check" if we're at or near the duration limit
   let atDurationLimit = $derived(currentTotalDuration >= MAX_BOOKING_DURATION_MINUTES);
 
-  // Check if a specific addon can be added (not already selected and won't exceed limit)
+  // "check" if a specific addon can be added (not already selected and won't exceed limit)
   function canAddAddon(addon: Addon): boolean {
     if (selectedAddonIds.includes(addon.id)) return true; // Already selected, can toggle off
     return currentTotalDuration + addon.durationMinutes <= MAX_BOOKING_DURATION_MINUTES;
   }
 
   // Map addon names to their icons
-  const addonIcons: Record<string, ComponentType<Icon>> = {
-    "Laundry & Ironing": Shirt,
-    "Inside Fridge": Snowflake,
-    "Inside Oven": Flame,
-    "Inside Cabinets": DoorOpen,
-    "Interior Walls": PaintBucket,
-    "Interior Windows": SquareStack,
+  const addonIcons: Record<string, string> = {
+    "Laundry & Ironing": "t-shirt",
+    "Inside Fridge": "snowflake",
+    "Inside Oven": "flame",
+    "Inside Cabinets": "door-open",
+    "Interior Walls": "paint-bucket",
+    "Interior Windows": "stack",
   };
 
-  function getAddonIcon(addonName: string): ComponentType<Icon> {
-    return addonIcons[addonName] || Sparkles;
+  function getAddonIcon(addonName: string): string {
+    return addonIcons[addonName] || "sparkle";
   }
 
   // State for showing description popup
@@ -90,7 +76,7 @@
 
 <div class="space-y-4">
   <div class="flex items-center gap-2">
-    <Sparkles class="h-5 w-5 text-primary-500" />
+    <Icon name="sparkle" size={20} class="text-primary-700" />
     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
       Optional Add-ons
     </h3>
@@ -122,19 +108,19 @@
             <!-- Checkbox indicator -->
             <div
               class="flex h-6 w-6 items-center justify-center rounded-full flex-shrink-0 {selected
-                ? 'bg-primary-500 text-white'
+                ? 'bg-primary-500 text-primary-950'
                 : 'border-2 border-gray-300 dark:border-gray-600'}"
             >
               {#if selected}
-                <Check class="h-4 w-4" />
+                <Icon name="check" size={16} />
               {/if}
             </div>
 
             <!-- Addon icon -->
             <div class="flex h-8 w-8 items-center justify-center rounded-lg flex-shrink-0 {selected
-              ? 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-300'
+              ? 'bg-primary-50 text-primary-800 dark:bg-primary-800 dark:text-primary-300'
               : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'}">
-              <AddonIcon class="h-4 w-4" />
+              <Icon name={AddonIcon} size={16} />
             </div>
 
             <!-- Addon name -->
@@ -151,7 +137,7 @@
               class="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300 ml-2"
               aria-label="View details for {addon.name}"
             >
-              <Info class="h-4 w-4" />
+              <Icon name="info" size={16} />
             </button>
           {/if}
         </div>
@@ -172,7 +158,7 @@
                 class="flex h-6 w-6 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300 flex-shrink-0"
                 aria-label="Close"
               >
-                <X class="h-4 w-4" />
+                <Icon name="x" size={16} />
               </button>
             </div>
           </div>
@@ -194,7 +180,7 @@
   <!-- Duration limit warning -->
   {#if atDurationLimit}
     <div class="mt-4 flex items-start gap-2 rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20">
-      <AlertCircle class="h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+      <Icon name="warning-circle" size={20} class="flex-shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
       <p class="text-sm text-amber-700 dark:text-amber-300">
         Maximum booking duration (10 hours) reached. Remove items to add more add-ons.
       </p>

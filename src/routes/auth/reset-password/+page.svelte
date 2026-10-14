@@ -1,9 +1,9 @@
 <!-- src/routes/auth/reset-password/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
-  import { Eye, EyeOff } from "lucide-svelte";
-
+  
   // Get data from the server
   export let data;
   export let form;
@@ -27,7 +27,7 @@
 >
   <div class="w-full max-w-md">
     <div class="mb-8 text-center">
-      <h1 class="text-3xl font-bold text-primary">BrightBroom</h1>
+      <h1 class="text-3xl font-bold text-primary-700">BrightBroom</h1>
       <p class="mt-2 text-gray-600 dark:text-gray-300">Create a new password</p>
     </div>
 
@@ -99,9 +99,9 @@
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {#if showPassword}
-                  <EyeOff class="h-5 w-5" />
+                  <Icon name="eye-slash" size={20} />
                 {:else}
-                  <Eye class="h-5 w-5" />
+                  <Icon name="eye" size={20} />
                 {/if}
               </Button>
             </div>
@@ -133,7 +133,7 @@
           <button
             type="submit"
             disabled={isLoading}
-            class="w-full inline-flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-primary hover:bg-primary-600 text-white focus-visible:ring-primary-500"
+            class="w-full inline-flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-primary hover:bg-primary-600 text-primary-950 focus-visible:ring-primary-500"
           >
             {#if isLoading}
               <svg
@@ -168,7 +168,7 @@
             Remembered your password?
             <a
               href="/auth/login"
-              class="font-medium text-primary hover:underline"
+              class="font-medium text-primary-700 hover:underline"
             >
               Sign in
             </a>

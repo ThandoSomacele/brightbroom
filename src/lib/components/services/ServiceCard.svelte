@@ -1,8 +1,8 @@
 <!-- src/lib/components/services/ServiceCard.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import type { ServiceIconType } from "$lib/services";
-  import { Building, Home, HousePlus, WashingMachine } from "lucide-svelte";
   import ServiceDetailsModal from "./ServiceDetailsModal.svelte";
 
   // Props
@@ -20,20 +20,20 @@
   let showDetailsModal = false;
 
   // Get the appropriate icon based on iconType
-  $: IconComponent = getIconComponent(iconType);
+  $: iconName = getIconName(iconType);
 
   // Function to get the icon component
-  function getIconComponent(type: ServiceIconType) {
+  function getIconName(type: ServiceIconType) {
     switch (type) {
       case "office":
-        return Building;
+        return "building";
       case "deep":
-        return HousePlus;
+        return "house-line";
       case "laundry":
-        return WashingMachine;
+        return "washing-machine";
       case "home":
       default:
-        return Home;
+        return "house";
     }
   }
 
@@ -51,8 +51,8 @@
 <div
   class="h-full rounded-lg bg-white p-6 shadow-md transition-transform hover:-translate-y-1 dark:bg-gray-800 flex flex-col"
 >
-  <div class="mb-4 text-primary">
-    <svelte:component this={IconComponent} class="h-12 w-12" />
+  <div class="mb-4 text-primary-700">
+    <Icon name={iconName} size={48} accent />
   </div>
 
   <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
@@ -75,7 +75,7 @@
         <button
           type="button"
           on:click={openDetailsModal}
-          class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-primary-50 hover:bg-primary-100 hover:text-primary-700 rounded-md transition-colors dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40"
+          class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 hover:text-primary-700 rounded-md transition-colors dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40"
         >
           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -86,7 +86,7 @@
       {/if}
     </div>
 
-    <!-- <p class="mb-6 text-2xl font-bold text-primary">
+    <!-- <p class="mb-6 text-2xl font-bold text-primary-700">
       {formatCurrency(basePrice)}
     </p> -->
 

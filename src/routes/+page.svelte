@@ -1,11 +1,11 @@
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { page } from "$app/stores";
   import heroImage from "$lib/image-assets/hero.webp";
   import kitchenImage from "$lib/image-assets/kitchen.webp";
   import livingRoomImage from "$lib/image-assets/living-room.webp";
-  import { CalendarCheck, Clock, Home, Sparkles } from "lucide-svelte";
-
+  
   // Get user data from loader
   // Layout data (user, bookingsPaused). The generated PageData resolves to {}
   // for this page, so type loosely rather than fight stale codegen.
@@ -148,10 +148,10 @@
   <!-- Content -->
   <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-32">
     <div class="max-w-full sm:max-w-lg lg:max-w-xl">
-      <p class="text-primary font-semibold text-sm uppercase tracking-wider mb-4">Professional Cleaning Services</p>
+      <p class="text-primary-700 font-semibold text-sm uppercase tracking-wider mb-4">Professional Cleaning Services</p>
       <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6 leading-tight">
         Cleaner Bookings
-        <span class="text-primary"> Made&nbsp;Simple</span>
+        <span class="text-primary-700"> Made&nbsp;Simple</span>
       </h1>
       <p class="text-base sm:text-lg text-gray-900 md:text-gray-700 dark:text-gray-200 mb-8 sm:mb-10 leading-relaxed">
         BrightBroom connects you with professional cleaners for your home or
@@ -193,7 +193,7 @@
 <section class="py-16 lg:py-24 bg-white dark:bg-gray-800">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="mb-12 text-center">
-      <p class="text-primary font-semibold text-sm uppercase tracking-wider mb-3">Simple Process</p>
+      <p class="text-primary-700 font-semibold text-sm uppercase tracking-wider mb-3">Simple Process</p>
       <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
         How It Works
       </h2>
@@ -206,9 +206,9 @@
       <!-- Step 1 -->
       <div class="group text-center rounded-xl border border-gray-200 dark:border-gray-700 p-6 transition-all duration-200 hover:border-primary/50 hover:shadow-lg">
         <div
-          class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-primary transition-colors duration-200 group-hover:bg-primary group-hover:text-white"
+          class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary-50 text-primary-800 transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-950"
         >
-          <Clock class="h-8 w-8" />
+          <Icon name="clock" size={32} accent />
         </div>
         <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
           Choose Your Hours
@@ -221,9 +221,9 @@
       <!-- Step 2 -->
       <div class="group text-center rounded-xl border border-gray-200 dark:border-gray-700 p-6 transition-all duration-200 hover:border-primary/50 hover:shadow-lg">
         <div
-          class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-primary transition-colors duration-200 group-hover:bg-primary group-hover:text-white"
+          class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary-50 text-primary-800 transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-950"
         >
-          <Home class="h-8 w-8" />
+          <Icon name="house" size={32} accent />
         </div>
         <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
           Select Rooms & Extras
@@ -236,9 +236,9 @@
       <!-- Step 3 -->
       <div class="group text-center rounded-xl border border-gray-200 dark:border-gray-700 p-6 transition-all duration-200 hover:border-primary/50 hover:shadow-lg">
         <div
-          class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-primary transition-colors duration-200 group-hover:bg-primary group-hover:text-white"
+          class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary-50 text-primary-800 transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-950"
         >
-          <CalendarCheck class="h-8 w-8" />
+          <Icon name="calendar-check" size={32} accent />
         </div>
         <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
           Pick a Date & Pay
@@ -251,9 +251,9 @@
       <!-- Step 4 -->
       <div class="group text-center rounded-xl border border-gray-200 dark:border-gray-700 p-6 transition-all duration-200 hover:border-primary/50 hover:shadow-lg">
         <div
-          class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-primary transition-colors duration-200 group-hover:bg-primary group-hover:text-white"
+          class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary-50 text-primary-800 transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-950"
         >
-          <Sparkles class="h-8 w-8" />
+          <Icon name="sparkle" size={32} accent />
         </div>
         <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
           Enjoy a Clean Space
@@ -282,7 +282,7 @@
 <section class="py-16 lg:py-24 bg-gray-50 dark:bg-gray-900">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="mb-12 text-center">
-      <p class="text-primary font-semibold text-sm uppercase tracking-wider mb-3">Our Services</p>
+      <p class="text-primary-700 font-semibold text-sm uppercase tracking-wider mb-3">Our Services</p>
       <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
         Some Areas We Clean
       </h2>
@@ -358,7 +358,7 @@
     <div class="text-center">
       <a
         href="/book"
-        class="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white font-semibold rounded-lg hover:bg-primary-600 transition-colors"
+        class="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-950 font-semibold rounded-lg hover:bg-primary-600 transition-colors"
       >
         Build Your Booking
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -587,13 +587,13 @@
 </section> -->
 
 <!-- CTA section -->
-<section class="py-16 lg:py-24 bg-primary">
+<section class="py-16 lg:py-24 bg-primary-700">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="text-center max-w-2xl mx-auto">
       <h2 class="text-3xl lg:text-4xl font-bold text-white">
         Ready for a sparkling clean space?
       </h2>
-      <p class="mt-4 text-lg text-white/80 leading-relaxed">
+      <p class="mt-4 text-lg text-primary-50 leading-relaxed">
         Join happy customers who've discovered the BrightBroom
         difference.
       </p>

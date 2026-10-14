@@ -1,9 +1,9 @@
 <!-- src/routes/profile/subscriptions/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
-  import { Calendar, Clock, MapPin, Repeat, Wallet } from "lucide-svelte";
-
+  
   // Get data from the server load function
   export let data;
   export let form;
@@ -166,25 +166,25 @@
           >Status:</span
         >
         <button
-          class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === "all" ? "bg-primary text-white" : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"}`}
+          class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === "all" ? "bg-primary text-primary-950" : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"}`}
           on:click={() => (filterStatus = "all")}
         >
           All
         </button>
         <button
-          class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === "ACTIVE" ? "bg-primary text-white" : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"}`}
+          class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === "ACTIVE" ? "bg-primary text-primary-950" : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"}`}
           on:click={() => (filterStatus = "ACTIVE")}
         >
           Active
         </button>
         <button
-          class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === "PAUSED" ? "bg-primary text-white" : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"}`}
+          class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === "PAUSED" ? "bg-primary text-primary-950" : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"}`}
           on:click={() => (filterStatus = "PAUSED")}
         >
           Paused
         </button>
         <button
-          class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === "CANCELLED" ? "bg-primary text-white" : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"}`}
+          class={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${filterStatus === "CANCELLED" ? "bg-primary text-primary-950" : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"}`}
           on:click={() => (filterStatus = "CANCELLED")}
         >
           Cancelled
@@ -192,7 +192,7 @@
       </div>
 
       <Button variant="secondary" href="/book">
-        <Calendar size={18} class="mr-2" />
+        <Icon name="calendar-blank" size={18} class="mr-2" />
         New Subscription
       </Button>
     </div>
@@ -223,7 +223,7 @@
 
                 <div class="space-y-2">
                   <p class="flex items-center text-gray-600 dark:text-gray-300">
-                    <Repeat size={18} class="mr-2 text-primary" />
+                    <Icon name="repeat" size={18} class="mr-2 text-primary-700" />
                     {formatFrequency(subscription.frequency)}
                     {#if subscription.preferredDays && subscription.preferredDays.length > 0}
                       <span class="ml-2 text-sm"
@@ -236,13 +236,13 @@
                     <p
                       class="flex items-center text-gray-600 dark:text-gray-300"
                     >
-                      <Clock size={18} class="mr-2 text-primary" />
+                      <Icon name="clock" size={18} class="mr-2 text-primary-700" />
                       {subscription.preferredTimeSlot}
                     </p>
                   {/if}
 
                   <p class="flex items-center text-gray-600 dark:text-gray-300">
-                    <MapPin size={18} class="mr-2 text-primary" />
+                    <Icon name="map-pin" size={18} class="mr-2 text-primary-700" />
                     {getAddressDisplay(subscription.address)}
                   </p>
 
@@ -250,13 +250,13 @@
                     <p
                       class="flex items-center text-gray-600 dark:text-gray-300"
                     >
-                      <Calendar size={18} class="mr-2 text-primary" />
+                      <Icon name="calendar-blank" size={18} class="mr-2 text-primary-700" />
                       Next billing: {formatDate(subscription.nextBillingDate)}
                     </p>
                   {/if}
 
                   <p class="flex items-center text-gray-600 dark:text-gray-300">
-                    <Wallet size={18} class="mr-2 text-primary" />
+                    <Icon name="wallet" size={18} class="mr-2 text-primary-700" />
                     Created: {formatDate(subscription.createdAt)}
                   </p>
 
@@ -302,7 +302,7 @@
                   <div class="mb-1 text-sm text-gray-500 dark:text-gray-400">
                     Per cleaning
                   </div>
-                  <div class="mb-2 text-2xl font-bold text-primary">
+                  <div class="mb-2 text-2xl font-bold text-primary-700">
                     R{typeof subscription.finalPrice === "number"
                       ? subscription.finalPrice.toFixed(2)
                       : parseFloat(subscription.finalPrice).toFixed(2)}
