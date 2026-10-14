@@ -1,19 +1,11 @@
 <!-- src/routes/cleaner/+layout.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { page } from '$app/stores';
   import Button from '$lib/components/ui/Button.svelte';
   import LoadingIndicator from "$lib/components/ui/LoadingIndicator.svelte";
   import MobileNav from '$lib/components/cleaner/MobileNav.svelte';
-  import {
-    Calendar,
-    DollarSign,
-    Home,
-    LogOut,
-    Menu,
-    User,
-    X
-  } from 'lucide-svelte';
-  
+    
   // Get user data from the layout load function
   $: user = $page.data.user;
   
@@ -25,17 +17,17 @@
     { 
       label: 'Dashboard', 
       href: '/cleaner/dashboard', 
-      icon: Home 
+      icon: "house" 
     },
     { 
       label: 'My Bookings', 
       href: '/cleaner/bookings', 
-      icon: Calendar 
+      icon: "calendar-blank" 
     },
     { 
       label: 'Earnings', 
       href: '/cleaner/earnings', 
-      icon: DollarSign 
+      icon: "money" 
     }
   ];
   
@@ -55,7 +47,7 @@
       <div class="flex h-16 items-center justify-between">
         <!-- Logo -->
         <div class="flex flex-shrink-0 items-center">
-          <span class="text-xl font-bold text-primary">BrightBroom</span>
+          <span class="text-xl font-bold text-primary-700">BrightBroom</span>
           <span class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">Cleaner Portal</span>
         </div>
         
@@ -66,11 +58,11 @@
               href={item.href}
               class={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
                 isActive(item.href)
-                  ? 'bg-primary-50 text-primary dark:bg-primary-900/20 dark:text-primary-300'
+                  ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300'
                   : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'
               }`}
             >
-              <svelte:component this={item.icon} class="h-5 w-5 mr-1.5" />
+              <Icon name={item.icon} class="mr-1.5" size={20} />
               {item.label}
             </a>
           {/each}
@@ -86,7 +78,7 @@
           
           <form action="/auth/logout" method="POST">
             <Button variant="outline" type="submit" class="flex items-center">
-              <LogOut size={16} class="mr-1" />
+              <Icon name="sign-out" size={16} class="mr-1" />
               Sign out
             </Button>
           </form>
@@ -102,9 +94,9 @@
           >
             <span class="sr-only">{isMenuOpen ? 'Close menu' : 'Open menu'}</span>
             {#if isMenuOpen}
-              <X size={24} />
+              <Icon name="x" size={24} />
             {:else}
-              <Menu size={24} />
+              <Icon name="list" size={24} />
             {/if}
           </button>
         </div>
@@ -120,12 +112,12 @@
               href={item.href}
               class={`flex items-center px-3 py-2 rounded-lg text-base font-medium transition-colors duration-150 ${
                 isActive(item.href)
-                  ? 'bg-primary-50 text-primary dark:bg-primary-900/20 dark:text-primary-300'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700'
+                  ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-primary-700 dark:text-gray-200 dark:hover:bg-gray-700'
               }`}
               on:click={() => isMenuOpen = false}
             >
-              <svelte:component this={item.icon} class="h-5 w-5 mr-1.5" />
+              <Icon name={item.icon} class="mr-1.5" size={20} />
               {item.label}
             </a>
           {/each}
@@ -134,7 +126,7 @@
         <div class="border-t border-gray-200 dark:border-gray-700 pb-3 pt-4">
           <div class="flex items-center px-5">
             <div class="flex-shrink-0">
-              <div class="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center">
+              <div class="h-10 w-10 rounded-full bg-primary text-primary-950 flex items-center justify-center">
                 {user.firstName[0]}{user.lastName[0]}
               </div>
             </div>
@@ -156,9 +148,9 @@
             >
               <button
                 type="submit"
-                class="flex w-full items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-700"
+                class="flex w-full items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-200 dark:hover:bg-gray-700"
               >
-                <LogOut size={16} class="mr-1.5" />
+                <Icon name="sign-out" size={16} class="mr-1.5" />
                 Sign out
               </button>
             </form>

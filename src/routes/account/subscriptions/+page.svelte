@@ -1,6 +1,6 @@
 <!-- src/routes/account/subscriptions/+page.svelte -->
 <script lang="ts">
-  import { Calendar, Clock, DollarSign, Pause, Play, X, ChevronRight, RotateCw, WalletIcon } from 'lucide-svelte';
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from '$lib/components/ui/Button.svelte';
   import type { PageData } from './$types';
 
@@ -140,7 +140,7 @@
     <!-- Page Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-2">
-        <RotateCw class="h-8 w-8 text-teal-600" />
+        <Icon name="arrow-clockwise" size={32} class="text-primary-700" />
         My Recurring Subscriptions
       </h1>
       <p class="mt-2 text-gray-600">
@@ -179,7 +179,7 @@
                     on:click={() => pauseSubscription(subscription.id)}
                     disabled={isLoading && actionSubscriptionId === subscription.id}
                   >
-                    <Pause class="h-4 w-4 mr-1" />
+                    <Icon name="pause" size={16} class="mr-1" />
                     Pause
                   </Button>
                 {:else if subscription.status === 'PAUSED'}
@@ -189,7 +189,7 @@
                     on:click={() => resumeSubscription(subscription.id)}
                     disabled={isLoading && actionSubscriptionId === subscription.id}
                   >
-                    <Play class="h-4 w-4 mr-1" />
+                    <Icon name="play" size={16} class="mr-1" />
                     Resume
                   </Button>
                 {/if}
@@ -201,7 +201,7 @@
                     on:click={() => cancelSubscription(subscription.id)}
                     disabled={isLoading && actionSubscriptionId === subscription.id}
                   >
-                    <X class="h-4 w-4 mr-1" />
+                    <Icon name="x" size={16} class="mr-1" />
                     Cancel
                   </Button>
                 {/if}
@@ -212,7 +212,7 @@
             <div class="grid md:grid-cols-2 gap-4 text-sm">
               <div class="space-y-2">
                 <div class="flex items-center gap-2 text-gray-600">
-                  <Calendar class="h-4 w-4" />
+                  <Icon name="calendar-blank" size={16} />
                   <span>
                     <strong>Frequency:</strong> {formatFrequency(subscription.frequency)}
                   </span>
@@ -220,7 +220,7 @@
 
                 {#if subscription.preferredDays && subscription.preferredDays.length > 0}
                   <div class="flex items-center gap-2 text-gray-600">
-                    <Calendar class="h-4 w-4" />
+                    <Icon name="calendar-blank" size={16} />
                     <span>
                       <strong>Days:</strong> {subscription.preferredDays.join(', ')}
                     </span>
@@ -229,7 +229,7 @@
 
                 {#if subscription.monthlyDates && subscription.monthlyDates.length > 0}
                   <div class="flex items-center gap-2 text-gray-600">
-                    <Calendar class="h-4 w-4" />
+                    <Icon name="calendar-blank" size={16} />
                     <span>
                       <strong>Monthly dates:</strong> {subscription.monthlyDates.map(d => `${d}${d === 1 ? 'st' : d === 15 ? 'th' : 'th'}`).join(' and ')}
                     </span>
@@ -238,7 +238,7 @@
 
                 {#if subscription.preferredTimeSlot}
                   <div class="flex items-center gap-2 text-gray-600">
-                    <Clock class="h-4 w-4" />
+                    <Icon name="clock" size={16} />
                     <span>
                       <strong>Time slot:</strong> {subscription.preferredTimeSlot}
                     </span>
@@ -248,7 +248,7 @@
 
               <div class="space-y-2">
                 <div class="flex items-center gap-2 text-gray-600">
-                  <WalletIcon class="h-4 w-4" />
+                  <Icon name="wallet" size={16} />
                   <span>
                     <strong>Price per clean:</strong> R{parseFloat(subscription.finalPrice).toFixed(2)}
                     {#if subscription.discountPercentage && parseFloat(subscription.discountPercentage) > 0}
@@ -288,10 +288,10 @@
             <div class="mt-4 pt-4 border-t">
               <a
                 href="/account/bookings?subscription={subscription.id}"
-                class="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center gap-1"
+                class="text-primary-700 hover:text-primary-800 text-sm font-medium flex items-center gap-1"
               >
                 View booking history
-                <ChevronRight class="h-4 w-4" />
+                <Icon name="caret-right" size={16} />
               </a>
             </div>
           </div>
@@ -299,7 +299,7 @@
       </div>
     {:else}
       <div class="bg-white rounded-lg shadow-md p-12 text-center">
-        <RotateCw class="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        <Icon name="arrow-clockwise" size={48} class="text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 mb-2">
           No recurring subscriptions yet
         </h3>

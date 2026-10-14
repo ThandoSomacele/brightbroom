@@ -32,9 +32,9 @@
           <div
             class="relative z-10 flex h-10 w-10 items-center justify-center rounded-full text-xs font-semibold transition-all {
               step.number < currentStep
-                ? 'bg-green-500 text-white'
+                ? 'bg-green-500 text-primary-950'
                 : step.number === currentStep
-                ? 'bg-primary text-white ring-4 ring-primary/20'
+                ? 'bg-primary text-primary-950 ring-4 ring-primary/20'
                 : 'bg-white border-2 border-gray-300 text-gray-400 dark:bg-gray-800 dark:border-gray-600'
             }"
           >
@@ -51,7 +51,7 @@
           <div class="mt-2 text-center">
             <p class="text-xs {
               step.number === currentStep
-                ? 'font-semibold text-primary'
+                ? 'font-semibold text-primary-700'
                 : step.number < currentStep
                 ? 'text-green-600 hidden sm:block'
                 : 'text-gray-400 hidden sm:block'
@@ -84,9 +84,9 @@
           <div
             class="flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 {
               step.number < currentStep
-                ? 'bg-green-500 text-white'
+                ? 'bg-green-500 text-primary-950'
                 : step.number === currentStep
-                ? 'bg-primary text-white'
+                ? 'bg-primary text-primary-950'
                 : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
             }"
           >
@@ -103,7 +103,7 @@
               step.number < currentStep
                 ? 'text-green-500'
                 : step.number === currentStep
-                ? 'text-primary'
+                ? 'text-primary-700'
                 : 'text-gray-500 dark:text-gray-400'
             }">
               {step.name}

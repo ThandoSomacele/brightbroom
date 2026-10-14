@@ -1,6 +1,6 @@
 <!-- src/routes/cleaner/dashboard/+page.svelte -->
 <script lang="ts">
-  import { AlertTriangle, Calendar, Clock, DollarSign, MapPin, User } from 'lucide-svelte';
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { CustomerSkeleton } from '$lib/components/ui/skeletons';
   import StatCard from '$lib/components/ui/StatCard.svelte';
   import EmptyState from '$lib/components/ui/EmptyState.svelte';
@@ -57,7 +57,7 @@
       <StatCard
         label="Total Earnings"
         value={formatCurrency(earnings.total)}
-        icon={DollarSign}
+        icon="money"
         accent="primary"
       />
 
@@ -65,7 +65,7 @@
       <StatCard
         label="This Month"
         value={formatCurrency(earnings.currentMonth)}
-        icon={Calendar}
+        icon="calendar-blank"
         accent="primary"
       />
 
@@ -73,7 +73,7 @@
       <StatCard
         label={`Next Payout (${formatDate(earnings.nextPayout.date)})`}
         value={formatCurrency(earnings.nextPayout.amount)}
-        icon={DollarSign}
+        icon="money"
         accent="secondary"
       />
     </div>
@@ -89,7 +89,7 @@
       <div class="divide-y divide-gray-200 dark:divide-gray-700">
         {#if upcomingBookings.length === 0}
           <div class="p-6">
-            <EmptyState icon={Calendar} title="You have no upcoming bookings." />
+            <EmptyState icon="calendar-blank" title="You have no upcoming bookings." />
           </div>
         {:else}
           {#each upcomingBookings as booking}
@@ -97,7 +97,7 @@
               <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div class="space-y-3">
                   <div class="flex items-start">
-                    <Calendar class="h-5 w-5 text-primary mr-2 mt-0.5" />
+                    <Icon name="calendar-blank" size={20} class="text-primary-700 mr-2 mt-0.5" />
                     <div>
                       <p class="font-medium text-gray-900 dark:text-white">
                         {formatDate(booking.scheduledDate)}
@@ -109,14 +109,14 @@
                   </div>
 
                   <div class="flex items-start">
-                    <MapPin class="h-5 w-5 text-primary mr-2 mt-0.5" />
+                    <Icon name="map-pin" size={20} class="text-primary-700 mr-2 mt-0.5" />
                     <p class="text-gray-700 dark:text-gray-300">
                       {booking.address.street}, {booking.address.city}
                     </p>
                   </div>
 
                   <div class="flex items-start">
-                    <User class="h-5 w-5 text-primary mr-2 mt-0.5" />
+                    <Icon name="user" size={20} class="text-primary-700 mr-2 mt-0.5" />
                     <p class="text-gray-700 dark:text-gray-300">
                       {booking.customer.firstName} {booking.customer.lastName}
                     </p>
@@ -132,7 +132,7 @@
                   </span>
                   <a
                     href={`/cleaner/bookings/${booking.id}`}
-                    class="mt-2 text-primary hover:text-primary-600 font-medium text-sm"
+                    class="mt-2 text-primary-700 hover:text-primary-800 font-medium text-sm"
                   >
                     View Details
                   </a>
@@ -147,7 +147,7 @@
         <div class="p-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700">
           <a
             href="/cleaner/bookings"
-            class="text-primary hover:text-primary-600 text-sm font-medium"
+            class="text-primary-700 hover:text-primary-800 text-sm font-medium"
           >
             View all bookings
           </a>
@@ -157,7 +157,7 @@
   </div>
 {:catch error}
   <EmptyState
-    icon={AlertTriangle}
+    icon="warning"
     title="Failed to load dashboard"
     description="Please try again later or contact support if the problem persists."
   />

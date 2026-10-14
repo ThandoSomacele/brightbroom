@@ -1,22 +1,12 @@
 <!-- src/routes/admin/users/[id]/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
   import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
   import { parseDateTimeString } from "$lib/utils/date-utils";
   import { showSuccess, showError } from "../../+layout.svelte";
-  import {
-    BookOpen,
-    Calendar,
-    ChevronLeft,
-    Clock,
-    Home,
-    Mail,
-    Phone,
-    User,
-    Wallet,
-  } from "lucide-svelte";
-
+  
   export let data;
   export let form;
 
@@ -97,13 +87,13 @@
   function getActivityIcon(type: string) {
     switch (type) {
       case "BOOKING":
-        return BookOpen;
+        return "book-open";
       case "PROFILE":
-        return User;
+        return "user";
       case "ADDRESS":
-        return Home;
+        return "house";
       default:
-        return Clock;
+        return "clock";
     }
   }
 
@@ -146,7 +136,7 @@
     href="/admin/users"
     class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 mr-3"
   >
-    <ChevronLeft size={20} />
+    <Icon name="caret-left" size={20} />
   </a>
   <h1 class="text-2xl font-bold text-gray-900 dark:text-white">User Details</h1>
 </div>
@@ -204,7 +194,7 @@
             <div
               class="inline-flex h-24 w-24 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 mb-3"
             >
-              <User size={36} class="text-gray-500 dark:text-gray-400" />
+              <Icon name="user" size={36} class="text-gray-500 dark:text-gray-400" />
             </div>
 
             <div class="space-y-4">
@@ -315,7 +305,7 @@
           <div
             class="inline-flex h-24 w-24 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 mb-3"
           >
-            <User size={36} class="text-gray-500 dark:text-gray-400" />
+            <Icon name="user" size={36} class="text-gray-500 dark:text-gray-400" />
           </div>
           <h2 class="text-xl font-bold text-gray-900 dark:text-white">
             {user.firstName}
@@ -327,19 +317,19 @@
         <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
           <ul class="space-y-3">
             <li class="flex items-center">
-              <Mail class="w-5 h-5 text-gray-500 dark:text-gray-400 mr-2" />
+              <Icon name="envelope-simple" size={20} class="text-gray-500 dark:text-gray-400 mr-2" />
               <span class="text-gray-900 dark:text-white">{user.email}</span>
             </li>
 
             {#if user.phone}
               <li class="flex items-center">
-                <Phone class="w-5 h-5 text-gray-500 dark:text-gray-400 mr-2" />
+                <Icon name="phone" size={20} class="text-gray-500 dark:text-gray-400 mr-2" />
                 <span class="text-gray-900 dark:text-white">{user.phone}</span>
               </li>
             {/if}
 
             <li class="flex items-center">
-              <Calendar class="w-5 h-5 text-gray-500 dark:text-gray-400 mr-2" />
+              <Icon name="calendar-blank" size={20} class="text-gray-500 dark:text-gray-400 mr-2" />
               <span class="text-gray-900 dark:text-white"
                 >Joined {formatDate(stats.memberSince)}</span
               >
@@ -364,7 +354,7 @@
       <div class="grid grid-cols-2 gap-4">
         <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
           <div class="flex items-center justify-center mb-2">
-            <BookOpen class="w-6 h-6 text-primary" />
+            <Icon name="book-open" size={24} class="text-primary-700" />
           </div>
           <p
             class="text-lg font-bold text-center text-gray-900 dark:text-white"
@@ -378,7 +368,7 @@
 
         <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
           <div class="flex items-center justify-center mb-2">
-            <Wallet class="w-6 h-6 text-green-500" />
+            <Icon name="wallet" size={24} class="text-green-500" />
           </div>
           <p
             class="text-lg font-bold text-center text-gray-900 dark:text-white"
@@ -414,8 +404,8 @@
               class="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
             >
               <div class="flex items-start">
-                <Home
-                  class="w-5 h-5 text-gray-500 dark:text-gray-400 mt-0.5 mr-3"
+                <Icon name="house" size={20}
+                  class="text-gray-500 dark:text-gray-400 mt-0.5 mr-3"
                 />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">
@@ -502,7 +492,7 @@
                   >
                     <a
                       href={`/admin/bookings/${booking.id}`}
-                      class="text-primary hover:underline"
+                      class="text-primary-700 hover:underline"
                     >
                       {booking.id.substring(0, 8)}...
                     </a>
@@ -549,9 +539,8 @@
               <div
                 class="flex-shrink-0 h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-900/20 flex items-center justify-center"
               >
-                <svelte:component
-                  this={getActivityIcon(activity.type)}
-                  class="w-4 h-4 text-primary"
+                <Icon name={getActivityIcon(activity.type)}
+                  class="w-4 h-4 text-primary-700"
                 />
               </div>
               <div class="ml-3">

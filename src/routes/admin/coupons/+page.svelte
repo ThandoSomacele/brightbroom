@@ -1,23 +1,9 @@
 <!-- src/routes/admin/coupons/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
-  import {
-    Edit,
-    PlusCircle,
-    Search,
-    Trash2,
-    Tag,
-    Percent,
-    DollarSign,
-    Calendar,
-    Users,
-    RefreshCw,
-    ToggleLeft,
-    ToggleRight,
-    ExternalLink,
-  } from "lucide-svelte";
-
+  
   let { data, form } = $props();
 
   // Local state
@@ -128,7 +114,7 @@
   <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Coupons</h1>
   <div class="mt-4 sm:mt-0">
     <Button variant="primary" onclick={openAddModal}>
-      <PlusCircle size={16} class="mr-2" />
+      <Icon name="plus-circle" size={16} class="mr-2" />
       Add New Coupon
     </Button>
   </div>
@@ -156,7 +142,7 @@
       <div
         class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
       >
-        <Search size={16} class="text-gray-400" />
+        <Icon name="magnifying-glass" size={16} class="text-gray-400" />
       </div>
       <input
         type="text"
@@ -168,7 +154,7 @@
     <div class="flex gap-2">
       <button
         class="px-4 py-2 rounded-md transition-colors {filterStatus === 'all'
-          ? 'bg-primary text-white'
+          ? 'bg-primary text-primary-950'
           : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}"
         onclick={() => (filterStatus = "all")}
       >
@@ -176,7 +162,7 @@
       </button>
       <button
         class="px-4 py-2 rounded-md transition-colors {filterStatus === 'active'
-          ? 'bg-primary text-white'
+          ? 'bg-primary text-primary-950'
           : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}"
         onclick={() => (filterStatus = "active")}
       >
@@ -184,7 +170,7 @@
       </button>
       <button
         class="px-4 py-2 rounded-md transition-colors {filterStatus === 'inactive'
-          ? 'bg-primary text-white'
+          ? 'bg-primary text-primary-950'
           : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}"
         onclick={() => (filterStatus = "inactive")}
       >
@@ -279,7 +265,7 @@
               >
                 <td class="table-td whitespace-nowrap">
                   <div class="flex items-center">
-                    <Tag size={16} class="text-primary mr-2" />
+                    <Icon name="tag" size={16} class="text-primary-700 mr-2" />
                     <div>
                       <div
                         class="font-mono font-bold text-gray-900 dark:text-white"
@@ -295,12 +281,12 @@
                 <td class="table-td whitespace-nowrap">
                   <div class="flex items-center">
                     {#if coupon.discountType === "PERCENTAGE"}
-                      <Percent size={14} class="text-green-500 mr-1" />
+                      <Icon name="percent" size={14} class="text-green-500 mr-1" />
                       <span class="text-green-600 dark:text-green-400 font-semibold"
                         >{parseFloat(coupon.discountValue)}%</span
                       >
                     {:else}
-                      <DollarSign size={14} class="text-green-500 mr-1" />
+                      <Icon name="money" size={14} class="text-green-500 mr-1" />
                       <span class="text-green-600 dark:text-green-400 font-semibold"
                         >{formatPrice(coupon.discountValue)}</span
                       >
@@ -319,7 +305,7 @@
                 </td>
                 <td class="table-td whitespace-nowrap">
                   <div class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Users size={14} class="mr-1" />
+                    <Icon name="users" size={14} class="mr-1" />
                     {coupon.usedCount}
                     {#if coupon.maxUsesTotal}
                       / {coupon.maxUsesTotal}
@@ -335,7 +321,7 @@
                 </td>
                 <td class="table-td whitespace-nowrap">
                   <div class="flex items-center">
-                    <Calendar size={14} class="mr-1 text-gray-400" />
+                    <Icon name="calendar-blank" size={14} class="mr-1 text-gray-400" />
                     <span
                       class={isExpired(coupon.validUntil)
                         ? "text-red-500"
@@ -368,10 +354,10 @@
                         : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}"
                     >
                       {#if coupon.isActive}
-                        <ToggleRight size={16} />
+                        <Icon name="toggle-right" size={16} />
                         Active
                       {:else}
-                        <ToggleLeft size={16} />
+                        <Icon name="toggle-left" size={16} />
                         Inactive
                       {/if}
                     </button>
@@ -385,21 +371,21 @@
                       class="p-2 text-gray-600 hover:text-green-500 dark:text-gray-400 dark:hover:text-green-400"
                       title="View shareable coupon"
                     >
-                      <ExternalLink size={16} />
+                      <Icon name="arrow-square-out" size={16} />
                     </a>
                     <button
-                      class="p-2 text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-primary"
+                      class="p-2 text-gray-600 hover:text-primary-700 dark:text-gray-400 dark:hover:text-primary"
                       onclick={() => openEditModal(coupon)}
                       title="Edit"
                     >
-                      <Edit size={16} />
+                      <Icon name="pencil-simple" size={16} />
                     </button>
                     <button
                       class="p-2 text-gray-600 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
                       onclick={() => openDeleteModal(coupon)}
                       title="Delete"
                     >
-                      <Trash2 size={16} />
+                      <Icon name="trash" size={16} />
                     </button>
                   </div>
                 </td>
@@ -491,7 +477,7 @@
                     onclick={() => generateCode("")}
                     class="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
-                    <RefreshCw size={16} />
+                    <Icon name="arrows-clockwise" size={16} />
                   </button>
                 </div>
                 <p class="text-xs text-gray-500 mt-1">
@@ -600,7 +586,7 @@
                   id="requiresFirstBooking"
                   name="requiresFirstBooking"
                   value="true"
-                  class="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  class="h-4 w-4 text-primary-700 border-gray-300 rounded focus:ring-primary"
                 />
                 <label
                   for="requiresFirstBooking"
@@ -673,7 +659,7 @@
                   name="isActive"
                   value="true"
                   checked
-                  class="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  class="h-4 w-4 text-primary-700 border-gray-300 rounded focus:ring-primary"
                 />
                 <label
                   for="isActive"
@@ -881,7 +867,7 @@
                   name="requiresFirstBooking"
                   value="true"
                   checked={selectedCoupon.requiresFirstBooking}
-                  class="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  class="h-4 w-4 text-primary-700 border-gray-300 rounded focus:ring-primary"
                 />
                 <label
                   for="edit-requiresFirstBooking"
@@ -958,7 +944,7 @@
                   name="isActive"
                   value="true"
                   checked={selectedCoupon.isActive}
-                  class="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  class="h-4 w-4 text-primary-700 border-gray-300 rounded focus:ring-primary"
                 />
                 <label
                   for="edit-isActive"

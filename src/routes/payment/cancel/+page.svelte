@@ -1,9 +1,9 @@
 <!-- src/routes/payment/cancel/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import Button from '$lib/components/ui/Button.svelte';
-  import { XCircle, AlertTriangle, Calendar, MapPin } from 'lucide-svelte';
   import { formatDate, formatTime } from '$lib/utils/date-utils';
   
   // Get data from the server load function
@@ -22,7 +22,7 @@
     <!-- Payment cancellation confirmation -->
     {#if userCanceled}
       <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-center">
-        <XCircle size={60} class="text-red-500 dark:text-red-400" />
+        <Icon name="x-circle" size={60} class="text-red-500 dark:text-red-400" />
       </div>
       
       <div class="p-6">
@@ -32,7 +32,7 @@
         
         {#if error}
           <div class="mb-6 bg-red-50 dark:bg-red-900/20 p-4 rounded-lg flex items-start">
-            <AlertTriangle class="h-5 w-5 mr-2 mt-0.5 flex-shrink-0 text-red-500 dark:text-red-400" />
+            <Icon name="warning" size={20} class="mr-2 mt-0.5 flex-shrink-0 text-red-500 dark:text-red-400" />
             <p class="text-red-700 dark:text-red-300">
               {error === 'missing_reference' ? 'No booking information found.' : 
                error === 'booking_not_found' ? 'The booking could not be found.' : 
@@ -53,7 +53,7 @@
               
               <div class="space-y-2">
                 <div class="flex items-start">
-                  <Calendar size={18} class="mr-2 mt-0.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                  <Icon name="calendar-blank" size={18} class="mr-2 mt-0.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                   <div>
                     <p class="text-sm text-gray-700 dark:text-gray-300">
                       {formatDate(bookingData.booking.scheduledDate)}
@@ -65,7 +65,7 @@
                 </div>
                 
                 <div class="flex items-start">
-                  <MapPin size={18} class="mr-2 mt-0.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                  <Icon name="map-pin" size={18} class="mr-2 mt-0.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                   <p class="text-sm text-gray-700 dark:text-gray-300">
                     {bookingData.address.street}, {bookingData.address.city}
                   </p>

@@ -157,7 +157,7 @@
         <div class="flex flex-col space-y-3">
           <button
             on:click={() => window.location.reload()}
-            class="w-full px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            class="w-full px-4 py-2 bg-primary hover:bg-primary-600 text-primary-950 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           >
             Try Again
           </button>

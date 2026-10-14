@@ -1,12 +1,12 @@
 <!-- src/routes/auth/login/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
   import CSRFToken from "$lib/components/forms/CSRFToken.svelte";
-  import { Eye, EyeOff, Loader2, Tag } from "lucide-svelte";
-
+  
   // Get error from form action
   export let form;
 
@@ -54,7 +54,7 @@
 >
   <div class="w-full max-w-md">
     <div class="mb-8 text-center">
-      <h1 class="text-3xl font-bold text-primary">BrightBroom</h1>
+      <h1 class="text-3xl font-bold text-primary-700">BrightBroom</h1>
       <p class="mt-2 text-gray-600 dark:text-gray-300">
         Sign in to your account
       </p>
@@ -67,7 +67,7 @@
           class="mb-6 rounded-md bg-primary-50 p-4 text-primary-700 dark:bg-primary-900/20 dark:text-primary-200"
         >
           <div class="flex items-center gap-2">
-            <Tag class="h-5 w-5 flex-shrink-0" />
+            <Icon name="tag" size={20} class="flex-shrink-0" />
             <p>Log in or create an account to apply your coupon code.</p>
           </div>
         </div>
@@ -159,16 +159,16 @@
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {#if showPassword}
-                <EyeOff class="h-5 w-5" />
+                <Icon name="eye-slash" size={20} />
               {:else}
-                <Eye class="h-5 w-5" />
+                <Icon name="eye" size={20} />
               {/if}
             </Button>
           </div>
           <div class="mt-1 text-right">
             <a
               href="/auth/forgot-password"
-              class="text-sm text-primary hover:underline"
+              class="text-sm text-primary-700 hover:underline"
             >
               Forgot password?
             </a>
@@ -186,7 +186,7 @@
           class="w-full"
         >
           {#if isLoading}
-            <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+            <Icon name="spinner-gap" size={16} class="mr-2 animate-spin" />
             Signing in...
           {:else}
             Sign in
@@ -199,7 +199,7 @@
           Don't have an account?
           <a
             href="/auth/register{redirectTo !== '/profile' ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}{hasPendingCoupon ? (redirectTo !== '/profile' ? '&' : '?') + 'coupon=pending' : ''}"
-            class="font-medium text-primary hover:underline"
+            class="font-medium text-primary-700 hover:underline"
           >
             Sign up
           </a>

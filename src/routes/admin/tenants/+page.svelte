@@ -1,17 +1,9 @@
 <!-- src/routes/admin/tenants/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
-  import {
-    Building2,
-    PlusCircle,
-    Users,
-    BrushCleaning,
-    Crown,
-    ToggleLeft,
-    ToggleRight,
-  } from "lucide-svelte";
-
+  
   export let data;
 </script>
 
@@ -30,7 +22,7 @@
     </div>
     <a href="/admin/tenants/new">
       <Button variant="primary">
-        <PlusCircle class="w-4 h-4 mr-2" />
+        <Icon name="plus-circle" size={16} class="mr-2" />
         Add Tenant
       </Button>
     </a>
@@ -78,16 +70,16 @@
                 <div class="flex items-center">
                   <div class="flex-shrink-0 h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                     {#if tenant.isPlatformOwner}
-                      <Crown class="h-5 w-5 text-primary" />
+                      <Icon name="crown" size={20} class="text-primary-700" />
                     {:else}
-                      <Building2 class="h-5 w-5 text-primary" />
+                      <Icon name="buildings" size={20} class="text-primary-700" />
                     {/if}
                   </div>
                   <div class="ml-4">
                     <div class="text-sm font-medium text-gray-900 dark:text-white">
                       {tenant.name}
                       {#if tenant.isPlatformOwner}
-                        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
+                        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary-700">
                           Platform
                         </span>
                       {/if}
@@ -106,13 +98,13 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                  <Users class="h-4 w-4 mr-1" />
+                  <Icon name="users" size={16} class="mr-1" />
                   {tenant.memberCount}
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                  <BrushCleaning class="h-4 w-4 mr-1" />
+                  <Icon name="broom" size={16} class="mr-1" />
                   {tenant.cleanerCount}
                 </div>
               </td>
@@ -131,7 +123,7 @@
                 <div class="flex items-center gap-2" on:click|stopPropagation>
                   <a
                     href="/admin/tenants/{tenant.id}"
-                    class="text-primary hover:text-primary-600 font-medium"
+                    class="text-primary-700 hover:text-primary-800 font-medium"
                   >
                     View
                   </a>
@@ -145,9 +137,9 @@
                         title={tenant.isActive ? "Deactivate" : "Activate"}
                       >
                         {#if tenant.isActive}
-                          <ToggleRight class="h-5 w-5 text-green-500" />
+                          <Icon name="toggle-right" size={20} class="text-green-500" />
                         {:else}
-                          <ToggleLeft class="h-5 w-5" />
+                          <Icon name="toggle-left" size={20} />
                         {/if}
                       </button>
                     </form>
@@ -158,7 +150,7 @@
           {:else}
             <tr>
               <td colspan="7" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                <Building2 class="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                <Icon name="buildings" size={48} class="mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                 <p class="text-lg font-medium">No tenants yet</p>
                 <p class="mt-1">Add your first cleaning company to get started.</p>
               </td>

@@ -1,5 +1,6 @@
 <!-- src/routes/join/cleaner/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { page } from "$app/stores";
   import HoneypotField from "$lib/components/forms/HoneypotField.svelte";
@@ -13,8 +14,7 @@
     getClosestServiceArea,
     isWithinServiceArea,
   } from "$lib/utils/serviceAreaValidator";
-  import { Clock, Wallet, Zap } from "lucide-svelte";
-
+  
   // Environment variables
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -218,13 +218,13 @@
 
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
   <!-- Hero Section -->
-  <div class="bg-primary py-16 text-white">
+  <div class="bg-primary-700 py-16 text-white">
     <div class="container mx-auto px-4">
       <div class="mx-auto max-w-3xl text-center">
         <h1 class="mb-4 font-heading text-4xl font-bold md:text-5xl">
           Join Our Team of Professional Cleaners
         </h1>
-        <p class="mb-8 text-lg text-white/90">
+        <p class="mb-8 text-lg text-primary-50">
           Flexible hours, competitive pay, and a supportive work environment.
           Join BrightBroom and start making a living with us.
         </p>
@@ -242,7 +242,7 @@
         <!-- Benefit 1 -->
         <Card hover class="text-center">
           <div class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16">
-            <Clock size={24} />
+            <Icon name="clock" size={24} accent />
           </div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Flexible Schedule
@@ -256,7 +256,7 @@
         <!-- Benefit 2 -->
         <Card hover class="text-center">
           <div class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16">
-            <Wallet size={24} />
+            <Icon name="wallet" size={24} accent />
           </div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Competitive Pay
@@ -270,7 +270,7 @@
         <!-- Benefit 3 -->
         <Card hover class="text-center">
           <div class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16">
-            <Zap size={24} />
+            <Icon name="lightning" size={24} accent />
           </div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Career Growth
@@ -294,7 +294,7 @@
           <ul class="space-y-4">
             <li class="flex">
               <div
-                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-950"
               >
                 <span class="text-sm font-semibold">1</span>
               </div>
@@ -304,7 +304,7 @@
             </li>
             <li class="flex">
               <div
-                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-950"
               >
                 <span class="text-sm font-semibold">2</span>
               </div>
@@ -314,7 +314,7 @@
             </li>
             <li class="flex">
               <div
-                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-950"
               >
                 <span class="text-sm font-semibold">3</span>
               </div>
@@ -324,7 +324,7 @@
             </li>
             <li class="flex">
               <div
-                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-950"
               >
                 <span class="text-sm font-semibold">4</span>
               </div>
@@ -334,7 +334,7 @@
             </li>
             <li class="flex">
               <div
-                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-950"
               >
                 <span class="text-sm font-semibold">5</span>
               </div>
@@ -344,7 +344,7 @@
             </li>
             <li class="flex">
               <div
-                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white"
+                class="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-950"
               >
                 <span class="text-sm font-semibold">6</span>
               </div>
@@ -375,7 +375,7 @@
               class="mr-4 h-12 w-12 overflow-hidden rounded-full bg-gray-200"
             >
               <div
-                class="flex h-full w-full items-center justify-center bg-primary-100 text-primary"
+                class="flex h-full w-full items-center justify-center bg-primary-50 text-primary-800"
               >
                 <span class="text-xl font-bold">N</span>
               </div>
@@ -403,7 +403,7 @@
               class="mr-4 h-12 w-12 overflow-hidden rounded-full bg-gray-200"
             >
               <div
-                class="flex h-full w-full items-center justify-center bg-primary-100 text-primary"
+                class="flex h-full w-full items-center justify-center bg-primary-50 text-primary-800"
               >
                 <span class="text-xl font-bold">S</span>
               </div>
@@ -430,7 +430,7 @@
               class="mr-4 h-12 w-12 overflow-hidden rounded-full bg-gray-200"
             >
               <div
-                class="flex h-full w-full items-center justify-center bg-primary-100 text-primary"
+                class="flex h-full w-full items-center justify-center bg-primary-50 text-primary-800"
               >
                 <span class="text-xl font-bold">T</span>
               </div>
@@ -517,9 +517,9 @@
                     <div
                       class={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
                         i + 1 < step
-                          ? "border-primary bg-primary text-white"
+                          ? "border-primary bg-primary text-primary-950"
                           : i + 1 === step
-                            ? "border-primary bg-white text-primary dark:bg-gray-700"
+                            ? "border-primary bg-white text-primary-700 dark:bg-gray-700"
                             : "border-gray-300 bg-white text-gray-400 dark:border-gray-600 dark:bg-gray-700"
                       }`}
                     >
@@ -751,7 +751,7 @@
                             name="availability"
                             value={day}
                             bind:group={availability}
-                            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
                           />
                           <span class="ml-2 text-gray-700 dark:text-gray-300"
                             >{day}</span
@@ -781,7 +781,7 @@
                             name="ownTransport"
                             value="yes"
                             bind:group={ownTransport}
-                            class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                            class="h-4 w-4 border-gray-300 text-primary-700 focus:ring-primary"
                           />
                           <span class="ml-2 text-gray-700 dark:text-gray-300"
                             >Yes</span
@@ -793,7 +793,7 @@
                             name="ownTransport"
                             value="no"
                             bind:group={ownTransport}
-                            class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                            class="h-4 w-4 border-gray-300 text-primary-700 focus:ring-primary"
                           />
                           <span class="ml-2 text-gray-700 dark:text-gray-300"
                             >No</span
@@ -819,7 +819,7 @@
                             name="whatsApp"
                             value="yes"
                             bind:group={whatsApp}
-                            class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                            class="h-4 w-4 border-gray-300 text-primary-700 focus:ring-primary"
                           />
                           <span class="ml-2 text-gray-700 dark:text-gray-300"
                             >Yes</span
@@ -831,7 +831,7 @@
                             name="whatsApp"
                             value="no"
                             bind:group={whatsApp}
-                            class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                            class="h-4 w-4 border-gray-300 text-primary-700 focus:ring-primary"
                           />
                           <span class="ml-2 text-gray-700 dark:text-gray-300"
                             >No</span
@@ -1212,18 +1212,18 @@
                         type="checkbox"
                         name="terms"
                         required
-                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
                       />
                       <span
                         class="ml-2 text-sm text-gray-700 dark:text-gray-300"
                       >
                         I agree to the <a
                           href="/terms"
-                          class="text-primary hover:underline"
+                          class="text-primary-700 hover:underline"
                           >Terms of Service</a
                         >
                         and
-                        <a href="/privacy" class="text-primary hover:underline"
+                        <a href="/privacy" class="text-primary-700 hover:underline"
                           >Privacy Policy</a
                         > <span class="text-red-500">*</span>
                       </span>
@@ -1352,11 +1352,11 @@
   </section>
 
   <!-- CTA Section -->
-  <div class="bg-primary py-16 text-white">
+  <div class="bg-primary-700 py-16 text-white">
     <div class="container mx-auto px-4">
       <div class="mx-auto max-w-3xl text-center">
         <h2 class="mb-4 text-3xl font-bold">Ready to Join Our Team?</h2>
-        <p class="mb-8 text-lg text-white/90">
+        <p class="mb-8 text-lg text-primary-50">
           Apply today and take the first step towards a flexible cleaning career
           with BrightBroom.
         </p>

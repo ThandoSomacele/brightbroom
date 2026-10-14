@@ -1,9 +1,9 @@
 <!-- src/routes/auth/forgot-password/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
-  import { Mail } from "lucide-svelte";
-
+  
   // Get form data from the server action
   export let form;
 
@@ -20,7 +20,7 @@
 >
   <div class="w-full max-w-md">
     <div class="mb-8 text-center">
-      <h1 class="text-3xl font-bold text-primary">BrightBroom</h1>
+      <h1 class="text-3xl font-bold text-primary-700">BrightBroom</h1>
       <p class="mt-2 text-gray-600 dark:text-gray-300">Reset your password</p>
     </div>
 
@@ -78,7 +78,7 @@
               <div
                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
               >
-                <Mail size={18} class="text-gray-400" />
+                <Icon name="envelope-simple" size={18} class="text-gray-400" />
               </div>
               <input
                 type="email"
@@ -96,7 +96,7 @@
           <button
             type="submit"
             disabled={isLoading}
-            class="w-full inline-flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-primary hover:bg-primary-600 text-white focus-visible:ring-primary-500"
+            class="w-full inline-flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-primary hover:bg-primary-600 text-primary-950 focus-visible:ring-primary-500"
           >
             {#if isLoading}
               <svg
@@ -131,7 +131,7 @@
             Remembered your password?
             <a
               href="/auth/login"
-              class="font-medium text-primary hover:underline"
+              class="font-medium text-primary-700 hover:underline"
             >
               Sign in
             </a>

@@ -1,18 +1,12 @@
 <!-- src/routes/contact/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import HoneypotField from "$lib/components/forms/HoneypotField.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import Card from "$lib/components/ui/Card.svelte";
 
-  import {
-    ExternalLink,
-    Mail,
-    MapPin,
-    MessageSquare,
-    Users,
-  } from "lucide-svelte";
-
+  
   // Form state
   let isSubmitting = false;
   let formSuccess = false;
@@ -82,7 +76,7 @@
                 <div
                   class="icon-chip mr-4 h-12 w-12 flex-shrink-0"
                 >
-                  <Mail size={20} />
+                  <Icon name="envelope-simple" size={20} />
                 </div>
                 <div>
                   <h3 class="text-lg font-medium text-gray-900 dark:text-white">
@@ -104,7 +98,7 @@
                 <div
                   class="icon-chip mr-4 h-12 w-12 flex-shrink-0"
                 >
-                  <MessageSquare size={20} />
+                  <Icon name="chat-text" size={20} />
                 </div>
                 <div>
                   <h3 class="text-lg font-medium text-gray-900 dark:text-white">
@@ -126,7 +120,7 @@
                 <div
                   class="icon-chip mr-4 h-12 w-12 flex-shrink-0"
                 >
-                  <MapPin size={20} />
+                  <Icon name="map-pin" size={20} />
                 </div>
                 <div>
                   <h3 class="text-lg font-medium text-gray-900 dark:text-white">
@@ -149,7 +143,7 @@
                 <div
                   class="mr-4 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-secondary-100 text-secondary dark:bg-secondary-800"
                 >
-                  <Users size={20} />
+                  <Icon name="users" size={20} />
                 </div>
                 <div>
                   <h3 class="text-lg font-medium text-gray-900 dark:text-white">
@@ -166,7 +160,7 @@
                       class="inline-flex items-center"
                     >
                       Apply Now
-                      <ExternalLink size={16} class="ml-2" />
+                      <Icon name="arrow-square-out" size={16} class="ml-2" />
                     </Button>
                   </div>
                 </div>
@@ -366,7 +360,7 @@
                     <input
                       type="checkbox"
                       name="joinAsCleaner"
-                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
                     />
                     <span class="ml-2 text-sm text-gray-600 dark:text-gray-300">
                       I'm interested in joining the BrightBroom team as a

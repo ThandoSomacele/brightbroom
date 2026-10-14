@@ -1,5 +1,6 @@
 <!-- src/routes/book/schedule/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import RecurringOptions from "$lib/components/booking/RecurringOptions.svelte";
   import StepTracker from "$lib/components/booking/StepTracker.svelte";
@@ -18,15 +19,6 @@
     startOfWeek,
     subMonths,
   } from "date-fns";
-  import {
-    ArrowLeft,
-    ArrowRight,
-    Calendar,
-    ChevronLeft,
-    ChevronRight,
-    Clock,
-    RotateCw,
-  } from "lucide-svelte";
   import { onMount } from "svelte";
 
   // Props from server load
@@ -299,7 +291,7 @@
     <div class="mb-8">
       <div class="bg-white rounded-lg p-6 shadow-md dark:bg-gray-800">
         <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
-          <RotateCw class="h-5 w-5 text-teal-600" />
+          <Icon name="arrow-clockwise" size={20} class="text-primary-700" />
           Booking Type
         </h2>
 
@@ -366,7 +358,7 @@
           <h2
             class="mb-4 flex items-center text-xl font-semibold text-gray-900 dark:text-white"
           >
-            <Calendar size={20} class="mr-2 text-primary" />
+            <Icon name="calendar-blank" size={20} class="mr-2 text-primary-700" />
             Select a Date
           </h2>
 
@@ -378,7 +370,7 @@
                 class="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                 on:click={previousMonth}
               >
-                <ChevronLeft size={18} />
+                <Icon name="caret-left" size={18} />
               </button>
 
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -390,7 +382,7 @@
                 class="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                 on:click={nextMonth}
               >
-                <ChevronRight size={18} />
+                <Icon name="caret-right" size={18} />
               </button>
             </div>
 
@@ -414,10 +406,10 @@
                   flex h-10 w-full items-center justify-center rounded-lg p-1
                   text-sm
                   ${day.isCurrentMonth ? "font-medium" : "text-gray-400 dark:text-gray-600"}
-                  ${day.isSelected ? "bg-primary text-white hover:bg-primary-600" : ""}
+                  ${day.isSelected ? "bg-primary text-primary-950 hover:bg-primary-600" : ""}
                   ${
                     day.isAvailable && !day.isSelected
-                      ? "bg-primary-50 text-primary hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/30"
+                      ? "bg-primary-50 text-primary-700 hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/30"
                       : !day.isAvailable
                         ? "cursor-not-allowed opacity-50"
                         : "hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -455,7 +447,7 @@
           <h2
             class="mb-4 flex items-center text-xl font-semibold text-gray-900 dark:text-white"
           >
-            <Clock size={20} class="mr-2 text-primary" />
+            <Icon name="clock" size={20} class="mr-2 text-primary-700" />
             Select a Time
           </h2>
 
@@ -501,13 +493,13 @@
           </h3>
 
           <p class="flex items-center text-gray-700 dark:text-gray-300">
-            <Calendar size={18} class="mr-2 text-primary" />
+            <Icon name="calendar-blank" size={18} class="mr-2 text-primary-700" />
             {availableDates.find((d) => d.date === selectedDate)
               ?.fullDisplayDate}
           </p>
 
           <p class="mt-2 flex items-center text-gray-700 dark:text-gray-300">
-            <Clock size={18} class="mr-2 text-primary" />
+            <Icon name="clock" size={18} class="mr-2 text-primary-700" />
             {timeSlots.find((t) => t.time === selectedTime)?.displayTime}
           </p>
         </div>
@@ -592,7 +584,7 @@
           </svg>
           Loading...
         {:else}
-          <ArrowLeft size={18} class="mr-2" />
+          <Icon name="arrow-left" size={18} class="mr-2" />
           Back
         {/if}
       </Button>
@@ -637,7 +629,7 @@
           Loading...
         {:else}
           Continue
-          <ArrowRight size={18} class="ml-2" />
+          <Icon name="arrow-right" size={18} class="ml-2" />
         {/if}
       </Button>
     </div>

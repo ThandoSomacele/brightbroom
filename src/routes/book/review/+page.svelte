@@ -1,5 +1,6 @@
 <!-- src/routes/book/review/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { goto } from "$app/navigation";
   import StepTracker from "$lib/components/booking/StepTracker.svelte";
@@ -7,19 +8,6 @@
   import PriceSummary from "$lib/components/booking/PriceSummary.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { getAPIHeaders } from "$lib/utils/api-helpers";
-  import {
-    Calendar,
-    MapPin,
-    Clock,
-    CreditCard,
-    FileText,
-    ArrowLeft,
-    RotateCw,
-    WalletIcon,
-    Tag,
-    X,
-    Check,
-  } from "lucide-svelte";
   import {
     calculateCleaningPrice,
     type PriceBreakdown,
@@ -106,7 +94,7 @@
   import { parse, format } from "date-fns";
 
   onMount(() => {
-    // Check if this is a recurring booking
+    // "check" if this is a recurring booking
     isRecurring = localStorage.getItem("booking_is_recurring") === "true";
 
     if (isRecurring) {
@@ -254,7 +242,7 @@
       ? (selectedAddress || guestAddress)
       : guestAddress;
 
-    // Check if we have valid scheduling data
+    // "check" if we have valid scheduling data
     const hasValidSchedule = isRecurring
       ? recurringFrequency && recurringTimeSlot
       : selectedDate && selectedTime;
@@ -264,7 +252,7 @@
       goto("/book");
     }
 
-    // Check for pending coupon code (from guest user who just logged in)
+    // "check" for pending coupon code (from guest user who just logged in)
     if (isAuthenticated && !isRecurring) {
       const pendingCoupon = localStorage.getItem("pending_coupon_code");
       if (pendingCoupon) {
@@ -318,7 +306,7 @@
     // For guest users, check guestAddress only (contact info will be collected at payment)
     const hasValidAddress = isAuthenticated ? (selectedAddress || guestAddress) : guestAddress;
 
-    // Check if we have valid scheduling data
+    // "check" if we have valid scheduling data
     const hasValidSchedule = isRecurring
       ? recurringFrequency && recurringTimeSlot
       : selectedDate && selectedTime;
@@ -561,7 +549,7 @@
           {#if !isRecurring && isAuthenticated}
             <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                <Tag size={16} class="text-primary" />
+                <Icon name="tag" size={16} class="text-primary-700" />
                 Have a coupon code?
               </h4>
 
@@ -569,7 +557,7 @@
                 <!-- Show applied coupon -->
                 <div class="flex items-center justify-between bg-green-50 dark:bg-green-900/20 p-3 rounded-md">
                   <div class="flex items-center gap-2">
-                    <Check size={16} class="text-green-600 dark:text-green-400" />
+                    <Icon name="check" size={16} class="text-green-600 dark:text-green-400" />
                     <div>
                       <span class="font-mono font-semibold text-green-700 dark:text-green-300">{appliedCoupon.code}</span>
                       <span class="text-sm text-green-600 dark:text-green-400 ml-2">
@@ -583,7 +571,7 @@
                     class="p-1 text-gray-500 hover:text-red-500 transition-colors"
                     title="Remove coupon"
                   >
-                    <X size={16} />
+                    <Icon name="x" size={16} />
                   </button>
                 </div>
               {:else}
@@ -600,7 +588,7 @@
                     type="button"
                     onclick={applyCoupon}
                     disabled={couponLoading || !couponCode.trim()}
-                    class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    class="px-4 py-2 bg-primary text-primary-950 rounded-md hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {#if couponLoading}
                       <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -622,7 +610,7 @@
           {#if !isAuthenticated && !isRecurring}
             <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                <Tag size={16} class="text-primary" />
+                <Icon name="tag" size={16} class="text-primary-700" />
                 Have a coupon code?
               </h4>
 
@@ -639,7 +627,7 @@
                   type="button"
                   onclick={handleGuestCoupon}
                   disabled={!couponCode.trim()}
-                  class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  class="px-4 py-2 bg-primary text-primary-950 rounded-md hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Apply
                 </button>
@@ -666,9 +654,9 @@
           {#if isRecurring}
             <!-- Recurring Schedule -->
             <div class="flex items-start">
-              <RotateCw
+              <Icon name="arrow-clockwise"
                 size={20}
-                class="mr-3 mt-0.5 flex-shrink-0 text-primary"
+                class="mr-3 mt-0.5 flex-shrink-0 text-primary-700"
               />
               <div>
                 <p class="font-medium text-gray-900 dark:text-white">
@@ -690,9 +678,9 @@
 
             {#if recurringDays.length > 0}
               <div class="flex items-start">
-                <Calendar
+                <Icon name="calendar-blank"
                   size={20}
-                  class="mr-3 mt-0.5 flex-shrink-0 text-primary"
+                  class="mr-3 mt-0.5 flex-shrink-0 text-primary-700"
                 />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">
@@ -707,9 +695,9 @@
 
             {#if recurringMonthlyDates.length > 0}
               <div class="flex items-start">
-                <Calendar
+                <Icon name="calendar-blank"
                   size={20}
-                  class="mr-3 mt-0.5 flex-shrink-0 text-primary"
+                  class="mr-3 mt-0.5 flex-shrink-0 text-primary-700"
                 />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">
@@ -727,7 +715,7 @@
             {/if}
 
             <div class="flex items-start">
-              <Clock size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+              <Icon name="clock" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
               <div>
                 <p class="font-medium text-gray-900 dark:text-white">
                   Time Slot
@@ -740,7 +728,7 @@
 
             {#if priceBreakdown}
               <div class="flex items-start">
-                <WalletIcon
+                <Icon name="wallet"
                   size={20}
                   class="mr-3 mt-0.5 flex-shrink-0 text-green-600"
                 />
@@ -763,9 +751,9 @@
           {:else}
             <!-- One-time Schedule -->
             <div class="flex items-start">
-              <Calendar
+              <Icon name="calendar-blank"
                 size={20}
-                class="mr-3 mt-0.5 flex-shrink-0 text-primary"
+                class="mr-3 mt-0.5 flex-shrink-0 text-primary-700"
               />
               <div>
                 <p class="font-medium text-gray-900 dark:text-white">Date</p>
@@ -776,7 +764,7 @@
             </div>
 
             <div class="flex items-start">
-              <Clock size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+              <Icon name="clock" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
               <div>
                 <p class="font-medium text-gray-900 dark:text-white">Time</p>
                 <p class="text-gray-600 dark:text-gray-300">
@@ -789,9 +777,9 @@
           {#if addressDetails}
             <!-- Authenticated user address -->
             <div class="flex items-start">
-              <MapPin
+              <Icon name="map-pin"
                 size={20}
-                class="mr-3 mt-0.5 flex-shrink-0 text-primary"
+                class="mr-3 mt-0.5 flex-shrink-0 text-primary-700"
               />
               <div>
                 <p class="font-medium text-gray-900 dark:text-white">
@@ -809,9 +797,9 @@
           {:else if guestAddress}
             <!-- Guest user address -->
             <div class="flex items-start">
-              <MapPin
+              <Icon name="map-pin"
                 size={20}
-                class="mr-3 mt-0.5 flex-shrink-0 text-primary"
+                class="mr-3 mt-0.5 flex-shrink-0 text-primary-700"
               />
               <div>
                 <p class="font-medium text-gray-900 dark:text-white">
@@ -885,7 +873,7 @@
         <h2
           class="mb-3 flex items-center text-xl font-semibold text-gray-900 dark:text-white"
         >
-          <FileText size={20} class="mr-2 text-primary" />
+          <Icon name="file-text" size={20} class="mr-2 text-primary-700" />
           Special Instructions
         </h2>
 
@@ -923,13 +911,13 @@
                 class="flex justify-between font-bold text-lg pt-3 border-t border-primary-100"
               >
                 <span>Total per clean:</span>
-                <span class="text-primary">R{finalPrice.toFixed(2)}</span>
+                <span class="text-primary-700">R{finalPrice.toFixed(2)}</span>
               </div>
             </div>
           {:else}
             <div class="flex justify-between font-bold text-lg">
               <span>Total per clean:</span>
-              <span class="text-primary"
+              <span class="text-primary-700"
                 >R{priceBreakdown.totalPrice.toFixed(2)}</span
               >
             </div>
@@ -946,7 +934,7 @@
             </div>
             <div class="flex items-center justify-between mb-2 text-green-600 dark:text-green-400">
               <span class="flex items-center gap-2">
-                <Tag size={16} />
+                <Icon name="tag" size={16} />
                 Coupon ({appliedCoupon.code})
               </span>
               <span>-R{appliedCoupon.discountAmount.toFixed(2)}</span>
@@ -955,7 +943,7 @@
               <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
                 Total
               </h2>
-              <span class="text-2xl font-bold text-primary">
+              <span class="text-2xl font-bold text-primary-700">
                 R{(priceBreakdown.totalPrice - appliedCoupon.discountAmount).toFixed(2)}
               </span>
             </div>
@@ -965,11 +953,11 @@
                 Total
               </h2>
               {#if priceBreakdown}
-                <span class="text-2xl font-bold text-primary">
+                <span class="text-2xl font-bold text-primary-700">
                   R{priceBreakdown.totalPrice.toFixed(2)}
                 </span>
               {:else}
-                <span class="text-2xl font-bold text-primary">R0.00</span>
+                <span class="text-2xl font-bold text-primary-700">R0.00</span>
               {/if}
             </div>
           {/if}
@@ -1058,7 +1046,7 @@
       <!-- Navigation buttons -->
       <div class="flex justify-between">
         <Button type="button" variant="outline" on:click={goToPrevious}>
-          <ArrowLeft size={18} class="mr-2" />
+          <Icon name="arrow-left" size={18} class="mr-2" />
           Back
         </Button>
 
@@ -1094,7 +1082,7 @@
             </svg>
             Processing...
           {:else}
-            Confirm & Pay <CreditCard size={18} class="ml-2" />
+            Confirm & Pay <Icon name="credit-card" size={18} class="ml-2" />
           {/if}
         </Button>
       </div>

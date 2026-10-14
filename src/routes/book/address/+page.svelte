@@ -1,12 +1,12 @@
 <!-- src/routes/book/address/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import AddressSelect from "$lib/components/booking/AddressSelect.svelte";
   import StepTracker from "$lib/components/booking/StepTracker.svelte";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { MAX_ADDRESSES } from "$lib/constants/address";
-  import { AlertCircle, ArrowLeft, ArrowRight, Plus } from "lucide-svelte";
   import { onMount } from "svelte";
 
   // Get data from the server
@@ -253,7 +253,7 @@
       >
         <button
           type="button"
-          class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-primary-50 hover:bg-primary-100 hover:text-primary-700 rounded-md transition-colors dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40 mr-2 flex-shrink-0"
+          class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 hover:text-primary-700 rounded-md transition-colors dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40 mr-2 flex-shrink-0"
         >
           <svg
             class="w-3 h-3"
@@ -301,7 +301,7 @@
               title="You have reached the maximum limit of addresses"
               class="w-full sm:w-auto flex"
             >
-              <Plus size={18} class="mr-2" />
+              <Icon name="plus" size={18} class="mr-2" />
               Add New Address (Limit Reached)
             </Button>
 
@@ -319,7 +319,7 @@
             href="/profile/addresses/new?redirectTo=/book/address"
             class="w-full sm:w-auto"
           >
-            <Plus size={18} class="mr-2" />
+            <Icon name="plus" size={18} class="mr-2" />
             Add New Address ({remainingAddresses} remaining)
           </Button>
         {/if}
@@ -388,7 +388,7 @@
               class="p-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800"
             >
               <div class="flex items-center">
-                <AlertCircle class="w-4 h-4 text-red-600 mr-2" />
+                <Icon name="warning-circle" size={16} class="text-red-600 mr-2" />
                 <span class="text-sm font-medium text-red-800 dark:text-red-200"
                   >Address Error:</span
                 >
@@ -450,7 +450,7 @@
           </svg>
           Loading...
         {:else}
-          <ArrowLeft size={18} class="mr-2" />
+          <Icon name="arrow-left" size={18} class="mr-2" />
           Back
         {/if}
       </Button>
@@ -484,7 +484,7 @@
           Loading...
         {:else}
           Continue
-          <ArrowRight size={18} class="ml-2" />
+          <Icon name="arrow-right" size={18} class="ml-2" />
         {/if}
       </Button>
     </div>

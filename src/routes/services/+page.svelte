@@ -1,10 +1,10 @@
 <!-- src/routes/services/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from '$lib/components/ui/Button.svelte';
   import Card from '$lib/components/ui/Card.svelte';
   import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
-  import { Clock, Home, Sparkles, CheckCircle, Building2, MessageSquare } from 'lucide-svelte';
-</script>
+  </script>
 
 <svelte:head>
   <title>Cleaning Services | BrightBroom</title>
@@ -83,7 +83,7 @@
       <div class="grid gap-8 md:grid-cols-3">
         <Card hover class="text-center">
           <div class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16">
-            <Clock class="h-8 w-8" />
+            <Icon name="clock" size={32} accent />
           </div>
           <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
             1. Choose Your Hours
@@ -95,7 +95,7 @@
 
         <Card hover class="text-center">
           <div class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16">
-            <Home class="h-8 w-8" />
+            <Icon name="house" size={32} accent />
           </div>
           <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
             2. Select Your Rooms
@@ -107,7 +107,7 @@
 
         <Card hover class="text-center">
           <div class="icon-chip icon-chip-interactive mx-auto mb-4 h-16 w-16">
-            <Sparkles class="h-8 w-8" />
+            <Icon name="sparkle" size={32} accent />
           </div>
           <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
             3. Add Extras
@@ -142,7 +142,7 @@
           'General tidying up'
         ] as item (item)}
           <div class="card flex items-start gap-3 p-4 hover:border-primary/50">
-            <CheckCircle class="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
+            <Icon name="check-circle" size={20} class="mt-0.5 flex-shrink-0 text-primary-700" />
             <span class="text-gray-700 dark:text-gray-300">{item}</span>
           </div>
         {/each}
@@ -198,7 +198,7 @@
       <div class="card rounded-2xl p-8 md:p-12">
         <div class="flex flex-col items-center text-center md:flex-row md:text-left">
           <div class="mb-6 flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-secondary-100 text-secondary dark:bg-secondary-900/30 md:mb-0 md:mr-8">
-            <Building2 class="h-8 w-8" />
+            <Icon name="buildings" size={32} accent />
           </div>
 
           <div class="flex-1">
@@ -213,7 +213,7 @@
 
           <div class="mt-6 flex-shrink-0 md:ml-8 md:mt-0">
             <Button href="/contact?subject=Business Inquiry" variant="secondary">
-              <MessageSquare class="mr-2 h-4 w-4" />
+              <Icon name="chat-text" size={16} class="mr-2" />
               Request a Quote
             </Button>
           </div>
@@ -223,7 +223,7 @@
   </section>
 
   <!-- Final CTA -->
-  <section class="bg-primary py-16">
+  <section class="bg-primary-700 py-16">
     <div class="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
       <h2 class="text-3xl font-bold text-white">
         Ready for a Cleaner Home?

@@ -1,6 +1,6 @@
 <!-- src/lib/components/booking/AddressSelect.svelte -->
 <script lang="ts">
-  import { Home, Star } from "lucide-svelte";
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { createEventDispatcher } from "svelte";
 
   // Props
@@ -43,9 +43,9 @@
           <div class="flex items-start">
             <div class="flex-shrink-0">
               <div
-                class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-100 text-primary dark:bg-primary-900/20"
+                class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-50 text-primary-800 dark:bg-primary-900/20"
               >
-                <Home size={20} />
+                <Icon name="house" size={20} />
               </div>
             </div>
 
@@ -58,16 +58,16 @@
 
                   {#if address.isDefault && showDefaultIndicator}
                     <span
-                      class="inline-flex items-center rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary dark:bg-primary-900/20 mt-1"
+                      class="inline-flex items-center rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-900/20 mt-1"
                     >
-                      <Star size={12} class="mr-1" />
+                      <Icon name="star" size={12} class="mr-1" />
                       Default
                     </span>
                   {/if}
                 </div>
 
                 {#if selectedAddressId === address.id}
-                  <div class="rounded-full bg-primary p-1 text-white">
+                  <div class="rounded-full bg-primary p-1 text-primary-950">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       class="h-4 w-4"

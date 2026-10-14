@@ -1,19 +1,11 @@
 <!-- src/routes/admin/payouts/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
   import { MetricCardSkeleton, TableSkeleton } from "$lib/components/ui/skeletons";
-  import {
-    Banknote,
-    Check,
-    ChevronLeft,
-    CreditCard,
-    Download,
-    Phone,
-    Smartphone,
-  } from "lucide-svelte";
-
+  
   export let data;
   export let form;
 
@@ -58,7 +50,7 @@
     });
   }
 
-  // Download helper
+  // "download-simple" helper
   function downloadCsv(content: string, filename: string) {
     const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
@@ -83,7 +75,7 @@
       href="/admin"
       class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 mr-3"
     >
-      <ChevronLeft size={20} />
+      <Icon name="caret-left" size={20} />
     </a>
     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
       Weekly Payouts
@@ -128,7 +120,7 @@
               <div class="min-w-0">
                 <a
                   href="/admin/tenants/{company.id}"
-                  class="font-medium text-gray-900 hover:text-primary dark:text-white"
+                  class="font-medium text-gray-900 hover:text-primary-700 dark:text-white"
                 >
                   {company.name}
                 </a>
@@ -203,7 +195,7 @@
     <div class="card p-6">
       <div class="flex items-center">
         <div class="p-3 bg-primary-100 dark:bg-primary-900/20 rounded-lg">
-          <Banknote class="h-6 w-6 text-primary" />
+          <Icon name="money" size={24} class="text-primary-700" />
         </div>
         <div class="ml-4">
           <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -219,7 +211,7 @@
     <div class="card p-6">
       <div class="flex items-center">
         <div class="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-          <CreditCard class="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          <Icon name="credit-card" size={24} class="text-blue-600 dark:text-blue-400" />
         </div>
         <div class="ml-4">
           <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -236,7 +228,7 @@
     <div class="card p-6">
       <div class="flex items-center">
         <div class="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
-          <Smartphone class="h-6 w-6 text-purple-600 dark:text-purple-400" />
+          <Icon name="device-mobile" size={24} class="text-purple-600 dark:text-purple-400" />
         </div>
         <div class="ml-4">
           <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -258,7 +250,7 @@
       <div class="p-6 border-b border-gray-200 dark:border-gray-700">
         <div class="flex items-center justify-between">
           <div class="flex items-center">
-            <CreditCard class="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
+            <Icon name="credit-card" size={20} class="text-blue-600 dark:text-blue-400 mr-2" />
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
               Bank Transfer (EFT)
             </h2>
@@ -268,7 +260,7 @@
             size="sm"
             disabled={selectedEftCleaners.size === 0}
           >
-            <Download size={16} class="mr-1" />
+            <Icon name="download-simple" size={16} class="mr-1" />
             Export CSV
           </Button>
         </div>
@@ -293,7 +285,7 @@
                     selectedEftCleaners = new Set(eftCleaners.map(c => c.id));
                   }
                 }}
-                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
               />
               <span class="text-sm text-gray-700 dark:text-gray-300">
                 Select All ({eftCleaners.length})
@@ -313,7 +305,7 @@
                     type="checkbox"
                     checked={selectedEftCleaners.has(cleaner.id)}
                     on:change={() => toggleEftSelection(cleaner.id)}
-                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary mr-3"
+                    class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary mr-3"
                   />
                   <div>
                     <p class="font-medium text-gray-900 dark:text-white">
@@ -348,7 +340,7 @@
       <div class="p-6 border-b border-gray-200 dark:border-gray-700">
         <div class="flex items-center justify-between">
           <div class="flex items-center">
-            <Smartphone class="h-5 w-5 text-purple-600 dark:text-purple-400 mr-2" />
+            <Icon name="device-mobile" size={20} class="text-purple-600 dark:text-purple-400 mr-2" />
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
               Instant Money
             </h2>
@@ -358,7 +350,7 @@
             size="sm"
             disabled={selectedInstantMoneyCleaners.size === 0}
           >
-            <Download size={16} class="mr-1" />
+            <Icon name="download-simple" size={16} class="mr-1" />
             Export CSV
           </Button>
         </div>
@@ -383,7 +375,7 @@
                     selectedInstantMoneyCleaners = new Set(instantMoneyCleaners.map(c => c.id));
                   }
                 }}
-                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
               />
               <span class="text-sm text-gray-700 dark:text-gray-300">
                 Select All ({instantMoneyCleaners.length})
@@ -403,14 +395,14 @@
                     type="checkbox"
                     checked={selectedInstantMoneyCleaners.has(cleaner.id)}
                     on:change={() => toggleInstantMoneySelection(cleaner.id)}
-                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary mr-3"
+                    class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary mr-3"
                   />
                   <div>
                     <p class="font-medium text-gray-900 dark:text-white">
                       {cleaner.firstName} {cleaner.lastName}
                     </p>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                      <Phone class="h-3 w-3 inline mr-1" />
+                      <Icon name="phone" size={12} class="inline mr-1" />
                       {cleaner.phone || "No phone"}
                     </p>
                   </div>
@@ -514,7 +506,7 @@
                 </svg>
                 Processing...
               {:else}
-                <Check size={16} class="mr-2" />
+                <Icon name="check" size={16} class="mr-2" />
                 Mark {selectedEftCleaners.size + selectedInstantMoneyCleaners.size} Payout(s) as Paid
               {/if}
             </Button>

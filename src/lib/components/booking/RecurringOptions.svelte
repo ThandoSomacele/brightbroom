@@ -1,14 +1,7 @@
 <!-- src/lib/components/booking/RecurringOptions.svelte -->
 <script lang="ts">
-  import {
-    Calendar,
-    CalendarDays,
-    Clock,
-    Info,
-    Percent,
-    WalletIcon,
-  } from "lucide-svelte";
-
+  import Icon from "$lib/components/ui/Icon.svelte";
+  
   interface Props {
     basePrice?: number;
     serviceDuration?: number; // Duration in hours
@@ -163,7 +156,7 @@
   <!-- Frequency Selection -->
   <div>
     <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-      <CalendarDays class="h-5 w-5 text-teal-600" />
+      <Icon name="calendar-dots" size={20} class="text-primary-700" />
       Select Cleaning Frequency
     </h3>
 
@@ -173,7 +166,7 @@
         onclick={() => handleFrequencyChange("WEEKLY")}
         class="p-4 border-2 rounded-lg transition-all {selectedFrequency ===
         'WEEKLY'
-          ? 'border-teal-500 bg-teal-50'
+          ? 'border-primary-500 bg-primary-50'
           : 'border-gray-200 hover:border-gray-300'}"
       >
         <div class="flex justify-between items-start">
@@ -192,7 +185,7 @@
         onclick={() => handleFrequencyChange("BIWEEKLY")}
         class="p-4 border-2 rounded-lg transition-all {selectedFrequency ===
         'BIWEEKLY'
-          ? 'border-teal-500 bg-teal-50'
+          ? 'border-primary-500 bg-primary-50'
           : 'border-gray-200 hover:border-gray-300'}"
       >
         <div class="flex justify-between items-start">
@@ -211,7 +204,7 @@
         onclick={() => handleFrequencyChange("TWICE_WEEKLY")}
         class="p-4 border-2 rounded-lg transition-all {selectedFrequency ===
         'TWICE_WEEKLY'
-          ? 'border-teal-500 bg-teal-50'
+          ? 'border-primary-500 bg-primary-50'
           : 'border-gray-200 hover:border-gray-300'}"
       >
         <div class="flex justify-between items-start">
@@ -230,7 +223,7 @@
         onclick={() => handleFrequencyChange("TWICE_MONTHLY")}
         class="p-4 border-2 rounded-lg transition-all {selectedFrequency ===
         'TWICE_MONTHLY'
-          ? 'border-teal-500 bg-teal-50'
+          ? 'border-primary-500 bg-primary-50'
           : 'border-gray-200 hover:border-gray-300'}"
       >
         <div class="flex justify-between items-start">
@@ -250,7 +243,7 @@
   {#if selectedFrequency && selectedFrequency !== "TWICE_MONTHLY"}
     <div>
       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-        <Calendar class="h-5 w-5 text-teal-600" />
+        <Icon name="calendar-blank" size={20} class="text-primary-700" />
         Select Preferred Day{selectedFrequency === "TWICE_WEEKLY" ? "s" : ""}
       </h3>
       <p class="text-sm text-gray-600 mb-3">
@@ -271,7 +264,7 @@
             class="p-2 text-center border rounded-lg transition-all {selectedDays.includes(
               day.value,
             )
-              ? 'border-teal-500 bg-teal-500 text-white'
+              ? 'border-primary-500 bg-primary-500 text-primary-950'
               : 'border-gray-200 hover:border-gray-300'}"
             title={day.label}
           >
@@ -286,7 +279,7 @@
   {#if selectedFrequency === "TWICE_MONTHLY"}
     <div>
       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-        <Calendar class="h-5 w-5 text-teal-600" />
+        <Icon name="calendar-blank" size={20} class="text-primary-700" />
         Select 2 Dates Each Month
       </h3>
       <p class="text-sm text-gray-600 mb-3">
@@ -301,7 +294,7 @@
             class="p-2 text-center border rounded-lg transition-all {selectedMonthlyDates.includes(
               date,
             )
-              ? 'border-teal-500 bg-teal-500 text-white'
+              ? 'border-primary-500 bg-primary-500 text-primary-950'
               : 'border-gray-200 hover:border-gray-300'}"
           >
             <span class="text-sm font-medium">{date}</span>
@@ -315,7 +308,7 @@
   {#if selectedFrequency}
     <div>
       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-        <Clock class="h-5 w-5 text-teal-600" />
+        <Icon name="clock" size={20} class="text-primary-700" />
         Select a Time
       </h3>
 
@@ -324,8 +317,8 @@
           <button
             type="button"
             class="py-3 px-3 text-center rounded-md border transition-colors cursor-pointer {preferredTimeSlot === slot.value
-              ? 'border-teal-500 bg-teal-50 dark:border-teal-600 dark:bg-teal-900/20'
-              : 'border-gray-200 hover:border-teal-200 dark:border-gray-700 dark:hover:border-teal-700'}"
+              ? 'border-primary-500 bg-primary-50 dark:border-primary-600 dark:bg-primary-900/20'
+              : 'border-gray-200 hover:border-primary-200 dark:border-gray-700 dark:hover:border-primary-700'}"
             onclick={() => handleTimeSlotChange(slot.value)}
           >
             <span class="text-sm font-medium text-gray-900 dark:text-white">
@@ -341,7 +334,7 @@
   {#if selectedFrequency && basePrice > 0}
     <div class="bg-gray-50 rounded-lg p-4 space-y-3">
       <h3 class="font-semibold flex items-center gap-2">
-        <WalletIcon class="h-5 w-5 text-teal-600" />
+        <Icon name="wallet" size={20} class="text-primary-700" />
         Recurring Pricing
       </h3>
 
@@ -354,7 +347,7 @@
         {#if discountPercentage > 0}
           <div class="flex justify-between text-green-600 font-medium">
             <span class="flex items-center gap-1">
-              <Percent class="h-4 w-4" />
+              <Icon name="percent" size={16} />
               Recurring Discount ({discountPercentage}%):
             </span>
             <span>- R {discountAmount.toFixed(2)}</span>
@@ -364,14 +357,14 @@
         <div class="pt-2 border-t">
           <div class="flex justify-between text-lg font-bold">
             <span>Total Amount (per clean):</span>
-            <span class="text-teal-600">R {finalPrice.toFixed(2)}</span>
+            <span class="text-primary-700">R {finalPrice.toFixed(2)}</span>
           </div>
         </div>
       </div>
 
       <div class="bg-blue-50 border border-blue-200 rounded p-3 text-sm">
         <p class="flex items-start gap-2">
-          <Info class="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+          <Icon name="info" size={16} class="text-blue-600 mt-0.5 flex-shrink-0" />
           <span>
             You'll be charged automatically {selectedFrequency === "WEEKLY"
               ? "weekly"

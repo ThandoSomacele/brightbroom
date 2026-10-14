@@ -1,9 +1,9 @@
 <!-- src/routes/cleaner/bookings/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { page } from '$app/stores';
   import Button from '$lib/components/ui/Button.svelte';
   import Skeleton from '$lib/components/ui/Skeleton.svelte';
-  import { Calendar, Filter, MapPin, Search, X } from 'lucide-svelte';
   import EmptyState from '$lib/components/ui/EmptyState.svelte';
   import { parseDateTimeString } from '$lib/utils/date-utils';
 
@@ -116,7 +116,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
       <div class="relative flex-1">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search size={16} class="text-gray-400" />
+          <Icon name="magnifying-glass" size={16} class="text-gray-400" />
         </div>
         <input
           type="text"
@@ -128,7 +128,7 @@
       
       <div>
         <Button variant="outline" on:click={() => showFilters = !showFilters}>
-          <Filter size={16} class="mr-1" />
+          <Icon name="funnel" size={16} class="mr-1" />
           {showFilters ? 'Hide Filters' : 'Show Filters'}
         </Button>
       </div>
@@ -186,7 +186,7 @@
         <button
           type="button"
           on:click={resetFilters}
-          class="text-primary hover:text-primary-600 hover:underline focus:outline-none text-sm"
+          class="text-primary-700 hover:text-primary-800 hover:underline focus:outline-none text-sm"
         >
           Reset Filters
         </button>
@@ -210,7 +210,7 @@
                   applyFilters();
                 }}
               >
-                <X size={14} />
+                <Icon name="x" size={14} />
               </button>
             </div>
           {/if}
@@ -225,7 +225,7 @@
                   applyFilters();
                 }}
               >
-                <X size={14} />
+                <Icon name="x" size={14} />
               </button>
             </div>
           {/if}
@@ -240,7 +240,7 @@
                   applyFilters();
                 }}
               >
-                <X size={14} />
+                <Icon name="x" size={14} />
               </button>
             </div>
           {/if}
@@ -255,7 +255,7 @@
                   applyFilters();
                 }}
               >
-                <X size={14} />
+                <Icon name="x" size={14} />
               </button>
             </div>
           {/if}
@@ -306,7 +306,7 @@
       <div class="divide-y divide-gray-200 dark:divide-gray-700">
         {#if bookings.length === 0}
           <div class="p-6">
-            <EmptyState icon={Calendar} title="No bookings found matching your filters." />
+            <EmptyState icon="calendar-blank" title="No bookings found matching your filters." />
           </div>
         {:else}
           {#each bookings as booking}
@@ -314,7 +314,7 @@
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
               <div class="flex-1">
                 <div class="flex items-start">
-                  <Calendar class="h-5 w-5 text-primary mr-2 mt-0.5" />
+                  <Icon name="calendar-blank" size={20} class="text-primary-700 mr-2 mt-0.5" />
                   <div>
                     <p class="font-medium text-gray-900 dark:text-white">
                       {formatDate(booking.scheduledDate)}
@@ -326,7 +326,7 @@
                 </div>
                 
                 <div class="flex items-start mt-3">
-                  <MapPin class="h-5 w-5 text-primary mr-2 mt-0.5" />
+                  <Icon name="map-pin" size={20} class="text-primary-700 mr-2 mt-0.5" />
                   <div>
                     <p class="text-gray-700 dark:text-gray-300">
                       {booking.address.street}, {booking.address.city}, {booking.address.state}
@@ -355,7 +355,7 @@
                 <div class="mt-3">
                   <a 
                     href={`/cleaner/bookings/${booking.id}`} 
-                    class="text-primary hover:text-primary-600 text-sm font-medium"
+                    class="text-primary-700 hover:text-primary-800 text-sm font-medium"
                   >
                     View Details
                   </a>

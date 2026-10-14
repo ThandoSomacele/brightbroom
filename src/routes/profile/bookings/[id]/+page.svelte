@@ -1,7 +1,7 @@
 <!-- src/routes/profile/bookings/[id]/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from '$lib/components/ui/Button.svelte';
-  import { Calendar, MapPin, Clock, CreditCard, Briefcase, User, MessageSquare } from 'lucide-svelte';
   import { notFound, forbidden } from '$lib/utils/errors';
   import { getBookingReference } from '$lib/utils/strings';
   import { parseDateTimeString } from '$lib/utils/date-utils';
@@ -96,11 +96,11 @@
           'bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200'
         }`}>
           {#if booking.status === 'CONFIRMED'}
-            <Calendar size={24} />
+            <Icon name="calendar-blank" size={24} />
           {:else if booking.status === 'PENDING'}
-            <Clock size={24} />
+            <Icon name="clock" size={24} />
           {:else if booking.status === 'IN_PROGRESS'}
-            <Briefcase size={24} />
+            <Icon name="briefcase" size={24} />
           {:else if booking.status === 'COMPLETED'}
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
@@ -209,7 +209,7 @@
             <h3 class="mb-3 font-medium text-gray-700 dark:text-gray-300">Booking Details</h3>
             <div class="space-y-3">
               <div class="flex items-start">
-                <Calendar size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+                <Icon name="calendar-blank" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">Date</p>
                   <p class="text-sm text-gray-600 dark:text-gray-300">{formatDate(booking.scheduledDate)}</p>
@@ -217,7 +217,7 @@
               </div>
               
               <div class="flex items-start">
-                <Clock size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+                <Icon name="clock" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">Time</p>
                   <p class="text-sm text-gray-600 dark:text-gray-300">{formatTime(booking.scheduledDate)}</p>
@@ -225,7 +225,7 @@
               </div>
               
               <div class="flex items-start">
-                <MapPin size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+                <Icon name="map-pin" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">Location</p>
                   <p class="text-sm text-gray-600 dark:text-gray-300">
@@ -237,7 +237,7 @@
               
               {#if booking.cleaner}
                 <div class="flex items-start">
-                  <User size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+                  <Icon name="user" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
                   <div>
                     <p class="font-medium text-gray-900 dark:text-white">Cleaner</p>
                     <p class="text-sm text-gray-600 dark:text-gray-300">
@@ -267,7 +267,7 @@
               {#if booking.payment}
                 <div class="mt-4 flex items-center justify-between border-t border-gray-200 pt-3 dark:border-gray-600">
                   <div class="flex items-center text-gray-600 dark:text-gray-300">
-                    <CreditCard size={16} class="mr-2" />
+                    <Icon name="credit-card" size={16} class="mr-2" />
                     Payment Status:
                   </div>
                   <span class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadgeClass(booking.payment.status)}`}>
@@ -298,7 +298,7 @@
               <h3 class="mb-3 font-medium text-gray-700 dark:text-gray-300">Additional Notes</h3>
               <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/30">
                 <div class="flex items-start">
-                  <MessageSquare size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary" />
+                  <Icon name="chat-text" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
                   <p class="text-sm text-gray-600 dark:text-gray-300">{booking.notes}</p>
                 </div>
               </div>

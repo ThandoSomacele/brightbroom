@@ -1,5 +1,6 @@
 <!-- src/routes/profile/addresses/new/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
@@ -9,8 +10,7 @@
     getClosestServiceArea,
     isWithinServiceArea,
   } from "$lib/utils/serviceAreaValidator";
-  import { AlertTriangle, ArrowLeft, MapPin } from "lucide-svelte";
-
+  
   // Environment variables
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -112,7 +112,7 @@
           }}
           disabled={isSubmitting}
         >
-          <ArrowLeft size={18} class="mr-2" />
+          <Icon name="arrow-left" size={18} class="mr-2" />
           Cancel
         </Button>
       </div>
@@ -134,8 +134,8 @@
       <div
         class="mb-6 bg-yellow-50 p-4 rounded-lg dark:bg-yellow-900/20 flex items-start"
       >
-        <AlertTriangle
-          class="h-5 w-5 mt-0.5 mr-2 flex-shrink-0 text-yellow-500 dark:text-yellow-400"
+        <Icon name="warning" size={20}
+          class="mt-0.5 mr-2 flex-shrink-0 text-yellow-500 dark:text-yellow-400"
         />
         <div>
           <p class="text-yellow-800 dark:text-yellow-300">
@@ -256,7 +256,7 @@
               type="checkbox"
               name="isDefault"
               bind:checked={isDefault}
-              class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
             />
             <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
               Set as default address
@@ -293,7 +293,7 @@
               </svg>
               Saving Address...
             {:else}
-              <MapPin size={18} class="mr-2" />
+              <Icon name="map-pin" size={18} class="mr-2" />
               Save Address
             {/if}
           </Button>

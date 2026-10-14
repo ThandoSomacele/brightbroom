@@ -1,7 +1,7 @@
 <!-- src/routes/pitch-deck/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { browser } from "$app/environment";
-  import { ArrowLeft, ArrowRight } from "lucide-svelte";
   import { onDestroy, onMount } from "svelte";
   import { quintOut } from "svelte/easing";
   import { fly } from "svelte/transition";
@@ -155,7 +155,7 @@
   {#if !hasStarted}
     <div class="flex min-h-screen w-full flex-col items-center justify-center">
       <div class="mb-8 text-center">
-        <h1 class="mb-4 text-4xl font-bold text-primary md:text-6xl">
+        <h1 class="mb-4 text-4xl font-bold text-primary-700 md:text-6xl">
           BrightBroom
         </h1>
         <p class="text-xl text-gray-600 dark:text-gray-300">
@@ -167,7 +167,7 @@
           on:click={() => {
             hasStarted = true;
           }}
-          class="rounded-lg bg-primary px-6 py-3 text-white shadow-md transition-colors hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          class="rounded-lg bg-primary px-6 py-3 text-primary-950 shadow-md transition-colors hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
         >
           Start Presentation
         </button>
@@ -191,7 +191,7 @@
         >
           <div class="w-full max-w-5xl text-center">
             <div class="mb-4 text-center">
-              <h1 class="mb-2 text-5xl font-bold text-primary md:text-7xl">
+              <h1 class="mb-2 text-5xl font-bold text-primary-700 md:text-7xl">
                 BrightBroom
               </h1>
               <p class="text-xl text-gray-600 dark:text-gray-300 md:text-2xl">
@@ -232,7 +232,7 @@
           in:fly={{ y: 50, duration: 500, easing: quintOut }}
         >
           <div class="w-full max-w-5xl">
-            <h2 class="mb-8 text-4xl font-bold text-primary md:text-5xl">
+            <h2 class="mb-8 text-4xl font-bold text-primary-700 md:text-5xl">
               The Problem
             </h2>
 
@@ -290,7 +290,7 @@
           in:fly={{ y: 50, duration: 500, easing: quintOut }}
         >
           <div class="w-full max-w-5xl">
-            <h2 class="mb-8 text-4xl font-bold text-primary md:text-5xl">
+            <h2 class="mb-8 text-4xl font-bold text-primary-700 md:text-5xl">
               Our Solution
             </h2>
 
@@ -367,7 +367,7 @@
           in:fly={{ y: 50, duration: 500, easing: quintOut }}
         >
           <div class="w-full max-w-5xl">
-            <h2 class="mb-8 text-4xl font-bold text-primary md:text-5xl">
+            <h2 class="mb-8 text-4xl font-bold text-primary-700 md:text-5xl">
               Market Opportunity
             </h2>
 
@@ -458,7 +458,7 @@
           in:fly={{ y: 50, duration: 500, easing: quintOut }}
         >
           <div class="w-full max-w-5xl">
-            <h2 class="mb-8 text-4xl font-bold text-primary md:text-5xl">
+            <h2 class="mb-8 text-4xl font-bold text-primary-700 md:text-5xl">
               Business Model
             </h2>
 
@@ -568,7 +568,7 @@
           in:fly={{ y: 50, duration: 500, easing: quintOut }}
         >
           <div class="w-full max-w-5xl">
-            <h2 class="mb-8 text-4xl font-bold text-primary md:text-5xl">
+            <h2 class="mb-8 text-4xl font-bold text-primary-700 md:text-5xl">
               Our Competitive Edge
             </h2>
 
@@ -608,7 +608,7 @@
                       <span class="text-gray-700 dark:text-gray-300"
                         >Traditional Agencies</span
                       >
-                      <span class="font-medium text-primary"
+                      <span class="font-medium text-primary-700"
                         >+80% price premium</span
                       >
                     </div>
@@ -616,7 +616,7 @@
                       <span class="text-gray-700 dark:text-gray-300"
                         >Classified Listings</span
                       >
-                      <span class="font-medium text-primary"
+                      <span class="font-medium text-primary-700"
                         >No vetting or guarantees</span
                       >
                     </div>
@@ -624,7 +624,7 @@
                       <span class="text-gray-700 dark:text-gray-300"
                         >Local Competitors</span
                       >
-                      <span class="font-medium text-primary"
+                      <span class="font-medium text-primary-700"
                         >Limited geographic reach</span
                       >
                     </div>
@@ -717,7 +717,7 @@
           in:fly={{ y: 50, duration: 500, easing: quintOut }}
         >
           <div class="w-full max-w-5xl">
-            <h2 class="mb-8 text-4xl font-bold text-primary md:text-5xl">
+            <h2 class="mb-8 text-4xl font-bold text-primary-700 md:text-5xl">
               Our Team
             </h2>
 
@@ -745,7 +745,7 @@
                       />
                       <!-- Fallback for when image fails to load -->
                       <div
-                        class="hidden h-full w-full items-center justify-center rounded-full bg-primary/20 text-2xl font-bold text-primary"
+                        class="hidden h-full w-full items-center justify-center rounded-full bg-primary/20 text-2xl font-bold text-primary-700"
                       >
                         {member.name.charAt(0)}
                       </div>
@@ -832,7 +832,7 @@
           in:fly={{ y: 50, duration: 500, easing: quintOut }}
         >
           <div class="w-full max-w-5xl">
-            <h2 class="mb-8 text-4xl font-bold text-primary md:text-5xl">
+            <h2 class="mb-8 text-4xl font-bold text-primary-700 md:text-5xl">
               Current Traction
             </h2>
 
@@ -1020,7 +1020,7 @@
           in:fly={{ y: 50, duration: 500, easing: quintOut }}
         >
           <div class="w-full max-w-5xl">
-            <h2 class="mb-8 text-4xl font-bold text-primary md:text-5xl">
+            <h2 class="mb-8 text-4xl font-bold text-primary-700 md:text-5xl">
               Investment Opportunity
             </h2>
 
@@ -1209,7 +1209,7 @@
           in:fly={{ y: 50, duration: 500, easing: quintOut }}
         >
           <div class="w-full max-w-5xl">
-            <h2 class="mb-6 text-4xl font-bold text-primary md:text-5xl">
+            <h2 class="mb-6 text-4xl font-bold text-primary-700 md:text-5xl">
               Strategic Roadmap
             </h2>
 
@@ -1223,7 +1223,7 @@
                   <!-- Key milestones only - more readable -->
                   <div class="mb-6">
                     <div
-                      class="absolute -left-[10px] flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white"
+                      class="absolute -left-[10px] flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-950"
                     >
                       <span class="h-2.5 w-2.5 rounded-full bg-white"></span>
                     </div>
@@ -1233,7 +1233,7 @@
 
                   <div class="mb-6">
                     <div
-                      class="absolute -left-[10px] flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white"
+                      class="absolute -left-[10px] flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-950"
                     >
                       <span class="h-2.5 w-2.5 rounded-full bg-white"></span>
                     </div>
@@ -1243,7 +1243,7 @@
 
                   <div class="mb-6">
                     <div
-                      class="absolute -left-[10px] flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white"
+                      class="absolute -left-[10px] flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-950"
                     >
                       <span class="h-2.5 w-2.5 rounded-full bg-white"></span>
                     </div>
@@ -1253,7 +1253,7 @@
 
                   <div class="mb-6">
                     <div
-                      class="absolute -left-[10px] flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white"
+                      class="absolute -left-[10px] flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-950"
                     >
                       <span class="h-2.5 w-2.5 rounded-full bg-white"></span>
                     </div>
@@ -1263,7 +1263,7 @@
 
                   <div>
                     <div
-                      class="absolute -left-[10px] flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white"
+                      class="absolute -left-[10px] flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-950"
                     >
                       <span class="h-2.5 w-2.5 rounded-full bg-white"></span>
                     </div>
@@ -1313,7 +1313,7 @@
         disabled={currentSlide === 0}
         aria-label="Previous slide"
       >
-        <ArrowLeft size={16} class="mr-1" />
+        <Icon name="arrow-left" size={16} class="mr-1" />
         <span class="hidden sm:inline">Previous</span>
       </button>
 
@@ -1335,12 +1335,12 @@
 
       <button
         on:click={goToNextSlide}
-        class="flex items-center rounded-lg bg-primary px-4 py-2 text-white shadow-md transition-colors hover:bg-primary-600 disabled:opacity-50"
+        class="flex items-center rounded-lg bg-primary px-4 py-2 text-primary-950 shadow-md transition-colors hover:bg-primary-600 disabled:opacity-50"
         disabled={currentSlide === totalSlides - 1}
         aria-label="Next slide"
       >
         <span class="hidden sm:inline">Next</span>
-        <ArrowRight size={16} class="ml-1" />
+        <Icon name="arrow-right" size={16} class="ml-1" />
       </button>
     </div>
   {/if}

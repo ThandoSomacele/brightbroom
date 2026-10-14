@@ -1,6 +1,6 @@
 <!-- src/routes/admin/bookings/+page.svelte -->
 <script lang="ts">
-  import { Search, Filter, Download, Calendar, MapPin, User, Clock, ArrowRight, ArrowLeft } from 'lucide-svelte';
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from '$lib/components/ui/Button.svelte';
   import { parseDateTimeString } from '$lib/utils/date-utils';
 
@@ -119,7 +119,7 @@
   <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Bookings</h1>
   <div class="mt-4 sm:mt-0">
     <Button variant="outline" on:click={exportBookings}>
-      <Download size={16} class="mr-1" />
+      <Icon name="download-simple" size={16} class="mr-1" />
       Export
     </Button>
   </div>
@@ -130,7 +130,7 @@
   <div class="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
     <div class="flex-1 relative">
       <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <Search size={16} class="text-gray-400" />
+        <Icon name="magnifying-glass" size={16} class="text-gray-400" />
       </div>
       <input
         type="text"
@@ -142,7 +142,7 @@
     
     <div>
       <Button variant="outline" on:click={() => showFilters = !showFilters}>
-        <Filter size={16} class="mr-1" />
+        <Icon name="funnel" size={16} class="mr-1" />
         Filters
       </Button>
     </div>
@@ -199,7 +199,7 @@
         <button
           type="button"
           on:click={resetFilters}
-          class="text-primary hover:text-primary-600 hover:underline focus:outline-none text-sm"
+          class="text-primary-700 hover:text-primary-800 hover:underline focus:outline-none text-sm"
         >
           Reset Filters
         </button>
@@ -272,7 +272,7 @@
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button
                   on:click|stopPropagation={() => viewBookingDetails(booking.id)}
-                  class="text-primary hover:text-primary-600"
+                  class="text-primary-700 hover:text-primary-800"
                 >
                   View
                 </button>
@@ -298,7 +298,7 @@
             disabled={pagination.page === 1}
             on:click={() => goToPage(pagination.page - 1)}
           >
-            <ArrowLeft size={16} />
+            <Icon name="arrow-left" size={16} />
           </Button>
           
           {#each Array(pagination.totalPages) as _, i}
@@ -321,7 +321,7 @@
             disabled={pagination.page === pagination.totalPages}
             on:click={() => goToPage(pagination.page + 1)}
           >
-            <ArrowRight size={16} />
+            <Icon name="arrow-right" size={16} />
           </Button>
         </div>
       </div>

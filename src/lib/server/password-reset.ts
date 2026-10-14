@@ -10,6 +10,7 @@ import {
   sendPasswordResetConfirmationEmail as sendConfirmationEmail
 } from './email-service';
 
+import { brandColors } from "$lib/config/theme";
 /**
  * Email template configuration
  * Make sure we have a failsafe URL if PUBLIC_URL is not defined
@@ -19,8 +20,8 @@ const APP_URL = process.env.PUBLIC_URL || "https://brightbroom.com";
 const EMAIL_CONFIG = {
   appUrl: APP_URL,
   brandName: 'BrightBroom',
-  primaryColor: '#20C3AF',
-  secondaryColor: '#C2511F'
+  primaryColor: brandColors.primary,
+  secondaryColor: brandColors.secondary
 };
 
 // Generate a secure token

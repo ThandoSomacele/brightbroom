@@ -1,21 +1,11 @@
 <!-- src/routes/magazine/[slug]/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { page } from "$app/stores";
   import Button from "$lib/components/ui/Button.svelte";
   import Card from "$lib/components/ui/Card.svelte";
   import { CustomerSkeleton } from "$lib/components/ui/skeletons";
   import { formatDate, renderMarkdown } from "$lib/utils/markdown";
-  import {
-    ArrowLeft,
-    Calendar,
-    Clock,
-    Facebook,
-    Linkedin,
-    MapPin,
-    Share2,
-    Tag,
-    Twitter,
-  } from "lucide-svelte";
   import type { PageData } from "./$types";
 
   export let data: PageData;
@@ -138,7 +128,7 @@
 >
   <div class="max-w-4xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
     <Button variant="outline" href="/magazine" class="flex items-center gap-2">
-      <ArrowLeft size={16} />
+      <Icon name="arrow-left" size={16} />
       Back to Magazine
     </Button>
   </div>
@@ -152,15 +142,15 @@
       class="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-6"
     >
       <span class="flex items-center gap-1">
-        <Calendar size={16} />
+        <Icon name="calendar-blank" size={16} />
         {formatDate(article.frontmatter.publishedAt)}
       </span>
       <span class="flex items-center gap-1">
-        <Clock size={16} />
+        <Icon name="clock" size={16} />
         {article.frontmatter.readingTime} min read
       </span>
       <span
-        class="inline-block rounded-full bg-primary-100 text-primary px-3 py-1 text-xs font-medium dark:bg-primary-900/30"
+        class="inline-block rounded-full bg-primary-50 text-primary-800 px-3 py-1 text-xs font-medium dark:bg-primary-900/30"
       >
         {categoryNames[article.frontmatter.category] ||
           article.frontmatter.category}
@@ -185,7 +175,7 @@
         <span
           class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
         >
-          <Tag size={12} />
+          <Icon name="tag" size={12} />
           {tag}
         </span>
       {/each}
@@ -194,7 +184,7 @@
         <span
           class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium bg-secondary-100 text-secondary-800 dark:bg-secondary-900/20 dark:text-secondary-400"
         >
-          <MapPin size={12} />
+          <Icon name="map-pin" size={12} />
           {areaNames[area] || area}
         </span>
       {/each}
@@ -214,7 +204,7 @@
           />
         {:else}
           <div
-            class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-semibold"
+            class="w-10 h-10 rounded-full bg-primary text-primary-950 flex items-center justify-center font-semibold"
           >
             {article.frontmatter.author.name.charAt(0).toUpperCase()}
           </div>
@@ -238,7 +228,7 @@
           on:click={() => (showShareMenu = !showShareMenu)}
           class="flex items-center gap-2"
         >
-          <Share2 size={16} />
+          <Icon name="share-network" size={16} />
           Share
         </Button>
 
@@ -252,7 +242,7 @@
                 on:click={() => shareOnSocial("facebook")}
                 class="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                <Facebook size={16} class="text-blue-600" />
+                <Icon name="facebook-logo" size={16} class="text-blue-600" />
                 Facebook
               </button>
               <button
@@ -260,7 +250,7 @@
                 on:click={() => shareOnSocial("twitter")}
                 class="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                <Twitter size={16} class="text-blue-400" />
+                <Icon name="x-logo" size={16} class="text-blue-400" />
                 Twitter
               </button>
               <button
@@ -268,7 +258,7 @@
                 on:click={() => shareOnSocial("linkedin")}
                 class="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                <Linkedin size={16} class="text-blue-700" />
+                <Icon name="linkedin-logo" size={16} class="text-blue-700" />
                 LinkedIn
               </button>
               <hr class="my-2 border-gray-200 dark:border-gray-700" />
@@ -277,7 +267,7 @@
                 on:click={copyToClipboard}
                 class="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                <Share2 size={16} />
+                <Icon name="share-network" size={16} />
                 Copy link
               </button>
             </div>
@@ -324,7 +314,7 @@
     <!-- End of Article CTAs -->
     {#each article.frontmatter.ctas.filter((cta) => cta.position === "end") as cta}
       <div
-        class="mt-12 p-8 bg-gradient-to-r from-primary to-primary-600 rounded-lg text-white text-center"
+        class="mt-12 p-8 bg-gradient-to-r from-primary-700 to-primary-800 rounded-lg text-white text-center"
       >
         <h3 class="text-2xl font-bold mb-4">Ready to transform your space?</h3>
         <p class="text-primary-100 mb-6">
@@ -373,17 +363,17 @@
                   class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400"
                 >
                   <span class="flex items-center gap-1">
-                    <Calendar size={16} />
+                    <Icon name="calendar-blank" size={16} />
                     {formatDate(relatedArticle.publishedAt)}
                   </span>
                   <span class="flex items-center gap-1">
-                    <Clock size={16} />
+                    <Icon name="clock" size={16} />
                     {relatedArticle.readingTime} min read
                   </span>
                 </div>
 
                 <h3
-                  class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2"
+                  class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-primary-700 transition-colors line-clamp-2"
                 >
                   {relatedArticle.title}
                 </h3>
@@ -395,7 +385,7 @@
                 </p>
 
                 <span
-                  class="inline-block rounded-full bg-primary-100 text-primary px-3 py-1 text-xs font-medium dark:bg-primary-900/30"
+                  class="inline-block rounded-full bg-primary-50 text-primary-800 px-3 py-1 text-xs font-medium dark:bg-primary-900/30"
                 >
                   {categoryNames[relatedArticle.category] ||
                     relatedArticle.category}

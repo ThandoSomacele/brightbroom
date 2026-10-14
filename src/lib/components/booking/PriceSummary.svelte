@@ -1,6 +1,6 @@
 <!-- src/lib/components/booking/PriceSummary.svelte -->
 <script lang="ts">
-  import { Home, Bed, Bath, Sparkles, Tag, Clock, AlertCircle, Ticket } from "lucide-svelte";
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { formatPrice, formatDuration, MAX_BOOKING_DURATION_HOURS } from "$lib/utils/pricing";
   import type { PriceBreakdown } from "$lib/utils/pricing";
 
@@ -47,7 +47,7 @@
           {/if}
         </p>
         <p class="mt-1 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-          <Clock class="h-3 w-3" />
+          <Icon name="clock" size={12} />
           {formatDuration(breakdown.totalDurationMinutes)}
           {#if breakdown.durationCapped}
             <span class="text-amber-600 dark:text-amber-400">(max {MAX_BOOKING_DURATION_HOURS}h)</span>
@@ -55,7 +55,7 @@
         </p>
         {#if couponDiscount}
           <p class="mt-1 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-            <Ticket class="h-3 w-3" />
+            <Icon name="ticket" size={12} />
             Coupon: {couponDiscount.code}
           </p>
         {/if}
@@ -63,9 +63,9 @@
       <div class="text-right">
         {#if discountPercentage > 0 || couponDiscount}
           <p class="text-sm text-gray-500 line-through">{formatPrice(breakdown.totalPrice)}</p>
-          <p class="text-xl font-bold text-primary-600 dark:text-primary-400">{formatPrice(finalPrice)}</p>
+          <p class="text-xl font-bold text-primary-700 dark:text-primary-400">{formatPrice(finalPrice)}</p>
         {:else}
-          <p class="text-xl font-bold text-primary-600 dark:text-primary-400">{formatPrice(breakdown.totalPrice)}</p>
+          <p class="text-xl font-bold text-primary-700 dark:text-primary-400">{formatPrice(breakdown.totalPrice)}</p>
         {/if}
       </div>
     </div>
@@ -84,21 +84,21 @@
       <div class="space-y-3 mb-4">
         <!-- What's included -->
         <div class="flex items-center gap-2">
-          <Home class="h-4 w-4 text-primary-500" />
+          <Icon name="house" size={16} class="text-primary-700" />
           <span class="text-gray-700 dark:text-gray-300">
             Living Room & Kitchen included
           </span>
         </div>
 
         <div class="flex items-center gap-2">
-          <Bed class="h-4 w-4 text-primary-500" />
+          <Icon name="bed" size={16} class="text-primary-700" />
           <span class="text-gray-700 dark:text-gray-300">
             {breakdown.bedroomCount} Bedroom{breakdown.bedroomCount > 1 ? "s" : ""}
           </span>
         </div>
 
         <div class="flex items-center gap-2">
-          <Bath class="h-4 w-4 text-primary-500" />
+          <Icon name="bathtub" size={16} class="text-primary-700" />
           <span class="text-gray-700 dark:text-gray-300">
             {breakdown.bathroomCount} Bathroom{breakdown.bathroomCount > 1 ? "s" : ""}
           </span>
@@ -108,7 +108,7 @@
         {#if breakdown.addons.length > 0}
           <div class="border-t border-gray-100 pt-3 dark:border-gray-700">
             <div class="mb-2 flex items-center gap-2">
-              <Sparkles class="h-4 w-4 text-primary-500" />
+              <Icon name="sparkle" size={16} class="text-primary-700" />
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Add-ons
               </span>
@@ -124,14 +124,14 @@
         <!-- Estimated duration -->
         <div class="border-t border-gray-100 pt-3 dark:border-gray-700">
           <div class="flex items-center gap-2">
-            <Clock class="h-4 w-4 text-primary-500" />
+            <Icon name="clock" size={16} class="text-primary-700" />
             <span class="text-gray-700 dark:text-gray-300">
               Est. duration: {formatDuration(breakdown.totalDurationMinutes)}
             </span>
           </div>
           {#if breakdown.durationCapped}
             <div class="mt-2 flex items-start gap-2 rounded-md bg-amber-50 p-2 dark:bg-amber-900/20">
-              <AlertCircle class="h-4 w-4 flex-shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+              <Icon name="warning-circle" size={16} class="flex-shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
               <span class="text-xs text-amber-700 dark:text-amber-300">
                 Duration capped at {MAX_BOOKING_DURATION_HOURS} hours. For larger jobs, consider booking multiple sessions.
               </span>
@@ -156,7 +156,7 @@
         {#if discountPercentage > 0}
           <div class="mb-2 flex items-center justify-between text-green-600 dark:text-green-400">
             <span class="flex items-center gap-2">
-              <Tag class="h-4 w-4" />
+              <Icon name="tag" size={16} />
               Recurring Discount ({discountPercentage}%)
             </span>
             <span>-{formatPrice(recurringDiscountAmount)}</span>
@@ -167,7 +167,7 @@
         {#if couponDiscount}
           <div class="mb-2 flex items-center justify-between text-green-600 dark:text-green-400">
             <span class="flex items-center gap-2">
-              <Ticket class="h-4 w-4" />
+              <Icon name="ticket" size={16} />
               Coupon ({couponDiscount.code})
               {#if couponDiscount.discountType === "PERCENTAGE"}
                 ({couponDiscount.discountAmount / breakdown.totalPrice * 100}% off)
@@ -182,7 +182,7 @@
           <span class="text-lg font-semibold text-gray-900 dark:text-white">
             {discountPercentage > 0 ? "Total (per clean)" : "Total"}
           </span>
-          <span class="text-2xl font-bold text-primary-600 dark:text-primary-400">
+          <span class="text-2xl font-bold text-primary-700 dark:text-primary-400">
             {formatPrice(discountPercentage > 0 || couponDiscount ? finalPrice : breakdown.totalPrice)}
           </span>
         </div>

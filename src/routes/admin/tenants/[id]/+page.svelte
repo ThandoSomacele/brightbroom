@@ -1,17 +1,9 @@
 <!-- src/routes/admin/tenants/[id]/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { enhance } from "$app/forms";
-  import {
-    ArrowLeft,
-    BrushCleaning,
-    Crown,
-    Landmark,
-    Trash2,
-    UserPlus,
-    Users,
-  } from "lucide-svelte";
-
+  
   export let data;
   export let form;
 
@@ -50,14 +42,14 @@
       href="/admin/tenants"
       class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
     >
-      <ArrowLeft class="h-5 w-5" />
+      <Icon name="arrow-left" size={20} />
     </a>
     <div class="flex-1">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
         {data.tenant.name}
         {#if data.tenant.isPlatformOwner}
-          <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
-            <Crown class="h-3 w-3 mr-1" /> Platform Owner
+          <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary-700">
+            <Icon name="crown" size={12} class="mr-1" /> Platform Owner
           </span>
         {/if}
       </h1>
@@ -82,7 +74,7 @@
     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
       <div class="flex items-center gap-3">
         <div class="p-2 bg-primary/10 rounded-lg">
-          <Users class="h-5 w-5 text-primary" />
+          <Icon name="users" size={20} class="text-primary-700" />
         </div>
         <div>
           <p class="text-sm text-gray-500 dark:text-gray-400">Members</p>
@@ -95,7 +87,7 @@
     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
       <div class="flex items-center gap-3">
         <div class="p-2 bg-primary/10 rounded-lg">
-          <BrushCleaning class="h-5 w-5 text-primary" />
+          <Icon name="broom" size={20} class="text-primary-700" />
         </div>
         <div>
           <p class="text-sm text-gray-500 dark:text-gray-400">Cleaners</p>
@@ -108,7 +100,7 @@
     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
       <div class="flex items-center gap-3">
         <div class="p-2 bg-primary/10 rounded-lg">
-          <span class="text-primary font-bold text-sm">%</span>
+          <span class="text-primary-700 font-bold text-sm">%</span>
         </div>
         <div>
           <p class="text-sm text-gray-500 dark:text-gray-400">Commission</p>
@@ -122,7 +114,7 @@
       <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
         <div class="flex items-center gap-3">
           <div class="p-2 bg-primary/10 rounded-lg">
-            <Landmark class="h-5 w-5 text-primary" />
+            <Icon name="bank" size={20} class="text-primary-700" />
           </div>
           <div>
             <p class="text-sm text-gray-500 dark:text-gray-400">Owed to them</p>
@@ -464,7 +456,7 @@
                     class="text-red-400 hover:text-red-600"
                     title="Remove member"
                   >
-                    <Trash2 class="h-4 w-4" />
+                    <Icon name="trash" size={16} />
                   </button>
                 </form>
               {/if}
@@ -524,7 +516,7 @@
           </select>
         </div>
         <Button type="submit" variant="primary">
-          <UserPlus class="h-4 w-4 mr-1" />
+          <Icon name="user-plus" size={16} class="mr-1" />
           Add
         </Button>
       </div>

@@ -33,7 +33,7 @@
 
   const variantStyles = {
     primary:
-      "bg-primary text-white shadow-sm hover:bg-primary-600 hover:text-white hover:shadow-md focus-visible:ring-primary-500",
+      "bg-primary text-primary-950 shadow-sm hover:bg-primary-400 hover:text-primary-950 hover:shadow-md focus-visible:ring-primary-700",
     secondary:
       "bg-secondary text-white shadow-sm hover:bg-secondary-600 hover:text-white hover:shadow-md focus-visible:ring-secondary-500",
     outline:

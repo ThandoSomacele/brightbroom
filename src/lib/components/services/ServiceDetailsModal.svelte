@@ -1,11 +1,11 @@
 <!-- src/lib/components/services/ServiceDetailsModal.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import {
     formatDuration,
     generateDefaultServiceDetails,
     type Service,
   } from "$lib/services";
-  import { CheckCircle, X } from "lucide-svelte";
   import { createEventDispatcher, onMount } from "svelte";
 
   // Props
@@ -130,7 +130,7 @@
         on:click={close}
         aria-label="Close"
       >
-        <X size={20} />
+        <Icon name="x" size={20} />
       </button>
     </div>
 
@@ -143,7 +143,7 @@
         <div class="mt-4 grid grid-cols-1 gap-4">
           <!-- <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
             <p class="text-sm text-gray-500 dark:text-gray-400">Price</p>
-            <p class="text-2xl font-bold text-primary">
+            <p class="text-2xl font-bold text-primary-700">
               {formatCurrency(service.basePrice)}
             </p>
           </div> -->
@@ -171,9 +171,9 @@
                 <ul class="space-y-2">
                   {#each item.details as detail}
                     <li class="flex items-start">
-                      <CheckCircle
+                      <Icon name="check-circle"
                         size={16}
-                        class="mr-2 mt-1 flex-shrink-0 text-primary"
+                        class="mr-2 mt-1 flex-shrink-0 text-primary-700"
                       />
                       <span class="text-gray-700 dark:text-gray-300"
                         >{detail}</span

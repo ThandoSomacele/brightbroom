@@ -1,26 +1,11 @@
 <!-- src/routes/admin/pricing/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
   import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
   import { showSuccess, showError } from "../+layout.svelte";
-  import {
-    DollarSign,
-    Clock,
-    Home,
-    Bed,
-    Bath,
-    Sparkles,
-    Plus,
-    Pencil,
-    Trash2,
-    ToggleLeft,
-    ToggleRight,
-    Save,
-    Percent,
-    CreditCard,
-  } from "lucide-svelte";
   import type { PageData, ActionData } from "./$types";
 
   // Get data from server using Svelte 5 props
@@ -202,7 +187,7 @@
       <!-- Base Pricing Section -->
       <div>
         <div class="flex items-center gap-2 mb-4">
-          <Home class="h-5 w-5 text-primary-600" />
+          <Icon name="house" size={20} class="text-primary-700" />
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
             Base Pricing (Living Room + Kitchen)
           </h2>
@@ -260,7 +245,7 @@
       <!-- Bedroom Pricing Section -->
       <div>
         <div class="flex items-center gap-2 mb-4">
-          <Bed class="h-5 w-5 text-primary-600" />
+          <Icon name="bed" size={20} class="text-primary-700" />
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Bedroom Pricing</h2>
         </div>
 
@@ -331,7 +316,7 @@
       <!-- Bathroom Pricing Section -->
       <div>
         <div class="flex items-center gap-2 mb-4">
-          <Bath class="h-5 w-5 text-secondary-600" />
+          <Icon name="bathtub" size={20} class="text-secondary-600" />
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Bathroom Pricing</h2>
         </div>
 
@@ -405,7 +390,7 @@
           {#if isSubmitting}
             Saving...
           {:else}
-            <Save class="h-4 w-4 mr-2" />
+            <Icon name="floppy-disk" size={16} class="mr-2" />
             Save Pricing Configuration
           {/if}
         </Button>
@@ -428,7 +413,7 @@
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-8">
       <div>
         <div class="flex items-center gap-2 mb-1">
-          <Percent class="h-5 w-5 text-secondary-600" />
+          <Icon name="percent" size={20} class="text-secondary-600" />
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
             Fees &amp; Commission
           </h2>
@@ -443,7 +428,7 @@
       <!-- Platform commission -->
       <div>
         <div class="flex items-center gap-2 mb-4">
-          <DollarSign class="h-5 w-5 text-primary-600" />
+          <Icon name="money" size={20} class="text-primary-700" />
           <h3 class="font-semibold text-gray-900 dark:text-white">Platform Commission</h3>
         </div>
         <div class="grid gap-4 sm:grid-cols-3">
@@ -474,7 +459,7 @@
       <!-- PayFast fees per method -->
       <div>
         <div class="flex items-center gap-2 mb-4">
-          <CreditCard class="h-5 w-5 text-primary-600" />
+          <Icon name="credit-card" size={20} class="text-primary-700" />
           <h3 class="font-semibold text-gray-900 dark:text-white">PayFast Transaction Fees</h3>
         </div>
         <div class="overflow-x-auto">
@@ -578,7 +563,7 @@
               <dt class="text-gray-500 dark:text-gray-400">Commission ({commissionPercent}%)</dt>
               <dd class="text-right text-gray-900 dark:text-white">-R{preview.commission.toFixed(2)}</dd>
               <dt class="font-semibold text-gray-900 dark:text-white">Cleaner payout</dt>
-              <dd class="text-right font-semibold text-primary-600 dark:text-primary-400">R{preview.payout.toFixed(2)}</dd>
+              <dd class="text-right font-semibold text-primary-700 dark:text-primary-400">R{preview.payout.toFixed(2)}</dd>
             </dl>
           </div>
         </div>
@@ -590,7 +575,7 @@
           {#if isSubmitting}
             Saving...
           {:else}
-            <Save class="h-4 w-4 mr-2" />
+            <Icon name="floppy-disk" size={16} class="mr-2" />
             Save Fees &amp; Commission
           {/if}
         </Button>
@@ -602,7 +587,7 @@
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-2">
-        <Sparkles class="h-5 w-5 text-primary-600" />
+        <Icon name="sparkle" size={20} class="text-primary-700" />
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Add-on Services</h2>
       </div>
 
@@ -610,7 +595,7 @@
         variant="primary"
         onclick={() => (showAddAddonModal = true)}
       >
-        <Plus class="h-4 w-4 mr-2" />
+        <Icon name="plus" size={16} class="mr-2" />
         Add New
       </Button>
     </div>
@@ -676,10 +661,10 @@
                   <button
                     type="button"
                     onclick={() => openEditAddon(addon)}
-                    class="text-primary-600 hover:text-primary-800 dark:text-primary-400"
+                    class="text-primary-700 hover:text-primary-800 dark:text-primary-400"
                     title="Edit"
                   >
-                    <Pencil class="h-4 w-4 inline" />
+                    <Icon name="pencil-simple" size={16} class="inline" />
                   </button>
 
                   <form method="POST" action="?/toggleAddonStatus" class="inline" use:enhance>
@@ -690,9 +675,9 @@
                       title={addon.isActive ? "Deactivate" : "Activate"}
                     >
                       {#if addon.isActive}
-                        <ToggleRight class="h-4 w-4 inline" />
+                        <Icon name="toggle-right" size={16} class="inline" />
                       {:else}
-                        <ToggleLeft class="h-4 w-4 inline" />
+                        <Icon name="toggle-left" size={16} class="inline" />
                       {/if}
                     </button>
                   </form>
@@ -714,7 +699,7 @@
                       class="text-red-600 hover:text-red-800 dark:text-red-400"
                       title="Delete"
                     >
-                      <Trash2 class="h-4 w-4 inline" />
+                      <Icon name="trash" size={16} class="inline" />
                     </button>
                   </form>
                 </td>
@@ -725,7 +710,7 @@
       </div>
     {:else}
       <div class="text-center py-8 text-gray-500 dark:text-gray-400">
-        <Sparkles class="h-12 w-12 mx-auto mb-4 opacity-50" />
+        <Icon name="sparkle" size={48} class="mx-auto mb-4 opacity-50" />
         <p>No add-on services configured yet.</p>
         <p class="text-sm mt-1">Click "Add New" to create your first add-on.</p>
       </div>
@@ -932,7 +917,7 @@
                 name="isActive"
                 value="true"
                 checked={editingAddon.isActive}
-                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                class="rounded border-gray-300 text-primary-700 focus:ring-primary-500"
               />
               <span class="text-sm text-gray-700 dark:text-gray-300">Active (visible to customers)</span>
             </label>

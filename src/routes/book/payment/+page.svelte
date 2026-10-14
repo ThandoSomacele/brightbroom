@@ -140,7 +140,7 @@
           {/if}
           <div class="flex justify-between text-lg font-semibold">
             <span>{data.isRecurring ? 'Price per Clean:' : 'Total:'}</span>
-            <span class="text-primary">R{data.bookingData.finalPrice || data.bookingData.servicePrice}</span>
+            <span class="text-primary-700">R{data.bookingData.finalPrice || data.bookingData.servicePrice}</span>
           </div>
         </div>
       </div>
@@ -163,7 +163,7 @@
           </p>
           <button
             on:click={showLogin}
-            class="w-full bg-primary-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-primary-600 transition-colors"
+            class="w-full bg-primary-500 text-primary-950 py-3 px-4 rounded-lg font-semibold hover:bg-primary-600 transition-colors"
           >
             Login
           </button>
@@ -177,7 +177,7 @@
           </p>
           <button
             on:click={showSignup}
-            class="w-full bg-secondary-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-secondary-600 transition-colors"
+            class="w-full bg-secondary-500 text-primary-950 py-3 px-4 rounded-lg font-semibold hover:bg-secondary-600 transition-colors"
           >
             Create Account
           </button>
@@ -261,7 +261,7 @@
             <button
               type="submit"
               disabled={isSubmitting}
-              class="w-full bg-primary-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-primary-600 transition-colors disabled:opacity-50"
+              class="w-full bg-primary-500 text-primary-950 py-3 px-4 rounded-lg font-semibold hover:bg-primary-600 transition-colors disabled:opacity-50"
             >
               {isSubmitting ? 'Logging in...' : 'Login & Continue to Payment'}
             </button>

@@ -1,13 +1,6 @@
 <!-- src/routes/admin/dashboard/+page.svelte -->
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import {
-    ArrowDown,
-    ArrowUp,
-    Calendar,
-    CreditCard,
-    Users,
-  } from "lucide-svelte";
   import { MetricCardSkeleton, TableSkeleton, ChartSkeleton } from "$lib/components/ui/skeletons";
   import Card from "$lib/components/ui/Card.svelte";
   import StatCard from "$lib/components/ui/StatCard.svelte";
@@ -118,7 +111,7 @@
     <StatCard
       label="Total Bookings"
       value={String(metrics.totalBookings)}
-      icon={Calendar}
+      icon="calendar-blank"
       accent="secondary"
       trend={{
         value: `${Math.abs(metrics.bookingTrend)}% from last month`,
@@ -130,7 +123,7 @@
     <StatCard
       label="Total Revenue"
       value={formatCurrency(metrics.totalRevenue)}
-      icon={CreditCard}
+      icon="credit-card"
       accent="primary"
       trend={{
         value: `${Math.abs(metrics.revenueTrend)}% from last month`,
@@ -142,7 +135,7 @@
     <StatCard
       label="Active Cleaners"
       value={String(metrics.activeCleaners)}
-      icon={Users}
+      icon="users"
       accent="green"
       trend={{
         value: `${Math.abs(metrics.cleanerTrend)}% from last month`,
@@ -154,7 +147,7 @@
     <StatCard
       label="Pending Bookings"
       value={String(metrics.pendingBookings)}
-      icon={Calendar}
+      icon="calendar-blank"
       accent="amber"
       href="/admin/bookings?status=PENDING"
     />
@@ -181,7 +174,7 @@
         </h2>
         <a
           href="/admin/cleaners?filter=pending"
-          class="text-primary hover:text-primary-600 text-sm"
+          class="text-primary-700 hover:text-primary-800 text-sm"
         >
           View all
         </a>
@@ -248,7 +241,7 @@
                 >
                   <a
                     href={`/admin/cleaners/${cleaner.id}`}
-                    class="text-primary hover:text-primary-600"
+                    class="text-primary-700 hover:text-primary-800"
                     onclick={(e) => e.stopPropagation()}
                   >
                     Review
@@ -411,9 +404,8 @@
                 y={y}
                 width={barWidth}
                 height={barHeight}
-                fill="#20C3AF"
                 rx="2"
-                class="hover:fill-teal-600 transition-colors"
+                class="fill-primary transition-colors hover:fill-primary-600"
               >
                 <title>{formatChartDate(point.date)}: {formatCurrency(point.value)}</title>
               </rect>
@@ -537,7 +529,7 @@
                 <td class="table-td whitespace-nowrap font-medium">
                   <a
                     href={activity.link}
-                    class="text-primary hover:text-primary-600"
+                    class="text-primary-700 hover:text-primary-800"
                     onclick={(e) => e.stopPropagation()}
                   >
                     View
@@ -561,7 +553,7 @@
     <div class="p-4 border-t border-gray-200 dark:border-gray-700 text-center">
       <a
         href="/admin/bookings"
-        class="text-primary hover:text-primary-600 text-sm font-medium hover:underline"
+        class="text-primary-700 hover:text-primary-800 text-sm font-medium hover:underline"
       >
         View all bookings
       </a>

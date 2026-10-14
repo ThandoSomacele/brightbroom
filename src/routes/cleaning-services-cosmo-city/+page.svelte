@@ -162,7 +162,7 @@
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
         <div class="flex items-center">
           <svg
-            class="w-5 h-5 text-primary-600 mr-2"
+            class="w-5 h-5 text-primary-700 mr-2"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -176,7 +176,7 @@
         </div>
         <div class="flex items-center">
           <svg
-            class="w-5 h-5 text-primary-600 mr-2"
+            class="w-5 h-5 text-primary-700 mr-2"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -190,7 +190,7 @@
         </div>
         <div class="flex items-center">
           <svg
-            class="w-5 h-5 text-primary-600 mr-2"
+            class="w-5 h-5 text-primary-700 mr-2"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -204,7 +204,7 @@
         </div>
         <div class="flex items-center">
           <svg
-            class="w-5 h-5 text-primary-600 mr-2"
+            class="w-5 h-5 text-primary-700 mr-2"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -218,7 +218,7 @@
         </div>
         <div class="flex items-center">
           <svg
-            class="w-5 h-5 text-primary-600 mr-2"
+            class="w-5 h-5 text-primary-700 mr-2"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -232,7 +232,7 @@
         </div>
         <div class="flex items-center">
           <svg
-            class="w-5 h-5 text-primary-600 mr-2"
+            class="w-5 h-5 text-primary-700 mr-2"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -268,15 +268,15 @@
           </p>
           <ul class="space-y-2 text-gray-600 dark:text-gray-300">
             <li class="flex items-start">
-              <span class="text-primary-600 mr-2">•</span>
+              <span class="text-primary-700 mr-2">•</span>
               Weekly, bi-weekly, or monthly schedules
             </li>
             <li class="flex items-start">
-              <span class="text-primary-600 mr-2">•</span>
+              <span class="text-primary-700 mr-2">•</span>
               Trusted, local cleaners from your community
             </li>
             <li class="flex items-start">
-              <span class="text-primary-600 mr-2">•</span>
+              <span class="text-primary-700 mr-2">•</span>
               Flexible and affordable pricing
             </li>
           </ul>
@@ -292,15 +292,15 @@
           </p>
           <ul class="space-y-2 text-gray-600 dark:text-gray-300">
             <li class="flex items-start">
-              <span class="text-primary-600 mr-2">•</span>
+              <span class="text-primary-700 mr-2">•</span>
               Thorough cleaning of all areas
             </li>
             <li class="flex items-start">
-              <span class="text-primary-600 mr-2">•</span>
+              <span class="text-primary-700 mr-2">•</span>
               Attention to every detail
             </li>
             <li class="flex items-start">
-              <span class="text-primary-600 mr-2">•</span>
+              <span class="text-primary-700 mr-2">•</span>
               Perfect for seasonal deep cleans
             </li>
           </ul>
@@ -316,15 +316,15 @@
           </p>
           <ul class="space-y-2 text-gray-600 dark:text-gray-300">
             <li class="flex items-start">
-              <span class="text-primary-600 mr-2">•</span>
+              <span class="text-primary-700 mr-2">•</span>
               Flexible scheduling options
             </li>
             <li class="flex items-start">
-              <span class="text-primary-600 mr-2">•</span>
+              <span class="text-primary-700 mr-2">•</span>
               Commercial cleaning standards
             </li>
             <li class="flex items-start">
-              <span class="text-primary-600 mr-2">•</span>
+              <span class="text-primary-700 mr-2">•</span>
               Regular service contracts available
             </li>
           </ul>
@@ -340,15 +340,15 @@
           </p>
           <ul class="space-y-2 text-gray-600 dark:text-gray-300">
             <li class="flex items-start">
-              <span class="text-primary-600 mr-2">•</span>
+              <span class="text-primary-700 mr-2">•</span>
               Complete property cleaning
             </li>
             <li class="flex items-start">
-              <span class="text-primary-600 mr-2">•</span>
+              <span class="text-primary-700 mr-2">•</span>
               Kitchen and bathroom deep clean
             </li>
             <li class="flex items-start">
-              <span class="text-primary-600 mr-2">•</span>
+              <span class="text-primary-700 mr-2">•</span>
               Move-in ready guarantee
             </li>
           </ul>

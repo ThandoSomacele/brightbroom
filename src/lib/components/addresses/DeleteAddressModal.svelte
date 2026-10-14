@@ -1,7 +1,7 @@
 <!-- src/lib/components/addresses/DeleteAddressModal.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import { AlertTriangle } from "lucide-svelte";
   import { createEventDispatcher } from "svelte";
 
   // Props
@@ -91,8 +91,8 @@
           <div
             class="mb-4 flex items-start rounded-md bg-amber-50 p-3 dark:bg-amber-900/20"
           >
-            <AlertTriangle
-              class="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-amber-500 dark:text-amber-400"
+            <Icon name="warning" size={20}
+              class="mt-0.5 mr-2 flex-shrink-0 text-amber-500 dark:text-amber-400"
             />
             <div>
               <p class="text-amber-800 dark:text-amber-300">

@@ -1,5 +1,6 @@
 <!-- src/routes/admin/cleaners/[id]/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
   import CleanerEarningsCard from "$lib/components/admin/CleanerEarningsCard.svelte";
@@ -14,24 +15,7 @@
     getClosestServiceArea,
     isWithinServiceArea,
   } from "$lib/utils/serviceAreaValidator";
-  import {
-    Banknote,
-    Briefcase,
-    Calendar,
-    ChevronLeft,
-    CreditCard,
-    KeyRound,
-    Mail,
-    MapPin,
-    PenTool,
-    Phone,
-    Save,
-    Shield,
-    Smartphone,
-    User,
-    X,
-  } from "lucide-svelte";
-
+  
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   export let data;
@@ -416,7 +400,7 @@
       href="/admin/cleaners"
       class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 mr-3"
     >
-      <ChevronLeft size={20} />
+      <Icon name="caret-left" size={20} />
     </a>
     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
       Cleaner Details
@@ -451,10 +435,10 @@
           </h2>
           <Button variant="ghost" size="sm" on:click={togglePersonalInfoEdit}>
             {#if isPersonalInfoEditMode}
-              <X size={16} class="mr-1" />
+              <Icon name="x" size={16} class="mr-1" />
               Cancel
             {:else}
-              <PenTool size={16} class="mr-1" />
+              <Icon name="pen-nib" size={16} class="mr-1" />
               Edit
             {/if}
           </Button>
@@ -584,7 +568,7 @@
                     </svg>
                     Saving...
                   {:else}
-                    <Save size={16} class="mr-2" />
+                    <Icon name="floppy-disk" size={16} class="mr-2" />
                     Save Changes
                   {/if}
                 </Button>
@@ -594,7 +578,7 @@
         {:else}
           <div class="space-y-4">
             <div class="flex items-center">
-              <User class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+              <Icon name="user" size={20} class="text-gray-500 dark:text-gray-400 mr-2" />
               <div>
                 <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                   Name
@@ -607,7 +591,7 @@
             </div>
 
             <div class="flex items-center">
-              <Mail class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+              <Icon name="envelope-simple" size={20} class="text-gray-500 dark:text-gray-400 mr-2" />
               <div>
                 <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                   Email
@@ -620,7 +604,7 @@
 
             {#if cleaner.phone}
               <div class="flex items-center">
-                <Phone class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+                <Icon name="phone" size={20} class="text-gray-500 dark:text-gray-400 mr-2" />
                 <div>
                   <p
                     class="text-sm font-medium text-gray-500 dark:text-gray-400"
@@ -635,7 +619,7 @@
             {/if}
 
             <div class="flex items-center">
-              <Calendar class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+              <Icon name="calendar-blank" size={20} class="text-gray-500 dark:text-gray-400 mr-2" />
               <div>
                 <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                   Member Since
@@ -666,7 +650,7 @@
         <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <details class="text-sm">
             <summary
-              class="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-primary"
+              class="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-primary-700"
             >
               Advanced Troubleshooting
             </summary>
@@ -685,10 +669,10 @@
           </h2>
           <Button variant="ghost" size="sm" on:click={toggleProfileEdit}>
             {#if isProfileEditMode}
-              <X size={16} class="mr-1" />
+              <Icon name="x" size={16} class="mr-1" />
               Cancel
             {:else}
-              <PenTool size={16} class="mr-1" />
+              <Icon name="pen-nib" size={16} class="mr-1" />
               Edit
             {/if}
           </Button>
@@ -810,7 +794,7 @@
                               );
                           }
                         }}
-                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
                       />
                       <span
                         class="ml-2 text-sm text-gray-700 dark:text-gray-300"
@@ -934,7 +918,7 @@
                         type="checkbox"
                         id={`day-${day}`}
                         bind:checked={availableDays[day]}
-                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
                       />
                       <label
                         for={`day-${day}`}
@@ -959,7 +943,7 @@
                     type="checkbox"
                     name="isAvailable"
                     bind:checked={isAvailable}
-                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
                   />
                   <span class="text-sm text-gray-700 dark:text-gray-300"
                     >Available for bookings</span
@@ -998,7 +982,7 @@
                     </svg>
                     Saving...
                   {:else}
-                    <Save size={16} class="mr-2" />
+                    <Icon name="floppy-disk" size={16} class="mr-2" />
                     Save Profile
                   {/if}
                 </Button>
@@ -1013,8 +997,8 @@
 
               <!-- Add Experience Types section -->
               <div class="flex items-start mt-3">
-                <Briefcase
-                  class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-1"
+                <Icon name="briefcase" size={20}
+                  class="text-gray-500 dark:text-gray-400 mr-2 mt-1"
                 />
                 <div>
                   <p
@@ -1026,7 +1010,7 @@
                     <div class="flex flex-wrap gap-1 mt-1">
                       {#each cleaner.cleanerProfile.experienceTypes as expType}
                         <span
-                          class="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary dark:bg-primary-900/20"
+                          class="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-900/20"
                         >
                           {expType === "GUEST_HOUSE"
                             ? "Cleaning Guest house/Hotel/BnB"
@@ -1048,8 +1032,8 @@
 
               {#if cleaner.cleanerProfile && cleaner.cleanerProfile.workAddress}
                 <div class="flex items-start">
-                  <MapPin
-                    class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-1"
+                  <Icon name="map-pin" size={20}
+                    class="text-gray-500 dark:text-gray-400 mr-2 mt-1"
                   />
                   <div>
                     <p
@@ -1088,8 +1072,8 @@
 
               {#if cleaner.cleanerProfile.availableDays && cleaner.cleanerProfile.availableDays.length > 0}
                 <div class="flex items-start">
-                  <Calendar
-                    class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-1"
+                  <Icon name="calendar-blank" size={20}
+                    class="text-gray-500 dark:text-gray-400 mr-2 mt-1"
                   />
                   <div>
                     <p
@@ -1137,8 +1121,8 @@
 
               {#if cleaner.cleanerProfile.bio}
                 <div class="flex items-start">
-                  <User
-                    class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-1"
+                  <Icon name="user" size={20}
+                    class="text-gray-500 dark:text-gray-400 mr-2 mt-1"
                   />
                   <div>
                     <p
@@ -1265,10 +1249,10 @@
           </h2>
           <Button variant="ghost" size="sm" on:click={togglePayoutEdit}>
             {#if isPayoutEditMode}
-              <X size={16} class="mr-1" />
+              <Icon name="x" size={16} class="mr-1" />
               Cancel
             {:else}
-              <PenTool size={16} class="mr-1" />
+              <Icon name="pen-nib" size={16} class="mr-1" />
               Edit
             {/if}
           </Button>
@@ -1316,8 +1300,8 @@
                       : 'border-gray-200 dark:border-gray-600 hover:border-primary/50'}"
                     on:click={() => payoutMethod = 'EFT'}
                   >
-                    <CreditCard class="h-8 w-8 mb-2 {payoutMethod === 'EFT' ? 'text-primary' : 'text-gray-400'}" />
-                    <span class="text-sm font-medium {payoutMethod === 'EFT' ? 'text-primary' : 'text-gray-700 dark:text-gray-300'}">
+                    <Icon name="credit-card" class="mb-2 {payoutMethod === 'EFT' ? 'text-primary-700' : 'text-gray-400'}" size={32} />
+                    <span class="text-sm font-medium {payoutMethod === 'EFT' ? 'text-primary-700' : 'text-gray-700 dark:text-gray-300'}">
                       Bank Transfer (EFT)
                     </span>
                     <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -1331,8 +1315,8 @@
                       : 'border-gray-200 dark:border-gray-600 hover:border-primary/50'}"
                     on:click={() => payoutMethod = 'INSTANT_MONEY'}
                   >
-                    <Smartphone class="h-8 w-8 mb-2 {payoutMethod === 'INSTANT_MONEY' ? 'text-primary' : 'text-gray-400'}" />
-                    <span class="text-sm font-medium {payoutMethod === 'INSTANT_MONEY' ? 'text-primary' : 'text-gray-700 dark:text-gray-300'}">
+                    <Icon name="device-mobile" class="mb-2 {payoutMethod === 'INSTANT_MONEY' ? 'text-primary-700' : 'text-gray-400'}" size={32} />
+                    <span class="text-sm font-medium {payoutMethod === 'INSTANT_MONEY' ? 'text-primary-700' : 'text-gray-700 dark:text-gray-300'}">
                       Instant Money
                     </span>
                     <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -1445,7 +1429,7 @@
                 <div class="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4">
                   <div class="flex">
                     <div class="flex-shrink-0">
-                      <Smartphone class="h-5 w-5 text-blue-400" />
+                      <Icon name="device-mobile" size={20} class="text-blue-400" />
                     </div>
                     <div class="ml-3">
                       <h3 class="text-sm font-medium text-blue-800 dark:text-blue-300">
@@ -1495,7 +1479,7 @@
                     </svg>
                     Saving...
                   {:else}
-                    <Save size={16} class="mr-2" />
+                    <Icon name="floppy-disk" size={16} class="mr-2" />
                     Save Payout Settings
                   {/if}
                 </Button>
@@ -1507,9 +1491,9 @@
           <div class="space-y-4">
             <div class="flex items-center">
               {#if cleaner.cleanerProfile?.payoutMethod === 'EFT'}
-                <CreditCard class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+                <Icon name="credit-card" size={20} class="text-gray-500 dark:text-gray-400 mr-2" />
               {:else}
-                <Smartphone class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+                <Icon name="device-mobile" size={20} class="text-gray-500 dark:text-gray-400 mr-2" />
               {/if}
               <div>
                 <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -1523,7 +1507,7 @@
 
             {#if cleaner.cleanerProfile?.payoutMethod === 'EFT' && cleaner.cleanerProfile?.bankName}
               <div class="flex items-start">
-                <Banknote class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-1" />
+                <Icon name="money" size={20} class="text-gray-500 dark:text-gray-400 mr-2 mt-1" />
                 <div>
                   <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Bank Details
@@ -1547,7 +1531,7 @@
               </div>
             {:else if cleaner.cleanerProfile?.payoutMethod === 'INSTANT_MONEY'}
               <div class="flex items-start">
-                <Phone class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2 mt-1" />
+                <Icon name="phone" size={20} class="text-gray-500 dark:text-gray-400 mr-2 mt-1" />
                 <div>
                   <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Phone for Instant Money
@@ -1572,15 +1556,15 @@
       <div class="p-6">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <KeyRound size={20} class="text-primary" />
+            <Icon name="key" size={20} class="text-primary-700" />
             Login Credentials
           </h2>
           <Button variant="ghost" size="sm" on:click={toggleCredentialEdit}>
             {#if isCredentialEditMode}
-              <X size={16} class="mr-1" />
+              <Icon name="x" size={16} class="mr-1" />
               Cancel
             {:else}
-              <PenTool size={16} class="mr-1" />
+              <Icon name="pen-nib" size={16} class="mr-1" />
               Edit
             {/if}
           </Button>
@@ -1589,7 +1573,7 @@
         {#if hasPlaceholderEmail}
           <div class="mb-4 rounded-md bg-amber-50 p-3 dark:bg-amber-900/20">
             <div class="flex items-start">
-              <Shield size={16} class="text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
+              <Icon name="shield" size={16} class="text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
               <div class="text-sm">
                 <p class="font-medium text-amber-800 dark:text-amber-300">
                   Placeholder credentials
@@ -1671,7 +1655,7 @@
                       type="checkbox"
                       name="activate"
                       bind:checked={credentialActivate}
-                      class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                      class="h-5 w-5 rounded border-gray-300 text-primary-700 focus:ring-primary"
                     />
                     <div>
                       <span class="text-sm font-medium text-gray-900 dark:text-white">
@@ -1704,7 +1688,7 @@
                     </svg>
                     Saving...
                   {:else}
-                    <Save size={16} class="mr-2" />
+                    <Icon name="floppy-disk" size={16} class="mr-2" />
                     {credentialActivate ? "Save & Activate" : "Save Credentials"}
                   {/if}
                 </Button>
@@ -1714,7 +1698,7 @@
         {:else}
           <div class="space-y-3">
             <div class="flex items-center">
-              <Mail class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+              <Icon name="envelope-simple" size={20} class="text-gray-500 dark:text-gray-400 mr-2" />
               <div>
                 <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</p>
                 <p class="text-gray-900 dark:text-white {hasPlaceholderEmail ? 'italic text-amber-600 dark:text-amber-400' : ''}">
@@ -1727,7 +1711,7 @@
             </div>
 
             <div class="flex items-center">
-              <Shield class="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+              <Icon name="shield" size={20} class="text-gray-500 dark:text-gray-400 mr-2" />
               <div>
                 <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Account Status</p>
                 <p class={cleaner.isActive ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"}>
@@ -1753,10 +1737,10 @@
             on:click={toggleTrainingEdit}
           >
             {#if isTrainingEditMode}
-              <X size={16} class="mr-1" />
+              <Icon name="x" size={16} class="mr-1" />
               Cancel
             {:else}
-              <PenTool size={16} class="mr-1" />
+              <Icon name="pen-nib" size={16} class="mr-1" />
               Edit
             {/if}
           </Button>
@@ -1796,7 +1780,7 @@
                     name="homeTraining"
                     value="true"
                     bind:checked={homeTrainingCompleted}
-                    class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                    class="h-5 w-5 rounded border-gray-300 text-primary-700 focus:ring-primary"
                   />
                   <div class="ml-3">
                     <span class="text-gray-900 dark:text-white font-medium">Home Cleaning Training</span>
@@ -1812,7 +1796,7 @@
                     name="officeTraining"
                     value="true"
                     bind:checked={officeTrainingCompleted}
-                    class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                    class="h-5 w-5 rounded border-gray-300 text-primary-700 focus:ring-primary"
                   />
                   <div class="ml-3">
                     <span class="text-gray-900 dark:text-white font-medium">Office Cleaning Training</span>
@@ -1856,7 +1840,7 @@
                     </svg>
                     Saving...
                   {:else}
-                    <Save size={16} class="mr-2" />
+                    <Icon name="floppy-disk" size={16} class="mr-2" />
                     Save Training Status
                   {/if}
                 </Button>
@@ -1869,7 +1853,7 @@
               {#each cleaner.cleanerProfile.trainingCompleted as training}
                 <div class="flex items-center p-3 rounded-lg {training === 'HOME' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}">
                   <div class="h-8 w-8 rounded-full flex items-center justify-center {training === 'HOME' ? 'bg-green-100 dark:bg-green-800' : 'bg-blue-100 dark:bg-blue-800'}">
-                    <Briefcase class="h-4 w-4 {training === 'HOME' ? 'text-green-600 dark:text-green-300' : 'text-blue-600 dark:text-blue-300'}" />
+                    <Icon name="briefcase" class="{training === 'HOME' ? 'text-green-600 dark:text-green-300' : 'text-blue-600 dark:text-blue-300'}" size={16} />
                   </div>
                   <div class="ml-3">
                     <p class="font-medium {training === 'HOME' ? 'text-green-800 dark:text-green-300' : 'text-blue-800 dark:text-blue-300'}">
@@ -1974,7 +1958,7 @@
                     <td class="px-4 py-3 whitespace-nowrap text-right text-sm">
                       <a
                         href={`/admin/bookings/${booking.id}`}
-                        class="text-primary hover:text-primary-600 hover:underline"
+                        class="text-primary-700 hover:text-primary-800 hover:underline"
                       >
                         View
                       </a>

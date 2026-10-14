@@ -1,8 +1,8 @@
 <!-- src/routes/bookings-paused/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import { Sparkles, Users, Mail } from "lucide-svelte";
-</script>
+  </script>
 
 <svelte:head>
   <title>Bookings Paused | BrightBroom</title>
@@ -18,7 +18,7 @@
     <div
       class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30"
     >
-      <Sparkles class="h-8 w-8 text-primary" />
+      <Icon name="sparkle" size={32} class="text-primary-700" />
     </div>
 
     <h1 class="mb-4 text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
@@ -33,11 +33,11 @@
 
     <div class="flex flex-col justify-center gap-4 sm:flex-row">
       <Button href="/join/cleaner" variant="primary" size="lg">
-        <Users class="mr-2 h-5 w-5" />
+        <Icon name="users" size={20} class="mr-2" />
         Join as a cleaner
       </Button>
       <Button href="/contact" variant="outline" size="lg">
-        <Mail class="mr-2 h-5 w-5" />
+        <Icon name="envelope-simple" size={20} class="mr-2" />
         Get notified when we relaunch
       </Button>
     </div>

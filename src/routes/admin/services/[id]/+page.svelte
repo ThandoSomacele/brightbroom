@@ -1,10 +1,10 @@
 <!-- src/routes/admin/services/[id]/edit/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
   import { showSuccess, showError } from "../../+layout.svelte";
-  import { ArrowLeft, Clock, Save, Wallet } from "lucide-svelte";
-
+  
   // Get the service data from the server
   export let data;
   const { service } = data;
@@ -31,7 +31,7 @@
     href={`/admin/services/${service.id}`}
     class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 mr-3"
   >
-    <ArrowLeft size={20} />
+    <Icon name="arrow-left" size={20} />
   </a>
   <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Edit Service</h1>
 </div>
@@ -135,7 +135,7 @@
               <div
                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
               >
-                <Wallet size={16} class="text-gray-400" />
+                <Icon name="wallet" size={16} class="text-gray-400" />
               </div>
               <input
                 type="number"
@@ -161,7 +161,7 @@
               <div
                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
               >
-                <Clock size={16} class="text-gray-400" />
+                <Icon name="clock" size={16} class="text-gray-400" />
               </div>
               <input
                 type="number"
@@ -198,7 +198,7 @@
           ></div>
           Saving...
         {:else}
-          <Save size={16} class="mr-2" />
+          <Icon name="floppy-disk" size={16} class="mr-2" />
           Save Changes
         {/if}
       </Button>

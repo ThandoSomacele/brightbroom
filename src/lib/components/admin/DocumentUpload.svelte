@@ -1,9 +1,9 @@
 <!-- src/lib/components/admin/DocumentUpload.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { createEventDispatcher, onMount } from 'svelte';
   import Button from '$lib/components/ui/Button.svelte';
-  import { FileUp, Trash2, File, FileText, FileImage, FilePlus } from 'lucide-svelte';
-  
+
   // Props
   export let applicationId: string;
   export let documents: string[] = [];
@@ -148,13 +148,13 @@
     const ext = url.split('.').pop()?.toLowerCase();
     
     if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext || '')) {
-      return FileImage;
+      return "file-image";
     } else if (['pdf'].includes(ext || '')) {
-      return FileText;
+      return "file-text";
     } else if (['doc', 'docx'].includes(ext || '')) {
-      return File;
+      return "file";
     } else {
-      return FileText;
+      return "file-text";
     }
   }
   
@@ -176,14 +176,14 @@
       {#each documents as document, i}
         <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
           <div class="flex items-center truncate pr-2">
-            <svelte:component this={getDocumentIcon(document)} size={16} class="mr-2 flex-shrink-0 text-gray-500 dark:text-gray-400" />
+            <Icon name={getDocumentIcon(document)} size={16} class="mr-2 flex-shrink-0 text-gray-500 dark:text-gray-400" />
             <span class="text-sm truncate">{getDocumentName(document)}</span>
           </div>
           
           <div class="flex items-center space-x-2 flex-shrink-0">
-            <a href="/api/documents?kind=application-document&id={applicationId}&i={i}" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary-600">
+            <a href="/api/documents?kind=application-document&id={applicationId}&i={i}" target="_blank" rel="noopener noreferrer" class="text-primary-700 hover:text-primary-800">
               <Button variant="ghost" size="sm" title="View document">
-                <FileText size={14} />
+                <Icon name="file-text" size={14} />
               </Button>
             </a>
             
@@ -195,7 +195,7 @@
               title="Delete document"
               class="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
             >
-              <Trash2 size={14} />
+              <Icon name="trash" size={14} />
             </Button>
           </div>
         </div>
@@ -212,7 +212,7 @@
     {#if documentFile && !isUploading}
       <div class="flex items-center justify-between p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md">
         <div class="flex items-center">
-          <FileText size={16} class="mr-2 text-blue-500" />
+          <Icon name="file-text" size={16} class="mr-2 text-blue-500" />
           <span class="text-sm text-blue-700 dark:text-blue-300 truncate">{documentFile.name}</span>
         </div>
         
@@ -222,7 +222,7 @@
           on:click={uploadDocument}
           disabled={isUploading || disabled}
         >
-          <FileUp size={14} class="mr-1" />
+          <Icon name="file-arrow-up" size={14} class="mr-1" />
           Upload
         </Button>
       </div>
@@ -236,7 +236,7 @@
         disabled={isUploading || disabled || isMaxReached}
         class={isMaxReached ? "opacity-50 cursor-not-allowed" : ""}
       >
-        <FilePlus size={16} class="mr-1" />
+        <Icon name="file-plus" size={16} class="mr-1" />
         {isMaxReached ? 'Max files reached' : 'Add Document'}
       </Button>
       

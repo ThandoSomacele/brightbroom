@@ -1,10 +1,10 @@
 <!-- src/lib/components/admin/AutoAssignCleanerButton.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { createEventDispatcher } from 'svelte';
   import { page } from '$app/stores';
   import Button from '$lib/components/ui/Button.svelte';
-  import { CheckCircle, Users } from 'lucide-svelte';
-  
+    
   // Props
   export let bookingId: string;
   export let disabled = false;
@@ -80,10 +80,10 @@
       </svg>
       Assigning...
     {:else if success}
-      <CheckCircle size={16} class="mr-2 text-green-500" />
+      <Icon name="check-circle" size={16} class="mr-2 text-green-500" />
       Assigned!
     {:else}
-      <Users size={16} class="mr-2" />
+      <Icon name="users" size={16} class="mr-2" />
       Auto-Assign
     {/if}
   </Button>

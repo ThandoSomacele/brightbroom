@@ -1,5 +1,6 @@
 <!-- src/routes/book/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import StepTracker from "$lib/components/booking/StepTracker.svelte";
@@ -7,7 +8,6 @@
   import AddonSelector from "$lib/components/booking/AddonSelector.svelte";
   import PriceSummary from "$lib/components/booking/PriceSummary.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import { ArrowRight, Home, Utensils, Check, Clock } from "lucide-svelte";
   import {
     calculateCleaningPrice,
     formatDuration,
@@ -137,7 +137,7 @@
         <div class="rounded-lg border border-green-200 bg-green-50 p-6 dark:border-green-800 dark:bg-green-900/20">
           <div class="flex items-center gap-3 mb-4">
             <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-800">
-              <Check class="h-5 w-5 text-green-600 dark:text-green-400" />
+              <Icon name="check" size={20} class="text-green-600 dark:text-green-400" />
             </div>
             <div>
               <h2 class="text-lg font-semibold text-green-800 dark:text-green-200">
@@ -152,7 +152,7 @@
           <div class="grid gap-4 sm:grid-cols-2">
             <!-- Living Room -->
             <div class="card flex items-start gap-3 p-4">
-              <Home class="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
+              <Icon name="house" size={20} class="text-green-600 dark:text-green-400 mt-0.5" />
               <div>
                 <h3 class="font-medium text-gray-900 dark:text-white">Living Room</h3>
                 <ul class="mt-1 text-sm text-gray-600 dark:text-gray-400 space-y-0.5">
@@ -165,7 +165,7 @@
 
             <!-- Kitchen -->
             <div class="card flex items-start gap-3 p-4">
-              <Utensils class="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
+              <Icon name="fork-knife" size={20} class="text-green-600 dark:text-green-400 mt-0.5" />
               <div>
                 <h3 class="font-medium text-gray-900 dark:text-white">Kitchen</h3>
                 <ul class="mt-1 text-sm text-gray-600 dark:text-gray-400 space-y-0.5">
@@ -244,7 +244,7 @@
                 Loading...
               {:else}
                 Continue to Address
-                <ArrowRight size={18} class="ml-2" />
+                <Icon name="arrow-right" size={18} class="ml-2" />
               {/if}
             </Button>
           </div>
@@ -268,7 +268,7 @@
         R{priceBreakdown.totalPrice.toFixed(2)}
       </span>
       <span class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-        <Clock class="h-3 w-3" />
+        <Icon name="clock" size={12} />
         {formatDuration(priceBreakdown.totalDurationMinutes)}
       </span>
     </div>
@@ -304,7 +304,7 @@
         Loading...
       {:else}
         Continue
-        <ArrowRight size={18} class="ml-2" />
+        <Icon name="arrow-right" size={18} class="ml-2" />
       {/if}
     </Button>
   </div>

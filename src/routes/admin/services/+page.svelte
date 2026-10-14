@@ -1,9 +1,9 @@
 <!-- src/routes/admin/services/+page.svelte -->
 <script lang="ts">
+  import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
-  import { Clock, Edit, PlusCircle, Search, Trash2 } from "lucide-svelte";
-
+  
   export let data;
   export let form;
 
@@ -70,7 +70,7 @@
   <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Services</h1>
   <div class="mt-4 sm:mt-0">
     <Button variant="primary" on:click={openAddModal}>
-      <PlusCircle size={16} class="mr-2" />
+      <Icon name="plus-circle" size={16} class="mr-2" />
       Add New Service
     </Button>
   </div>
@@ -97,7 +97,7 @@
     <div
       class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
     >
-      <Search size={16} class="text-gray-400" />
+      <Icon name="magnifying-glass" size={16} class="text-gray-400" />
     </div>
     <input
       type="text"
@@ -159,7 +159,7 @@
                 <span>{formatPrice(service.basePrice)}</span>
               </div>
               <div class="flex items-center text-gray-700 dark:text-gray-300">
-                <Clock class="h-5 w-5 text-primary mr-1" />
+                <Icon name="clock" size={20} class="text-primary-700 mr-1" />
                 <span
                   >{service.durationHours}
                   {service.durationHours === 1 ? "hour" : "hours"}</span
@@ -176,7 +176,7 @@
               size="sm"
               on:click={() => openEditModal(service)}
             >
-              <Edit size={16} class="mr-1" />
+              <Icon name="pencil-simple" size={16} class="mr-1" />
               Edit
             </Button>
             <Button
@@ -185,7 +185,7 @@
               on:click={() => openDeleteModal(service)}
               class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
             >
-              <Trash2 size={16} class="mr-1" />
+              <Icon name="trash" size={16} class="mr-1" />
               Delete
             </Button>
           </div>
