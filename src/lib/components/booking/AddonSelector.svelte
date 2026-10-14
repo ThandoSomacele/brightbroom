@@ -1,6 +1,7 @@
 <!-- src/lib/components/booking/AddonSelector.svelte -->
 <script lang="ts">
   import Icon from "$lib/components/ui/Icon.svelte";
+  import AddonIcon from "$lib/components/booking/AddonIcon.svelte";
   import type { Addon } from "$lib/server/db/schema";
   import { MAX_BOOKING_DURATION_MINUTES } from "$lib/utils/pricing";
 
@@ -26,20 +27,6 @@
   function canAddAddon(addon: Addon): boolean {
     if (selectedAddonIds.includes(addon.id)) return true; // Already selected, can toggle off
     return currentTotalDuration + addon.durationMinutes <= MAX_BOOKING_DURATION_MINUTES;
-  }
-
-  // Map addon names to their icons
-  const addonIcons: Record<string, string> = {
-    "Laundry & Ironing": "t-shirt",
-    "Inside Fridge": "snowflake",
-    "Inside Oven": "flame",
-    "Inside Cabinets": "door-open",
-    "Interior Walls": "paint-bucket",
-    "Interior Windows": "stack",
-  };
-
-  function getAddonIcon(addonName: string): string {
-    return addonIcons[addonName] || "sparkle";
   }
 
   // State for showing description popup
@@ -88,7 +75,6 @@
       {@const selected = isSelected(addon.id)}
       {@const canAdd = canAddAddon(addon)}
       {@const disabled = !selected && !canAdd}
-      {@const AddonIcon = getAddonIcon(addon.name)}
       <div class="relative">
         <!-- Addon card container - uses div with role for accessibility -->
         <div
@@ -120,7 +106,7 @@
             <div class="flex h-8 w-8 items-center justify-center rounded-lg flex-shrink-0 {selected
               ? 'bg-primary-50 text-primary-800 dark:bg-primary-800 dark:text-primary-300'
               : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'}">
-              <Icon name={AddonIcon} size={16} />
+              <AddonIcon name={addon.name} size={20} />
             </div>
 
             <!-- Addon name -->
