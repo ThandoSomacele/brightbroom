@@ -87,8 +87,8 @@ export async function sendTestEmail(
       return { success: false, error };
     }
 
-    console.log("Test email sent successfully:", data.id);
-    return { success: true, id: data.id };
+    console.log("Test email sent successfully:", data?.id);
+    return { success: true, id: data?.id };
   } catch (error) {
     console.error("Error sending test email:", error);
     return { success: false, error };

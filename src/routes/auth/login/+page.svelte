@@ -18,7 +18,8 @@
 
   let isLoading = false;
   let showPassword = false;
-  let email = form?.email || "";
+  // The CSRF failure payload carries no email, so check before reading it
+  let email = (form && "email" in form && form.email) || "";
   let password = "";
 
   // State to track full authentication process

@@ -32,8 +32,8 @@ export const actions: Actions = {
     const joinAsCleaner = formData.has("joinAsCleaner");
 
     try {
-      // Validate form data first
-      contactSchema.parse({
+      // Validate form data first; the parsed result is what gets emailed
+      const contactFormData = contactSchema.parse({
         firstName,
         lastName,
         email,
@@ -113,18 +113,6 @@ export const actions: Actions = {
           joinAsCleaner
         });
       }
-
-      // Create form data object
-      const contactFormData = {
-        firstName,
-        lastName,
-        email,
-        phone,
-        subject,
-        message,
-        referral,
-        joinAsCleaner,
-      };
 
       // Log the submission for monitoring
       console.log("Contact form submission:", {

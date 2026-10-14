@@ -1,9 +1,16 @@
 // src/routes/admin/users/+page.server.ts
 import { db } from "$lib/server/db";
-import { booking, user } from "$lib/server/db/schema";
+import { booking, user, userRoleEnum } from "$lib/server/db/schema";
 import { error } from "@sveltejs/kit";
-import { desc, eq, inArray, like, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, like, or, sql } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
+
+type UserRole = (typeof userRoleEnum.enumValues)[number];
+
+function isUserRole(value: string): value is UserRole {
+  return (userRoleEnum.enumValues as readonly string[]).includes(value);
+}
 
 // Helper function to fetch users with filters
 async function getUsers(
@@ -15,8 +22,31 @@ async function getUsers(
   const offset = (page - 1) * limit;
 
   try {
+    // Collect every filter and apply them in ONE .where(): calling .where()
+    // twice replaces the first condition, which silently dropped the search
+    // filter whenever a role filter was also chosen.
+    const conditions: SQL[] = [];
+
+    // Apply search filter if provided
+    if (search) {
+      const searchCondition = or(
+        like(user.firstName, `%${search}%`),
+        like(user.lastName, `%${search}%`),
+        like(user.email, `%${search}%`),
+        like(user.phone, `%${search}%`),
+      );
+      if (searchCondition) conditions.push(searchCondition);
+    }
+
+    // Apply role filter if provided
+    if (role && role !== "ALL" && isUserRole(role)) {
+      conditions.push(eq(user.role, role));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
     // Build the query with filters
-    let query = db
+    const query = db
       .select({
         id: user.id,
         firstName: user.firstName,
@@ -26,47 +56,16 @@ async function getUsers(
         role: user.role,
         createdAt: user.createdAt,
       })
-      .from(user);
+      .from(user)
+      .where(whereClause);
 
-    // Apply search filter if provided
-    if (search) {
-      query = query.where(
-        or(
-          like(user.firstName, `%${search}%`),
-          like(user.lastName, `%${search}%`),
-          like(user.email, `%${search}%`),
-          like(user.phone || "", `%${search}%`),
-        ),
-      );
-    }
-
-    // Apply role filter if provided
-    if (role && role !== "ALL") {
-      query = query.where(eq(user.role, role));
-    }
-
-    // Clone the query for counting total
+    // Count query with the same filters
     const countQuery = db
       .select({
         count: sql<number>`count(*)`.mapWith(Number),
       })
-      .from(user);
-
-    // Apply the same filters to the count query
-    if (search) {
-      countQuery.where(
-        or(
-          like(user.firstName, `%${search}%`),
-          like(user.lastName, `%${search}%`),
-          like(user.email, `%${search}%`),
-          like(user.phone || "", `%${search}%`),
-        ),
-      );
-    }
-
-    if (role && role !== "ALL") {
-      countQuery.where(eq(user.role, role));
-    }
+      .from(user)
+      .where(whereClause);
 
     // Execute both queries
     const [users, countResult] = await Promise.all([

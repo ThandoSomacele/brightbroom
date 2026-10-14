@@ -313,7 +313,7 @@
                       <span class="text-gray-400"> (unlimited)</span>
                     {/if}
                   </div>
-                  {#if coupon.totalDiscountAmount > 0}
+                  {#if coupon.totalDiscountAmount && coupon.totalDiscountAmount > 0}
                     <div class="text-xs text-gray-500 dark:text-gray-400">
                       Total: {formatPrice(coupon.totalDiscountAmount)}
                     </div>

@@ -18,7 +18,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const services = await query;
 
     // Manual sorting
-    const serviceOrder = {
+    const serviceOrder: Record<string, number> = {
       "Regular Cleaning": 1,
       "Regular Cleaning with Laundry & Ironing": 2,
       "Extended Cleaning": 3,

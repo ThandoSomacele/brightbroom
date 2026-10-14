@@ -5,6 +5,8 @@ import { error, json } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import type { RequestHandler } from "./$types";
 
+type ApplicationUpdate = Partial<typeof cleanerApplication.$inferInsert>;
+
 /**
  * Update an application
  */
@@ -31,12 +33,10 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
       "email",
       "phone",
       "city",
-      "street",
       "formattedAddress",
       "latitude",
       "longitude",
       "workRadius",
-      "experienceTypes",
       "availability",
       "ownTransport",
       "whatsApp",
@@ -46,19 +46,17 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
       "petCompatibility",
       "notes",
       "taxNumber",
-      "bankAccount",
-    ];
+    ] as const satisfies readonly (keyof ApplicationUpdate)[];
 
     // Create update object with only allowed fields
-    const updateData = {};
-    for (const field of allowedFields) {
-      if (field in applicationData) {
-        updateData[field] = applicationData[field];
-      }
-    }
+    const updateData: ApplicationUpdate = Object.fromEntries(
+      allowedFields
+        .filter((field) => field in applicationData)
+        .map((field) => [field, applicationData[field]]),
+    );
 
     // Add updatedAt timestamp
-    updateData["updatedAt"] = new Date();
+    updateData.updatedAt = new Date();
 
     // Update the application
     const [updatedApplication] = await db

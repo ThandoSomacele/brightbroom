@@ -7,11 +7,12 @@
   export let data;
 
   // Format currency
-  function formatCurrency(amount: number): string {
+  // Summary amounts arrive as numbers or decimal strings, and may be null
+  function formatCurrency(amount: number | string | null): string {
     return new Intl.NumberFormat('en-ZA', {
       style: 'currency',
       currency: 'ZAR'
-    }).format(amount);
+    }).format(Number(amount ?? 0));
   }
 
   // Format date

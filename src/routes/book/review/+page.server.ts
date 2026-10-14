@@ -1,6 +1,6 @@
 // src/routes/book/review/+page.server.ts
 import { db } from '$lib/server/db';
-import { service, address, booking, pricingConfig, addon, bookingAddon } from '$lib/server/db/schema';
+import { service, address, booking, pricingConfig, addon, bookingAddon, recurringFrequencyEnum } from '$lib/server/db/schema';
 import { error, redirect } from '@sveltejs/kit';
 import { eq, inArray, asc } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
@@ -16,7 +16,14 @@ import {
   isWithinServiceArea,
 } from '$lib/utils/serviceAreaValidator';
 
-export const load: PageServerLoad = async ({ locals, ...event }) => {
+type RecurringFrequency = (typeof recurringFrequencyEnum.enumValues)[number];
+
+function isRecurringFrequency(value: string | undefined): value is RecurringFrequency {
+  return value !== undefined && (recurringFrequencyEnum.enumValues as readonly string[]).includes(value);
+}
+
+export const load: PageServerLoad = async (event) => {
+  const { locals } = event;
   // Load guest booking data from session
   const guestBookingData = getGuestBookingData(event);
 
@@ -80,7 +87,8 @@ export const load: PageServerLoad = async ({ locals, ...event }) => {
 };
 
 export const actions: Actions = {
-  storeGuestData: async ({ request, ...event }) => {
+  storeGuestData: async (event) => {
+    const { request } = event;
     const formData = await request.formData();
     const guestAddressData = formData.get('guestAddress')?.toString();
     
@@ -101,7 +109,8 @@ export const actions: Actions = {
     return { success: true };
   },
   
-  createBooking: async ({ request, locals, ...event }) => {
+  createBooking: async (event) => {
+    const { request, locals } = event;
     const formData = await request.formData();
     const serviceId = formData.get('serviceId')?.toString();
     const scheduledDate = formData.get('scheduledDate')?.toString();
@@ -116,7 +125,9 @@ export const actions: Actions = {
 
     // Check if this is a recurring booking
     const isRecurring = formData.get('isRecurring') === 'true';
-    const recurringFrequency = formData.get('recurringFrequency')?.toString();
+    // Only a known frequency is accepted; anything else counts as missing below
+    const recurringFrequencyRaw = formData.get('recurringFrequency')?.toString();
+    const recurringFrequency = isRecurringFrequency(recurringFrequencyRaw) ? recurringFrequencyRaw : undefined;
     const recurringDays = formData.get('recurringDays')?.toString();
     const recurringMonthlyDates = formData.get('recurringMonthlyDates')?.toString();
     const recurringTimeSlot = formData.get('recurringTimeSlot')?.toString();
@@ -291,7 +302,7 @@ export const actions: Actions = {
           storeGuestBookingData(event, {
             serviceId,
             serviceName: 'General Clean',
-            servicePrice: priceBreakdown.totalPrice,
+            servicePrice: String(priceBreakdown.totalPrice),
             duration: priceBreakdown.totalDurationMinutes,
             bedroomCount,
             bathroomCount,
@@ -323,7 +334,7 @@ export const actions: Actions = {
           serviceName: 'General Clean',
           duration: priceBreakdown.totalDurationMinutes,
           addressId,
-          cleanerId,
+          cleanerId: cleanerId ?? undefined,
           bedroomCount,
           bathroomCount,
           addonIds,
@@ -448,7 +459,7 @@ export const actions: Actions = {
         storeGuestBookingData(event, {
           serviceId,
           serviceName: 'General Clean',
-          servicePrice: priceBreakdown.totalPrice,
+          servicePrice: String(priceBreakdown.totalPrice),
           scheduledDate,
           duration: priceBreakdown.totalDurationMinutes,
           bedroomCount,

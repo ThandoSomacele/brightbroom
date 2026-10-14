@@ -653,9 +653,10 @@
                   class="h-full w-full object-cover"
                   on:error={(event) => {
                     const img = event.target;
+                    if (!(img instanceof HTMLElement)) return;
                     img.style.display = "none";
                     const fallback = img.nextElementSibling;
-                    if (fallback) fallback.style.display = "flex";
+                    if (fallback instanceof HTMLElement) fallback.style.display = "flex";
                   }}
                 />
                 <div

@@ -4,6 +4,8 @@ import {
   applicationNote,
   cleanerApplication,
   cleanerProfile,
+  idTypeEnum,
+  petCompatibilityEnum,
   user,
 } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
@@ -11,6 +13,18 @@ import { hash } from "@node-rs/argon2";
 import { error, fail } from "@sveltejs/kit";
 import { and, desc, eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
+
+type IdType = (typeof idTypeEnum.enumValues)[number];
+type PetCompatibility = (typeof petCompatibilityEnum.enumValues)[number];
+
+// The application stores these as free text; the profile columns are enums.
+function toIdType(value: string | null): IdType {
+  return idTypeEnum.enumValues.find((v) => v === value) ?? "SOUTH_AFRICAN_ID";
+}
+
+function toPetCompatibility(value: string | null): PetCompatibility {
+  return petCompatibilityEnum.enumValues.find((v) => v === value) ?? "NONE";
+}
 
 // Helper function to fetch application data
 async function getApplicationData(applicationId: string, tenantId: string | null) {
@@ -173,7 +187,7 @@ export const actions: Actions = {
       });
 
       // Parse availability array from application
-      let availabilityArray = [];
+      let availabilityArray: string[] = [];
       try {
         availabilityArray = JSON.parse(application.availability || "[]");
       } catch (error) {
@@ -195,7 +209,7 @@ export const actions: Actions = {
           id: profileId,
           userId,
           tenantId: application.tenantId, // Inherit tenant from application
-          idType: application.idType || "SOUTH_AFRICAN_ID",
+          idType: toIdType(application.idType),
           idNumber: application.idNumber || "PENDING",
           // Carried across so the expiry guard applies from the moment they
           // become a cleaner, not just while they were an applicant
@@ -203,11 +217,11 @@ export const actions: Actions = {
           workAuthExpiry: application.workAuthExpiry,
           workAuthDocumentUrl: application.workAuthDocumentUrl,
           workAddress: application.formattedAddress || application.city,
-          workLocationLat: application.latitude || 0,
-          workLocationLng: application.longitude || 0,
-          workRadius: 10,
+          workLocationLat: application.latitude || "0",
+          workLocationLng: application.longitude || "0",
+          workRadius: "10",
           bio: application.bio || "",
-          petCompatibility: application.petCompatibility || "NONE",
+          petCompatibility: toPetCompatibility(application.petCompatibility),
           availableDays: availabilityArray,
           trainingCompleted: [],
           isAvailable: false,
@@ -224,7 +238,7 @@ export const actions: Actions = {
         await db.insert(applicationNote).values({
           id: crypto.randomUUID(),
           applicationId,
-          content: `WARNING: Error creating cleaner profile: ${profileError.message || "Unknown error"}. Please create the profile manually.`,
+          content: `WARNING: Error creating cleaner profile: ${(profileError instanceof Error && profileError.message) || "Unknown error"}. Please create the profile manually.`,
           addedBy: `System`,
           createdAt: new Date(),
         });
@@ -246,7 +260,6 @@ export const actions: Actions = {
             firstName: application.firstName,
             lastName: application.lastName,
             role: "CLEANER",
-            temporaryPassword,
           });
         } catch (emailError) {
           console.error("Error sending welcome email:", emailError);

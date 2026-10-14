@@ -4,7 +4,11 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { booking, service, address, user } from '$lib/server/db/schema';
 import { eq, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { sendCleanerAssignmentEmail } from '$lib/server/email-service';
+
+// The cleaner is a second row in the user table
+const cleanerUser = alias(user, 'cleaner');
 
 export const POST: RequestHandler = async ({ params, request, locals }) => {
   // Check if user is admin
@@ -35,18 +39,18 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
       user: {
         email: user.email
       },
-      cleaner: booking.cleanerId ? {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        phone: user.phone
-      } : null
+      cleaner: {
+        firstName: cleanerUser.firstName,
+        lastName: cleanerUser.lastName,
+        phone: cleanerUser.phone
+      }
     })
     .from(booking)
     .where(eq(booking.id, bookingId))
     .innerJoin(service, eq(booking.serviceId, service.id))
     .leftJoin(address, eq(booking.addressId, address.id))
     .leftJoin(user, eq(booking.userId, user.id))
-    .leftJoin(user.as('cleaner'), booking.cleanerId ? eq(booking.cleanerId, user.as('cleaner').id) : undefined)
+    .leftJoin(cleanerUser, eq(booking.cleanerId, cleanerUser.id))
     .limit(1);
     
     if (results.length === 0) {
@@ -73,7 +77,14 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     };
     
     // Use override email if provided, otherwise use user's email
-    const emailTo = overrideEmail || result.user.email;
+    // (guest bookings have no user row, so they need the override)
+    const emailTo = overrideEmail || result.user?.email;
+    if (!emailTo) {
+      return json({
+        success: false,
+        error: 'This booking has no customer email; pass one in the request body'
+      }, { status: 400 });
+    }
     
     // Send cleaner assignment notification
     const success = await sendCleanerAssignmentEmail(emailTo, bookingData);

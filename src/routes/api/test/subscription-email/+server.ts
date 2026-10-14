@@ -1,4 +1,5 @@
 // src/routes/api/test/subscription-email/+server.ts
+import { dev } from '$app/environment';
 import { json } from '@sveltejs/kit';
 import { getSubscriptionActivatedTemplate } from '$lib/server/email-templates';
 import type { RequestHandler } from './$types';
@@ -23,8 +24,9 @@ const EMAIL_CONFIG = {
 
 // Ensure we only expose this endpoint in development
 export const GET: RequestHandler = async ({ url }) => {
-  // Safety check - only expose in development
-  if (process.env.NODE_ENV === 'production') {
+  // Only the local dev server may send test emails. NODE_ENV is not
+  // "production" inside Netlify functions, so it can't be the guard.
+  if (!dev) {
     return new Response('Not found', { status: 404 });
   }
 
@@ -90,7 +92,7 @@ export const GET: RequestHandler = async ({ url }) => {
     return json({
       success: true,
       message: `Test subscription confirmation email sent to ${to}`,
-      emailId: data.id
+      emailId: data?.id
     });
   } catch (err) {
     console.error('Error sending test subscription email:', err);

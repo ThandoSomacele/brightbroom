@@ -40,8 +40,10 @@
   onMount(() => {
     // Initialise Google Tag Manager
     if (typeof window !== "undefined") {
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({
+      // GTM's dataLayer is not part of the DOM typings
+      const gtmWindow = window as Window & { dataLayer?: unknown[] };
+      gtmWindow.dataLayer = gtmWindow.dataLayer || [];
+      gtmWindow.dataLayer.push({
         "gtm.start": new Date().getTime(),
         event: "gtm.js",
       });
@@ -51,7 +53,11 @@
       script.src = "https://www.googletagmanager.com/gtm.js?id=GTM-WSXMSVZT";
 
       const firstScript = document.getElementsByTagName("script")[0];
-      firstScript.parentNode.insertBefore(script, firstScript);
+      if (firstScript?.parentNode) {
+        firstScript.parentNode.insertBefore(script, firstScript);
+      } else {
+        document.head.appendChild(script);
+      }
     }
 
     // Report performance metrics after page is fully loaded

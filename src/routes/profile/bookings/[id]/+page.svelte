@@ -5,15 +5,16 @@
   import { notFound, forbidden } from '$lib/utils/errors';
   import { getBookingReference } from '$lib/utils/strings';
   import { parseDateTimeString } from '$lib/utils/date-utils';
+  import type { PageData } from './$types';
 
   
   // Get data from the server load function
-  export let data;
+  export let data: PageData;
   const { booking } = data;
   
   
   // Format date function
-  function formatDate(dateString: string): string {
+  function formatDate(dateString: string | Date): string {
     const date = parseDateTimeString(dateString);
     return date.toLocaleDateString(undefined, { 
       weekday: 'long', 
@@ -24,7 +25,7 @@
   }
   
   // Format time function
-  function formatTime(dateString: string): string {
+  function formatTime(dateString: string | Date): string {
     const date = parseDateTimeString(dateString);
     return date.toLocaleTimeString(undefined, { 
       hour: '2-digit', 
@@ -229,8 +230,8 @@
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">Location</p>
                   <p class="text-sm text-gray-600 dark:text-gray-300">
-                    {booking.address ? booking.address.street : booking.guestAddress.street}<br>
-                    {booking.address ? `${booking.address.city}, ${booking.address.state} ${booking.address.zipCode}` : `${booking.guestAddress.city}, ${booking.guestAddress.state} ${booking.guestAddress.zipCode}`}
+                    {booking.address ? booking.address.street : (booking.guestAddress?.street ?? '')}<br>
+                    {booking.address ? `${booking.address.city}, ${booking.address.state} ${booking.address.zipCode}` : `${booking.guestAddress?.city ?? ''}, ${booking.guestAddress?.state ?? ''} ${booking.guestAddress?.zipCode ?? ''}`}
                   </p>
                 </div>
               </div>
@@ -258,9 +259,7 @@
               <div class="flex justify-between">
                 <span class="text-gray-600 dark:text-gray-300">Service:</span>
                 <span class="font-medium text-gray-900 dark:text-white">
-                  R{typeof booking.price === 'number' 
-                      ? booking.price.toFixed(2) 
-                      : parseFloat(booking.price).toFixed(2)}
+                  R{parseFloat(booking.price).toFixed(2)}
                 </span>
               </div>
               

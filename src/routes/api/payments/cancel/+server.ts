@@ -1,7 +1,7 @@
 // src/routes/api/payments/cancel/+server.ts
 import { db } from "$lib/server/db";
 import { adminNote, booking, payment } from "$lib/server/db/schema";
-import { json, redirect } from "@sveltejs/kit";
+import { isRedirect, json, redirect } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import type { RequestHandler } from "./$types";
 
@@ -103,7 +103,7 @@ export const GET: RequestHandler = async ({ url }) => {
     );
   } catch (error) {
     // If it's already a redirect, pass it through
-    if (error.status === 302) {
+    if (isRedirect(error) && error.status === 302) {
       throw error;
     }
 

@@ -45,7 +45,7 @@ async function getApplications(
     }
 
     // Build query
-    let query = db.select().from(cleanerApplication);
+    let query = db.select().from(cleanerApplication).$dynamic();
     if (conditions.length > 0) {
       query = query.where(and(...conditions));
     }
@@ -55,7 +55,8 @@ async function getApplications(
       .select({
         count: sql<number>`count(*)`.mapWith(Number),
       })
-      .from(cleanerApplication);
+      .from(cleanerApplication)
+      .$dynamic();
     if (conditions.length > 0) {
       countQuery = countQuery.where(and(...conditions));
     }

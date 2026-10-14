@@ -3,7 +3,7 @@ import { db } from "$lib/server/db";
 import { adminNote, payment } from "$lib/server/db/schema";
 import { postPaymentHooks } from "$lib/server/hooks/post-payment-hooks";
 import { processSuccessfulPayment } from "$lib/server/payment";
-import { error, redirect } from "@sveltejs/kit";
+import { error, isRedirect, redirect } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
 /**
@@ -86,7 +86,7 @@ export async function GET({ url, locals }) {
     throw redirect(302, `/payment/success?booking_id=${bookingId}`);
   } catch (error) {
     // If it's already a redirect, just pass it through
-    if (error.status === 302) {
+    if (isRedirect(error) && error.status === 302) {
       throw error;
     }
 

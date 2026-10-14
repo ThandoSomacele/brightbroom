@@ -28,13 +28,13 @@ export async function sendCleanerAssignmentNotification(
       .where(eq(booking.id, bookingId))
       .limit(1);
 
-    if (bookingResults.length === 0 || !bookingResults[0].cleanerId) {
+    const bookingData = bookingResults[0];
+    const cleanerId = bookingData?.cleanerId;
+
+    if (!cleanerId) {
       console.error('Booking not found or no cleaner assigned:', { bookingId });
       return false;
     }
-
-    const bookingData = bookingResults[0];
-    const cleanerId = bookingData.cleanerId;
 
     // Get booking details with related data - now including more service details
     const results = await db
@@ -138,13 +138,13 @@ export async function sendCleanerJobNotification(
       .where(eq(booking.id, bookingId))
       .limit(1);
 
-    if (bookingResults.length === 0 || !bookingResults[0].cleanerId) {
+    const bookingData = bookingResults[0];
+    const cleanerId = bookingData?.cleanerId;
+
+    if (!cleanerId) {
       console.error('Booking not found or no cleaner assigned:', { bookingId });
       return false;
     }
-
-    const bookingData = bookingResults[0];
-    const cleanerId = bookingData.cleanerId;
 
     // Get full booking details with related data
     const results = await db
@@ -199,7 +199,14 @@ export async function sendCleanerJobNotification(
       return false;
     }
 
-    // Get customer information
+    // Get customer information. Guest bookings have no user row, so there is
+    // no customer to look up.
+    const customerUserId = result.booking.userId;
+    if (!customerUserId) {
+      console.error('Customer not found:', { userId: customerUserId });
+      return false;
+    }
+
     const customerInfo = await db
       .select({
         firstName: sql<string>`coalesce(${user.firstName}, 'Guest')`,
@@ -207,7 +214,7 @@ export async function sendCleanerJobNotification(
         phone: user.phone,
       })
       .from(user)
-      .where(eq(user.id, result.booking.userId))
+      .where(eq(user.id, customerUserId))
       .limit(1);
 
     if (customerInfo.length === 0) {

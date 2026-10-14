@@ -163,7 +163,7 @@
             <div class="flex justify-between items-start mb-4">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900">
-                  {subscription.service.name}
+                  {subscription.service?.name ?? ""}
                 </h3>
                 <span class={`inline-block px-2 py-1 text-xs rounded-full font-medium ${getStatusColor(subscription.status)}`}>
                   {subscription.status}

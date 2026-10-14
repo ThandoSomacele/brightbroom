@@ -1812,7 +1812,7 @@ export function getCleanerApplicationTemplate(
   try {
     const days = JSON.parse(application.availability);
     availabilityDisplay = days
-      .map((day) => day.charAt(0) + day.slice(1).toLowerCase())
+      .map((day: string) => day.charAt(0) + day.slice(1).toLowerCase())
       .join(", ");
   } catch (e) {
     availabilityDisplay = "Not specified";
@@ -2613,7 +2613,7 @@ export function getCleanerJobAssignmentTemplate(
       if (Array.isArray(details.tasks)) {
         serviceDetailsList = `
           <ul style="margin-top: 10px; padding-left: 20px;">
-            ${details.tasks.map((task) => `<li>${task}</li>`).join("")}
+            ${details.tasks.map((task: string) => `<li>${task}</li>`).join("")}
           </ul>
         `;
       }
@@ -3203,7 +3203,7 @@ export function getSubscriptionPaymentFailedTemplate(
     frequency: string;
     finalPrice: number | string;
   },
-  failureReason?: string,
+  failureReason: string | undefined,
   data: EmailTemplateData,
 ): { subject: string; html: string; text: string } {
   const subscriptionUrl = `${data.appUrl}/profile/subscriptions`;

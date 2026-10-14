@@ -1,6 +1,6 @@
 // src/routes/api/admin/applications/[id]/status/+server.ts
 import { cleanerApplicationService } from "$lib/server/services/cleaner-application.service";
-import { error, json } from "@sveltejs/kit";
+import { error, isHttpError, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 
 /**
@@ -28,7 +28,7 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
       throw error(400, "Invalid action. Must be 'approve' or 'reject'");
     }
     
-    let result;
+    let result: { success: boolean; message: string; userId?: string };
     
     if (action === "approve") {
       result = await cleanerApplicationService.approveApplication(applicationId);
@@ -50,6 +50,8 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
     });
   } catch (err) {
     console.error('Error processing application:', { applicationId, error: err });
+    // Let deliberate 4xx errors through instead of turning them into 500s
+    if (isHttpError(err)) throw err;
     throw error(500, {
       message: err instanceof Error ? err.message : "Failed to process application"
     });
@@ -95,6 +97,8 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
     });
   } catch (err) {
     console.error('Error adding notes to application:', { applicationId, error: err });
+    // Let deliberate 4xx errors through instead of turning them into 500s
+    if (isHttpError(err)) throw err;
     throw error(500, {
       message: err instanceof Error ? err.message : "Failed to add notes"
     });

@@ -1,10 +1,11 @@
 // src/routes/magazine/[slug]/+page.server.ts
 import { ArticleService } from "$lib/services/article.service";
 import { error } from "@sveltejs/kit";
+import type { ArticleCategory } from "$lib/types/article";
 import type { PageServerLoad } from "./$types";
 
 // Helper function to fetch related articles (for streaming)
-async function getRelatedArticles(slug: string, category: string, tags: string[]) {
+async function getRelatedArticles(slug: string, category: ArticleCategory, tags: string[]) {
   return ArticleService.getRelatedArticles(slug, category, tags, 3);
 }
 

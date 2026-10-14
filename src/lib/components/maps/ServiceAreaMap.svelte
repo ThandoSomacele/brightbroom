@@ -1,11 +1,10 @@
 <!-- src/lib/components/maps/ServiceAreaMap.svelte -->
 <script lang="ts">
   import { orange, teal } from "$lib/config/theme";
-  import {
-    SERVICE_AREAS,
-    type ServiceArea,
-  } from "$lib/utils/serviceAreaValidator";
+  import { SERVICE_AREAS } from "$lib/utils/serviceAreaValidator";
   import { onDestroy, onMount } from "svelte";
+
+  type ServiceArea = (typeof SERVICE_AREAS)[number];
 
   // Props
   export let apiKey: string;

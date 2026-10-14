@@ -89,26 +89,25 @@ export const userService = {
   }): Promise<User[]> {
     const { role, skip = 0, take = 50, search } = params || {};
 
-    let query = db.select().from(user);
+    // Combine the filters (calling .where twice would replace the first)
+    const where = and(
+      role ? eq(user.role, role) : undefined,
+      search
+        ? or(
+            like(user.firstName, `%${search}%`),
+            like(user.lastName, `%${search}%`),
+            like(user.email, `%${search}%`)
+          )
+        : undefined
+    );
 
-    if (role) {
-      query = query.where(eq(user.role, role));
-    }
-
-    if (search) {
-      query = query.where(
-        or(
-          like(user.firstName, `%${search}%`),
-          like(user.lastName, `%${search}%`),
-          like(user.email, `%${search}%`)
-        )
-      );
-    }
-
-    return await query
+    return await db
+      .select()
+      .from(user)
+      .where(where)
+      .orderBy(desc(user.createdAt))
       .limit(take)
-      .offset(skip)
-      .orderBy(desc(user.createdAt));
+      .offset(skip);
   },
 
   /**
@@ -117,23 +116,19 @@ export const userService = {
   async countUsers(params?: { role?: "CUSTOMER" | "CLEANER" | "ADMIN"; search?: string }): Promise<number> {
     const { role, search } = params || {};
 
-    let query = db.select({ count: count() }).from(user);
+    // Combine the filters (calling .where twice would replace the first)
+    const where = and(
+      role ? eq(user.role, role) : undefined,
+      search
+        ? or(
+            like(user.firstName, `%${search}%`),
+            like(user.lastName, `%${search}%`),
+            like(user.email, `%${search}%`)
+          )
+        : undefined
+    );
 
-    if (role) {
-      query = query.where(eq(user.role, role));
-    }
-
-    if (search) {
-      query = query.where(
-        or(
-          like(user.firstName, `%${search}%`),
-          like(user.lastName, `%${search}%`),
-          like(user.email, `%${search}%`)
-        )
-      );
-    }
-
-    const result = await query;
+    const result = await db.select({ count: count() }).from(user).where(where);
     return Number(result[0].count) || 0;
   },
 

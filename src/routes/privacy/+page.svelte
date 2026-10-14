@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
 
   // State for collapsible sections
+  /** @type {Record<string, boolean>} */
   let expandedSections = {};
 
   // Define all sections for the Privacy Policy
@@ -34,11 +35,13 @@
   });
 
   // Toggle section expansion
+  /** @param {string} id */
   function toggleSection(id) {
     expandedSections[id] = !expandedSections[id];
   }
 
   // Function to scroll to section when navigating
+  /** @param {string} id */
   function scrollToSection(id) {
     const element = document.getElementById(id);
     if (element) {

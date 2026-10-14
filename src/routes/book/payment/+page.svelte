@@ -83,14 +83,14 @@
             </span>
           </div>
 
-          {#if data.bookingData.preferredDays?.length > 0}
+          {#if data.bookingData.preferredDays && data.bookingData.preferredDays.length > 0}
             <div class="flex justify-between">
               <span class="text-gray-600">Preferred Days:</span>
               <span class="font-medium">{data.bookingData.preferredDays.join(', ')}</span>
             </div>
           {/if}
 
-          {#if data.bookingData.monthlyDates?.length > 0}
+          {#if data.bookingData.monthlyDates && data.bookingData.monthlyDates.length > 0}
             <div class="flex justify-between">
               <span class="text-gray-600">Monthly Dates:</span>
               <span class="font-medium">
@@ -115,7 +115,7 @@
 
         <div class="flex justify-between">
           <span class="text-gray-600">Duration:</span>
-          <span class="font-medium">{Math.floor(data.bookingData.duration / 60)} hours</span>
+          <span class="font-medium">{Math.floor((data.bookingData.duration ?? 0) / 60)} hours</span>
         </div>
 
         {#if data.bookingData.guestAddress}
@@ -128,14 +128,14 @@
         {/if}
 
         <div class="border-t pt-3 mt-3">
-          {#if data.isRecurring && data.bookingData.discountPercentage > 0}
+          {#if data.isRecurring && data.bookingData.discountPercentage && data.bookingData.discountPercentage > 0}
             <div class="flex justify-between text-sm text-gray-600">
               <span>Regular Price (per clean):</span>
               <span class="line-through">R{data.bookingData.basePrice || data.bookingData.servicePrice}</span>
             </div>
             <div class="flex justify-between text-sm text-green-600">
               <span>Recurring Discount ({data.bookingData.discountPercentage}%):</span>
-              <span>-R{((data.bookingData.basePrice || data.bookingData.servicePrice) * data.bookingData.discountPercentage / 100).toFixed(2)}</span>
+              <span>-R{(Number(data.bookingData.basePrice || data.bookingData.servicePrice) * data.bookingData.discountPercentage / 100).toFixed(2)}</span>
             </div>
           {/if}
           <div class="flex justify-between text-lg font-semibold">

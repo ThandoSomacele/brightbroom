@@ -6,6 +6,10 @@
   import Button from "$lib/components/ui/Button.svelte";
   import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
   
+  import type { PageData } from "./$types";
+
+  type ReportMetrics = Awaited<PageData["streamed"]["metrics"]>;
+
   // Get data from server
   export let data;
 
@@ -13,8 +17,8 @@
   $: ({ period, dateRange } = data);
 
   // Metrics will be streamed - provide defaults to prevent errors
-  let metrics: any = {
-    revenue: { total: 0, percentageChange: 0, trend: [] },
+  let metrics: ReportMetrics = {
+    revenue: { total: 0, previousPeriodTotal: 0, percentageChange: 0, trend: [] },
     bookings: { total: 0, completed: 0, cancelled: 0, pendingConfirmation: 0, conversionRate: 0 },
     bookingTrend: [],
     bookingInsights: { roomConfigurations: [], popularAddons: [], averageDuration: 0, averagePrice: 0 },
@@ -29,7 +33,7 @@
   // Load metrics when streamed data is available
   $: if (data.streamed?.metrics) {
     metricsLoaded = false;
-    data.streamed.metrics.then((m: any) => {
+    data.streamed.metrics.then((m) => {
       metrics = m;
       metricsLoaded = true;
     }).catch((err: Error) => {

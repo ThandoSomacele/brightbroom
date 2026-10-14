@@ -9,6 +9,11 @@ export interface GuestBookingData {
   duration: number;
   notes?: string;
 
+  // Room-based pricing and add-ons (written by the booking flow, read by the subscription API)
+  bedroomCount?: number;
+  bathroomCount?: number;
+  addonIds?: string[];
+
   // Recurring booking fields
   isRecurring?: boolean;
   recurringFrequency?: 'WEEKLY' | 'BIWEEKLY' | 'TWICE_WEEKLY' | 'TWICE_MONTHLY';

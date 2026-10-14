@@ -76,9 +76,7 @@
         <div class="flex flex-wrap gap-4">
           <div class="bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-md">
             <p class="text-sm text-gray-500 dark:text-gray-400">Base Price</p>
-            <p class="text-lg font-bold text-primary-700">R{typeof service.basePrice === 'number' 
-              ? service.basePrice.toFixed(2) 
-              : parseFloat(service.basePrice.toString()).toFixed(2)}</p>
+            <p class="text-lg font-bold text-primary-700">R{parseFloat(String(service.basePrice)).toFixed(2)}</p>
           </div>
           <div class="bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-md">
             <p class="text-sm text-gray-500 dark:text-gray-400">Duration</p>

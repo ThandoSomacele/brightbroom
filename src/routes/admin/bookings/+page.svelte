@@ -22,7 +22,7 @@
   let bulkStatusValue = "CONFIRMED";
 
   // Format date
-  function formatDate(dateString: string): string {
+  function formatDate(dateString: string | Date): string {
     const date = new Date(parseDateTimeString(dateString));
     return date.toLocaleDateString("en-ZA", {
       year: "numeric",
@@ -32,7 +32,7 @@
   }
 
   // Format time
-  function formatTime(dateString: string): string {
+  function formatTime(dateString: string | Date): string {
     const date = new Date(parseDateTimeString(dateString));
     return date.toLocaleTimeString("en-ZA", {
       hour: "2-digit",

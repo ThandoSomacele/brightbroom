@@ -3,12 +3,14 @@ import { db } from "$lib/server/db";
 import {
   cleanerApplication,
   cleanerProfile,
+  idTypeEnum,
+  petCompatibilityEnum,
   user,
 } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
 import { tenantService } from "$lib/server/services/tenant.service";
 import { generateStrongPassword } from "$lib/utils/auth-utils";
-import { eq, like, or } from "drizzle-orm";
+import { and, desc, eq, like, or } from "drizzle-orm";
 
 /**
  * Service for managing cleaner applications
@@ -19,17 +21,12 @@ export const cleanerApplicationService = {
    */
   async getAllApplications(status?: "PENDING" | "APPROVED" | "REJECTED") {
     try {
-      let query = db.select().from(cleanerApplication);
-
-      // Filter by status if provided
-      if (status) {
-        query = query.where(eq(cleanerApplication.status, status));
-      }
-
-      // Order by creation date, newest first
-      return await query.orderBy(cleanerApplication.createdAt, {
-        direction: "desc",
-      });
+      // Filter by status if provided, newest first
+      return await db
+        .select()
+        .from(cleanerApplication)
+        .where(status ? eq(cleanerApplication.status, status) : undefined)
+        .orderBy(desc(cleanerApplication.createdAt));
     } catch (error) {
       console.error("Error fetching cleaner applications:", error);
       throw error;
@@ -62,25 +59,21 @@ export const cleanerApplicationService = {
     status?: "PENDING" | "APPROVED" | "REJECTED",
   ) {
     try {
-      let query = db
+      // Search term match, plus the status filter if provided, newest first
+      return await db
         .select()
         .from(cleanerApplication)
         .where(
-          or(
-            like(cleanerApplication.firstName, `%${searchTerm}%`),
-            like(cleanerApplication.lastName, `%${searchTerm}%`),
-            like(cleanerApplication.email, `%${searchTerm}%`),
+          and(
+            or(
+              like(cleanerApplication.firstName, `%${searchTerm}%`),
+              like(cleanerApplication.lastName, `%${searchTerm}%`),
+              like(cleanerApplication.email, `%${searchTerm}%`),
+            ),
+            status ? eq(cleanerApplication.status, status) : undefined,
           ),
-        );
-
-      // Add status filter if provided
-      if (status) {
-        query = query.where(eq(cleanerApplication.status, status));
-      }
-
-      return await query.orderBy(cleanerApplication.createdAt, {
-        direction: "desc",
-      });
+        )
+        .orderBy(desc(cleanerApplication.createdAt));
     } catch (error) {
       console.error("Error searching cleaner applications:", error);
       throw error;
@@ -97,7 +90,12 @@ export const cleanerApplicationService = {
    */
   async approveApplication(
     applicationId: string,
-  ): Promise<{ success: boolean; message: string; userId?: string }> {
+  ): Promise<{
+    success: boolean;
+    message: string;
+    userId?: string;
+    details?: { email: string; role: string };
+  }> {
     try {
       // Get the application
       const [application] = await db
@@ -134,6 +132,23 @@ export const cleanerApplicationService = {
         };
       }
 
+      // The profile columns below are NOT NULL / enums while the application
+      // stores free text, so check them before creating any account.
+      const idType = idTypeEnum.enumValues.find(
+        (v) => v === application.idType,
+      );
+      const petCompatibility = petCompatibilityEnum.enumValues.find(
+        (v) => v === (application.petCompatibility || "NONE"),
+      );
+      const { idNumber, latitude, longitude } = application;
+      if (!idType || !idNumber || !latitude || !longitude || !petCompatibility) {
+        return {
+          success: false,
+          message:
+            "Application is missing a valid ID type, ID number, location or pet compatibility. Please update the application first.",
+        };
+      }
+
       // 1. Create user account
       // Generate random password that will require reset
       const tempPassword = generateStrongPassword();
@@ -155,8 +170,6 @@ export const cleanerApplicationService = {
           passwordHash: hashedPassword,
           phone: application.phone,
           role: "CLEANER",
-          taxNumber: application.taxNumber || null,
-          bankAccount: application.bankAccount || null,
           isActive: true,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -190,16 +203,16 @@ export const cleanerApplicationService = {
           id: profileId,
           userId: userId,
           tenantId: resolvedTenantId,
-          idType: application.idType,
-          idNumber: application.idNumber,
+          idType,
+          idNumber,
           // Use application location as work location
-          workLocationLat: application.latitude,
-          workLocationLng: application.longitude,
+          workLocationLat: latitude,
+          workLocationLng: longitude,
           workAddress: application.formattedAddress || application.city,
-          workRadius: application.workRadius || 20, // Default 20km radius
+          workRadius: application.workRadius || "20", // Default 20km radius
           bio: application.bio || "",
           taxNumber: application.taxNumber || null,
-          petCompatibility: application.petCompatibility || "NONE",
+          petCompatibility,
           availableDays: availableDays,
           trainingCompleted: [], // No training completed yet - admin will update after onboarding
           rating: null, // No ratings yet

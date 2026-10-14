@@ -22,7 +22,7 @@
   });
 
   // Format date function
-  function formatDate(dateString: string): string {
+  function formatDate(dateString: string | Date): string {
     const date = new Date(dateString);
     return date.toLocaleDateString(undefined, {
       weekday: "short",
@@ -284,9 +284,7 @@
                             <span
                               class={`font-medium ${payment.status === "COMPLETED" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
                             >
-                              R{typeof payment.amount === "number"
-                                ? payment.amount.toFixed(2)
-                                : parseFloat(payment.amount).toFixed(2)}
+                              R{parseFloat(payment.amount).toFixed(2)}
                             </span>
                           </div>
                         {/each}
@@ -303,9 +301,7 @@
                     Per cleaning
                   </div>
                   <div class="mb-2 text-2xl font-bold text-primary-700">
-                    R{typeof subscription.finalPrice === "number"
-                      ? subscription.finalPrice.toFixed(2)
-                      : parseFloat(subscription.finalPrice).toFixed(2)}
+                    R{parseFloat(subscription.finalPrice).toFixed(2)}
                   </div>
                 </div>
 
@@ -432,7 +428,7 @@
             type="hidden"
             name="token"
             value={subscriptions.find(
-              (s) => s.id === confirmingAction.subscriptionId,
+              (s) => s.id === confirmingAction?.subscriptionId,
             )?.payFastToken || ""}
           />
           {#if confirmingAction.action === "cancel" && cancellationReason}

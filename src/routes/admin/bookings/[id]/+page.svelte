@@ -47,6 +47,8 @@
   let selectedStatus = "";
   let selectedCleaner = "";
   let isUpdateLoading = false;
+  // Bound to the communication method <select>; drives the subject field
+  let communicationMethod = "email";
   let isSendingNotification = false;
   let newNote = "";
   let newComment = "";
@@ -194,7 +196,7 @@
   }
 
   // Format price
-  function formatPrice(price): string {
+  function formatPrice(price: number | string): string {
     return new Intl.NumberFormat("en-ZA", {
       style: "currency",
       currency: "ZAR",
@@ -530,12 +532,8 @@
                 size="sm"
                 class="ml-2 text-primary-700"
                 on:click={() => {
+                  communicationMethod = "email";
                   showAddCommentModal = true;
-                  setTimeout(() => {
-                    document
-                      .getElementById("communicationMethod")
-                      ?.setAttribute("value", "email");
-                  }, 100);
                 }}
               >
                 Email
@@ -558,12 +556,8 @@
                   size="sm"
                   class="ml-2 text-primary-700"
                   on:click={() => {
+                    communicationMethod = "sms";
                     showAddCommentModal = true;
-                    setTimeout(() => {
-                      document
-                        .getElementById("communicationMethod")
-                        ?.setAttribute("value", "sms");
-                    }, 100);
                   }}
                 >
                   SMS
@@ -1342,6 +1336,7 @@
           <select
             id="communicationMethod"
             name="method"
+            bind:value={communicationMethod}
             class="w-full border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           >
             <option value="email">Email</option>
@@ -1352,7 +1347,7 @@
           </select>
         </div>
 
-        {#if document.getElementById("communicationMethod")?.value === "email"}
+        {#if communicationMethod === "email"}
           <div class="mb-4">
             <label
               for="subject"

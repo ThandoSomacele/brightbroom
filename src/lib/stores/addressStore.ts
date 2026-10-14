@@ -164,7 +164,7 @@ function createAddressStore() {
       }
 
       // First capture the current state before beginning the async operation
-      let currentServiceAreaEnabled: boolean;
+      let currentServiceAreaEnabled = false; // set synchronously by update() below
 
       update((state) => {
         currentServiceAreaEnabled = state.serviceAreaEnabled;

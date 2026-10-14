@@ -84,7 +84,9 @@
   });
 
   // Handle Google Places selection
-  function handleGooglePlacesSelect(event) {
+  function handleGooglePlacesSelect(
+    event: CustomEvent<{ address: typeof selectedGoogleAddress }>,
+  ) {
     const { address } = event.detail;
 
     // Clear any previous validation errors

@@ -9,7 +9,8 @@
   export let data;
   const { service } = data;
 
-  // Form result data
+  // Form result data. The edit form posts to /admin/services?/update, so after
+  // enhance's update() this can also hold that action's { error } payload.
   export let form;
 
   let isLoading = false;
@@ -43,7 +44,7 @@
   >
     {form.message}
   </div>
-{:else if form?.error}
+{:else if form && "error" in form && form.error}
   <div
     class="mb-6 bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-300 p-4 rounded-md"
   >
@@ -69,13 +70,14 @@
           // Update local service data immediately
           service.name = name;
           service.description = description;
-          service.basePrice = parseFloat(basePrice);
+          service.basePrice = String(parseFloat(basePrice));
           service.durationHours = parseInt(durationHours);
           
           // Show success notification
           showSuccess("Service updated successfully");
         } else if (result.type === "failure") {
-          showError(result.data?.error || "Failed to update service");
+          const message = result.data?.error;
+          showError(typeof message === "string" && message ? message : "Failed to update service");
         }
         
         await update();

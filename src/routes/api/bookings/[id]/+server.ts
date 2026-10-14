@@ -48,11 +48,13 @@ export const GET: RequestHandler = async ({ params, locals }) => {
         paymentMethod: payment.paymentMethod,
         createdAt: payment.createdAt,
       },
-      cleaner: booking.cleanerId ? {
+      // A column object is always truthy, so the old `booking.cleanerId ? … : null`
+      // always picked this branch; Drizzle returns null here when no cleaner joins.
+      cleaner: {
         id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
-      } : null
+      }
     })
     .from(booking)
     .innerJoin(service, eq(booking.serviceId, service.id))
@@ -104,11 +106,13 @@ export const GET: RequestHandler = async ({ params, locals }) => {
             paymentMethod: payment.paymentMethod,
             createdAt: payment.createdAt,
           },
-          cleaner: booking.cleanerId ? {
+          // A column object is always truthy, so the old `booking.cleanerId ? … : null`
+          // always picked this branch; Drizzle returns null here when no cleaner joins.
+          cleaner: {
             id: user.id,
             firstName: user.firstName,
             lastName: user.lastName,
-          } : null
+          }
         })
         .from(booking)
         .innerJoin(service, eq(booking.serviceId, service.id))

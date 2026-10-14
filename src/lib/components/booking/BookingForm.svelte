@@ -9,7 +9,7 @@
     servicesError,
     servicesLoading,
   } from "$lib/stores/services";
-  import type { Service } from "@prisma/client";
+  import type { Service } from "$lib/types/db";
   import { format } from "date-fns";
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";

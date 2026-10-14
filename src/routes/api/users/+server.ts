@@ -3,9 +3,14 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { user } from '$lib/server/db/schema';
-import { eq, like, or, desc, count } from 'drizzle-orm';
+import { and, eq, like, or, desc, count } from 'drizzle-orm';
 
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = async ({ url, locals }) => {
+  // User directory: admins only
+  if (!locals.user || locals.user.role !== 'ADMIN') {
+    return json({ error: 'Unauthorized' }, { status: 403 });
+  }
+
   try {
     // Get query parameters
     const role = url.searchParams.get('role') as any;
@@ -14,16 +19,11 @@ export const GET: RequestHandler = async ({ url }) => {
     const limit = parseInt(url.searchParams.get('limit') || '10');
     const skip = (page - 1) * limit;
 
-    // Build query
-    let query = db.select().from(user);
-    
-    // Apply filters
-    if (role) {
-      query = query.where(eq(user.role, role));
-    }
-    
+    // Build filters once; calling .where() twice would replace the first condition
+    const conditions = [];
+    if (role) conditions.push(eq(user.role, role));
     if (search) {
-      query = query.where(
+      conditions.push(
         or(
           like(user.firstName, `%${search}%`),
           like(user.lastName, `%${search}%`),
@@ -31,32 +31,22 @@ export const GET: RequestHandler = async ({ url }) => {
         )
       );
     }
-    
+    const where = conditions.length ? and(...conditions) : undefined;
+
     // Execute query with pagination
-    const users = await query
+    const users = await db
+      .select()
+      .from(user)
+      .where(where)
       .limit(limit)
       .offset(skip)
       .orderBy(desc(user.createdAt));
 
     // Count total for pagination
-    const countQuery = db.select({ count: count() }).from(user);
-    
-    if (role) {
-      countQuery.where(eq(user.role, role));
-    }
-    
-    if (search) {
-      countQuery.where(
-        or(
-          like(user.firstName, `%${search}%`),
-          like(user.lastName, `%${search}%`),
-          like(user.email, `%${search}%`)
-        )
-      );
-    }
-    
-    const [{ count }] = await countQuery;
-    const total = Number(count) || 0;
+    const countQuery = db.select({ count: count() }).from(user).where(where);
+
+    const [{ count: totalCount }] = await countQuery;
+    const total = Number(totalCount) || 0;
 
     // Remove passwordHash from user objects for security
     const safeUsers = users.map(u => {

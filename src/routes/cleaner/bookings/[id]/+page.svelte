@@ -16,7 +16,7 @@
   let showAddNote = false;
 
   // Format date
-  function formatDate(dateString: string): string {
+  function formatDate(dateString: string | Date): string {
     const date = parseDateTimeString(dateString);
     return date.toLocaleDateString("en-ZA", {
       weekday: "long",
@@ -27,7 +27,7 @@
   }
 
   // Format time
-  function formatTime(dateString: string): string {
+  function formatTime(dateString: string | Date): string {
     const date = parseDateTimeString(dateString);
     return date.toLocaleTimeString("en-ZA", {
       hour: "2-digit",
@@ -36,11 +36,11 @@
   }
 
   // Format currency
-  function formatCurrency(amount: number): string {
+  function formatCurrency(amount: number | string): string {
     return new Intl.NumberFormat("en-ZA", {
       style: "currency",
       currency: "ZAR",
-    }).format(amount);
+    }).format(Number(amount));
   }
 
   // Get status badge class
@@ -102,7 +102,7 @@
   }
 
   // Format relative time for communications
-  function formatRelativeTime(dateString: string): string {
+  function formatRelativeTime(dateString: string | Date): string {
     const date = parseDateTimeString(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -657,7 +657,7 @@
               >Platform fee (20%):</span
             >
             <span class="text-gray-900 dark:text-white"
-              >{formatCurrency(bookingDetails.booking.price * 0.20)}</span
+              >{formatCurrency(Number(bookingDetails.booking.price) * 0.20)}</span
             >
           </div>
 

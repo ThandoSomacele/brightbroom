@@ -22,6 +22,7 @@
   import { invalidateAll } from "$app/navigation";
   import ApplicationApprovalActions from "$lib/components/admin/ApplicationApprovalActions.svelte";
   import ApplicationEditForm from "$lib/components/admin/ApplicationEditForm.svelte";
+  import { secureAPIFetch } from "$lib/utils/api-helpers";
   import Button from "$lib/components/ui/Button.svelte";
   import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
   import { imageUrl } from "$lib/utils/media";
@@ -80,7 +81,9 @@
   }
 
   // Handle save changes
-  async function saveChanges(event) {
+  async function saveChanges(
+    event: CustomEvent<{ updatedApplication: { id: string } }>,
+  ) {
     const { updatedApplication } = event.detail;
 
     isProcessing = true;
@@ -89,8 +92,8 @@
 
     try {
       // Send update to server
-      const response = await fetch(
-        `/api/admin/applications/${application.id}`,
+      const response = await secureAPIFetch(
+        `/api/admin/applications/${updatedApplication.id}`,
         {
           method: "PATCH",
           headers: {
@@ -129,7 +132,7 @@
   }
 
   // Handle approval success
-  function handleApproved(event) {
+  function handleApproved(event: CustomEvent<{ userId: string }>) {
     successMessage =
       "Application approved successfully! Cleaner account created.";
     invalidateAll();
@@ -142,7 +145,7 @@
   }
 
   // Handle error
-  function handleError(event) {
+  function handleError(event: CustomEvent<{ message: string }>) {
     errorMessage = event.detail.message;
   }
 
@@ -437,7 +440,7 @@
 
             <!-- Service area status indicator -->
             <div class="mt-3">
-              {#if isWithinServiceArea(application.latitude, application.longitude)}
+              {#if isWithinServiceArea(parseFloat(application.latitude), parseFloat(application.longitude))}
                 <div
                   class="inline-flex items-center rounded-md bg-green-50 px-3 py-1 text-sm font-medium text-green-700 dark:bg-green-900/20 dark:text-green-300"
                 >

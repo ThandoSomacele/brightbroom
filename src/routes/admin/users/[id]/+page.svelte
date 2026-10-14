@@ -6,6 +6,9 @@
   import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
   import { parseDateTimeString } from "$lib/utils/date-utils";
   import { showSuccess, showError } from "../../+layout.svelte";
+  import type { PageData } from "./$types";
+
+  type UserRole = Awaited<PageData["streamed"]["userData"]>["user"]["role"];
   
   export let data;
   export let form;
@@ -17,7 +20,8 @@
   let editFirstName = "";
   let editLastName = "";
   let editPhone = "";
-  let editRole = "";
+  // Overwritten from the loaded user before the edit form is shown
+  let editRole: UserRole = "CUSTOMER";
 
   // Initialize form values when user data loads
   function initializeFormValues(user: any) {
@@ -28,7 +32,7 @@
   }
 
   // Format date function
-  function formatDate(dateString: string): string {
+  function formatDate(dateString: string | Date): string {
     const date = new Date(parseDateTimeString(dateString));
     return date.toLocaleDateString("en-ZA", {
       year: "numeric",
@@ -38,7 +42,7 @@
   }
 
   // Format time for recent activity
-  function formatRelativeTime(dateString: string): string {
+  function formatRelativeTime(dateString: string | Date): string {
     const date = new Date(parseDateTimeString(dateString));
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -183,7 +187,8 @@
                 // Show success notification
                 showSuccess("User updated successfully");
               } else if (result.type === "failure") {
-                showError(result.data?.error || "Failed to update user");
+                const message = result.data?.error;
+                showError(typeof message === "string" && message ? message : "Failed to update user");
               }
 
               await update();

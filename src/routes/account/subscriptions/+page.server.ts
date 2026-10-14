@@ -40,7 +40,7 @@ export const load: PageServerLoad = async ({ locals }) => {
         id: address.id,
         street: address.street,
         city: address.city,
-        postalCode: address.postalCode,
+        postalCode: address.zipCode,
       },
       cleaner: {
         id: user.id,
