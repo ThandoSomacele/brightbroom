@@ -9,7 +9,6 @@ import type { Article, ArticleFrontmatter, ArticleSummary } from '$lib/types/art
 marked.setOptions({
   gfm: true, // GitHub Flavored Markdown
   breaks: true, // Convert line breaks to <br>
-  headerIds: true, // Add IDs to headers for anchor links
 });
 
 /**
@@ -114,7 +113,7 @@ export function articleToSummary(article: Article): ArticleSummary {
  * Render markdown content to HTML
  */
 export function renderMarkdown(content: string): string {
-  return marked.parse(content);
+  return marked.parse(content, { async: false });
 }
 
 /**

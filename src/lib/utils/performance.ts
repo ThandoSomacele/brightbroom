@@ -82,7 +82,8 @@ export class PerformanceMonitor {
       // First Input Delay
       const fidObserver = new PerformanceObserver((entryList) => {
         const entries = entryList.getEntries();
-        for (const entry of entries) {
+        // "first-input" entries are PerformanceEventTiming, which carry processingStart
+        for (const entry of entries as PerformanceEventTiming[]) {
           this.metrics.firstInputDelay =
             entry.processingStart - entry.startTime;
         }

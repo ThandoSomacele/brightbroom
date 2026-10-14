@@ -193,6 +193,20 @@ export const cleanerEarningsService = {
 
       // Create or update the summary record for future use
       try {
+        // Decimal columns are typed as strings; String(n) is exactly what the
+        // pg driver would have sent for the plain number, so values are unchanged.
+        const summaryAmounts = {
+          totalEarnings: String(totalEarnings),
+          totalCommission: String(totalCommission),
+          totalPayout: String(totalPayout),
+          pendingPayout: String(pendingPayout),
+          totalEarningsCurrentMonth: String(currentMonthEarnings),
+          totalEarningsLastMonth: String(lastMonthEarnings),
+          totalEarningsThisYear: String(yearToDateEarnings),
+          lastPayoutAmount:
+            lastPayoutAmount === null ? null : String(lastPayoutAmount),
+        };
+
         const existingRecords = await db
           .select({ id: cleanerPayoutSummary.id })
           .from(cleanerPayoutSummary)
@@ -203,14 +217,7 @@ export const cleanerEarningsService = {
           await db.insert(cleanerPayoutSummary).values({
             id: crypto.randomUUID(),
             cleanerId,
-            totalEarnings,
-            totalCommission,
-            totalPayout,
-            pendingPayout,
-            totalEarningsCurrentMonth: currentMonthEarnings,
-            totalEarningsLastMonth: lastMonthEarnings,
-            totalEarningsThisYear: yearToDateEarnings,
-            lastPayoutAmount,
+            ...summaryAmounts,
             lastPayoutDate,
             lastUpdated: new Date(),
           });
@@ -219,14 +226,7 @@ export const cleanerEarningsService = {
           await db
             .update(cleanerPayoutSummary)
             .set({
-              totalEarnings,
-              totalCommission,
-              totalPayout,
-              pendingPayout,
-              totalEarningsCurrentMonth: currentMonthEarnings,
-              totalEarningsLastMonth: lastMonthEarnings,
-              totalEarningsThisYear: yearToDateEarnings,
-              lastPayoutAmount,
+              ...summaryAmounts,
               lastPayoutDate,
               lastUpdated: new Date(),
             })
@@ -305,7 +305,7 @@ export const cleanerEarningsService = {
           .update(cleanerPayoutSummary)
           .set({
             pendingPayout: sql`${cleanerPayoutSummary.pendingPayout} - ${amount}`,
-            lastPayoutAmount: amount,
+            lastPayoutAmount: String(amount),
             lastPayoutDate: now,
             lastUpdated: now,
           })

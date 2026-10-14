@@ -32,11 +32,13 @@
     </div>
 
     <div class="card animate-fade-in-up p-8">
-      {#if form?.success}
+      <!-- The action redirects to /auth/login on success and only ever returns
+           { error }, so these keys are checked rather than assumed -->
+      {#if form && "success" in form && form.success}
         <div
           class="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-200 p-4 rounded-md mb-6"
         >
-          <p>{form.message}</p>
+          <p>{"message" in form ? form.message : ""}</p>
         </div>
 
         <div class="mt-6 text-center">

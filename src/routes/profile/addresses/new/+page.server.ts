@@ -63,6 +63,8 @@ export const actions: Actions = {
     if (hasReachedLimit) {
       return fail(400, {
         error: `You have reached the maximum limit of ${MAX_ADDRESSES} addresses. Please delete an existing address before adding a new one.`,
+        // Keep the same shape as the other failures so ActionData includes `values`
+        values: null,
       });
     }
 

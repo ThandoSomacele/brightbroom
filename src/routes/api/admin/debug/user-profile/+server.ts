@@ -107,10 +107,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         userId,
         idType: "SOUTH_AFRICAN_ID",
         idNumber: "0000000000000", // Placeholder - admin should update this
-        workLocationLat: -26.0274, // Default to Fourways
-        workLocationLng: 28.0106,
+        workLocationLat: "-26.0274", // Default to Fourways
+        workLocationLng: "28.0106",
         workAddress: "Fourways, Johannesburg", // Default address
-        workRadius: 10, // Default radius in km
+        workRadius: "10", // Default radius in km
         petCompatibility: "NONE",
         availableDays: ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
         isAvailable: false, // Start as unavailable until configured properly

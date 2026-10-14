@@ -4,6 +4,8 @@ import {
   applicationNote,
   cleanerApplication,
   cleanerProfile,
+  idTypeEnum,
+  petCompatibilityEnum,
   user,
 } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
@@ -11,6 +13,18 @@ import { hash } from "@node-rs/argon2";
 import { fail, redirect } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
+
+type IdType = (typeof idTypeEnum.enumValues)[number];
+type PetCompatibility = (typeof petCompatibilityEnum.enumValues)[number];
+
+// The form posts these as free text; the profile columns are enums.
+function toIdType(value: string): IdType {
+  return idTypeEnum.enumValues.find((v) => v === value) ?? "SOUTH_AFRICAN_ID";
+}
+
+function toPetCompatibility(value: string): PetCompatibility {
+  return petCompatibilityEnum.enumValues.find((v) => v === value) ?? "NONE";
+}
 
 export const load: PageServerLoad = async ({ locals }) => {
   if (!locals.user || locals.user.role !== "ADMIN") {
@@ -23,7 +37,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions: Actions = {
   create: async ({ request, locals }) => {
     if (!locals.user || locals.user.role !== "ADMIN") {
-      return fail(403, { error: "Unauthorized" });
+      // `data: undefined` stops TypeScript folding the failures below (which
+      // echo the submitted values) into this one, so the page can read form.data
+      return fail(403, { error: "Unauthorized", data: undefined });
     }
 
     const formData = await request.formData();
@@ -226,14 +242,14 @@ export const actions: Actions = {
         await db.insert(cleanerProfile).values({
           id: profileId,
           userId,
-          idType: idType || "SOUTH_AFRICAN_ID",
+          idType: toIdType(idType),
           idNumber: idNumber || "PENDING",
           workAddress: workAddress || city,
-          workLocationLat: workLatitude,
-          workLocationLng: workLongitude,
-          workRadius: 10,
+          workLocationLat: String(workLatitude),
+          workLocationLng: String(workLongitude),
+          workRadius: "10",
           bio: bio || "",
-          petCompatibility: petCompatibility || "NONE",
+          petCompatibility: toPetCompatibility(petCompatibility),
           availableDays: availabilityArray,
           trainingCompleted: [],
           isAvailable: false,
@@ -257,7 +273,6 @@ export const actions: Actions = {
               firstName,
               lastName,
               role: "CLEANER",
-              temporaryPassword,
             });
           } catch (emailError) {
             console.error("Error sending welcome email:", emailError);

@@ -686,9 +686,12 @@
                     method="POST"
                     action="?/deleteAddon"
                     class="inline"
-                    use:enhance={() => {
+                    use:enhance={({ cancel }) => {
+                      // cancel() must run before submission; the returned
+                      // callback only fires after the delete has gone through
                       if (!confirm(`Are you sure you want to delete "${addon.name}"?`)) {
-                        return ({ cancel }) => cancel();
+                        cancel();
+                        return;
                       }
                       return async ({ update }) => await update();
                     }}

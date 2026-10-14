@@ -4,10 +4,11 @@
   import { enhance } from '$app/forms';
   import Button from '$lib/components/ui/Button.svelte';
   import { parseDateTimeString } from '$lib/utils/date-utils';
+  import type { ActionData, PageData } from './$types';
 
-  export let data;
+  export let data: PageData;
   const { booking, availableCleaners } = data;
-  export let form;
+  export let form: ActionData;
   
   let isUpdateLoading = false;
   let showStatusChangeModal = false;
@@ -16,7 +17,7 @@
   let selectedCleaner = booking.cleaner?.id || '';
   
   // Format date function
-  function formatDate(dateString: string): string {
+  function formatDate(dateString: string | Date): string {
     const date = parseDateTimeString(dateString);
     return date.toLocaleDateString('en-ZA', {
       weekday: 'long',
@@ -27,7 +28,7 @@
   }
   
   // Format time function
-  function formatTime(dateString: string): string {
+  function formatTime(dateString: string | Date): string {
     const date = parseDateTimeString(dateString);
     return date.toLocaleTimeString('en-ZA', {
       hour: '2-digit',
@@ -61,7 +62,7 @@
   }
   
   // Format price
-  function formatPrice(price): string {
+  function formatPrice(price: string | number): string {
     return new Intl.NumberFormat('en-ZA', {
       style: 'currency',
       currency: 'ZAR'
@@ -145,7 +146,7 @@
           <Icon name="house" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
           <div>
             <p class="font-medium text-gray-900 dark:text-white">Service Type</p>
-            <p class="text-gray-600 dark:text-gray-300">{booking.service.name}</p>
+            <p class="text-gray-600 dark:text-gray-300">{booking.service?.name ?? ''}</p>
           </div>
         </div>
         
@@ -170,8 +171,8 @@
           <div>
             <p class="font-medium text-gray-900 dark:text-white">Location</p>
             <p class="text-gray-600 dark:text-gray-300">
-              {booking.address.street}<br>
-              {booking.address.city}, {booking.address.state} {booking.address.zipCode}
+              {booking.address?.street ?? ''}<br>
+              {booking.address?.city ?? ''}, {booking.address?.state ?? ''} {booking.address?.zipCode ?? ''}
             </p>
           </div>
         </div>
@@ -197,7 +198,7 @@
           <Icon name="user" size={20} class="mr-3 mt-0.5 flex-shrink-0 text-primary-700" />
           <div>
             <p class="font-medium text-gray-900 dark:text-white">Name</p>
-            <p class="text-gray-600 dark:text-gray-300">{booking.customer.firstName} {booking.customer.lastName}</p>
+            <p class="text-gray-600 dark:text-gray-300">{booking.customer?.firstName ?? ''} {booking.customer?.lastName ?? ''}</p>
           </div>
         </div>
         
@@ -208,11 +209,11 @@
           </svg>
           <div>
             <p class="font-medium text-gray-900 dark:text-white">Email</p>
-            <p class="text-gray-600 dark:text-gray-300">{booking.customer.email}</p>
+            <p class="text-gray-600 dark:text-gray-300">{booking.customer?.email ?? ''}</p>
           </div>
         </div>
         
-        {#if booking.customer.phone}
+        {#if booking.customer?.phone}
           <div class="flex items-start">
             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3 mt-0.5 flex-shrink-0 text-primary-700 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
@@ -224,14 +225,16 @@
           </div>
         {/if}
         
-        <div class="flex justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
-          <a 
-            href={`/admin/users/${booking.customer.id}`}
-            class="text-primary-700 hover:text-primary-800 font-medium text-sm"
-          >
-            View Customer Profile
-          </a>
-        </div>
+        {#if booking.customer}
+          <div class="flex justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
+            <a 
+              href={`/admin/users/${booking.customer.id}`}
+              class="text-primary-700 hover:text-primary-800 font-medium text-sm"
+            >
+              View Customer Profile
+            </a>
+          </div>
+        {/if}
       </div>
     </div>
     

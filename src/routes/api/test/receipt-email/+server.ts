@@ -1,12 +1,14 @@
 // src/routes/api/test/receipt-email/+server.ts
+import { dev } from '$app/environment';
 import { json } from '@sveltejs/kit';
 import { sendPaymentReceiptEmail } from '$lib/server/email-service';
 import type { RequestHandler } from './$types';
 
 // Ensure we only expose this endpoint in development
 export const GET: RequestHandler = async ({ url }) => {
-  // Safety check - only expose in development
-  if (process.env.NODE_ENV === 'production') {
+  // Only the local dev server may send test emails. NODE_ENV is not
+  // "production" inside Netlify functions, so it can't be the guard.
+  if (!dev) {
     return new Response('Not found', { status: 404 });
   }
 

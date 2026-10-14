@@ -10,7 +10,8 @@ import { calculateCleaningPrice } from '$lib/utils/pricing';
 import { eq, inArray } from 'drizzle-orm';
 import crypto from 'crypto';
 
-export const POST: RequestHandler = async ({ request, locals, ...event }) => {
+export const POST: RequestHandler = async (event) => {
+  const { request, locals } = event;
   // Check if user is authenticated
   if (!locals.user) {
     return json({ error: 'Unauthorized' }, { status: 401 });
@@ -98,16 +99,15 @@ export const POST: RequestHandler = async ({ request, locals, ...event }) => {
           id: crypto.randomBytes(16).toString('hex'),
           userId: locals.user.id,
           street: guestAddress.street || '',
-          streetNumber: guestAddress.streetNumber || null,
           aptUnit: guestAddress.aptUnit || null,
           city: guestAddress.city,
           state: guestAddress.state,
           zipCode: guestAddress.zipCode,
-          country: 'South Africa',
           instructions: guestAddress.instructions || null,
-          lat: guestAddress.lat || null,
-          lng: guestAddress.lng || null,
-          isPrimary: false,
+          // Decimal columns are strings in Drizzle
+          lat: guestAddress.lat ? String(guestAddress.lat) : null,
+          lng: guestAddress.lng ? String(guestAddress.lng) : null,
+          isDefault: false,
           createdAt: new Date(),
           updatedAt: new Date()
         }).returning();

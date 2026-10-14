@@ -8,7 +8,7 @@ import {
   payment,
   user,
 } from "$lib/server/db/schema";
-import { error, redirect } from "@sveltejs/kit";
+import { error, isHttpError, redirect } from "@sveltejs/kit";
 import { and, eq } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
 
@@ -50,21 +50,17 @@ export const load: PageServerLoad = async ({ params, locals }) => {
           paymentMethod: payment.paymentMethod,
           createdAt: payment.createdAt,
         },
-        cleaner: booking.cleanerId
-          ? {
-              id: user.id,
-              firstName: user.firstName,
-              lastName: user.lastName,
-            }
-          : null,
+        // Left-joined, so Drizzle returns null when no cleaner is assigned
+        cleaner: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
       })
       .from(booking)
       .leftJoin(address, eq(booking.addressId, address.id)) // Changed to leftJoin for guest bookings
       .leftJoin(payment, eq(booking.id, payment.bookingId))
-      .leftJoin(
-        user,
-        booking.cleanerId ? eq(booking.cleanerId, user.id) : undefined,
-      )
+      .leftJoin(user, eq(booking.cleanerId, user.id))
       .where(and(eq(booking.id, bookingId), eq(booking.userId, locals.user.id)))
       .limit(1);
 
@@ -93,14 +89,20 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     return {
       booking: {
         ...bookingDetail,
+        // json column: written by the guest booking flow (see guest-booking.ts)
+        guestAddress: bookingDetail.guestAddress as {
+          street?: string;
+          city?: string;
+          state?: string;
+          zipCode?: string;
+        } | null,
         addons,
       },
     };
   } catch (err) {
+    // Re-throw the 404 above as-is (it is an HttpError, not an Error)
+    if (isHttpError(err)) throw err;
     console.error("Error loading booking details:", err);
-    if (err instanceof Error && err.message === "Booking not found") {
-      throw error(404, "Booking not found");
-    }
     throw error(500, "Failed to load booking details");
   }
 };

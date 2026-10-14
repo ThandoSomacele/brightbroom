@@ -250,7 +250,7 @@ export const actions: Actions = {
   },
 
   // Update cleaner profile
-  updateProfile: async ({ params, request }) => {
+  updateProfile: async ({ params, request, locals }) => {
     const cleanerId = params.id;
 
     if (!cleanerId) {
@@ -318,9 +318,12 @@ export const actions: Actions = {
             // Only overwrite coordinates when a fresh address selection
             // provided them, so an edit can't wipe existing coordinates
             ...(workLocationLat && workLocationLng
-              ? { workLocationLat, workLocationLng }
+              ? {
+                  workLocationLat: String(workLocationLat),
+                  workLocationLng: String(workLocationLng),
+                }
               : {}),
-            workRadius,
+            workRadius: String(workRadius),
             bio,
             petCompatibility: petCompatibility as any, // Type assertion
             isAvailable,
@@ -340,7 +343,7 @@ export const actions: Actions = {
           userId: cleanerId,
           tenantId: resolvedTenantId,
           workAddress,
-          workRadius,
+          workRadius: String(workRadius),
           bio,
           petCompatibility: petCompatibility as any, // Type assertion
           isAvailable,
@@ -349,8 +352,8 @@ export const actions: Actions = {
           taxNumber,
           availableDays,
           experienceTypes, // Include experience types
-          workLocationLat,
-          workLocationLng,
+          workLocationLat: String(workLocationLat),
+          workLocationLng: String(workLocationLng),
           createdAt: new Date(),
           updatedAt: new Date(),
         });

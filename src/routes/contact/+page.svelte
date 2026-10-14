@@ -219,8 +219,9 @@
                     if (result.type === "success") {
                       formSuccess = true;
                     } else if (result.type === "failure") {
+                      const serverError = result.data?.error;
                       formError =
-                        result.data?.error ||
+                        (typeof serverError === "string" && serverError) ||
                         "There was an error submitting your message. Please try again.";
                     } else if (result.type === "error") {
                       formError =

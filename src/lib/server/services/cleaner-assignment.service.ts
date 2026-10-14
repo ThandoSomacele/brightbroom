@@ -23,7 +23,8 @@ export const cleanerAssignmentService = {
       id: string;
       firstName: string;
       lastName: string;
-      rating: number | null;
+      // Decimal column, so Drizzle returns it as a string
+      rating: string | null;
       distance: number;
       availability: "AVAILABLE" | "LIMITED" | "UNAVAILABLE";
       // Why a cleaner is not fully AVAILABLE, so admins can tell a missing
@@ -332,7 +333,7 @@ export const cleanerAssignmentService = {
         }
 
         // Then sort by rating (descending)
-        return (b.rating || 0) - (a.rating || 0);
+        return Number(b.rating || 0) - Number(a.rating || 0);
       });
 
       return {
@@ -419,6 +420,7 @@ export const cleanerAssignmentService = {
     success: boolean;
     cleanerId?: string;
     message?: string;
+    error?: string;
   }> {
     try {
       // Find available cleaners

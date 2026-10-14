@@ -68,7 +68,7 @@ export const actions: Actions = {
         id: crypto.randomUUID(),
         name,
         description,
-        basePrice: parsedBasePrice,
+        basePrice: String(parsedBasePrice),
         durationHours: parsedDurationHours,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -123,7 +123,7 @@ export const actions: Actions = {
         .set({
           name,
           description,
-          basePrice: parsedBasePrice,
+          basePrice: String(parsedBasePrice),
           durationHours: parsedDurationHours,
           updatedAt: new Date(),
         })

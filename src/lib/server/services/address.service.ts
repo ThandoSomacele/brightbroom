@@ -4,7 +4,7 @@ import { db } from "$lib/server/db";
 import { address, booking } from "$lib/server/db/schema";
 import { geocodeAddress } from "$lib/utils/geocoding";
 import { normalizeAddressField } from "$lib/utils/address-normalization";
-import { and, eq, ne, sql } from "drizzle-orm";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
 
 /**
  * Service for managing user addresses
@@ -29,7 +29,7 @@ export const addressService = {
         .select()
         .from(address)
         .where(and(...whereConditions))
-        .orderBy(address.isDefault, { direction: "desc" });
+        .orderBy(desc(address.isDefault));
 
       return await query;
     } catch (error) {
@@ -205,7 +205,12 @@ export const addressService = {
 
         // If user wants this as default, update the existing address
         if (addressData.isDefault && !existingAddress.isDefault) {
-          return await this.setDefaultAddress(userId, existingAddress.id);
+          // setDefaultAddress only returns null if the address vanished in
+          // between; fall back to the address we already have
+          return (
+            (await this.setDefaultAddress(userId, existingAddress.id)) ??
+            existingAddress
+          );
         }
 
         // Return existing address without creating a new one

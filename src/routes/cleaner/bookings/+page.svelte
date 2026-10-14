@@ -73,10 +73,7 @@
     if (dateFrom) searchParams.set('from', dateFrom);
     if (dateTo) searchParams.set('to', dateTo);
     
-    // Add page parameter if not on first page
-    if (pagination.page > 1) {
-      searchParams.set('page', pagination.page.toString());
-    }
+    // New filters always start on the first page
     
     // Navigate to same page with filters
     const url = searchParams.toString() ? `?${searchParams.toString()}` : '';
@@ -341,7 +338,7 @@
               <div class="mt-4 lg:mt-0 lg:ml-4 flex flex-col items-start lg:items-end">
                 <div class="flex items-center">
                   <span class="text-lg font-semibold text-gray-900 dark:text-white mr-3">
-                    {formatCurrency(booking.price * 0.80)}
+                    {formatCurrency(Number(booking.price) * 0.80)}
                   </span>
                   <span class={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(booking.status)}`}>
                     {booking.status}

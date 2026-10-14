@@ -11,7 +11,7 @@
   export let loadingText = "Loading...";
 
   // Forward all other props to the Button component
-  export let onClick: () => void = undefined;
+  export let onClick: (() => void) | undefined = undefined;
 </script>
 
 <Button

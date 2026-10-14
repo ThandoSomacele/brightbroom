@@ -10,15 +10,16 @@
     getClosestServiceArea,
     isWithinServiceArea,
   } from "$lib/utils/serviceAreaValidator";
+  import type { ActionData, PageData } from "./$types";
   
   // Environment variables
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   // Get data from the server load function
-  export let data;
+  export let data: PageData;
 
   // Get form data if there's an error
-  export let form;
+  export let form: ActionData;
 
   // Get redirectTo url param if it exists, default to profile/addresses
   $: redirectTo =
@@ -38,17 +39,23 @@
     zipCode: "",
     lat: 0,
     lng: 0,
+    placeType: "",
+    placeName: "",
   };
   let addressError = "";
   let isOutOfServiceArea = false;
 
   // Form data with defaults
-  let aptUnit = form?.aptUnit || "";
-  let isDefault = form?.isDefault || false;
-  let instructions = form?.instructions || "";
+  // The action returns these under `values` when it fails
+  const failedValues = form?.values;
+  let aptUnit = failedValues?.aptUnit || "";
+  let isDefault = failedValues?.isDefault || false;
+  let instructions = failedValues?.instructions || "";
 
   // Handle address selection from Google autocomplete
-  function handleAddressSelect(event) {
+  function handleAddressSelect(
+    event: CustomEvent<{ address: typeof selectedAddress }>,
+  ) {
     selectedAddress = event.detail.address;
     addressError = "";
 
@@ -60,17 +67,19 @@
       );
 
       if (isOutOfServiceArea) {
-        const { area, distance } = getClosestServiceArea(
+        const closest = getClosestServiceArea(
           selectedAddress.lat,
           selectedAddress.lng,
         );
-        addressError = `We haven't reached your area yet! The nearest BrightBroom zone is ${area.name} (${distance.toFixed(0)}km away). We're expanding soon!`;
+        if (closest) {
+          addressError = `We haven't reached your area yet! The nearest BrightBroom zone is ${closest.name} (${closest.distance.toFixed(0)}km away). We're expanding soon!`;
+        }
       }
     }
   }
 
   // Handle out-of-service-area warning
-  function handleOutOfServiceArea(event) {
+  function handleOutOfServiceArea() {
     isOutOfServiceArea = true;
     addressError = "We're not in your neighbourhood yet! Check our service areas to see where we sparkle.";
   }
@@ -156,11 +165,13 @@
           isSubmitting = true;
 
           return async ({ result }) => {
-            if (result.type === "success" && result.data?.redirect) {
+            const successRedirect =
+              result.type === "success" ? result.data?.redirect : undefined;
+            if (typeof successRedirect === "string" && successRedirect) {
               // Keep the loading state active
               isLoading = true;
 
-              const redirectTo = result.data.redirect;
+              const redirectTo = successRedirect;
 
               // If redirecting back to booking flow, add loading parameter
               if (redirectTo.includes("/book/")) {

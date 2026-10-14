@@ -612,12 +612,13 @@ export const actions: Actions = {
         });
       }
 
+      // null for guest bookings (no user row to join)
       const customerInfo = bookingData[0].customer;
-      let communicationType = "NOTE";
+      let communicationType: "EMAIL" | "SMS" | "NOTE" = "NOTE";
       let communicationSent = false;
 
       // Handle different communication methods
-      if (method === "email" && customerInfo.email) {
+      if (method === "email" && customerInfo?.email) {
         // In a real app, this would send an actual email
         communicationType = "EMAIL";
 
@@ -635,7 +636,7 @@ export const actions: Actions = {
         });
 
         communicationSent = true;
-      } else if (method === "sms" && customerInfo.phone) {
+      } else if (method === "sms" && customerInfo?.phone) {
         // In a real app, this would send an actual SMS
         communicationType = "SMS";
 
@@ -775,6 +776,12 @@ export const actions: Actions = {
         return fail(400, { error: "No cleaner assigned to this booking" });
       }
 
+      // Guest bookings have no user row, so there is no email to notify
+      const customerEmail = bookingInfo.customer?.email;
+      if (!customerEmail) {
+        return fail(400, { error: "This booking has no customer email to notify" });
+      }
+
       // Get cleaner details
       const cleanerData = await db
         .select({
@@ -798,17 +805,19 @@ export const actions: Actions = {
         .where(eq(service.id, bookingInfo.serviceId))
         .limit(1);
 
-      // Get address details
-      const addressData = await db
-        .select({
-          street: address.street,
-          city: address.city,
-          state: address.state,
-          zipCode: address.zipCode,
-        })
-        .from(address)
-        .where(eq(address.id, bookingInfo.addressId))
-        .limit(1);
+      // Get address details (addressId is null for guest-address bookings)
+      const addressData = bookingInfo.addressId
+        ? await db
+            .select({
+              street: address.street,
+              city: address.city,
+              state: address.state,
+              zipCode: address.zipCode,
+            })
+            .from(address)
+            .where(eq(address.id, bookingInfo.addressId))
+            .limit(1)
+        : [];
 
       // Prepare email data
       const emailData = {
@@ -828,7 +837,7 @@ export const actions: Actions = {
 
       // Send the email
       const emailSent = await sendCleanerChangedEmail(
-        bookingInfo.customer.email,
+        customerEmail,
         emailData,
       );
 
@@ -852,7 +861,7 @@ export const actions: Actions = {
         type: "EMAIL",
         content: `Cleaner change notification - New cleaner: ${cleanerData[0].firstName} ${cleanerData[0].lastName}`,
         subject: "Cleaner Update for Your Booking",
-        sentTo: bookingInfo.customer.email,
+        sentTo: customerEmail,
         sentBy: `${locals.user.firstName} ${locals.user.lastName}`,
         direction: "OUTGOING",
         createdAt: new Date(),

@@ -1,8 +1,15 @@
 // src/routes/cleaner/bookings/+page.server.ts
 import { db } from '$lib/server/db';
-import { booking, address, user } from '$lib/server/db/schema';
+import { booking, address, user, bookingStatusEnum } from '$lib/server/db/schema';
 import { eq, like, or, desc, gte, lte, sql, and } from 'drizzle-orm';
+import type { SQL } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
+
+type BookingStatus = (typeof bookingStatusEnum.enumValues)[number];
+
+function isBookingStatus(value: string): value is BookingStatus {
+  return (bookingStatusEnum.enumValues as readonly string[]).includes(value);
+}
 
 interface FilterParams {
   cleanerId: string;
@@ -20,9 +27,9 @@ async function getBookingsData(params: FilterParams) {
   const offset = (page - 1) * limit;
 
   // Build where conditions array
-  const conditions = [eq(booking.cleanerId, cleanerId)];
+  const conditions: SQL[] = [eq(booking.cleanerId, cleanerId)];
 
-  if (status) {
+  if (status && isBookingStatus(status)) {
     conditions.push(eq(booking.status, status));
   }
 
@@ -34,8 +41,20 @@ async function getBookingsData(params: FilterParams) {
     conditions.push(lte(booking.scheduledDate, `${dateTo} 23:59:59`));
   }
 
+  // The search filter joins the same AND list. A second .where() call would
+  // REPLACE the cleaner condition above and show other cleaners' bookings.
+  if (search) {
+    const searchCondition = or(
+      like(user.firstName, `%${search}%`),
+      like(user.lastName, `%${search}%`),
+      like(address.street, `%${search}%`),
+      like(address.city, `%${search}%`)
+    );
+    if (searchCondition) conditions.push(searchCondition);
+  }
+
   // Build main query
-  let query = db
+  const query = db
     .select({
       id: booking.id,
       status: booking.status,
@@ -62,36 +81,13 @@ async function getBookingsData(params: FilterParams) {
     .leftJoin(user, eq(booking.userId, user.id))
     .where(and(...conditions));
 
-  // Apply search filter
-  if (search) {
-    query = query.where(
-      or(
-        like(user.firstName, `%${search}%`),
-        like(user.lastName, `%${search}%`),
-        like(address.street, `%${search}%`),
-        like(address.city, `%${search}%`)
-      )
-    );
-  }
-
   // Build count query with same conditions
-  let countQuery = db
+  const countQuery = db
     .select({ count: sql<number>`count(*)`.mapWith(Number) })
     .from(booking)
     .leftJoin(address, eq(booking.addressId, address.id))
     .leftJoin(user, eq(booking.userId, user.id))
     .where(and(...conditions));
-
-  if (search) {
-    countQuery = countQuery.where(
-      or(
-        like(user.firstName, `%${search}%`),
-        like(user.lastName, `%${search}%`),
-        like(address.street, `%${search}%`),
-        like(address.city, `%${search}%`)
-      )
-    );
-  }
 
   // Execute queries
   const [bookings, countResult] = await Promise.all([

@@ -32,10 +32,10 @@ export const actions: Actions = {
     
     try {
       // Validate form data with Zod
-      loginSchema.parse({ email, password });
+      const credentials = loginSchema.parse({ email, password });
       
       // Find the user by email
-      const userData = await getUserByEmail(email);
+      const userData = await getUserByEmail(credentials.email);
         
       if (!userData) {
         console.log('User not found:', email);
@@ -48,7 +48,7 @@ export const actions: Actions = {
       // Verify password
       const { Argon2id } = await import('oslo/password');
       const hasher = new Argon2id();
-      const validPassword = await hasher.verify(userData.passwordHash, password);
+      const validPassword = await hasher.verify(userData.passwordHash, credentials.password);
       
       if (!validPassword) {
         console.log('Invalid password for user:', email);
@@ -88,6 +88,12 @@ export const actions: Actions = {
     }
     
     // After successful authentication and session creation, redirect
-    throw redirect(302, redirectTo);
+    // Only follow same-site paths: a crafted redirectTo must not send a fresh login
+    // to another site ("//host" and "/\\host" are both read as other hosts)
+    const safeRedirect =
+      redirectTo.startsWith('/') && !redirectTo.startsWith('//') && !redirectTo.startsWith('/\\')
+        ? redirectTo
+        : '/profile';
+    throw redirect(302, safeRedirect);
   }
 };

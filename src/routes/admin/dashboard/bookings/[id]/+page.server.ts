@@ -3,7 +3,8 @@ import type { PageServerLoad, Actions } from './$types';
 import { db } from '$lib/server/db';
 import { booking, service, user, address, payment, cleanerProfile } from '$lib/server/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import { error, fail } from '@sveltejs/kit';
+import { alias } from 'drizzle-orm/pg-core';
+import { error, fail, isHttpError } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const bookingId = params.id;
@@ -16,7 +17,10 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   const tenantId = locals.user?.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
 
   try {
-    // Fetch the booking with all related information
+    // Fetch the booking with all related information.
+    // The cleaner is also a row in `user`, so it needs its own alias to be
+    // joined alongside the customer.
+    const cleanerUser = alias(user, 'cleaner');
     const bookingResults = await db.select({
       id: booking.id,
       status: booking.status,
@@ -45,17 +49,17 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         zipCode: address.zipCode,
         instructions: address.instructions,
       },
-      cleaner: booking.cleanerId ? {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        phone: user.phone,
-        cleanerProfile: {
-          id: cleanerProfile.id,
-          rating: cleanerProfile.rating,
-        }
-      } : null,
+      cleaner: {
+        id: cleanerUser.id,
+        firstName: cleanerUser.firstName,
+        lastName: cleanerUser.lastName,
+        email: cleanerUser.email,
+        phone: cleanerUser.phone,
+      },
+      cleanerProfile: {
+        id: cleanerProfile.id,
+        rating: cleanerProfile.rating,
+      },
       payment: {
         id: payment.id,
         status: payment.status,
@@ -69,23 +73,22 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     .leftJoin(user, eq(booking.userId, user.id))
     .leftJoin(address, eq(booking.addressId, address.id))
     .leftJoin(payment, eq(booking.id, payment.bookingId))
-    .leftJoin(
-      user, 
-      booking.cleanerId ? eq(booking.cleanerId, user.id) : undefined,
-      {
-        foreignAlias: 'cleaner'
-      }
-    )
-    .leftJoin(
-      cleanerProfile, 
-      booking.cleanerId ? eq(cleanerProfile.userId, booking.cleanerId) : undefined
-    )
+    .leftJoin(cleanerUser, eq(booking.cleanerId, cleanerUser.id))
+    .leftJoin(cleanerProfile, eq(cleanerProfile.userId, booking.cleanerId))
     .where(tenantId ? and(eq(booking.id, bookingId), eq(booking.tenantId, tenantId)) : eq(booking.id, bookingId))
     .limit(1);
     
     if (bookingResults.length === 0) {
       throw error(404, 'Booking not found');
     }
+
+    const { cleanerProfile: assignedCleanerProfile, ...bookingRow } = bookingResults[0];
+    const bookingDetails = {
+      ...bookingRow,
+      cleaner: bookingRow.cleaner
+        ? { ...bookingRow.cleaner, cleanerProfile: assignedCleanerProfile }
+        : null
+    };
     
     // Get all active cleaners for the assignment dropdown
     const availableCleaners = await db.select({
@@ -103,10 +106,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     .orderBy(desc(cleanerProfile.rating));
     
     return {
-      booking: bookingResults[0],
+      booking: bookingDetails,
       availableCleaners
     };
   } catch (err) {
+    // Let the 404 above through instead of turning it into a 500
+    if (isHttpError(err)) throw err;
     console.error('Error loading booking details:', err);
     throw error(500, 'Error loading booking details');
   }

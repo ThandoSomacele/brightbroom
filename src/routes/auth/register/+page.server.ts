@@ -175,7 +175,8 @@ export const actions: Actions = {
       // Handle database unique constraint violations
       if (error && typeof error === 'object' && 'code' in error) {
         if (error.code === '23505') { // PostgreSQL unique constraint violation
-          const errorMessage = error.message || '';
+          const errorMessage =
+            'message' in error && typeof error.message === 'string' ? error.message : '';
           if (errorMessage.includes('email')) {
             return fail(400, {
               error: "An account with this email already exists",

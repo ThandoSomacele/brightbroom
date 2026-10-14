@@ -4,8 +4,9 @@
   import { enhance } from "$app/forms";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  
-  export let form;
+  import type { ActionData } from "./$types";
+
+  export let form: ActionData;
 
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -22,6 +23,8 @@
     zipCode: "",
     lat: 0,
     lng: 0,
+    placeType: "",
+    placeName: "",
   };
 
   function handleAddressSelect(event: CustomEvent) {

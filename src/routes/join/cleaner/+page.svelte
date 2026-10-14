@@ -41,6 +41,8 @@
     zipCode: "",
     lat: 0,
     lng: 0,
+    placeType: "",
+    placeName: "",
   };
   let addressError = "";
   let isOutOfServiceArea = false;
@@ -88,6 +90,8 @@
       zipCode: "",
       lat: 0,
       lng: 0,
+      placeType: "",
+      placeName: "",
     };
     addressError = "";
     isOutOfServiceArea = false;
@@ -128,11 +132,13 @@
       );
 
       if (isOutOfServiceArea) {
-        const { area, distance } = getClosestServiceArea(
+        const closest = getClosestServiceArea(
           selectedAddress.lat,
           selectedAddress.lng,
         );
-        addressError = `This address is outside our current service areas. The closest area is ${area.name}, which is ${distance.toFixed(1)}km away.`;
+        addressError = closest
+          ? `This address is outside our current service areas. The closest area is ${closest.name}, which is ${closest.distance.toFixed(1)}km away.`
+          : "This address is outside our current service areas.";
       }
     }
   }
@@ -570,8 +576,9 @@
                     formSuccess = true;
                   } else if (result.type === "failure") {
                     // Display the error message from the server
+                    const serverError = result.data?.error;
                     formError =
-                      result.data?.error ||
+                      (typeof serverError === "string" && serverError) ||
                       "Failed to submit your application. Please try again.";
                   } else if (result.type === "error") {
                     formError = "Something went wrong. Please try again later.";

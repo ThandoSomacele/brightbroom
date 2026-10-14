@@ -1,6 +1,7 @@
 <!-- src/lib/components/ui/FormField.svelte -->
 <script lang="ts">
   import FormError from './FormError.svelte';
+  import type { FullAutoFill } from 'svelte/elements';
   
   export let label: string;
   export let id: string;
@@ -10,7 +11,7 @@
   export let required: boolean = false;
   export let disabled: boolean = false;
   export let placeholder: string = '';
-  export let autocomplete: string = '';
+  export let autocomplete: FullAutoFill = '';
   
   // Generate IDs for accessibility
   $: errorId = error ? `${id}-error` : undefined;

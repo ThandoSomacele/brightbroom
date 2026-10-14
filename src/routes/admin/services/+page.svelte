@@ -15,6 +15,19 @@
   let searchTerm = "";
   let isLoading = false;
 
+  // Only the failed create/update results echo the submitted values back.
+  // TypeScript subtype-reduces fail({ error, data }) into fail({ error }) when
+  // inferring the actions' return type, so `data` is missing from ActionData;
+  // this is the shape those actions send.
+  type SubmittedValues = {
+    id?: string;
+    name?: string;
+    description?: string;
+    basePrice?: string;
+    durationHours?: string;
+  };
+  $: formValues = form && "data" in form ? (form.data as SubmittedValues) : undefined;
+
   // Format price as currency
   function formatPrice(price: number | string) {
     return new Intl.NumberFormat("en-ZA", {
@@ -262,7 +275,7 @@
                   id="name"
                   name="name"
                   required
-                  value={form?.data?.name || ""}
+                  value={formValues?.name || ""}
                   class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="e.g. Extended Cleaning"
                 />
@@ -280,7 +293,7 @@
                   name="description"
                   required
                   rows="3"
-                  value={form?.data?.description || ""}
+                  value={formValues?.description || ""}
                   class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="Describe what this service includes"
                 ></textarea>
@@ -301,7 +314,7 @@
                     required
                     min="0"
                     step="0.01"
-                    value={form?.data?.basePrice || ""}
+                    value={formValues?.basePrice || ""}
                     class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     placeholder="e.g. 350"
                   />
@@ -322,7 +335,7 @@
                     min="1"
                     max="24"
                     step="1"
-                    value={form?.data?.durationHours || ""}
+                    value={formValues?.durationHours || ""}
                     class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     placeholder="e.g. 3"
                   />
@@ -419,7 +432,7 @@
                   id="edit-name"
                   name="name"
                   required
-                  value={form?.data?.name || selectedService.name}
+                  value={formValues?.name || selectedService.name}
                   class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
@@ -436,7 +449,7 @@
                   name="description"
                   required
                   rows="3"
-                  value={form?.data?.description || selectedService.description}
+                  value={formValues?.description || selectedService.description}
                   class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 ></textarea>
               </div>
@@ -456,7 +469,7 @@
                     required
                     min="0"
                     step="0.01"
-                    value={form?.data?.basePrice || selectedService.basePrice}
+                    value={formValues?.basePrice || selectedService.basePrice}
                     class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
@@ -476,7 +489,7 @@
                     min="1"
                     max="24"
                     step="1"
-                    value={form?.data?.durationHours || selectedService.durationHours}
+                    value={formValues?.durationHours || selectedService.durationHours}
                     class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>

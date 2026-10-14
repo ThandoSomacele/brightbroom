@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 /**
  * Debug helper to compare the generated signature with what PayFast might expect
  */

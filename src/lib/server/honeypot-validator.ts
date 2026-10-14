@@ -11,6 +11,16 @@ interface HoneypotValidationResult {
   isBot: boolean;
   reason?: string;
   suspiciousFields?: string[];
+  // Optional diagnostic details describing what triggered the detection
+  submissionTimeMs?: number;
+  submissionTimeMinutes?: number;
+  email?: string;
+  fullName?: string;
+  firstName?: string;
+  lastName?: string;
+  subject?: string;
+  message?: string;
+  keyword?: string;
 }
 
 /**

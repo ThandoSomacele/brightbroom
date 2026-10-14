@@ -1,9 +1,16 @@
 // src/routes/admin/bookings/+page.server.ts
 import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
-import { booking, service, user, address } from '$lib/server/db/schema';
+import { booking, service, user, address, bookingStatusEnum } from '$lib/server/db/schema';
 import { eq, and, gte, lte, like, or, desc } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
+import type { SQL } from 'drizzle-orm';
+
+type BookingStatus = (typeof bookingStatusEnum.enumValues)[number];
+
+function isBookingStatus(value: string): value is BookingStatus {
+  return (bookingStatusEnum.enumValues as readonly string[]).includes(value);
+}
 
 export const load: PageServerLoad = async ({ url, locals }) => {
   // Get search and filter parameters
@@ -20,8 +27,8 @@ export const load: PageServerLoad = async ({ url, locals }) => {
   
   try {
     // Build conditions array
-    const conditions: any[] = [];
-    const countConditions: any[] = [];
+    const conditions: SQL[] = [];
+    const countConditions: SQL[] = [];
 
     // Tenant scoping
     if (tenantId) {
@@ -43,7 +50,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
       countConditions.push(searchCondition);
     }
 
-    if (status && status !== 'ALL') {
+    if (status && status !== 'ALL' && isBookingStatus(status)) {
       conditions.push(eq(booking.status, status));
       countConditions.push(eq(booking.status, status));
     }
@@ -63,7 +70,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
     }
 
     // Build the query with filters
-    let query = db.select({
+    const query = db.select({
       id: booking.id,
       status: booking.status,
       scheduledDate: booking.scheduledDate,
@@ -89,24 +96,18 @@ export const load: PageServerLoad = async ({ url, locals }) => {
     // Left joins: userId and addressId are nullable for guest bookings; inner
     // joins here hid every guest-address booking from this list.
     .leftJoin(user, eq(booking.userId, user.id))
-    .leftJoin(address, eq(booking.addressId, address.id));
-
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    .leftJoin(address, eq(booking.addressId, address.id))
+    .where(conditions.length > 0 ? and(...conditions) : undefined);
 
     // Count query
-    let countQuery = db.select({
+    const countQuery = db.select({
       count: sql<number>`count(*)`.mapWith(Number)
     })
     .from(booking)
     .innerJoin(service, eq(booking.serviceId, service.id))
     .leftJoin(user, eq(booking.userId, user.id))
-    .leftJoin(address, eq(booking.addressId, address.id));
-
-    if (countConditions.length > 0) {
-      countQuery = countQuery.where(and(...countConditions));
-    }
+    .leftJoin(address, eq(booking.addressId, address.id))
+    .where(countConditions.length > 0 ? and(...countConditions) : undefined);
 
     // Execute both queries
     const [bookings, countResult] = await Promise.all([

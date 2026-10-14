@@ -125,7 +125,7 @@
 
                 <div class="mt-4 md:mt-0 md:ml-4 flex flex-col items-end">
                   <span class="text-lg font-semibold text-gray-900 dark:text-white">
-                    {formatCurrency(booking.price * 0.75)}
+                    {formatCurrency(Number(booking.price) * 0.75)}
                   </span>
                   <span class="text-sm text-gray-500 dark:text-gray-400">
                     {booking.service.name}

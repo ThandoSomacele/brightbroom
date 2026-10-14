@@ -3,8 +3,19 @@
   import Icon from "$lib/components/ui/Icon.svelte";
   import { createEventDispatcher } from "svelte";
 
+  interface SelectableAddress {
+    id: string;
+    street: string;
+    aptUnit?: string | null;
+    city: string;
+    state: string;
+    zipCode: string;
+    instructions?: string | null;
+    isDefault?: boolean;
+  }
+
   // Props
-  export let addresses = [];
+  export let addresses: SelectableAddress[] = [];
   export let selectedAddressId = "";
   export let showDefaultIndicator = true;
   export let emptyMessage =

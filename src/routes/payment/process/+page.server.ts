@@ -3,7 +3,8 @@ import { error } from '@sveltejs/kit';
 import { getGuestBookingData } from '$lib/server/guest-booking';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals, url, ...event }) => {
+export const load: PageServerLoad = async (event) => {
+  const { locals, url } = event;
   // Get booking ID from query parameters
   const bookingId = url.searchParams.get('bookingId');
   

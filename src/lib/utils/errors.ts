@@ -37,13 +37,15 @@ export function createError(
   
   const status = statusCodes[type] || 500;
   
-  // Create the error with additional metadata
-  return error(status, {
+  // Create the error with additional metadata. Built as a separate object so
+  // the extra fields pass through App.Error (which only declares `message`).
+  const body = {
     message,
     type,
     details,
     timestamp: new Date().toISOString()
-  });
+  };
+  return error(status, body);
 }
 
 /**

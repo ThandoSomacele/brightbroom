@@ -79,6 +79,8 @@
       zipCode: "",
       lat: cleanerData.cleanerProfile?.workLocationLat || 0,
       lng: cleanerData.cleanerProfile?.workLocationLng || 0,
+      placeType: "",
+      placeName: "",
     };
 
     // Initialize available days
@@ -169,6 +171,8 @@
     SATURDAY: false,
     SUNDAY: false,
   };
+  type DayKey = keyof typeof availableDays;
+  const dayKeys = Object.keys(availableDays) as DayKey[];
 
   // Experience types constant
   const EXPERIENCE_TYPES = [
@@ -285,21 +289,24 @@
       workRadius = cleaner.cleanerProfile?.workRadius?.toString() || "10";
       bio = cleaner.cleanerProfile?.bio || "";
       petCompatibility = cleaner.cleanerProfile?.petCompatibility || "NONE";
-      isAvailable = cleaner.cleanerProfile?.isAvailable || true;
+      // ?? not ||: `false || true` re-marked unavailable cleaners as available
+      isAvailable = cleaner.cleanerProfile?.isAvailable ?? true;
       idType = cleaner.cleanerProfile?.idType || "SOUTH_AFRICAN_ID";
       idNumber = cleaner.cleanerProfile?.idNumber || "";
       taxNumber = cleaner.cleanerProfile?.taxNumber || "";
       selectedExperienceTypes = cleaner.cleanerProfile?.experienceTypes || [];
 
       // Reset available days
-      Object.keys(availableDays).forEach((day) => {
+      dayKeys.forEach((day) => {
         availableDays[day] = false;
       });
 
       // Set available days from cleaner data
       if (cleaner.cleanerProfile?.availableDays) {
-        cleaner.cleanerProfile.availableDays.forEach((day) => {
-          availableDays[day] = true;
+        cleaner.cleanerProfile.availableDays.forEach((day: string) => {
+          if (day in availableDays) {
+            availableDays[day as DayKey] = true;
+          }
         });
       }
     }
@@ -343,12 +350,16 @@
     zipCode: "",
     lat: cleaner?.cleanerProfile?.workLocationLat || 0,
     lng: cleaner?.cleanerProfile?.workLocationLng || 0,
+    placeType: "",
+    placeName: "",
   };
   let addressError = "";
   let isOutOfServiceArea = false;
 
   // Add address selection handler
-  function handleAddressSelect(event) {
+  function handleAddressSelect(
+    event: CustomEvent<{ address: typeof selectedAddress }>,
+  ) {
     selectedAddress = event.detail.address;
     addressError = "";
 
@@ -367,17 +378,23 @@
       );
 
       if (isOutOfServiceArea) {
-        const { area, distance } = getClosestServiceArea(
+        // Returns { name, distance } (or null), not { area, distance }: the old
+        // destructure threw on `area.name` for every out-of-area address
+        const closest = getClosestServiceArea(
           selectedAddress.lat,
           selectedAddress.lng,
         );
-        addressError = `This address is outside our current service areas. The closest area is ${area.name}, which is ${distance.toFixed(1)}km away.`;
+        addressError = closest
+          ? `This address is outside our current service areas. The closest area is ${closest.name}, which is ${closest.distance.toFixed(1)}km away.`
+          : "This address is outside our current service areas.";
       }
     }
   }
 
   // Handle out-of-service-area warning
-  function handleOutOfServiceArea(event) {
+  function handleOutOfServiceArea(
+    _event: CustomEvent<{ address: string; lat: number; lng: number }>,
+  ) {
     isOutOfServiceArea = true;
     addressError = "This address is outside our current service areas.";
   }
@@ -912,7 +929,7 @@
                   Available Days
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                  {#each Object.keys(availableDays) as day}
+                  {#each dayKeys as day}
                     <div class="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -1084,7 +1101,7 @@
                     <p class="text-gray-900 dark:text-white">
                       {cleaner.cleanerProfile.availableDays
                         .map(
-                          (day) => day.charAt(0) + day.slice(1).toLowerCase(),
+                          (day: string) => day.charAt(0) + day.slice(1).toLowerCase(),
                         )
                         .join(", ")}
                     </p>

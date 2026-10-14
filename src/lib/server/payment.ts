@@ -111,7 +111,12 @@ export async function createPaymentForBooking(
       `Found booking: ${bookingData.id} for user: ${bookingData.userId}`,
     );
 
-    // Get user data
+    // Get user data (guest bookings have no userId, so there is no user to find)
+    if (!bookingData.userId) {
+      console.error(`User not found: ${bookingData.userId}`);
+      throw new Error("User not found");
+    }
+
     const userResult = await db
       .select()
       .from(user)
@@ -202,7 +207,7 @@ function generatePayFastUrl(
   const email = userData.email.trim();
 
   // Create data object for PayFast
-  const data: PayFastPaymentData = {
+  const data: PayFastPaymentData & Record<string, string> = {
     merchant_id: PAYFAST_MERCHANT_ID,
     merchant_key: PAYFAST_MERCHANT_KEY,
     return_url: `${urls.returnUrl}?booking_id=${bookingData.id}`, 
@@ -526,86 +531,4 @@ export async function processSuccessfulPayment(
     console.error("Error processing successful payment:", error);
     return null;
   }
-}
-
-
-
-/**
- * Generate PayFast payment data for a booking
- * @param booking The booking data
- * @param options Options for payment generation
- * @returns Payment data for PayFast
- */
-export function generatePayFastData(
-  booking: BookingWithRelations,
-  userData: User,
-  options: { 
-    origin: string;
-    isSandbox?: boolean;
-  }
-) {
-  const merchantId = isSandbox ? process.env.VITE_PAYFAST_SANDBOX_MERCHANT_ID : process.env.VITE_PAYFAST_MERCHANT_ID;
-  const merchantKey = isSandbox ? process.env.VITE_PAYFAST_SANDBOX_MERCHANT_KEY : process.env.VITE_PAYFAST_MERCHANT_KEY;
-  
-  if (!merchantId || !merchantKey) {
-    throw new Error('PayFast merchant credentials are not configured');
-  }
-  
-  // Use the app URL as the base for return URLs
-  const appUrl = options.origin || process.env.VITE_APP_URL || 'https://brightbroom.com';
-  
-  // The SvelteKit IPN route validates PayFast's signature and runs the
-  // post-payment hooks in-process (the old Netlify function did neither).
-  const notifyUrl = `${appUrl}/api/payments/ipn`;
-  
-  // Configure return, cancel and notify URLs
-  const returnUrl = `${appUrl}/payment/success?booking_id=${booking.id}`;
-  const cancelUrl = `${appUrl}/payment/cancel?booking_id=${booking.id}`;
-  
-  // Log the URLs for debugging
-  console.log('PayFast URLs', { 
-    returnUrl, 
-    cancelUrl, 
-    notifyUrl,
-    environment: process.env.NODE_ENV || 'unknown'
-  });
-  
-  // Format amount to two decimal places
-  const amount = typeof booking.price === 'number' 
-    ? booking.price.toFixed(2) 
-    : parseFloat(booking.price.toString()).toFixed(2);
-  
-  // Customer details 
-  const firstName = userData.firstName;
-  const lastName = userData.lastName;
-  const email = userData.email;
-  
-  // Service details
-  const serviceName = booking.service.name;
-  const merchantReference = booking.id;
-  
-  // Create the data object
-  const data = {
-    merchant_id: merchantId,
-    merchant_key: merchantKey,
-    return_url: returnUrl,
-    cancel_url: cancelUrl,
-    notify_url: notifyUrl,
-    name_first: firstName,
-    name_last: lastName,
-    email_address: email,
-    m_payment_id: booking.paymentId || booking.id,
-    amount,
-    item_name: serviceName,
-    custom_str1: booking.id, // Store booking ID for reference
-    custom_str2: userData.id, // Store user ID for reference
-  };
-  
-  // Add passphrase if configured
-  const passphrase = process.env.VITE_PAYFAST_PASSPHRASE;
-  if (passphrase) {
-    data.passphrase = passphrase;
-  }
-  
-  return data;
 }

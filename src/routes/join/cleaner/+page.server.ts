@@ -387,6 +387,9 @@ export const actions: Actions = {
       try {
         const emailSent = await sendCleanerApplicationEmail({
           ...applicationData,
+          // Applications no longer collect experience types; an empty list
+          // keeps the email from printing "undefined" for that field
+          experienceTypes: [],
         });
 
         if (!emailSent) {

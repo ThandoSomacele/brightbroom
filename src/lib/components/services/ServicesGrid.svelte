@@ -81,9 +81,7 @@
           id={service.id}
           name={service.name}
           description={service.description}
-          basePrice={typeof service.basePrice === 'number' 
-            ? service.basePrice 
-            : parseFloat(service.basePrice.toString())}
+          basePrice={parseFloat(String(service.basePrice))}
           durationHours={service.durationHours}
           iconType={service.iconType}
           details={service.details}

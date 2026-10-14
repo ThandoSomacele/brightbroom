@@ -88,9 +88,7 @@
                 <div class="flex justify-between">
                   <span class="text-sm text-gray-600 dark:text-gray-400">Amount:</span>
                   <span class="text-sm font-medium text-gray-800 dark:text-gray-200">
-                    R{typeof bookingData.booking.price === 'number' 
-                      ? bookingData.booking.price.toFixed(2) 
-                      : parseFloat(bookingData.booking.price).toFixed(2)}
+                    R{parseFloat(bookingData.booking.price).toFixed(2)}
                   </span>
                 </div>
               </div>

@@ -262,9 +262,7 @@
                         </span>
 
                         <p class="mt-2 text-lg font-bold text-primary-700">
-                          R{typeof booking.price === "number"
-                            ? booking.price.toFixed(2)
-                            : parseFloat(booking.price).toFixed(2)}
+                          R{parseFloat(booking.price).toFixed(2)}
                         </p>
                       </div>
                     </div>

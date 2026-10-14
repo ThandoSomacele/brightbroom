@@ -1,10 +1,16 @@
 // src/routes/admin/bookings/+page.server.ts
 import { db } from '$lib/server/db';
-import { booking, user, address, payment } from '$lib/server/db/schema';
+import { booking, user, address, payment, bookingStatusEnum } from '$lib/server/db/schema';
 import { eq, and, gte, lte, like, or, desc } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
+
+type BookingStatus = (typeof bookingStatusEnum.enumValues)[number];
+
+function isBookingStatus(value: string): value is BookingStatus {
+  return (bookingStatusEnum.enumValues as readonly string[]).includes(value);
+}
 
 // Helper function to fetch bookings with all filters
 async function getBookings(
@@ -43,7 +49,7 @@ async function getBookings(
     }
 
     // Status filter
-    if (status && status !== 'ALL') {
+    if (status && status !== 'ALL' && isBookingStatus(status)) {
       conditions.push(eq(booking.status, status));
       countConditions.push(eq(booking.status, status));
     }
@@ -64,7 +70,7 @@ async function getBookings(
     }
 
     // Build query
-    let query = db.select({
+    const query = db.select({
       id: booking.id,
       status: booking.status,
       scheduledDate: booking.scheduledDate,
@@ -92,23 +98,17 @@ async function getBookings(
     // in the guestAddress JSON - most of them, in production.
     .leftJoin(user, eq(booking.userId, user.id))
     .leftJoin(address, eq(booking.addressId, address.id))
-    .leftJoin(payment, eq(booking.id, payment.bookingId));
-
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    .leftJoin(payment, eq(booking.id, payment.bookingId))
+    .where(conditions.length > 0 ? and(...conditions) : undefined);
 
     // Count query
-    let countQuery = db.select({
+    const countQuery = db.select({
       count: sql<number>`count(*)`.mapWith(Number)
     })
     .from(booking)
     .leftJoin(user, eq(booking.userId, user.id))
-    .leftJoin(address, eq(booking.addressId, address.id));
-
-    if (countConditions.length > 0) {
-      countQuery = countQuery.where(and(...countConditions));
-    }
+    .leftJoin(address, eq(booking.addressId, address.id))
+    .where(countConditions.length > 0 ? and(...countConditions) : undefined);
 
     // Execute both queries
     const [bookings, countResult] = await Promise.all([

@@ -53,7 +53,11 @@
     selectedCleaner = event.detail.cleaner;
 
     // Save to localStorage
-    localStorage.setItem("booking_cleaner_id", selectedCleanerId);
+    if (selectedCleanerId) {
+      localStorage.setItem("booking_cleaner_id", selectedCleanerId);
+    } else {
+      localStorage.removeItem("booking_cleaner_id");
+    }
     localStorage.setItem(
       "booking_cleaner_data",
       JSON.stringify(selectedCleaner),

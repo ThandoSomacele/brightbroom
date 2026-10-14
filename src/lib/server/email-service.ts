@@ -96,7 +96,7 @@ export async function sendPasswordResetEmail(
       return false;
     }
 
-    console.log("Password reset email sent successfully:", data.id);
+    console.log("Password reset email sent successfully:", data?.id);
     return true;
   } catch (error) {
     console.error("Error sending password reset email:", error);
@@ -135,7 +135,7 @@ export async function sendPasswordResetConfirmationEmail(
 
     console.log(
       "Password reset confirmation email sent successfully:",
-      data.id,
+      data?.id,
     );
     return true;
   } catch (error) {
@@ -303,7 +303,7 @@ export async function sendBookingConfirmationEmail(
 
     console.log(
       "[EMAIL SERVICE] Booking confirmation email sent successfully:",
-      data.id,
+      data?.id,
     );
 
     // Add admin note about successful email
@@ -311,7 +311,7 @@ export async function sendBookingConfirmationEmail(
       await db.insert(adminNote).values({
         id: crypto.randomUUID(),
         bookingId: bookingDetails.id,
-        content: `EMAIL_SENT: Booking confirmation email sent successfully. Resend ID: ${data.id}`,
+        content: `EMAIL_SENT: Booking confirmation email sent successfully. Resend ID: ${data?.id}`,
         addedBy: "Email Service",
         createdAt: new Date(),
       });
@@ -390,7 +390,7 @@ export async function sendWelcomeEmail(
 
     console.log("Welcome email sent successfully:", {
       role: user.role || "customer",
-      userId: data.id,
+      userId: data?.id,
     });
     return true;
   } catch (error) {
@@ -551,7 +551,7 @@ export async function sendBookingReminderEmail(
       return false;
     }
 
-    console.log("Booking reminder email sent successfully:", data.id);
+    console.log("Booking reminder email sent successfully:", data?.id);
     return true;
   } catch (error) {
     console.error("Error sending booking reminder email:", error);
@@ -597,7 +597,7 @@ export async function sendCleanerAssignmentEmail(
       return false;
     }
 
-    console.log("Cleaner assignment email sent successfully:", data.id);
+    console.log("Cleaner assignment email sent successfully:", data?.id);
     return true;
   } catch (error) {
     console.error("Error sending cleaner assignment email:", error);
@@ -639,7 +639,7 @@ export async function sendPaymentReceiptEmail(
       return false;
     }
 
-    console.log("Payment receipt email sent successfully:", data.id);
+    console.log("Payment receipt email sent successfully:", data?.id);
     return true;
   } catch (error) {
     console.error("Error sending payment receipt email:", error);
@@ -687,7 +687,7 @@ export async function sendContactFormEmail(
       return false;
     }
 
-    console.log("Contact form email sent successfully:", data.id);
+    console.log("Contact form email sent successfully:", data?.id);
     return true;
   } catch (error) {
     console.error("Error sending contact form email:", error);
@@ -804,7 +804,7 @@ export async function sendCleanerApplicationEmail(
 
     console.log(
       "Cleaner application notification sent successfully:",
-      emailData.id,
+      emailData?.id,
     );
     return true;
   } catch (error) {
@@ -851,7 +851,7 @@ export async function sendCleanerJobAssignmentEmail(
       return false;
     }
 
-    console.log("Cleaner job assignment email sent successfully:", data.id);
+    console.log("Cleaner job assignment email sent successfully:", data?.id);
     return true;
   } catch (error) {
     console.error("Error sending cleaner job assignment email:", error);
@@ -911,7 +911,7 @@ export async function sendCleanerChangedEmail(
 
     console.log(
       "Cleaner changed notification email sent successfully:",
-      data.id,
+      data?.id,
     );
     return true;
   } catch (error) {

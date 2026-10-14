@@ -6,31 +6,35 @@
   export let height: string = '';
   export let count: number = 1;
   export let className: string = '';
+  // Callers pass the standard `class` attribute; keep `className` working too
+  let classAttr: string = '';
+  export { classAttr as class };
+  $: cls = [className, classAttr].filter(Boolean).join(' ');
 </script>
 
 {#each Array(count) as _, i (i)}
   {#if variant === 'text'}
     <div
-      class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse {className}"
+      class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse {cls}"
       style={width ? `width: ${width}` : 'width: 100%'}
     ></div>
   {:else if variant === 'title'}
     <div
-      class="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse {className}"
+      class="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse {cls}"
       style={width ? `width: ${width}` : 'width: 60%'}
     ></div>
   {:else if variant === 'avatar'}
     <div
-      class="rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse {className}"
+      class="rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse {cls}"
       style="width: {width || '40px'}; height: {height || '40px'}"
     ></div>
   {:else if variant === 'button'}
     <div
-      class="h-10 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse {className}"
+      class="h-10 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse {cls}"
       style={width ? `width: ${width}` : 'width: 100px'}
     ></div>
   {:else if variant === 'card'}
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 {className}">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 {cls}">
       <div class="flex justify-between">
         <div class="space-y-2 flex-1">
           <div class="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
@@ -56,7 +60,7 @@
       </td>
     </tr>
   {:else if variant === 'chart'}
-    <div class="w-full h-full flex flex-col justify-end p-4 {className}">
+    <div class="w-full h-full flex flex-col justify-end p-4 {cls}">
       <div class="flex items-end justify-between gap-2 h-40">
         {#each Array(10) as _, j (j)}
           <div

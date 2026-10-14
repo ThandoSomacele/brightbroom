@@ -10,7 +10,8 @@ import {
 import { z } from 'zod';
 import type { PageServerLoad, Actions } from './$types';
 
-export const load: PageServerLoad = async ({ locals, url, ...event }) => {
+export const load: PageServerLoad = async (event) => {
+  const { locals, url } = event;
   // Get booking ID from query parameters
   const bookingId = url.searchParams.get('bookingId');
 
@@ -70,10 +71,10 @@ export const actions: Actions = {
     
     try {
       // Validate form data with Zod
-      loginSchema.parse({ email, password });
+      const credentials = loginSchema.parse({ email, password });
       
       // Find the user by email
-      const userData = await getUserByEmail(email);
+      const userData = await getUserByEmail(credentials.email);
         
       if (!userData) {
         console.log('User not found:', email);
@@ -86,7 +87,7 @@ export const actions: Actions = {
       // Verify password
       const { Argon2id } = await import('oslo/password');
       const hasher = new Argon2id();
-      const validPassword = await hasher.verify(userData.passwordHash, password);
+      const validPassword = await hasher.verify(userData.passwordHash, credentials.password);
       
       if (!validPassword) {
         console.log('Invalid password for user:', email);
@@ -127,6 +128,6 @@ export const actions: Actions = {
     
     // After successful authentication and session creation, redirect
     // Only follow same-site paths: a crafted redirectTo must not send a fresh login elsewhere
-    throw redirect(302, redirectTo.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : '/payment/process');
+    throw redirect(302, redirectTo.startsWith('/') && !redirectTo.startsWith('//') && !redirectTo.startsWith('/\\') ? redirectTo : '/payment/process');
   }
 };

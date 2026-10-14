@@ -110,6 +110,13 @@ export const paymentProcessorService = {
         : null;
       const payFastFeeAmount = payoutBreakdown.payFastFee;
       
+      // payment.userId is NOT NULL, so a guest booking (no user) cannot get a
+      // payment row here; the insert below would fail on that constraint.
+      const paymentUserId = bookingDetails.userId;
+      if (!paymentUserId) {
+        return { success: false, error: "Booking has no user to record the payment against" };
+      }
+
       // Create new payment record with PayFast fee tracking
       const paymentId = crypto.randomUUID();
       const [newPayment] = await db
@@ -117,7 +124,7 @@ export const paymentProcessorService = {
         .values({
           id: paymentId,
           bookingId: bookingId,
-          userId: bookingDetails.userId,
+          userId: paymentUserId,
           amount: paymentData.amount.toString(),
           status: "COMPLETED",
           paymentMethod: paymentMethodForCalc,

@@ -1,5 +1,6 @@
 // src/routes/api/addresses/+server.ts
 import { MAX_ADDRESSES } from "$lib/constants/address";
+import { addressService } from "$lib/server/services/address.service";
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 
