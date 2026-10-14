@@ -5,11 +5,14 @@ import { sendBookingConfirmationEmail } from '$lib/server/email-service';
 import type { RequestHandler } from './$types';
 
 // Ensure we only expose this endpoint in development
-export const GET: RequestHandler = async ({ url }) => {
-  // Only the local dev server may send test emails. NODE_ENV is not
-  // "production" inside Netlify functions, so it can't be the guard.
+export const GET: RequestHandler = async ({ url, locals }) => {
+  // Never in production builds. Preview deploys are built with NODE_ENV=development
+  // (see netlify.toml), so `dev` is true there and an admin login is required too.
   if (!dev) {
     return new Response('Not found', { status: 404 });
+  }
+  if (locals.user?.role !== 'ADMIN') {
+    return new Response('Forbidden', { status: 403 });
   }
 
   // Get email parameters from query string
