@@ -53,7 +53,7 @@ const signupSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   terms: z.literal("on", {
-    errorMap: () => ({ message: "You must accept the Terms of Service" }),
+    errorMap: () => ({ message: "You must accept the Cleaning Partner Agreement, Terms of Use and Privacy Policy" }),
   }),
 });
 
