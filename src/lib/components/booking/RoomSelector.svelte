@@ -193,7 +193,7 @@
           class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           aria-label="Decrease bedrooms"
         >
-          <Icon name="minus" size={20} />
+          <Icon name="minus" size={20} flat />
         </button>
 
         <span class="w-8 text-center text-xl font-bold text-gray-900 dark:text-white">
@@ -207,7 +207,7 @@
           class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           aria-label="Increase bedrooms"
         >
-          <Icon name="plus" size={20} />
+          <Icon name="plus" size={20} flat />
         </button>
       </div>
     </div>
@@ -236,7 +236,7 @@
           class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           aria-label="Decrease bathrooms"
         >
-          <Icon name="minus" size={20} />
+          <Icon name="minus" size={20} flat />
         </button>
 
         <span class="w-8 text-center text-xl font-bold text-gray-900 dark:text-white">
@@ -250,7 +250,7 @@
           class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           aria-label="Increase bathrooms"
         >
-          <Icon name="plus" size={20} />
+          <Icon name="plus" size={20} flat />
         </button>
       </div>
     </div>

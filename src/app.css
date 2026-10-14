@@ -156,6 +156,11 @@ i.ph-duotone.ph-accent::before {
   opacity: 0.45;
 }
 
+/* Flat: hide the duotone back layer but keep its box, since the outline (::after) is offset against it */
+i.ph-duotone.ph-flat::before {
+  opacity: 0;
+}
+
 /* Teal text links need the deeper teal to pass contrast; keep them underlined */
 a.text-primary-700.hover\:underline {
   text-decoration-line: underline;
