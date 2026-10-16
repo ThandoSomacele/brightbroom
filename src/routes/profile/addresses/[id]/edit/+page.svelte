@@ -1,5 +1,6 @@
 <!-- src/routes/profile/addresses/[id]/edit/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
@@ -16,7 +17,7 @@
 </script>
 
 <svelte:head>
-  <title>Edit Address | BrightBroom</title>
+  <title>Edit Address | {brand.name}</title>
 </svelte:head>
 
 <div class="py-8 px-4 mx-auto max-w-2xl">

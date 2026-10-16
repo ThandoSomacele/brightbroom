@@ -1,5 +1,22 @@
-import adapter from "@sveltejs/adapter-netlify";
 import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
+
+// Deployment target. Unset (the default) builds for Netlify exactly as before:
+// that is brightbroom.com, the sales demo. DEPLOY_TARGET=node builds a plain
+// Node server into ./build for the self-hosted, one-per-company deployments
+// (Docker on Coolify; see Dockerfile and docs/SELF_HOSTING.md).
+const deployTarget = process.env.DEPLOY_TARGET;
+
+// Imported dynamically so each build only loads the adapter it uses.
+const adapter =
+  deployTarget === "node"
+    ? (await import("@sveltejs/adapter-node")).default({ out: "build" })
+    : (await import("@sveltejs/adapter-netlify")).default({
+        // Use standard Node-based functions (not edge functions)
+        edge: false,
+        // Split your app into multiple functions
+        // This can help avoid the 50MB function size limit
+        split: true,
+      });
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -18,13 +35,7 @@ const config = {
     paths: {
       relative: false,
     },
-    adapter: adapter({
-      // Use standard Node-based functions (not edge functions)
-      edge: false,
-      // Split your app into multiple functions
-      // This can help avoid the 50MB function size limit
-      split: true,
-    }),
+    adapter,
   },
 };
 

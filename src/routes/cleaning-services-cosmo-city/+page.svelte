@@ -1,10 +1,11 @@
 <script>
+  import { brand } from "$lib/config/brand";
   import Button from "$lib/components/ui/Button.svelte";
   import Card from "$lib/components/ui/Card.svelte";
 </script>
 
 <svelte:head>
-  <title>Professional Cleaning Services in Cosmo City | BrightBroom</title>
+  <title>Professional Cleaning Services in Cosmo City | {brand.name}</title>
   <meta
     name="description"
     content="Affordable and professional home and office cleaning services in Cosmo City, Roodepoort. Book trusted cleaners for regular or deep cleaning. Serving Cosmo City, Zandspruit, Diepsloot, and surrounding areas."
@@ -17,7 +18,7 @@
   <!-- Open Graph / Facebook -->
   <meta
     property="og:title"
-    content="Professional Cleaning Services in Cosmo City | BrightBroom"
+    content="Professional Cleaning Services in Cosmo City | {brand.name}"
   />
   <meta
     property="og:description"
@@ -37,7 +38,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta
     name="twitter:title"
-    content="Professional Cleaning Services in Cosmo City | BrightBroom"
+    content="Professional Cleaning Services in Cosmo City | {brand.name}"
   />
   <meta
     name="twitter:description"

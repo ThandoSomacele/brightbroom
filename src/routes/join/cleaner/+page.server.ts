@@ -243,7 +243,7 @@ export const actions: Actions = {
       const clientIP = getClientAddress();
 
       // Check IP-based rate limit (2 applications per hour per IP)
-      const ipRateLimit = checkRateLimit('cleanerApplication', clientIP);
+      const ipRateLimit = await checkRateLimit('cleanerApplication', clientIP);
       
       if (!ipRateLimit.allowed) {
         console.log(`Cleaner application rate limit exceeded for IP: ${clientIP}`);
@@ -257,7 +257,7 @@ export const actions: Actions = {
       }
 
       // Check email-based rate limit (1 application per 24 hours per email)
-      const emailRateLimit = checkRateLimit('cleanerApplication', email!);
+      const emailRateLimit = await checkRateLimit('cleanerApplication', email!);
       
       if (!emailRateLimit.allowed) {
         console.log(`Cleaner application rate limit exceeded for email: ${email}`);

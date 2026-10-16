@@ -1,5 +1,6 @@
 <!-- src/routes/services/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import Button from '$lib/components/ui/Button.svelte';
   import Card from '$lib/components/ui/Card.svelte';
@@ -7,18 +8,18 @@
   </script>
 
 <svelte:head>
-  <title>Cleaning Services | BrightBroom</title>
+  <title>Cleaning Services | {brand.name}</title>
   <meta name="description" content="Book professional home cleaning services in Gauteng. Build your own booking - choose your hours, rooms, and add-ons. Trusted cleaners, flexible scheduling." />
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Professional Cleaning Services | BrightBroom" />
+  <meta property="og:title" content="Professional Cleaning Services | {brand.name}" />
   <meta property="og:description" content="Build your own cleaning booking. Choose hours, rooms, and add-ons for a personalised clean." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://brightbroom.com/services" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Professional Cleaning Services | BrightBroom" />
+  <meta name="twitter:title" content="Professional Cleaning Services | {brand.name}" />
   <meta name="twitter:description" content="Build your own cleaning booking. Choose hours, rooms, and add-ons for a personalised clean." />
 
   <!-- Structured Data -->

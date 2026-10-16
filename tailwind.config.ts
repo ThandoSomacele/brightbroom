@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-import { orange, teal } from "./src/lib/config/theme";
+import { primary, secondary } from "./src/lib/config/theme";
 
 export default {
   content: ["./src/**/*.{html,js,svelte,ts}"],
@@ -11,9 +11,10 @@ export default {
         heading: ['Poppins', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
       },
       colors: {
-        // BrightBroom palette (src/lib/config/theme.ts): teal primary, orange secondary
-        primary: teal,
-        secondary: orange,
+        // BrightBroom palette (src/lib/config/theme.ts): teal primary, orange
+        // secondary, or the BRAND_PRIMARY / BRAND_SECONDARY build overrides
+        primary,
+        secondary,
       },
       boxShadow: {
         card: '0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04)',

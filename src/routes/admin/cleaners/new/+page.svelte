@@ -2,6 +2,7 @@
 <!-- This page redirects to /admin/applications/new via the server load function. -->
 <!-- This fallback is only shown if the redirect fails for some reason. -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
 
@@ -11,7 +12,7 @@
 </script>
 
 <svelte:head>
-  <title>Add Cleaner | BrightBroom Admin</title>
+  <title>Add Cleaner | {brand.name} Admin</title>
 </svelte:head>
 
 <div class="flex flex-col items-center justify-center py-12 text-center">

@@ -1,5 +1,6 @@
 <!-- src/routes/coupon/[code]/+page.svelte -->
 <script lang="ts">
+  import { brand, brandDomain } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   
   let { data } = $props();
@@ -40,10 +41,10 @@
 </script>
 
 <svelte:head>
-  <title>{coupon.code} - {getDiscountText()} | BrightBroom</title>
+  <title>{coupon.code} - {getDiscountText()} | {brand.name}</title>
   <meta
     name="description"
-    content="Use code {coupon.code} to get {getDiscountText()} on your BrightBroom cleaning service booking!"
+    content="Use code {coupon.code} to get {getDiscountText()} on your {brand.name} cleaning service booking!"
   />
 </svelte:head>
 
@@ -83,7 +84,7 @@
             <div class="flex items-center justify-center gap-2 mb-3">
               <Icon name="sparkle" size={20} class="text-white/80" />
               <span class="text-white font-bold text-xl tracking-wide"
-                >BrightBroom</span
+                >{brand.name}</span
               >
               <Icon name="sparkle" size={20} class="text-white/80" />
             </div>
@@ -224,6 +225,6 @@
     </div>
 
     <!-- Footer text -->
-    <p class="text-center text-gray-400 text-xs mt-6">brightbroom.com</p>
+    <p class="text-center text-gray-400 text-xs mt-6">{brandDomain}</p>
   </div>
 </div>

@@ -1,5 +1,6 @@
 <!-- src/routes/auth/register/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { goto } from "$app/navigation";
@@ -31,7 +32,7 @@
 </script>
 
 <svelte:head>
-  <title>Create an Account | BrightBroom</title>
+  <title>Create an Account | {brand.name}</title>
 </svelte:head>
 
 {#if isAuthenticating}
@@ -55,7 +56,7 @@
 >
   <div class="w-full max-w-md">
     <div class="mb-8 text-center">
-      <h1 class="text-3xl font-bold text-primary-700">BrightBroom</h1>
+      <h1 class="text-3xl font-bold text-primary-700">{brand.name}</h1>
       <p class="mt-2 text-gray-600 dark:text-gray-300">Create a new account</p>
     </div>
 

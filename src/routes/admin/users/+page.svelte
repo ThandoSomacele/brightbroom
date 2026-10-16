@@ -1,5 +1,6 @@
 <!-- src/routes/admin/users/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import Button from '$lib/components/ui/Button.svelte';
   import { TableSkeleton } from '$lib/components/ui/skeletons';
@@ -83,7 +84,7 @@
 </script>
 
 <svelte:head>
-  <title>Manage Users | BrightBroom Admin</title>
+  <title>Manage Users | {brand.name} Admin</title>
 </svelte:head>
 
 <!-- Page header -->

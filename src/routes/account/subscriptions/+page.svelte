@@ -1,5 +1,6 @@
 <!-- src/routes/account/subscriptions/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import Button from '$lib/components/ui/Button.svelte';
   import type { PageData } from './$types';
@@ -132,7 +133,7 @@
 </script>
 
 <svelte:head>
-  <title>My Subscriptions | BrightBroom</title>
+  <title>My Subscriptions | {brand.name}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 py-8">

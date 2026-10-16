@@ -1,18 +1,18 @@
 ---
 title: Terms of Use
 lastUpdated: 14 October 2026
-description: The terms that apply when you use BrightBroom to find, book and pay for cleaning services from independent cleaning companies.
+description: The terms that apply when you use {{brand.name}} to find, book and pay for cleaning services from independent cleaning companies.
 ---
 
-These Terms of Use ("**Terms**") apply to everyone who uses the BrightBroom website at brightbroom.com and its related services. Please read them carefully, especially the clauses in **bold**, which limit our responsibility or place risks or obligations on you, and section 10 (liability).
+These Terms of Use ("**Terms**") apply to everyone who uses the {{brand.name}} website at {{brand.domain}} and its related services. Please read them carefully, especially the clauses in **bold**, which limit our responsibility or place risks or obligations on you, and section 10 (liability).
 
-Cleaning companies that offer their services on BrightBroom also agree to our separate [Cleaning Partner Agreement](/partner-terms). How we handle personal information is explained in our [Privacy Policy](/privacy).
+Cleaning companies that offer their services on {{brand.name}} also agree to our separate [Cleaning Partner Agreement](/partner-terms). How we handle personal information is explained in our [Privacy Policy](/privacy).
 
-## 1. About BrightBroom
+## 1. About {{brand.name}}
 
-1.1 BrightBroom is an online marketplace operated by BrightBroom (Pty) Ltd, registration number 2020/440020/07 ("**BrightBroom**", "**we**", "**us**"). Through the website, customers can find, book and pay for home and office cleaning services.
+1.1 {{brand.name}} is an online marketplace operated by {{brand.legalName}}, registration number {{brand.registrationNumber}} ("**{{brand.name}}**", "**we**", "**us**"). Through the website, customers can find, book and pay for home and office cleaning services.
 
-1.2 **The cleaning services you book are provided by independent cleaning businesses ("Cleaning Partners"), not by BrightBroom.** Each Cleaning Partner is a separate business that employs or contracts its own cleaners. Cleaning Partners are not our employees, agents or partners in a legal sense.
+1.2 **The cleaning services you book are provided by independent cleaning businesses ("Cleaning Partners"), not by {{brand.name}}.** Each Cleaning Partner is a separate business that employs or contracts its own cleaners. Cleaning Partners are not our employees, agents or partners in a legal sense.
 
 1.3 Our role is to:
 
@@ -23,15 +23,15 @@ Cleaning companies that offer their services on BrightBroom also agree to our se
 
 1.4 Our contact details, as required by the Electronic Communications and Transactions Act 25 of 2002 ("**ECTA**"):
 
-- **Registered name:** BrightBroom (Pty) Ltd, registration number 2020/440020/07
-- **Physical address:** 0B Cedar Avenue West, Fourways, Randburg, 2191
-- **Telephone:** 069 391 5277
-- **Email:** info@brightbroom.com and support@brightbroom.com
-- **Website:** brightbroom.com
+- **Registered name:** {{brand.legalName}}, registration number {{brand.registrationNumber}}
+- **Physical address:** {{brand.address}}
+- **Telephone:** {{brand.supportPhone}}
+- **Email:** {{brand.supportEmail}} and {{brand.helpEmail}}
+- **Website:** {{brand.domain}}
 
 ## 2. Accepting these Terms
 
-2.1 By creating an account, making a booking, or otherwise using the website, you agree to these Terms. If you do not agree, please do not use BrightBroom.
+2.1 By creating an account, making a booking, or otherwise using the website, you agree to these Terms. If you do not agree, please do not use {{brand.name}}.
 
 2.2 You must be at least 18 years old and able to enter into a binding contract to make a booking.
 
@@ -126,7 +126,7 @@ These charges are a reasonable estimate of the Cleaning Partner's loss when a bo
 3. copy, scrape or resell the website's content or listings; or
 4. post or send anything unlawful, defamatory, abusive or misleading.
 
-9.2 The website and its content, including the BrightBroom name and logo, belong to us or our licensors. You may not use them without our written permission.
+9.2 The website and its content, including the {{brand.name}} name and logo, belong to us or our licensors. You may not use them without our written permission.
 
 9.3 We try to keep the website available and accurate, but it may sometimes be unavailable for maintenance or because of events outside our control.
 
@@ -140,9 +140,9 @@ These charges are a reasonable estimate of the Cleaning Partner's loss when a bo
 
 10.4 You are responsible for loss caused by your own failure to follow section 5.3, including keeping valuables secure and warning us about hazards.
 
-## 11. Ending your use of BrightBroom
+## 11. Ending your use of {{brand.name}}
 
-11.1 You may stop using BrightBroom and ask us to close your account at any time by contacting us. Paid bookings that have not yet taken place will be handled under section 7.
+11.1 You may stop using {{brand.name}} and ask us to close your account at any time by contacting us. Paid bookings that have not yet taken place will be handled under section 7.
 
 11.2 Sections 6 to 8, 10 and 12 continue to apply after your account is closed, for bookings made before then.
 
@@ -150,12 +150,12 @@ These charges are a reasonable estimate of the Cleaning Partner's loss when a bo
 
 12.1 These Terms are governed by the laws of the Republic of South Africa.
 
-12.2 If you have a complaint, please contact support@brightbroom.com first. If we cannot resolve it, you may refer it to the Consumer Goods and Services Ombud or the National Consumer Commission, or to a court with jurisdiction.
+12.2 If you have a complaint, please contact {{brand.helpEmail}} first. If we cannot resolve it, you may refer it to the Consumer Goods and Services Ombud or the National Consumer Commission, or to a court with jurisdiction.
 
-12.3 We may send you notices by email or by posting them on the website. You may send notices to info@brightbroom.com.
+12.3 We may send you notices by email or by posting them on the website. You may send notices to {{brand.supportEmail}}.
 
 12.4 If any part of these Terms is found to be invalid, the rest remains in force.
 
 12.5 A failure or delay by us to enforce a right does not mean we have given it up.
 
-12.6 These Terms, together with your booking confirmation and our Privacy Policy, are the whole agreement between you and us about using BrightBroom.
+12.6 These Terms, together with your booking confirmation and our Privacy Policy, are the whole agreement between you and us about using {{brand.name}}.

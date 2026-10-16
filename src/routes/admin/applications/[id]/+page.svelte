@@ -1,6 +1,7 @@
 <!-- src/routes/admin/applications/[id]/+page.svelte -->
 
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   const WORK_AUTH_LABELS: Record<string, string> = {
     SA_CITIZEN: "South African citizen",
@@ -157,7 +158,7 @@
 </script>
 
 <svelte:head>
-  <title>Application Details | BrightBroom Admin</title>
+  <title>Application Details | {brand.name} Admin</title>
 </svelte:head>
 
 {#await data.streamed.applicationData}

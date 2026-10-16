@@ -6,6 +6,7 @@
   import { onMount } from 'svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import Forbidden403 from '$lib/components/errors/Forbidden403.svelte';
+  import { brand, canonicalSiteUrl } from "$lib/config/brand";
     
   // Get error information from the page store
   $: status = $page.status;
@@ -39,7 +40,7 @@
 
 <svelte:head>
   <title>
-    {is404 ? '404 - Page Not Found' : `${status} - Error`} | BrightBroom
+    {is404 ? '404 - Page Not Found' : `${status} - Error`} | {brand.name}
   </title>
   <meta 
     name="description" 
@@ -52,25 +53,25 @@
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="{is404 ? '404 - Page Not Found' : `${status} - Error`} | BrightBroom" />
+  <meta property="og:title" content="{is404 ? '404 - Page Not Found' : `${status} - Error`} | {brand.name}" />
   <meta property="og:description" content={is404 
     ? 'The page you\'re looking for couldn\'t be found. Browse our cleaning services in South Africa.'
     : 'We encountered an error. Please try again or contact our support team.'
   } />
-  <meta property="og:image" content="https://brightbroom.com/images/og-default.jpg" />
-  <meta property="og:url" content="https://brightbroom.com{$page.url.pathname}" />
+  <meta property="og:image" content="{canonicalSiteUrl}/images/og-default.jpg" />
+  <meta property="og:url" content="{canonicalSiteUrl}{$page.url.pathname}" />
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="{is404 ? '404 - Page Not Found' : `${status} - Error`} | BrightBroom" />
+  <meta name="twitter:title" content="{is404 ? '404 - Page Not Found' : `${status} - Error`} | {brand.name}" />
   <meta property="twitter:description" content={is404 
     ? 'Page not found - Browse our cleaning services in South Africa.'
     : 'We encountered an error. Please try again or contact support.'
   } />
-  <meta name="twitter:image" content="https://brightbroom.com/images/og-default.jpg" />
+  <meta name="twitter:image" content="{canonicalSiteUrl}/images/og-default.jpg" />
   
   <!-- Canonical URL to home page -->
-  <link rel="canonical" href="https://brightbroom.com/" />
+  <link rel="canonical" href="{canonicalSiteUrl}/" />
 </svelte:head>
 
 {#if is403}
@@ -171,8 +172,8 @@
         <div class="mt-12 text-center text-sm text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
           <p>
             If you followed a link from another website, please let us know at 
-            <a href="mailto:support@brightbroom.com" class="text-primary-700 hover:underline">
-              support@brightbroom.com
+            <a href="mailto:{brand.helpEmail}" class="text-primary-700 hover:underline">
+              {brand.helpEmail}
             </a>
           </p>
           <p class="mt-2">

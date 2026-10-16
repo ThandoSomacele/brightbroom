@@ -25,6 +25,9 @@
     "db:migrate:rebaseline": "tsx scripts/db/rebaseline-migrations.ts",
     "db:generate": "drizzle-kit generate --schema=./src/lib/server/db/schema.ts --out=./drizzle/migrations --dialect=postgresql",
     "db:studio": "drizzle-kit studio",
+    "db:fresh:generate": "drizzle-kit generate --config drizzle.fresh.config.ts",
+    "db:fresh:migrate": "drizzle-kit migrate --config drizzle.fresh.config.ts",
+    "db:seed:client": "tsx scripts/db/seed-client.ts",
     "db:seed": "tsx scripts/db/seed.ts",
     "db:seed:services": "tsx scripts/db/seed.ts services",
     "db:seed:users": "tsx scripts/db/seed.ts users",
@@ -76,6 +79,7 @@
     "eslint": "^9.22.0",
     "eslint-plugin-svelte": "^3.0.3",
     "gray-matter": "^4.0.3",
+    "ioredis": "^6.0.0",
     "jsdom": "^26.0.0",
     "lucia": "^3.2.2",
     "marked": "^15.0.12",
@@ -110,6 +114,7 @@
     "detailed": true
   },
   "devDependencies": {
+    "@sveltejs/adapter-node": "^5.5.7",
     "@types/google.maps": "^3.66.6",
     "@types/marked": "^5.0.2",
     "globals": "^16.4.0",

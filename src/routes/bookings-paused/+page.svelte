@@ -1,14 +1,15 @@
 <!-- src/routes/bookings-paused/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   </script>
 
 <svelte:head>
-  <title>Bookings Paused | BrightBroom</title>
+  <title>Bookings Paused | {brand.name}</title>
   <meta
     name="description"
-    content="BrightBroom bookings are briefly paused while we onboard and train our cleaning team. Join as a cleaner or get notified when we relaunch."
+    content="{brand.name} bookings are briefly paused while we onboard and train our cleaning team. Join as a cleaner or get notified when we relaunch."
   />
   <meta name="robots" content="noindex" />
 </svelte:head>

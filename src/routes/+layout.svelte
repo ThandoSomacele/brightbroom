@@ -6,6 +6,7 @@
   import CookieConsentBanner from "$lib/components/CookieConsentBanner.svelte";
   import ErrorBoundary from "$lib/components/ErrorBoundary.svelte";
   import Button from "$lib/components/ui/Button.svelte";
+  import { brand, canonicalSiteUrl, isSingleCompany } from "$lib/config/brand";
   import { performanceMonitor } from "$lib/utils/performance";
   import posthog from "posthog-js";
   import { onMount } from "svelte";
@@ -20,7 +21,7 @@
   $: bookHref = bookingsPaused ? "/bookings-paused" : "/book";
 
   // Get site URL for canonical URLs
-  const siteUrl = import.meta.env.VITE_SITE_URL || "https://brightbroom.com";
+  const siteUrl = import.meta.env.VITE_SITE_URL || canonicalSiteUrl;
   $: canonicalUrl = `${siteUrl}${$page.url.pathname}`;
 
   // Check if current page is in booking flow (hide footer on mobile for these)
@@ -38,8 +39,8 @@
 
   // Initialise performance monitoring and GTM
   onMount(() => {
-    // Initialise Google Tag Manager
-    if (typeof window !== "undefined") {
+    // Initialise Google Tag Manager (only where a container is configured)
+    if (typeof window !== "undefined" && brand.gtmId) {
       // GTM's dataLayer is not part of the DOM typings
       const gtmWindow = window as Window & { dataLayer?: unknown[] };
       gtmWindow.dataLayer = gtmWindow.dataLayer || [];
@@ -50,7 +51,7 @@
 
       const script = document.createElement("script");
       script.async = true;
-      script.src = "https://www.googletagmanager.com/gtm.js?id=GTM-WSXMSVZT";
+      script.src = `https://www.googletagmanager.com/gtm.js?id=${brand.gtmId}`;
 
       const firstScript = document.getElementsByTagName("script")[0];
       if (firstScript?.parentNode) {
@@ -75,25 +76,27 @@
 
 <svelte:head>
   <!-- Basic meta tags -->
-  <title>BrightBroom | Cleaner Bookings Made Simple</title>
+  <title>{brand.name} | {brand.tagline}</title>
   <meta
     name="description"
-    content="Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean."
+    content="{brand.tagline}. Book professional cleaning services online in minutes and get your space sparkling clean."
   />
   <!-- Canonical URL -->
   <link rel="canonical" href={canonicalUrl} />
 </svelte:head>
 
 <!-- Google Tag Manager (noscript) -->
-<noscript
-  ><iframe
-    src="https://www.googletagmanager.com/ns.html?id=GTM-WSXMSVZT"
-    height="0"
-    width="0"
-    style="display:none;visibility:hidden"
-    title="Google Tag Manager"
-  ></iframe></noscript
->
+{#if brand.gtmId}
+  <noscript
+    ><iframe
+      src="https://www.googletagmanager.com/ns.html?id={brand.gtmId}"
+      height="0"
+      width="0"
+      style="display:none;visibility:hidden"
+      title="Google Tag Manager"
+    ></iframe></noscript
+  >
+{/if}
 <!-- End Google Tag Manager (noscript) -->
 
 
@@ -114,9 +117,13 @@
         <a
           href="/"
           class="flex items-center"
-          aria-label="BrightBroom home page"
+          aria-label="{brand.name} home page"
         >
-          <span class="text-2xl font-bold text-primary-700">BrightBroom</span>
+          {#if brand.logoUrl}
+            <img src={brand.logoUrl} alt={brand.name} class="h-9 w-auto" />
+          {:else}
+            <span class="text-2xl font-bold text-primary-700">{brand.name}</span>
+          {/if}
         </a>
       </div>
 
@@ -348,9 +355,9 @@
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="md:flex md:items-center md:justify-between">
       <div class="mb-6 md:mb-0">
-        <span class="text-xl font-bold text-primary-700">BrightBroom</span>
+        <span class="text-xl font-bold text-primary-700">{brand.name}</span>
         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          Cleaner Bookings Made Simple
+          {brand.tagline}
         </p>
       </div>
 
@@ -375,11 +382,14 @@
           class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >Join as a cleaner</a
         >
-        <a
-          href="/join/company"
-          class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          >Partner with us</a
-        >
+        <!-- Company sign-up exists only on the multi-company marketplace -->
+        {#if !isSingleCompany}
+          <a
+            href="/join/company"
+            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+            >Partner with us</a
+          >
+        {/if}
         <a
           href="/contact"
           class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
@@ -390,7 +400,7 @@
 
     <div class="mt-8 border-t border-gray-200 pt-8 dark:border-gray-700">
       <p class="text-center text-sm text-gray-500 dark:text-gray-400">
-        &copy; {new Date().getFullYear()} BrightBroom. All rights reserved.
+        &copy; {new Date().getFullYear()} {brand.name}. All rights reserved.
       </p>
     </div>
   </div>

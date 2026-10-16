@@ -1,5 +1,6 @@
 <!-- src/routes/admin/tenants/new/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { enhance } from "$app/forms";
@@ -46,7 +47,7 @@
 </script>
 
 <svelte:head>
-  <title>Add Tenant | BrightBroom Admin</title>
+  <title>Add Tenant | {brand.name} Admin</title>
 </svelte:head>
 
 <div class="max-w-2xl mx-auto space-y-6">

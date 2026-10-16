@@ -1,5 +1,6 @@
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
+  import { brand, canonicalSiteUrl } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { page } from "$app/stores";
   import heroImage from "$lib/image-assets/hero.webp";
@@ -13,12 +14,12 @@
 
   $: user = data.user;
 
-  const siteUrl = import.meta.env.VITE_SITE_URL || "https://brightbroom.com";
+  const siteUrl = import.meta.env.VITE_SITE_URL || canonicalSiteUrl;
   const ogImageUrl = `${siteUrl}/images/brightbroom-og-image.jpg`;
 </script>
 
 <svelte:head>
-  <title>BrightBroom | Cleaner Bookings Made Simple</title>
+  <title>{brand.name} | {brand.tagline}</title>
   <meta
     name="description"
     content="Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean."
@@ -29,7 +30,7 @@
   <meta property="og:url" content={$page.url.href} />
   <meta
     property="og:title"
-    content="BrightBroom | Cleaner Bookings Made Simple"
+    content="{brand.name} | {brand.tagline}"
   />
   <meta
     property="og:description"
@@ -42,7 +43,7 @@
   <meta name="twitter:url" content={$page.url.href} />
   <meta
     name="twitter:title"
-    content="BrightBroom | Cleaner Bookings Made Simple"
+    content="{brand.name} | {brand.tagline}"
   />
   <meta
     name="twitter:description"

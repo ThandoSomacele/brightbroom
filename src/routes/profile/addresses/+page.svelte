@@ -1,5 +1,6 @@
 <!-- src/routes/profile/addresses/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import DeleteAddressModal from "$lib/components/addresses/DeleteAddressModal.svelte";
@@ -176,7 +177,7 @@
 </script>
 
 <svelte:head>
-  <title>My Addresses | BrightBroom</title>
+  <title>My Addresses | {brand.name}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 px-4 py-8 dark:bg-gray-900">

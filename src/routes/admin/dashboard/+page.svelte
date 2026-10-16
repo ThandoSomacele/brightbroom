@@ -1,5 +1,6 @@
 <!-- src/routes/admin/dashboard/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import { goto } from "$app/navigation";
   import { MetricCardSkeleton, TableSkeleton, ChartSkeleton } from "$lib/components/ui/skeletons";
   import Card from "$lib/components/ui/Card.svelte";
@@ -91,7 +92,7 @@
 </script>
 
 <svelte:head>
-  <title>Admin Dashboard | BrightBroom</title>
+  <title>Admin Dashboard | {brand.name}</title>
 </svelte:head>
 
 <!-- Page header -->

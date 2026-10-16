@@ -1,10 +1,11 @@
 <script>
+  import { brand } from "$lib/config/brand";
   import Button from "$lib/components/ui/Button.svelte";
   import Card from "$lib/components/ui/Card.svelte";
 </script>
 
 <svelte:head>
-  <title>Professional Cleaning Services in North Riding | BrightBroom</title>
+  <title>Professional Cleaning Services in North Riding | {brand.name}</title>
   <meta
     name="description"
     content="Top-rated home and office cleaning services in North Riding, Johannesburg. Book professional cleaners for regular or deep cleaning. Serving North Riding, Northworld, Bloubosrand, and surrounding areas."
@@ -17,7 +18,7 @@
   <!-- Open Graph / Facebook -->
   <meta
     property="og:title"
-    content="Professional Cleaning Services in North Riding | BrightBroom"
+    content="Professional Cleaning Services in North Riding | {brand.name}"
   />
   <meta
     property="og:description"
@@ -37,7 +38,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta
     name="twitter:title"
-    content="Professional Cleaning Services in North Riding | BrightBroom"
+    content="Professional Cleaning Services in North Riding | {brand.name}"
   />
   <meta
     name="twitter:description"

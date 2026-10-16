@@ -1,5 +1,6 @@
 <!-- src/routes/admin/cleaners/[id]/earnings/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
@@ -81,7 +82,7 @@
 <svelte:head>
   <title
     >Cleaner Earnings | {cleaner.firstName}
-    {cleaner.lastName} | BrightBroom Admin</title
+    {cleaner.lastName} | {brand.name} Admin</title
   >
 </svelte:head>
 

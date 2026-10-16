@@ -111,7 +111,7 @@ export const actions: Actions = {
 
       // Self-serve tenant creation is cheap to abuse, so limit by IP and email
       const clientIP = getClientAddress();
-      const ipRateLimit = checkRateLimit("companySignup", clientIP);
+      const ipRateLimit = await checkRateLimit("companySignup", clientIP);
       if (!ipRateLimit.allowed) {
         return fail(429, {
           error:
@@ -121,7 +121,7 @@ export const actions: Actions = {
       }
 
       // checkRateLimit detects an email identifier itself and applies emailLimit
-      const emailRateLimit = checkRateLimit("companySignup", email!);
+      const emailRateLimit = await checkRateLimit("companySignup", email!);
       if (!emailRateLimit.allowed) {
         return fail(429, {
           error:

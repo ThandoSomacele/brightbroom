@@ -1,5 +1,6 @@
 <!-- src/routes/payment/process/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
   import { secureAPIFetch } from "$lib/utils/api-helpers";
@@ -106,7 +107,7 @@
 </script>
 
 <svelte:head>
-  <title>Processing Payment | BrightBroom</title>
+  <title>Processing Payment | {brand.name}</title>
 </svelte:head>
 
 <div

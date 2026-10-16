@@ -1,5 +1,6 @@
 <!-- src/routes/profile/bookings/[id]/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import Button from '$lib/components/ui/Button.svelte';
   import { notFound, forbidden } from '$lib/utils/errors';
@@ -65,7 +66,7 @@
 </script>
 
 <svelte:head>
-  <title>Booking Details | BrightBroom</title>
+  <title>Booking Details | {brand.name}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 px-4 py-8 dark:bg-gray-900">

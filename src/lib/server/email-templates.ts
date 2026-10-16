@@ -1,7 +1,21 @@
 // src/lib/server/email-templates.ts
+import { env as publicEnv } from "$env/dynamic/public";
+import { brand } from "$lib/config/brand";
 import { parseDateTimeString } from "$lib/utils/date-utils";
 import { absoluteImageUrl } from "$lib/utils/media";
 import { escapeHtml, getBookingReference } from "$lib/utils/strings";
+
+/**
+ * The business address on receipts, one part per line. BrightBroom's receipts
+ * have always shown this block; a deployment with its own PUBLIC_BRAND_ADDRESS
+ * shows that address instead, split at its commas.
+ */
+function receiptAddressHtml(): string {
+  const lines = publicEnv.PUBLIC_BRAND_ADDRESS?.trim()
+    ? brand.address.split(",").map((part) => escapeHtml(part.trim())).filter(Boolean)
+    : ["0B Cedar Avenue West", "Fourways, Sandton", "South Africa"];
+  return lines.map((line) => `              ${line}<br>`).join("\n");
+}
 
 export interface EmailTemplateData {
   appUrl: string;
@@ -22,7 +36,7 @@ export function getPasswordResetTemplate(
   // Ensure appUrl is defined and clean
   const appUrl = data.appUrl
     ? data.appUrl.trim().replace(/\/$/, "")
-    : "https://brightbroom.com";
+    : brand.siteUrl;
 
   // Generate the reset URL
   const resetUrl = `${appUrl}/auth/reset-password?token=${resetToken}`;
@@ -1171,9 +1185,7 @@ export function getPaymentReceiptTemplate(
           <div class="company-details">
             <h3 style="margin: 0; color: #333333;">${data.brandName}</h3>
             <p style="margin: 5px 0;">
-              0B Cedar Avenue West<br>
-              Fourways, Sandton<br>
-              South Africa<br>
+${receiptAddressHtml()}
             </p>
           </div>
           <div class="invoice-details">

@@ -1,5 +1,6 @@
 <!-- src/routes/cookie-preferences/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import { consentStatus, acceptCookies, declineCookies } from '$lib/stores/cookieConsent';
   import Button from '$lib/components/ui/Button.svelte';
   import { goto } from '$app/navigation';
@@ -16,10 +17,10 @@
 </script>
 
 <svelte:head>
-  <title>Cookie Preferences | BrightBroom</title>
+  <title>Cookie Preferences | {brand.name}</title>
   <meta
     name="description"
-    content="Manage your cookie preferences and privacy settings for BrightBroom."
+    content="Manage your cookie preferences and privacy settings for {brand.name}."
   />
 </svelte:head>
 

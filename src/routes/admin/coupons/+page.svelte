@@ -1,5 +1,6 @@
 <!-- src/routes/admin/coupons/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
@@ -104,7 +105,7 @@
 </script>
 
 <svelte:head>
-  <title>Manage Coupons | BrightBroom Admin</title>
+  <title>Manage Coupons | {brand.name} Admin</title>
 </svelte:head>
 
 <svelte:window onkeydown={handleKeydown} />

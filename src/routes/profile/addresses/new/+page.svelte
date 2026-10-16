@@ -1,5 +1,6 @@
 <!-- src/routes/profile/addresses/new/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { goto } from "$app/navigation";
@@ -72,7 +73,7 @@
           selectedAddress.lng,
         );
         if (closest) {
-          addressError = `We haven't reached your area yet! The nearest BrightBroom zone is ${closest.name} (${closest.distance.toFixed(0)}km away). We're expanding soon!`;
+          addressError = `We haven't reached your area yet! The nearest ${brand.name} zone is ${closest.name} (${closest.distance.toFixed(0)}km away). We're expanding soon!`;
         }
       }
     }
@@ -86,7 +87,7 @@
 </script>
 
 <svelte:head>
-  <title>Add New Address | BrightBroom</title>
+  <title>Add New Address | {brand.name}</title>
 </svelte:head>
 
 {#if isLoading}

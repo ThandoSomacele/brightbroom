@@ -18,7 +18,8 @@ export const GET: RequestHandler = async ({ url, request }) => {
 
   // Same secret the scheduled functions send (CRON_SECRET kept for older setups); fails closed when unset
   const expected = process.env.CRON_SECRET_TOKEN || process.env.CRON_SECRET;
-  if (process.env.NODE_ENV === "production" && (!expected || token !== expected)) {
+  // Checked in every environment: preview deploys build with NODE_ENV=development
+  if (!expected || token !== expected) {
     return new Response("Unauthorized", { status: 401 });
   }
 

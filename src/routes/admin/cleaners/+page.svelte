@@ -1,5 +1,6 @@
 <!-- src/routes/admin/cleaners/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { TableSkeleton } from "$lib/components/ui/skeletons";
@@ -106,7 +107,7 @@
 </script>
 
 <svelte:head>
-  <title>Manage Cleaners | BrightBroom Admin</title>
+  <title>Manage Cleaners | {brand.name} Admin</title>
 </svelte:head>
 
 <!-- Page header -->

@@ -1,4 +1,5 @@
 // src/lib/utils/serviceAreaValidator.ts
+import { brand } from "$lib/config/brand";
 
 /**
  * How far a cleaner is expected to travel from their work address to a
@@ -169,7 +170,7 @@ export function getOutOfServiceAreaMessage(
   lng?: number,
 ): string {
   const areas = formatServiceAreaList();
-  const base = `BrightBroom isn't in your area yet. We currently clean in ${areas}.`;
+  const base = `${brand.name} isn't in your area yet. We currently clean in ${areas}.`;
 
   if (typeof lat === "number" && typeof lng === "number") {
     const closest = getClosestServiceArea(lat, lng);

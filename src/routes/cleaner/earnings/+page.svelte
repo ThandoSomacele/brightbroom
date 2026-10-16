@@ -1,5 +1,6 @@
 <!-- src/routes/cleaner/earnings/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
     import { CustomerSkeleton } from '$lib/components/ui/skeletons';
   import StatCard from '$lib/components/ui/StatCard.svelte';
   import EmptyState from '$lib/components/ui/EmptyState.svelte';
@@ -28,7 +29,7 @@
 </script>
 
 <svelte:head>
-  <title>Earnings | BrightBroom Cleaner</title>
+  <title>Earnings | {brand.name} Cleaner</title>
 </svelte:head>
 
 {#await data.streamed.earningsData}

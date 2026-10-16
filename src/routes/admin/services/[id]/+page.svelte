@@ -1,5 +1,6 @@
 <!-- src/routes/admin/services/[id]/edit/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
@@ -23,7 +24,7 @@
 </script>
 
 <svelte:head>
-  <title>Edit {service.name} | BrightBroom Admin</title>
+  <title>Edit {service.name} | {brand.name} Admin</title>
 </svelte:head>
 
 <!-- Page header with back button -->

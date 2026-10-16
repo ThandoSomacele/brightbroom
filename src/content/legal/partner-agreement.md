@@ -1,10 +1,10 @@
 ---
 title: Cleaning Partner Agreement
 lastUpdated: 14 October 2026
-description: The agreement between BrightBroom and cleaning companies that offer their services through the BrightBroom marketplace.
+description: The agreement between {{brand.name}} and cleaning companies that offer their services through the {{brand.name}} marketplace.
 ---
 
-This Cleaning Partner Agreement ("**Agreement**") is between BrightBroom (Pty) Ltd, registration number 2020/440020/07 ("**BrightBroom**", "**we**", "**us**"), and the cleaning business that signs up at brightbroom.com/join/company ("**Partner**", "**you**").
+This Cleaning Partner Agreement ("**Agreement**") is between {{brand.legalName}}, registration number {{brand.registrationNumber}} ("**{{brand.name}}**", "**we**", "**us**"), and the cleaning business that signs up at {{brand.domain}}/join/company ("**Partner**", "**you**").
 
 The person who signs up confirms that they are authorised to bind the Partner. The Partner accepts this Agreement electronically by ticking the acceptance box at sign-up, which is a valid signature under the Electronic Communications and Transactions Act 25 of 2002. Our customer [Terms of Use](/terms) and [Privacy Policy](/privacy) also apply.
 
@@ -17,12 +17,12 @@ In this Agreement:
 3. **Commission** means the fee we charge on each Booking, as set out in section 6;
 4. **Customer** means a person who makes a Booking;
 5. **Net Amount** means the amount the Customer paid for a Booking, less the payment-processing fee charged by PayFast on that payment;
-6. **Platform** means the BrightBroom website, systems and services; and
+6. **Platform** means the {{brand.name}} website, systems and services; and
 7. **Payout** means the amount we pay the Partner for completed Bookings.
 
 ## 2. Our relationship
 
-2.1 You are an independent business. Nothing in this Agreement makes you, or any Cleaner, an employee, agent or joint-venture partner of BrightBroom.
+2.1 You are an independent business. Nothing in this Agreement makes you, or any Cleaner, an employee, agent or joint-venture partner of {{brand.name}}.
 
 2.2 You decide how to run your business, including who you employ and how you train and pay your Cleaners, provided you meet this Agreement and the law.
 
@@ -91,7 +91,7 @@ In this Agreement:
 
 7.2 You must hold, and on request show us proof of, public liability insurance covering your cleaning services, with cover of at least R1 million per claim.
 
-7.3 You indemnify BrightBroom against claims, losses and costs (including reasonable legal fees) arising from your or your Cleaners' acts or omissions, your breach of this Agreement, or your breach of any law, except to the extent caused by our own breach or negligence.
+7.3 You indemnify {{brand.name}} against claims, losses and costs (including reasonable legal fees) arising from your or your Cleaners' acts or omissions, your breach of this Agreement, or your breach of any law, except to the extent caused by our own breach or negligence.
 
 ## 8. Personal information
 
@@ -103,7 +103,7 @@ In this Agreement:
 4. not use it to market to the Customer, or pass it to anyone else; and
 5. tell us within 72 hours if you become aware that it has been lost, accessed or disclosed without authorisation.
 
-8.2 You are responsible for the personal information of your own Cleaners and staff. When you add a Cleaner to the Platform, you confirm that you have told them their information will be shared with BrightBroom and with Customers as described in our Privacy Policy, and that you have any consent the law requires.
+8.2 You are responsible for the personal information of your own Cleaners and staff. When you add a Cleaner to the Platform, you confirm that you have told them their information will be shared with {{brand.name}} and with Customers as described in our Privacy Policy, and that you have any consent the law requires.
 
 8.3 We process your representatives' and Cleaners' information as described in our Privacy Policy.
 
@@ -165,7 +165,7 @@ We will:
 
 14.3 We may update this Agreement by giving you at least 30 days' written notice. If you continue to accept Bookings after the change takes effect, you accept the updated Agreement. You may end this Agreement before the change takes effect if you do not accept it.
 
-14.4 Notices may be sent by email: to the contact email on your account, and to us at info@brightbroom.com.
+14.4 Notices may be sent by email: to the contact email on your account, and to us at {{brand.supportEmail}}.
 
 14.5 You may not transfer this Agreement without our written consent. We may transfer it to a successor of our business, on notice to you.
 

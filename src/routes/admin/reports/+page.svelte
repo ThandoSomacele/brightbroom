@@ -1,5 +1,6 @@
 <!-- src/routes/admin/reports/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import { navigating, page } from "$app/stores";
@@ -165,7 +166,7 @@
 </script>
 
 <svelte:head>
-  <title>Analytics Reports | BrightBroom Admin</title>
+  <title>Analytics Reports | {brand.name} Admin</title>
 </svelte:head>
 
 <!-- Page header -->

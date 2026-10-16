@@ -2,6 +2,7 @@
 import { error, json, redirect, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { env as publicEnv } from '$env/dynamic/public';
+import { isSingleCompany, missingBrandSettings } from '$lib/config/brand';
 import { validateSessionToken } from '$lib/server/auth';
 import type { User } from '$lib/server/db/schema';
 import { tenantService } from '$lib/server/services/tenant.service';
@@ -10,6 +11,13 @@ import { randomBytes } from 'crypto';
 /**
  * Authentication hook that validates session tokens and sets user data
  */
+// A company's deployment must name itself; blanks would show on its pages and
+// legal documents. Logged once at startup so a misconfigured deploy is obvious.
+const missingBrand = missingBrandSettings();
+if (missingBrand.length) {
+  console.error(`[brand] Single-company mode is missing: ${missingBrand.join(', ')}. These show blank on the site until set.`);
+}
+
 const handleAuth: Handle = async ({ event, resolve }) => {
   // Get session token from cookies
   const sessionToken = event.cookies.get('session');
@@ -199,6 +207,20 @@ const handlePostHogProxy: Handle = async ({ event, resolve }) => {
   return resolve(event);
 };
 
+/** Routes that only make sense on the multi-company marketplace */
+const MARKETPLACE_ONLY_PATHS = [
+  '/join/company',
+  '/partner-terms',
+  '/admin/tenants',
+  '/admin/verification',
+  '/api/tenant',
+];
+
+/** True for one of those routes or anything below it (not merely a shared prefix) */
+function isMarketplaceOnlyPath(path: string): boolean {
+  return MARKETPLACE_ONLY_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
+}
+
 /**
  * Custom routing hook to handle specific error cases
  */
@@ -221,6 +243,13 @@ if (path.includes('//')) {
   // Double slashes in URL path - redirect to corrected URL
   throw error(404, "Invalid URL format");
 }
+
+  // A single cleaning company's own site has no marketplace: no company
+  // sign-up, no Cleaning Partner Agreement, no tenant management or company
+  // vetting. Those routes answer 404 as if they did not exist.
+  if (isSingleCompany && isMarketplaceOnlyPath(path)) {
+    throw error(404, 'Not found');
+  }
 
   // Bookings pause. Set PUBLIC_BOOKINGS_PAUSED=true (production context only)
   // while there are no trained cleaners to fulfil bookings: the funnel

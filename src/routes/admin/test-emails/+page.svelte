@@ -1,5 +1,6 @@
 <!-- src/routes/admin/test-emails/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Button from "$lib/components/ui/Button.svelte";
 
   let emailAddress = "";
@@ -37,7 +38,7 @@
 </script>
 
 <svelte:head>
-  <title>Test Emails | BrightBroom Admin</title>
+  <title>Test Emails | {brand.name} Admin</title>
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8 max-w-4xl">

@@ -2,6 +2,7 @@
 
 import { env } from '$env/dynamic/private';
 import crypto from 'crypto';
+import { brand } from '$lib/config/brand';
 import type { Subscription, NewSubscription, SubscriptionPayment } from '../db/schema';
 
 // PayFast subscription endpoints
@@ -205,6 +206,19 @@ export class PayFastSubscriptionService {
     this.apiKey = env.PAYFAST_API_KEY;
   }
 
+  /**
+   * Credentials come from the environment only (no built-in fallback), so a
+   * deployment without them fails here, at the point of taking a payment,
+   * rather than at import time or by charging into someone else's account.
+   */
+  private assertConfigured(): void {
+    if (!this.merchantId.trim() || !this.merchantKey.trim()) {
+      throw new Error(
+        'PayFast is not configured: set PAYFAST_MERCHANT_ID and PAYFAST_MERCHANT_KEY (and PAYFAST_PASSPHRASE if the PayFast account has one)',
+      );
+    }
+  }
+
   // Create a new subscription
   async createSubscription(subscription: NewSubscription, customer: {
     firstName: string;
@@ -218,6 +232,7 @@ export class PayFastSubscriptionService {
     // PayFast's native subscriptions only support monthly and longer, so a
     // weekly plan cannot be billed natively - type 1 here quietly registered
     // every customer as monthly, whatever schedule they chose.
+    this.assertConfigured();
     const finalPrice = parseFloat(subscription.finalPrice.toString());
 
     // Build params in PayFast's required order - CRITICAL!
@@ -226,9 +241,11 @@ export class PayFastSubscriptionService {
       // 1. Merchant details
       merchant_id: this.merchantId,
       merchant_key: this.merchantKey,
-      return_url: `${env.PUBLIC_URL || process.env.PUBLIC_URL}/book/payment/subscription-success?m_payment_id=${subscription.id}`,
-      cancel_url: `${env.PUBLIC_URL || process.env.PUBLIC_URL}/book/payment/subscription-cancel`,
-      notify_url: `${env.PUBLIC_URL || process.env.PUBLIC_URL}/api/payfast/subscription-webhook`,
+      // brand.siteUrl is PUBLIC_URL (trailing slash removed), or the demo's
+      // own URL when unset - never the string "undefined".
+      return_url: `${brand.siteUrl}/book/payment/subscription-success?m_payment_id=${subscription.id}`,
+      cancel_url: `${brand.siteUrl}/book/payment/subscription-cancel`,
+      notify_url: `${brand.siteUrl}/api/payfast/subscription-webhook`,
 
       // 2. Customer details
       name_first: customer.firstName,
@@ -306,6 +323,7 @@ export class PayFastSubscriptionService {
     token: string,
     mPaymentId: string,
   ): Promise<{ ok: boolean; detail: string; pfPaymentId?: string }> {
+    this.assertConfigured();
     const amountCents = Math.round(
       parseFloat(subscription.finalPrice.toString()) * 100,
     );

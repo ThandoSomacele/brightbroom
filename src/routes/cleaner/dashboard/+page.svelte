@@ -1,5 +1,6 @@
 <!-- src/routes/cleaner/dashboard/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { CustomerSkeleton } from '$lib/components/ui/skeletons';
   import StatCard from '$lib/components/ui/StatCard.svelte';
@@ -38,7 +39,7 @@
 </script>
 
 <svelte:head>
-  <title>Cleaner Dashboard | BrightBroom</title>
+  <title>Cleaner Dashboard | {brand.name}</title>
 </svelte:head>
 
 {#await data.streamed.dashboardData}

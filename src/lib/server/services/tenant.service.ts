@@ -1,4 +1,5 @@
 // src/lib/server/services/tenant.service.ts
+import { isSingleCompany } from "$lib/config/brand";
 import { db } from "$lib/server/db";
 import {
   booking,
@@ -567,11 +568,15 @@ export const tenantService = {
    * the cleaner directly on the platform's own bookings, or the cleaning
    * company on everyone else's. It defaults to true when there is no tenant so
    * an unscoped booking behaves the way it always has.
+   *
+   * On a single company's own site (PUBLIC_PLATFORM_MODE=single) every booking
+   * is the company's own: no tenant rate, no company share, the cleaner is
+   * paid directly - exactly the platform-owner path.
    */
   async getPayoutTerms(
     tenantId: string | null | undefined,
   ): Promise<{ commissionRate: number | undefined; isPlatformOwner: boolean }> {
-    if (!tenantId) return { commissionRate: undefined, isPlatformOwner: true };
+    if (!tenantId || isSingleCompany) return { commissionRate: undefined, isPlatformOwner: true };
 
     const [row] = await db
       .select({

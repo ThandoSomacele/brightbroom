@@ -31,18 +31,21 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import UpdateStatusIndicator from "$lib/components/admin/UpdateStatusIndicator.svelte";
+  import { brand, isSingleCompany } from "$lib/config/brand";
   
   export let data;
 
   let showMobileMenu = false;
 
   const isPlatformAdmin = data.isPlatformAdmin;
-  const tenantName = data.tenant?.name ?? "BrightBroom";
+  const tenantName = data.tenant?.name ?? brand.name;
 
   // A company can use the dashboard while pending, so it needs a standing
   // reminder of why it is not receiving work yet.
   $: verificationStatus = data.tenant?.verificationStatus;
+  // A single company's own site has no company vetting (/admin/verification is off)
   $: needsVerification =
+    !isSingleCompany &&
     !isPlatformAdmin && !!verificationStatus && verificationStatus !== "APPROVED";
   $: verificationHeadline =
     verificationStatus === "SUBMITTED"
@@ -77,10 +80,16 @@
     },
   ];
 
+  // Marketplace-only areas, switched off on a single company's own site
+  // (hooks.server.ts answers 404 for them there)
+  const marketplaceOnlyHrefs = ["/admin/tenants", "/admin/verification"];
+
   // Filter nav items based on user role
-  $: navItems = isPlatformAdmin
-    ? allNavItems.filter((item) => !item.tenantOnly)
-    : allNavItems.filter((item) => !item.platformOnly);
+  $: navItems = (
+    isPlatformAdmin
+      ? allNavItems.filter((item) => !item.tenantOnly)
+      : allNavItems.filter((item) => !item.platformOnly)
+  ).filter((item) => !isSingleCompany || !marketplaceOnlyHrefs.includes(item.href));
 
   function isActive(href: string) {
     return (
@@ -125,7 +134,7 @@
     >
       <!-- Compact logo for tablet icon rail -->
       <div class="hidden md:flex lg:hidden p-4 justify-center">
-        <span class="font-bold text-primary-700 text-2xl">B</span>
+        <span class="font-bold text-primary-700 text-2xl">{brand.name.charAt(0)}</span>
       </div>
       <!-- Full logo for desktop -->
       <div class="p-4 hidden lg:flex items-center">

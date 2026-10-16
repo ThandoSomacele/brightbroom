@@ -1,5 +1,6 @@
 <!-- src/routes/service-areas/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import Card from "$lib/components/ui/Card.svelte";
@@ -16,7 +17,7 @@
 </script>
 
 <svelte:head>
-  <title>Service Areas | BrightBroom</title>
+  <title>Service Areas | {brand.name}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 px-4 py-8 dark:bg-gray-900">
@@ -27,7 +28,7 @@
         Our Service Areas
       </h1>
       <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
-        BrightBroom currently serves these areas around Gauteng, South Africa with varied coverage radiuses.
+        {brand.name} currently serves these areas around Gauteng, South Africa with varied coverage radiuses.
       </p>
     </div>
 
