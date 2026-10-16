@@ -4,6 +4,7 @@
   (rendered on the server), never from user input.
 -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import { onMount } from "svelte";
   import type { LegalDocument } from "$lib/types/legal";
 
@@ -38,7 +39,7 @@
 </script>
 
 <svelte:head>
-  <title>{doc.title} | BrightBroom</title>
+  <title>{doc.title} | {brand.name}</title>
   <meta name="description" content={doc.description} />
 </svelte:head>
 
@@ -66,7 +67,7 @@
       <main class="md:w-3/4 lg:w-4/5">
         <div class="rounded-lg bg-white p-6 shadow-md md:p-8 dark:bg-gray-800">
           <header class="mb-6 border-b border-gray-200 pb-6 dark:border-gray-700">
-            <p class="section-eyebrow mb-2 text-center">BrightBroom (Pty) Ltd</p>
+            <p class="section-eyebrow mb-2 text-center">{brand.legalName}</p>
             <h1 class="mb-3 text-center text-3xl font-bold text-gray-900 dark:text-white">{doc.title}</h1>
             <p class="text-center text-gray-600 dark:text-gray-400">Last updated: {doc.lastUpdated}</p>
           </header>
@@ -114,7 +115,7 @@
             {/each}
           </div>
 
-          <p class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">© BrightBroom (Pty) Ltd. All rights reserved.</p>
+          <p class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">© {brand.legalName}. All rights reserved.</p>
         </div>
       </main>
     </div>
@@ -151,7 +152,7 @@
     color: rgb(17 24 39);
   }
   .legal-prose :global(a) {
-    color: #15776d;
+    color: theme("colors.primary.700");
     text-decoration: underline;
     text-underline-offset: 3px;
   }

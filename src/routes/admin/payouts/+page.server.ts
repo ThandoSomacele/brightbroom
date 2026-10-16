@@ -7,6 +7,7 @@ import {
   tenant,
   user,
 } from "$lib/server/db/schema";
+import { isSingleCompany } from "$lib/config/brand";
 import { tenantService } from "$lib/server/services/tenant.service";
 import { fail } from "@sveltejs/kit";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
@@ -45,10 +46,12 @@ async function getPayoutData(tenantId: string | null) {
     // cleaner payout is that company's liability to its own cleaner, paid out
     // of the company's share — summing those here would overstate what
     // BrightBroom owes.
+    // On a single company's own site every booking is its own (see
+    // tenantService.getPayoutTerms), whatever its tenant row says.
     const pendingPayoutConditions = [
       eq(payment.status, "COMPLETED"),
       eq(payment.isPaidToProvider, false),
-      eq(tenant.isPlatformOwner, true),
+      ...(isSingleCompany ? [] : [eq(tenant.isPlatformOwner, true)]),
     ];
     if (tenantId) {
       pendingPayoutConditions.push(eq(booking.tenantId, tenantId));

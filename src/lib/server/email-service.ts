@@ -1,5 +1,6 @@
 // src/lib/server/email-service.ts
 import { env } from "$env/dynamic/private";
+import { env as publicEnv } from "$env/dynamic/public";
 import { eq } from "drizzle-orm";
 import { Resend } from "resend";
 import { db } from "./db";
@@ -25,6 +26,7 @@ import {
   getWelcomeEmailTemplate,
 } from "./email-templates";
 
+import { brand } from "$lib/config/brand";
 import { brandColors } from "$lib/config/theme";
 // Initialise Resend with API key from environment variable
 const RESEND_API_KEY = env.RESEND_API_KEY;
@@ -32,10 +34,23 @@ const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
 // Define a guaranteed base URL for the application
 // This is crucial for generating correct links in emails
-const APP_URL = env.PUBLIC_URL || "https://brightbroom.com";
+const APP_URL = env.PUBLIC_URL || brand.siteUrl;
 
-// The sender email address
-const FROM_EMAIL = "BrightBroom <notifications@brightbroom.com>";
+// The sender address. EMAIL_FROM must be on a domain verified with Resend for
+// this deployment, e.g. "Sparkle Clean <bookings@sparkleclean.co.za>".
+const FROM_EMAIL =
+  env.EMAIL_FROM?.trim() || `${brand.name} <notifications@brightbroom.com>`;
+
+/**
+ * Inboxes that receive internal notifications (contact form, new bookings,
+ * cleaner applications). BrightBroom has a separate inbox for each; a
+ * deployment that sets its own PUBLIC_SUPPORT_EMAIL gets them all there
+ * unless it names a specific one, so nothing is sent to BrightBroom by default.
+ */
+function internalInbox(specific: string | undefined, brightBroomInbox: string): string {
+  if (specific?.trim()) return specific.trim();
+  return publicEnv.PUBLIC_SUPPORT_EMAIL?.trim() ? brand.supportEmail : brightBroomInbox;
+}
 
 interface CleanerApplicationEmailData {
   id: string;
@@ -54,7 +69,7 @@ interface CleanerApplicationEmailData {
 // Email config for templates - using our guaranteed APP_URL
 const EMAIL_CONFIG = {
   appUrl: APP_URL,
-  brandName: "BrightBroom",
+  brandName: brand.name,
   primaryColor: brandColors.primary,
   secondaryColor: brandColors.secondary,
 };
@@ -661,7 +676,7 @@ export async function sendContactFormEmail(
     referral?: string;
     joinAsCleaner?: boolean;
   },
-  notificationEmail: string = "info@brightbroom.com",
+  notificationEmail: string = brand.supportEmail,
 ): Promise<boolean> {
   try {
     if (!resend) {
@@ -719,8 +734,10 @@ export async function sendAdminNewBookingEmail(bookingData: {
       return false;
     }
 
-    const notificationEmail =
-      env.ADMIN_BOOKINGS_EMAIL || "bookings@brightbroom.com";
+    const notificationEmail = internalInbox(
+      env.ADMIN_BOOKINGS_EMAIL,
+      "bookings@brightbroom.com",
+    );
 
     const template = getAdminBookingPaidTemplate(bookingData, EMAIL_CONFIG);
 
@@ -785,8 +802,10 @@ export async function sendCleanerApplicationEmail(
       EMAIL_CONFIG,
     );
 
-    // Notification email recipient - replace with your recruitment team email
-    const notificationEmail = "recruitment@brightbroom.com"; // Or use an environment variable
+    const notificationEmail = internalInbox(
+      env.RECRUITMENT_EMAIL,
+      "recruitment@brightbroom.com",
+    );
 
     // Send email with Resend
     const { data: emailData, error } = await resend.emails.send({

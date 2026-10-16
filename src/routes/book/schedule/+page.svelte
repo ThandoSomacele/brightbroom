@@ -1,5 +1,6 @@
 <!-- src/routes/book/schedule/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import RecurringOptions from "$lib/components/booking/RecurringOptions.svelte";
@@ -267,7 +268,7 @@
 </script>
 
 <svelte:head>
-  <title>Schedule Cleaning | BrightBroom</title>
+  <title>Schedule Cleaning | {brand.name}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 px-4 py-8 dark:bg-gray-900">

@@ -1,5 +1,6 @@
 <!-- src/routes/admin/bookings/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import Button from '$lib/components/ui/Button.svelte';
   import { parseDateTimeString } from '$lib/utils/date-utils';
@@ -111,7 +112,7 @@
 </script>
 
 <svelte:head>
-  <title>Manage Bookings | BrightBroom Admin</title>
+  <title>Manage Bookings | {brand.name} Admin</title>
 </svelte:head>
 
 <!-- Page header -->

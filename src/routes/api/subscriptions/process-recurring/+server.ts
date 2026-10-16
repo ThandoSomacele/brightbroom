@@ -35,7 +35,8 @@ export const POST: RequestHandler = async ({ request }) => {
     const authHeader = request.headers.get('authorization');
     const expectedToken = process.env.CRON_SECRET_TOKEN;
 
-    if (expectedToken && authHeader !== `Bearer ${expectedToken}`) {
+    // Fail closed: with no token configured, nobody may trigger a billing run
+    if (!expectedToken || authHeader !== `Bearer ${expectedToken}`) {
       return json({ error: 'Unauthorized' }, { status: 401 });
     }
 

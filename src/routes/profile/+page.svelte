@@ -1,5 +1,6 @@
 <!-- src/routes/profile/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import Skeleton from "$lib/components/ui/Skeleton.svelte";
@@ -11,7 +12,7 @@
 </script>
 
 <svelte:head>
-  <title>My Profile | BrightBroom</title>
+  <title>My Profile | {brand.name}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 px-4 py-8 dark:bg-gray-900">

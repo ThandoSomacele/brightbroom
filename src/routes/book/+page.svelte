@@ -1,5 +1,6 @@
 <!-- src/routes/book/+page.svelte -->
 <script lang="ts">
+  import { brand, canonicalSiteUrl } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
@@ -19,7 +20,7 @@
   let { data }: { data: PageData } = $props();
   const { pricingConfig, addons, user, isAuthenticated } = data;
 
-  const siteUrl = import.meta.env.VITE_SITE_URL || "https://brightbroom.com";
+  const siteUrl = import.meta.env.VITE_SITE_URL || canonicalSiteUrl;
   const ogImageUrl = `${siteUrl}/images/brightbroom-og-image.jpg`;
 
   // Room selection state using $state for reactivity
@@ -92,14 +93,14 @@
 </script>
 
 <svelte:head>
-  <title>Book a Cleaning | BrightBroom</title>
+  <title>Book a Cleaning | {brand.name}</title>
   <meta
     name="description"
     content="Cleaner Bookings Made Simple. Build your perfect cleaning package by selecting rooms and add-ons."
   />
   <meta property="og:type" content="website" />
   <meta property="og:url" content={$page.url.href} />
-  <meta property="og:title" content="BrightBroom | Build Your Perfect Clean" />
+  <meta property="og:title" content="{brand.name} | Build Your Perfect Clean" />
   <meta
     property="og:description"
     content="Cleaner Bookings Made Simple. Customise your cleaning based on your home's bedrooms, bathrooms, and optional add-ons."
@@ -107,7 +108,7 @@
   <meta property="og:image" content={ogImageUrl} />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content={$page.url.href} />
-  <meta name="twitter:title" content="BrightBroom | Build Your Perfect Clean" />
+  <meta name="twitter:title" content="{brand.name} | Build Your Perfect Clean" />
   <meta
     name="twitter:description"
     content="Cleaner Bookings Made Simple. Customise your cleaning based on your home's bedrooms, bathrooms, and optional add-ons."

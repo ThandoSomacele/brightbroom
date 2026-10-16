@@ -1,0 +1,17 @@
+# Keep the Docker build context small and free of secrets.
+node_modules
+.git
+.svelte-kit
+.netlify
+build
+backups
+reports
+.playwright-mcp
+coverage
+*.log
+.DS_Store
+
+# Never bake secrets into an image; Coolify injects them at runtime.
+.env
+.env.*
+!.env.example

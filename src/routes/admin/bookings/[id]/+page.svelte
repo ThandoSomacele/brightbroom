@@ -1,5 +1,6 @@
 <!-- src/routes/admin/bookings/[id]/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
@@ -299,7 +300,7 @@
 </script>
 
 <svelte:head>
-  <title>Booking Details | BrightBroom Admin</title>
+  <title>Booking Details | {brand.name} Admin</title>
 </svelte:head>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -900,7 +901,7 @@
         <!-- Platform Commission -->
         <div class="flex justify-between items-center">
           <span class="text-gray-600 dark:text-gray-300">
-            BrightBroom Commission ({payoutBreakdown.commissionRate}%):
+            {brand.name} Commission ({payoutBreakdown.commissionRate}%):
           </span>
           <span class="text-red-600 dark:text-red-400">
             -{formatPrice(payoutBreakdown.commissionAmount)}

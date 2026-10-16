@@ -1,5 +1,6 @@
 <!-- src/routes/admin/applications/new/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
@@ -37,7 +38,7 @@
 </script>
 
 <svelte:head>
-  <title>Create Application | BrightBroom Admin</title>
+  <title>Create Application | {brand.name} Admin</title>
 </svelte:head>
 
 <!-- Page header -->

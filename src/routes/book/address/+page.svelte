@@ -1,5 +1,6 @@
 <!-- src/routes/book/address/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import AddressSelect from "$lib/components/booking/AddressSelect.svelte";
@@ -212,7 +213,7 @@
 </script>
 
 <svelte:head>
-  <title>Select Address | BrightBroom</title>
+  <title>Select Address | {brand.name}</title>
 </svelte:head>
 
 {#if isLoading}

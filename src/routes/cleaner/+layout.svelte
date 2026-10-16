@@ -1,5 +1,6 @@
 <!-- src/routes/cleaner/+layout.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { page } from '$app/stores';
   import Button from '$lib/components/ui/Button.svelte';
@@ -47,7 +48,7 @@
       <div class="flex h-16 items-center justify-between">
         <!-- Logo -->
         <div class="flex flex-shrink-0 items-center">
-          <span class="text-xl font-bold text-primary-700">BrightBroom</span>
+          <span class="text-xl font-bold text-primary-700">{brand.name}</span>
           <span class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">Cleaner Portal</span>
         </div>
         
@@ -171,7 +172,7 @@
   <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-4">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <p class="text-center text-sm text-gray-500 dark:text-gray-400">
-        &copy; {new Date().getFullYear()} BrightBroom. All rights reserved.
+        &copy; {new Date().getFullYear()} {brand.name}. All rights reserved.
       </p>
     </div>
   </footer>

@@ -1,5 +1,6 @@
 <!-- src/routes/admin/applications/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
@@ -62,7 +63,7 @@
 </script>
 
 <svelte:head>
-  <title>Cleaner Applications | BrightBroom Admin</title>
+  <title>Cleaner Applications | {brand.name} Admin</title>
 </svelte:head>
 
 <!-- Page header -->

@@ -1,5 +1,6 @@
 <!-- src/routes/cleaner/bookings/[id]/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
@@ -123,7 +124,7 @@
 </script>
 
 <svelte:head>
-  <title>Booking Details | BrightBroom Cleaner</title>
+  <title>Booking Details | {brand.name} Cleaner</title>
 </svelte:head>
 
 <div class="space-y-6">

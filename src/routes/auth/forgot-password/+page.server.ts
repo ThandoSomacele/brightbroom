@@ -29,7 +29,7 @@ export const actions: Actions = {
       
       // Check IP-based rate limit
       const ipAddress = getClientAddress();
-      const ipRateLimit = checkRateLimit('passwordReset', ipAddress);
+      const ipRateLimit = await checkRateLimit('passwordReset', ipAddress);
       
       if (!ipRateLimit.allowed) {
         return fail(429, { 
@@ -39,7 +39,7 @@ export const actions: Actions = {
       }
       
       // Check email-based rate limit
-      const emailRateLimit = checkRateLimit('passwordReset', email!);
+      const emailRateLimit = await checkRateLimit('passwordReset', email!);
       
       if (!emailRateLimit.allowed) {
         return fail(429, { 

@@ -1,5 +1,6 @@
 <!-- src/routes/admin/pricing/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
@@ -152,7 +153,7 @@
 </script>
 
 <svelte:head>
-  <title>Pricing Configuration | Admin | BrightBroom</title>
+  <title>Pricing Configuration | Admin | {brand.name}</title>
 </svelte:head>
 
 {#if !dataLoaded}

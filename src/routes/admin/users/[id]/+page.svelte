@@ -1,5 +1,6 @@
 <!-- src/routes/admin/users/[id]/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import Button from "$lib/components/ui/Button.svelte";
@@ -121,7 +122,7 @@
 </script>
 
 <svelte:head>
-  <title>User Details | BrightBroom Admin</title>
+  <title>User Details | {brand.name} Admin</title>
 </svelte:head>
 
 {#await data.streamed.userData}

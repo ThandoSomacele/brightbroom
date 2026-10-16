@@ -14,14 +14,32 @@ import crypto from "crypto";
 import { eq, sql } from "drizzle-orm";
 import { env } from "$env/dynamic/private";
 import { parseDateTimeString } from "$lib/utils/date-utils";
+import { brand } from "$lib/config/brand";
 
-// Get environment variables with fallbacks to sandbox credentials for safety
-const PAYFAST_MERCHANT_ID =
-  env.PAYFAST_MERCHANT_ID || "10035674";
-const PAYFAST_MERCHANT_KEY =
-  env.PAYFAST_MERCHANT_KEY || "9nqhf208lzpc4";
-const PAYFAST_PASSPHRASE =
-  env.PAYFAST_PASSPHRASE || "personalprojectssanding";
+// PayFast credentials come from the environment only. Each deployment (one per
+// cleaning company) takes payments into its own PayFast account, so a built-in
+// fallback would quietly send one company's money to another's account.
+// Read on use rather than at import, so a build without PayFast env vars still
+// succeeds and only creating a payment fails.
+function getPayFastCredentials(): {
+  merchantId: string;
+  merchantKey: string;
+  passphrase: string;
+} {
+  const merchantId = env.PAYFAST_MERCHANT_ID ?? "";
+  const merchantKey = env.PAYFAST_MERCHANT_KEY ?? "";
+  if (!merchantId.trim() || !merchantKey.trim()) {
+    throw new Error(
+      "PayFast is not configured: set PAYFAST_MERCHANT_ID and PAYFAST_MERCHANT_KEY (and PAYFAST_PASSPHRASE if the PayFast account has one)",
+    );
+  }
+  return { merchantId, merchantKey, passphrase: getPayFastPassphrase() };
+}
+
+/** The account passphrase, or "" when the PayFast account has none set */
+function getPayFastPassphrase(): string {
+  return env.PAYFAST_PASSPHRASE ?? "";
+}
 
 // Determine if we should use sandbox mode (default to true in development)
 const USE_SANDBOX =
@@ -33,13 +51,16 @@ const PAYFAST_URL = USE_SANDBOX
   : "https://www.payfast.co.za/eng/process";
 
 // Default fallback base URL - only used if no origin is provided
-const DEFAULT_BASE_URL =
-  import.meta.env.VITE_APP_URL ||
-  "https://development--brightbroom.netlify.app";
+const DEFAULT_BASE_URL = import.meta.env.VITE_APP_URL || brand.siteUrl;
 
 // Log payment configuration on startup
 console.log("PayFast Configuration:");
 console.log(`- Using ${USE_SANDBOX ? "SANDBOX" : "PRODUCTION"} mode`);
+
+/** "BrightBroom" by default; the brand name with anything but letters and digits removed */
+function merchantReferencePrefix(): string {
+  return brand.name.replace(/[^A-Za-z0-9]/g, "") || "Booking";
+}
 
 interface PayFastPaymentData {
   merchant_id: string;
@@ -78,6 +99,9 @@ export async function createPaymentForBooking(
 ): Promise<{ paymentId: string; redirectUrl: string }> {
   try {
     console.log(`Creating payment for booking: ${bookingId}`);
+
+    // Fail before writing a PENDING payment row if PayFast isn't set up
+    getPayFastCredentials();
 
     // Get the origin from options or use default
     const origin = options.origin || DEFAULT_BASE_URL;
@@ -157,7 +181,10 @@ export async function createPaymentForBooking(
         amount: bookingData.price,
         status: "PENDING",
         paymentMethod: "CREDIT_CARD",
-        merchantReference: `BrightBroom-${bookingData.id}`,
+        // Informational only: nothing parses this back (the IPN finds the
+        // payment by m_payment_id and the booking by custom_str1), so older
+        // "BrightBroom-<id>" rows and new "<Brand>-<id>" rows coexist safely.
+        merchantReference: `${merchantReferencePrefix()}-${bookingData.id}`,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -206,10 +233,12 @@ function generatePayFastUrl(
   const lastName = userData.lastName.trim();
   const email = userData.email.trim();
 
+  const credentials = getPayFastCredentials();
+
   // Create data object for PayFast
   const data: PayFastPaymentData & Record<string, string> = {
-    merchant_id: PAYFAST_MERCHANT_ID,
-    merchant_key: PAYFAST_MERCHANT_KEY,
+    merchant_id: credentials.merchantId,
+    merchant_key: credentials.merchantKey,
     return_url: `${urls.returnUrl}?booking_id=${bookingData.id}`, 
     cancel_url: `${urls.cancelUrl}?booking_id=${bookingData.id}`,     
     notify_url: urls.notifyUrl,
@@ -218,13 +247,13 @@ function generatePayFastUrl(
     email_address: email,
     m_payment_id: paymentData.id,
     amount: formattedAmount,
-    item_name: `BrightBroom ${serviceData.name}`,
+    item_name: `${brand.name} ${serviceData.name}`,
     item_description: `Cleaning service scheduled for ${parseDateTimeString(bookingData.scheduledDate).toISOString().split("T")[0]}`,
     custom_str1: bookingData.id, // Store booking ID for reference
   };
 
   // Generate signature
-  const signature = generateSignature(data, PAYFAST_PASSPHRASE);
+  const signature = generateSignature(data, credentials.passphrase);
 
   // Build URL manually to ensure encoding is consistent with signature generation
   let queryString = "";
@@ -380,7 +409,10 @@ export async function validateIpnRequest(
     delete pfParamsToInclude.signature;
 
     // Regenerate signature
-    const signature = generateSignature(pfParamsToInclude, PAYFAST_PASSPHRASE);
+    const signature = generateSignature(
+      pfParamsToInclude,
+      getPayFastPassphrase(),
+    );
 
     if (pfData.signature !== signature) {
       console.error("IPN request signature validation failed");

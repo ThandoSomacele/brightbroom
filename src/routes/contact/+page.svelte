@@ -1,5 +1,6 @@
 <!-- src/routes/contact/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import HoneypotField from "$lib/components/forms/HoneypotField.svelte";
@@ -20,14 +21,14 @@
 </script>
 
 <svelte:head>
-  <title>Contact Us | BrightBroom</title>
+  <title>Contact Us | {brand.name}</title>
   <meta
     name="description"
     content="Get in touch with BrightBroom cleaning services for questions, support, or to join our team of professional cleaners."
   />
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Contact Us | BrightBroom" />
+  <meta property="og:title" content="Contact Us | {brand.name}" />
   <meta
     property="og:description"
     content="Get in touch with BrightBroom cleaning services for questions, support, or to join our team of professional cleaners."
@@ -37,7 +38,7 @@
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Contact Us | BrightBroom" />
+  <meta name="twitter:title" content="Contact Us | {brand.name}" />
   <meta
     name="twitter:description"
     content="Get in touch with BrightBroom cleaning services for questions, support, or to join our team of professional cleaners."

@@ -73,7 +73,7 @@ export const actions: Actions = {
       const clientIP = getClientAddress();
       
       // Check IP-based rate limit
-      const ipRateLimit = checkRateLimit('contactForm', clientIP);
+      const ipRateLimit = await checkRateLimit('contactForm', clientIP);
       
       if (!ipRateLimit.allowed) {
         console.log(`Contact form rate limit exceeded for IP: ${clientIP}`);
@@ -94,7 +94,7 @@ export const actions: Actions = {
       }
 
       // Check email-based rate limit
-      const emailRateLimit = checkRateLimit('contactForm', email!);
+      const emailRateLimit = await checkRateLimit('contactForm', email!);
       
       if (!emailRateLimit.allowed) {
         console.log(`Contact form rate limit exceeded for email: ${email}`);

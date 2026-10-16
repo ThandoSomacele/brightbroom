@@ -1,16 +1,16 @@
 ---
 title: Privacy Policy
 lastUpdated: 14 October 2026
-description: How BrightBroom collects, uses, shares and protects personal information under the Protection of Personal Information Act (POPIA).
+description: How {{brand.name}} collects, uses, shares and protects personal information under the Protection of Personal Information Act (POPIA).
 ---
 
-This Privacy Policy explains how BrightBroom (Pty) Ltd ("**BrightBroom**", "**we**", "**us**") collects, uses, shares and protects personal information when you use brightbroom.com, book a clean, work as a cleaner, or represent a cleaning company on our platform. It is written to meet the Protection of Personal Information Act 4 of 2013 ("**POPIA**").
+This Privacy Policy explains how {{brand.legalName}} ("**{{brand.name}}**", "**we**", "**us**") collects, uses, shares and protects personal information when you use {{brand.domain}}, book a clean, work as a cleaner, or represent a cleaning company on our platform. It is written to meet the Protection of Personal Information Act 4 of 2013 ("**POPIA**").
 
 ## 1. Who we are
 
-1.1 BrightBroom runs an online marketplace that connects customers with independent cleaning companies ("**Cleaning Partners**"). For the personal information described in this policy, BrightBroom is the "responsible party" under POPIA.
+1.1 {{brand.name}} runs an online marketplace that connects customers with independent cleaning companies ("**Cleaning Partners**"). For the personal information described in this policy, {{brand.name}} is the "responsible party" under POPIA.
 
-1.2 Our Information Officer is Thando Somacele, who can be contacted at info@brightbroom.com, 069 391 5277, or 0B Cedar Avenue West, Fourways, Randburg, 2191.
+1.2 Our Information Officer is {{brand.informationOfficer}}, who can be contacted at {{brand.supportEmail}}, {{brand.supportPhone}}, or {{brand.address}}.
 
 1.3 Cleaning Partners are separate businesses. When we share a customer's booking details with a Cleaning Partner so that it can do the job, the Cleaning Partner becomes responsible for how it uses that information, and our [Cleaning Partner Agreement](/partner-terms) requires it to protect the information and use it only for that booking. Each Cleaning Partner is also responsible for the personal information of its own employees.
 
@@ -19,7 +19,7 @@ This Privacy Policy explains how BrightBroom (Pty) Ltd ("**BrightBroom**", "**we
 This policy covers:
 
 1. **customers**, who book cleans, including guests who book without an account;
-2. **cleaners**, who apply to work through BrightBroom or are added by a Cleaning Partner;
+2. **cleaners**, who apply to work through {{brand.name}} or are added by a Cleaning Partner;
 3. **people who represent Cleaning Partners**, such as owners, directors and administrators; and
 4. **visitors** to our website and people who contact us.
 
@@ -78,7 +78,7 @@ We process personal information only where POPIA allows it. The table shows our 
 
 6.1 Some of our service providers process information outside South Africa (see section 5.3). We transfer information only where POPIA section 72 allows it: where the recipient is bound by law, binding corporate rules or a binding agreement that gives protection substantially similar to POPIA, or where the transfer is needed to perform our contract with you.
 
-6.2 Identity documents, work permits, company documents and photos uploaded to BrightBroom are stored in South Africa.
+6.2 Identity documents, work permits, company documents and photos uploaded to {{brand.name}} are stored in South Africa.
 
 ## 7. How we protect it
 
@@ -102,7 +102,7 @@ We keep personal information only as long as we need it for the purposes above o
 |---|---|
 | Customer accounts and saved addresses | While the account is open, and up to 12 months after the last booking or account closure |
 | Booking, payment and payout records | 5 years after the end of the tax year they relate to (tax and accounting law) |
-| Cleaner and Cleaning Partner vetting documents | While the cleaner or Cleaning Partner is active on BrightBroom, and up to 5 years afterwards in case of claims |
+| Cleaner and Cleaning Partner vetting documents | While the cleaner or Cleaning Partner is active on {{brand.name}}, and up to 5 years afterwards in case of claims |
 | Applications that are not approved | 12 months after the decision |
 | Complaints, damage claims and related messages | Up to 3 years after the matter is closed |
 | Website analytics | As long as needed to understand trends, after which it is deleted or anonymised |
@@ -129,7 +129,7 @@ After these periods we delete the information or anonymise it so that it no long
 4. withdraw consent where we rely on it, without affecting processing that has already taken place; and
 5. complain to the Information Regulator.
 
-10.2 To exercise these rights, email info@brightbroom.com. We will need to confirm your identity before we act on a request, and we will respond within a reasonable time. We may refuse a request where the law allows, and we will tell you why.
+10.2 To exercise these rights, email {{brand.supportEmail}}. We will need to confirm your identity before we act on a request, and we will respond within a reasonable time. We may refuse a request where the law allows, and we will tell you why.
 
 10.3 Some information cannot be deleted immediately because the law requires us to keep it (for example payment records), or because it is needed for an open complaint or claim.
 
@@ -139,7 +139,7 @@ After these periods we delete the information or anonymise it so that it no long
 
 11.1 We will only send you marketing about our own services if you have agreed to it or, as an existing customer, about similar services, and every marketing message lets you unsubscribe for free.
 
-11.2 Cleaning Partners may not use customer information received through BrightBroom to market to customers.
+11.2 Cleaning Partners may not use customer information received through {{brand.name}} to market to customers.
 
 ## 12. Changes to this policy
 
@@ -147,7 +147,7 @@ We may update this policy from time to time. We will post the new version on thi
 
 ## 13. Contact us
 
-**Information Officer:** Thando Somacele
-**Email:** info@brightbroom.com
-**Telephone:** 069 391 5277
-**Address:** 0B Cedar Avenue West, Fourways, Randburg, 2191
+**Information Officer:** {{brand.informationOfficer}}
+**Email:** {{brand.supportEmail}}
+**Telephone:** {{brand.supportPhone}}
+**Address:** {{brand.address}}

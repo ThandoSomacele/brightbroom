@@ -1,5 +1,6 @@
 <!-- src/routes/admin/cleaners/[id]/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
@@ -401,7 +402,7 @@
 </script>
 
 <svelte:head>
-  <title>Cleaner Details | BrightBroom Admin</title>
+  <title>Cleaner Details | {brand.name} Admin</title>
 </svelte:head>
 
 {#if !dataLoaded}

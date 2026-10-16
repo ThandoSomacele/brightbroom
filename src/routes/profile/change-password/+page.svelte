@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import { enhance } from '$app/forms';
   import Button from '$lib/components/ui/Button.svelte';
 
@@ -11,7 +12,7 @@
 </script>
 
 <svelte:head>
-  <title>Change Password | BrightBroom</title>
+  <title>Change Password | {brand.name}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 px-4 py-8 dark:bg-gray-900">

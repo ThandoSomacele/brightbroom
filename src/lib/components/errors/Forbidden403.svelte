@@ -1,10 +1,11 @@
 <!-- src/lib/components/errors/Forbidden403.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Button from '$lib/components/ui/Button.svelte';
 </script>
 
 <svelte:head>
-  <title>Access Denied | BrightBroom</title>
+  <title>Access Denied | {brand.name}</title>
 </svelte:head>
 
 <div class="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4 text-center dark:bg-gray-900">

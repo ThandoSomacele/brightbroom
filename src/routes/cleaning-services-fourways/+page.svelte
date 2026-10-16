@@ -1,10 +1,11 @@
 <script>
+  import { brand } from "$lib/config/brand";
   import Button from "$lib/components/ui/Button.svelte";
   import Card from "$lib/components/ui/Card.svelte";
 </script>
 
 <svelte:head>
-  <title>Professional Cleaning Services in Fourways | BrightBroom</title>
+  <title>Professional Cleaning Services in Fourways | {brand.name}</title>
   <meta
     name="description"
     content="Trusted home and office cleaning services in Fourways, Johannesburg. Book professional cleaners for regular or deep cleaning. Serving Fourways, Lonehill, Broadacres, and surrounding areas."
@@ -15,7 +16,7 @@
   />
   <meta
     property="og:title"
-    content="Professional Cleaning Services in Fourways | BrightBroom"
+    content="Professional Cleaning Services in Fourways | {brand.name}"
   />
   <meta
     property="og:description"

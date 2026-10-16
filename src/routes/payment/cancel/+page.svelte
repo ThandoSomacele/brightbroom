@@ -1,5 +1,6 @@
 <!-- src/routes/payment/cancel/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
@@ -14,7 +15,7 @@
 </script>
 
 <svelte:head>
-  <title>Payment Cancelled | BrightBroom</title>
+  <title>Payment Cancelled | {brand.name}</title>
 </svelte:head>
 
 <div class="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-gray-900">

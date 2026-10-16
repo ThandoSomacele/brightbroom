@@ -1,5 +1,6 @@
 <!-- src/routes/admin/payouts/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { invalidateAll } from "$app/navigation";
@@ -65,7 +66,7 @@
 </script>
 
 <svelte:head>
-  <title>Batch Payouts | BrightBroom Admin</title>
+  <title>Batch Payouts | {brand.name} Admin</title>
 </svelte:head>
 
 <!-- Page header -->

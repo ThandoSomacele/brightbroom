@@ -24,13 +24,119 @@ const BUCKET_NAME = process.env.S3_BUCKET_NAME || "brightbroom-upload";
 // break both. They live under this prefix and are served by /api/images.
 export const PUBLIC_IMAGE_PREFIX = "profile-images/";
 
+// Optional S3-compatible storage (MinIO, Wasabi, Cloudflare R2, ...) for
+// self-hosted deployments. Unset = AWS S3, exactly as before.
+//   S3_ENDPOINT          e.g. https://minio.example.co.za
+//   S3_FORCE_PATH_STYLE  "true" to address objects as endpoint/bucket/key
+const ENDPOINT = normaliseEndpoint(process.env.S3_ENDPOINT);
+const FORCE_PATH_STYLE = process.env.S3_FORCE_PATH_STYLE === "true";
+
+/** Trimmed, without trailing slashes; undefined when unset or blank */
+function normaliseEndpoint(value: string | undefined): string | undefined {
+  const trimmed = value?.trim().replace(/\/+$/, "");
+  return trimmed ? trimmed : undefined;
+}
+
+export type StorageConfig = {
+  bucket: string;
+  region: string;
+  /** S3-compatible endpoint; undefined means AWS */
+  endpoint?: string;
+  forcePathStyle: boolean;
+};
+
+const config: StorageConfig = {
+  bucket: BUCKET_NAME,
+  region: REGION,
+  endpoint: ENDPOINT,
+  forcePathStyle: FORCE_PATH_STYLE,
+};
+
 const s3Client = new S3Client({
   region: REGION,
   credentials: {
     accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID || "",
     secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY || "",
   },
+  // Only passed when set, so the AWS client is built exactly as before.
+  ...(ENDPOINT ? { endpoint: ENDPOINT, forcePathStyle: FORCE_PATH_STYLE } : {}),
 });
+
+/**
+ * The URL we store as the record of where an object lives.
+ *
+ * AWS (no endpoint): https://<bucket>.s3.<region>.amazonaws.com/<key> — the
+ * format every existing row uses, unchanged.
+ * Custom endpoint, path-style: <endpoint>/<bucket>/<key>
+ * Custom endpoint, virtual-hosted: <scheme>://<bucket>.<endpoint host>/<key>
+ */
+export function buildObjectUrl(cfg: StorageConfig, key: string): string {
+  if (!cfg.endpoint) {
+    return `https://${cfg.bucket}.s3.${cfg.region}.amazonaws.com/${key}`;
+  }
+  if (cfg.forcePathStyle) {
+    return `${cfg.endpoint}/${cfg.bucket}/${key}`;
+  }
+  const endpoint = new URL(cfg.endpoint);
+  const basePath = endpoint.pathname.replace(/\/+$/, "");
+  return `${endpoint.protocol}//${cfg.bucket}.${endpoint.host}${basePath}/${key}`;
+}
+
+/**
+ * Extract the object key from a stored URL, or null if the URL is not one of
+ * ours.
+ *
+ * Parsed rather than pattern-matched: this decides which object we hand to a
+ * signed URL, so a regex that happened to match the wrong part of a URL would
+ * be a security bug rather than a broken link. Always understands AWS URLs —
+ * virtual-hosted (bucket.s3.region.amazonaws.com/key) and path-style
+ * (s3.region.amazonaws.com/bucket/key) — so rows written before a move to a
+ * custom endpoint still resolve. With an endpoint configured it also
+ * understands <endpoint>/<bucket>/<key> and <bucket>.<endpoint host>/<key>,
+ * but only on the endpoint's own host.
+ */
+export function parseKeyFromUrl(cfg: StorageConfig, url: string): string | null {
+  if (!url) return null;
+
+  try {
+    const parsed = new URL(url);
+    const path = decodeURIComponent(parsed.pathname).replace(/^\/+/, "");
+
+    if (parsed.hostname.endsWith(".amazonaws.com")) {
+      if (!path) return null;
+      if (parsed.hostname.startsWith(`${cfg.bucket}.`)) {
+        return path;
+      }
+      if (path.startsWith(`${cfg.bucket}/`)) {
+        return path.slice(cfg.bucket.length + 1) || null;
+      }
+      return null;
+    }
+
+    if (!cfg.endpoint) return null;
+    const endpoint = new URL(cfg.endpoint);
+    // The endpoint may itself sit under a path (e.g. a reverse proxy prefix)
+    const basePath = decodeURIComponent(endpoint.pathname).replace(/^\/+|\/+$/g, "");
+    let rest = path;
+    if (basePath) {
+      if (!rest.startsWith(`${basePath}/`)) return null;
+      rest = rest.slice(basePath.length + 1);
+    }
+
+    if (parsed.host === endpoint.host) {
+      // Path-style: <endpoint>/<bucket>/<key>
+      if (!rest.startsWith(`${cfg.bucket}/`)) return null;
+      return rest.slice(cfg.bucket.length + 1) || null;
+    }
+    if (parsed.host === `${cfg.bucket}.${endpoint.host}`) {
+      // Virtual-hosted: <bucket>.<endpoint host>/<key>
+      return rest || null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 export const s3 = {
   /**
@@ -55,7 +161,7 @@ export const s3 = {
 
     try {
       await s3Client.send(new PutObjectCommand(params));
-      return `https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com/${key}`;
+      return buildObjectUrl(config, key);
     } catch (error) {
       console.error("S3 upload error:", error);
       throw new Error("Failed to upload file to S3");
@@ -113,33 +219,9 @@ export const s3 = {
   },
 
   /**
-   * Extract the S3 key from a full URL.
-   *
-   * Parsed rather than pattern-matched: this decides which object we hand to a
-   * signed URL, so a regex that happened to match the wrong part of a URL would
-   * be a security bug rather than a broken link. Handles both virtual-hosted
-   * (bucket.s3.region.amazonaws.com/key) and path-style
-   * (s3.region.amazonaws.com/bucket/key) URLs.
+   * Extract the S3 key from a full stored URL; see parseKeyFromUrl.
    */
   getKeyFromUrl(url: string): string | null {
-    if (!url) return null;
-
-    try {
-      const parsed = new URL(url);
-      if (!parsed.hostname.endsWith(".amazonaws.com")) return null;
-
-      const path = decodeURIComponent(parsed.pathname).replace(/^\/+/, "");
-      if (!path) return null;
-
-      if (parsed.hostname.startsWith(`${BUCKET_NAME}.`)) {
-        return path;
-      }
-      if (path.startsWith(`${BUCKET_NAME}/`)) {
-        return path.slice(BUCKET_NAME.length + 1) || null;
-      }
-      return null;
-    } catch {
-      return null;
-    }
+    return parseKeyFromUrl(config, url);
   },
 };

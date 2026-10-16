@@ -1,5 +1,6 @@
 <!-- src/routes/join/cleaner/+page.svelte -->
 <script lang="ts">
+  import { brand, canonicalSiteUrl } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { page } from "$app/stores";
@@ -191,12 +192,12 @@
       return true;
     }
   }
-  const siteUrl = import.meta.env.VITE_SITE_URL || "https://brightbroom.com";
+  const siteUrl = import.meta.env.VITE_SITE_URL || canonicalSiteUrl;
   const ogImageUrl = `${siteUrl}/images/join-cleaning-team-og.jpg`;
 </script>
 
 <svelte:head>
-  <title>Join Our Cleaner Team | BrightBroom</title>
+  <title>Join Our Cleaner Team | {brand.name}</title>
   <meta
     name="description"
     content="Join the BrightBroom team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
@@ -205,7 +206,7 @@
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content={$page.url.href} />
-  <meta property="og:title" content="Join Our Cleaner Team | BrightBroom" />
+  <meta property="og:title" content="Join Our Cleaner Team | {brand.name}" />
   <meta
     property="og:description"
     content="Join the BrightBroom team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
@@ -214,7 +215,7 @@
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Join Our Cleaner Team | BrightBroom" />
+  <meta name="twitter:title" content="Join Our Cleaner Team | {brand.name}" />
   <meta
     name="twitter:description"
     content="Join the BrightBroom team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import CleanerSelection from "$lib/components/booking/CleanerSelection.svelte";
@@ -85,7 +86,7 @@
 </script>
 
 <svelte:head>
-  <title>Select Your Cleaner | BrightBroom</title>
+  <title>Select Your Cleaner | {brand.name}</title>
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8 max-w-6xl">

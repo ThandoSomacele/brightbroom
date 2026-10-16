@@ -86,7 +86,7 @@ export const actions: Actions = {
 
       // Rate limiting
       const clientIP = getClientAddress();
-      const ipRateLimit = checkRateLimit('registration', clientIP);
+      const ipRateLimit = await checkRateLimit('registration', clientIP);
 
       if (!ipRateLimit.allowed) {
         console.log(`Registration rate limit exceeded for IP: ${clientIP}`);

@@ -1,5 +1,6 @@
 <!-- src/routes/admin/tenants/[id]/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { enhance } from "$app/forms";
@@ -32,7 +33,7 @@
 </script>
 
 <svelte:head>
-  <title>{data.tenant.name} | Tenants | BrightBroom Admin</title>
+  <title>{data.tenant.name} | Tenants | {brand.name} Admin</title>
 </svelte:head>
 
 <div class="max-w-4xl mx-auto space-y-6">
@@ -477,7 +478,7 @@
         Add a team member
       </h3>
       <p class="text-xs text-gray-500 dark:text-gray-400">
-        The person needs a BrightBroom account already. Adding a customer
+        The person needs a {brand.name} account already. Adding a customer
         account promotes it to a tenant admin.
       </p>
 

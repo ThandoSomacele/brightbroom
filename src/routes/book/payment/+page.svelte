@@ -1,5 +1,6 @@
 <!-- src/routes/book/payment/+page.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { enhance } from '$app/forms';
@@ -39,7 +40,7 @@
 </script>
 
 <svelte:head>
-  <title>Payment Options - BrightBroom</title>
+  <title>Payment Options - {brand.name}</title>
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8 max-w-2xl">
