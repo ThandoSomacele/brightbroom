@@ -93,7 +93,7 @@ export const POST: RequestHandler = async (event) => {
 
     // If no addressId but we have guestAddress, create the address first
     if (!addressId && guestAddress) {
-      console.log('Creating address from guest data:', guestAddress);
+      console.log('Creating address from guest data');
       try {
         const newAddress = await db.insert(address).values({
           id: crypto.randomBytes(16).toString('hex'),

@@ -1,6 +1,7 @@
 // src/routes/book/payment/+page.server.ts
 import { error, redirect, fail } from '@sveltejs/kit';
 import { getGuestBookingData } from '$lib/server/guest-booking';
+import { safeRedirectPath } from '$lib/utils/safe-redirect';
 import {
   createSession,
   generateSessionToken,
@@ -64,10 +65,10 @@ export const actions: Actions = {
     const isRecurring = guestBookingData.isRecurring === true;
 
     // Set the redirect URL based on booking type
-    const redirectTo = formData.get('redirectTo')?.toString() ||
-      (isRecurring ? '/payment/process?recurring=true' : '/payment/process');
-    
-    console.log('Login attempt:', { email, redirectTo });
+    const redirectTo = safeRedirectPath(
+      formData.get('redirectTo'),
+      isRecurring ? '/payment/process?recurring=true' : '/payment/process',
+    );
     
     try {
       // Validate form data with Zod
@@ -77,7 +78,7 @@ export const actions: Actions = {
       const userData = await getUserByEmail(credentials.email);
         
       if (!userData) {
-        console.log('User not found:', email);
+        console.log('Login failed: no such user');
         return fail(400, { 
           error: 'Invalid email or password',
           email
@@ -90,14 +91,14 @@ export const actions: Actions = {
       const validPassword = await hasher.verify(userData.passwordHash, credentials.password);
       
       if (!validPassword) {
-        console.log('Invalid password for user:', email);
+        console.log(`Login failed: wrong password for user ${userData.id}`);
         return fail(400, { 
           error: 'Invalid email or password',
           email
         });
       }
       
-      console.log('Login successful for user:', email);
+      console.log(`Login successful for user ${userData.id}`);
       
       // Generate a session token and create a session
       const token = generateSessionToken();
@@ -127,7 +128,7 @@ export const actions: Actions = {
     }
     
     // After successful authentication and session creation, redirect
-    // Only follow same-site paths: a crafted redirectTo must not send a fresh login elsewhere
-    throw redirect(302, redirectTo.startsWith('/') && !redirectTo.startsWith('//') && !redirectTo.startsWith('/\\') ? redirectTo : '/payment/process');
+    // redirectTo is already a path on this site (safeRedirectPath)
+    throw redirect(302, redirectTo);
   }
 };

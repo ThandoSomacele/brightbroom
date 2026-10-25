@@ -3,6 +3,7 @@ import {
   addressService,
   MAX_ADDRESSES,
 } from "$lib/server/services/address.service";
+import { safeRedirectPath } from "$lib/utils/safe-redirect";
 import { fail, redirect } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -13,7 +14,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   }
 
   // Get redirect URL if it exists
-  const redirectTo = url.searchParams.get("redirectTo") || "/profile/addresses";
+  const redirectTo = safeRedirectPath(url.searchParams.get("redirectTo"), "/profile/addresses");
 
   try {
     // Get current ACTIVE addresses using the address service
@@ -87,10 +88,10 @@ export const actions: Actions = {
       : null;
 
     // Get redirect URL if provided
-    const redirectTo =
-      formData.get("redirectTo")?.toString() ||
-      url.searchParams.get("redirectTo") ||
-      "/profile/addresses";
+    const redirectTo = safeRedirectPath(
+      formData.get("redirectTo")?.toString() || url.searchParams.get("redirectTo"),
+      "/profile/addresses",
+    );
 
     // Use formatted address as fallback for missing fields (Uber-like experience)
     if (!street && formattedAddress) {

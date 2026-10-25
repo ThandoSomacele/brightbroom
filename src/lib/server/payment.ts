@@ -1,17 +1,10 @@
 // src/lib/server/payment.ts
 import { db } from "$lib/server/db";
-import {
-  address,
-  booking,
-  payment,
-  service,
-  user,
-  type Payment,
-} from "$lib/server/db/schema";
-import { postPaymentHooks } from "$lib/server/hooks/post-payment-hooks";
-import { paymentProcessorService } from "$lib/server/services/payment-processor.service";
+import { booking, payment, service, user, type Payment } from "$lib/server/db/schema";
+import { payFastPassphrase, payFastSandbox } from "$lib/server/payfast-itn";
+import { signedCheckoutQuery, type CheckoutData } from "$lib/server/payfast-signature";
 import crypto from "crypto";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { env } from "$env/dynamic/private";
 import { parseDateTimeString } from "$lib/utils/date-utils";
 import { brand } from "$lib/config/brand";
@@ -33,17 +26,11 @@ function getPayFastCredentials(): {
       "PayFast is not configured: set PAYFAST_MERCHANT_ID and PAYFAST_MERCHANT_KEY (and PAYFAST_PASSPHRASE if the PayFast account has one)",
     );
   }
-  return { merchantId, merchantKey, passphrase: getPayFastPassphrase() };
-}
-
-/** The account passphrase, or "" when the PayFast account has none set */
-function getPayFastPassphrase(): string {
-  return env.PAYFAST_PASSPHRASE ?? "";
+  return { merchantId, merchantKey, passphrase: payFastPassphrase() };
 }
 
 // Determine if we should use sandbox mode (default to true in development)
-const USE_SANDBOX =
-  env.PAYFAST_SANDBOX_MODE === "false" ? false : true;
+const USE_SANDBOX = payFastSandbox();
 
 // Set appropriate PayFast URL based on environment
 const PAYFAST_URL = USE_SANDBOX
@@ -60,31 +47,6 @@ console.log(`- Using ${USE_SANDBOX ? "SANDBOX" : "PRODUCTION"} mode`);
 /** "BrightBroom" by default; the brand name with anything but letters and digits removed */
 function merchantReferencePrefix(): string {
   return brand.name.replace(/[^A-Za-z0-9]/g, "") || "Booking";
-}
-
-interface PayFastPaymentData {
-  merchant_id: string;
-  merchant_key: string;
-  return_url: string;
-  cancel_url: string;
-  notify_url: string;
-  name_first: string;
-  name_last: string;
-  email_address: string;
-  m_payment_id: string;
-  amount: string;
-  item_name: string;
-  item_description?: string;
-  custom_str1?: string;
-  custom_str2?: string;
-  custom_str3?: string;
-  custom_str4?: string;
-  custom_str5?: string;
-  custom_int1?: string;
-  custom_int2?: string;
-  custom_int3?: string;
-  custom_int4?: string;
-  custom_int5?: string;
 }
 
 /**
@@ -201,10 +163,6 @@ export async function createPaymentForBooking(
       { returnUrl, cancelUrl, notifyUrl }, // Pass the dynamic URLs
     );
 
-    console.log(
-      `Generated PayFast URL (partial): ${redirectUrl.substring(0, 100)}...`,
-    );
-
     return {
       paymentId,
       redirectUrl,
@@ -225,342 +183,26 @@ function generatePayFastUrl(
   paymentData: Payment,
   urls: { returnUrl: string; cancelUrl: string; notifyUrl: string },
 ): string {
-  // Format amount to 2 decimal places as required by PayFast
-  const formattedAmount = Number(bookingData.price).toFixed(2);
-
-  // Make sure to trim any whitespace that might cause issues
-  const firstName = userData.firstName.trim();
-  const lastName = userData.lastName.trim();
-  const email = userData.email.trim();
-
   const credentials = getPayFastCredentials();
 
-  // Create data object for PayFast
-  const data: PayFastPaymentData & Record<string, string> = {
+  // Values are trimmed and signed in PayFast's field order by
+  // signedCheckoutQuery; the URL carries exactly what was signed.
+  const data: CheckoutData = {
     merchant_id: credentials.merchantId,
     merchant_key: credentials.merchantKey,
-    return_url: `${urls.returnUrl}?booking_id=${bookingData.id}`, 
-    cancel_url: `${urls.cancelUrl}?booking_id=${bookingData.id}`,     
+    return_url: `${urls.returnUrl}?booking_id=${bookingData.id}`,
+    cancel_url: `${urls.cancelUrl}?booking_id=${bookingData.id}`,
     notify_url: urls.notifyUrl,
-    name_first: firstName,
-    name_last: lastName,
-    email_address: email,
+    name_first: userData.firstName,
+    name_last: userData.lastName,
+    email_address: userData.email,
     m_payment_id: paymentData.id,
-    amount: formattedAmount,
+    // Two decimal places, as PayFast requires
+    amount: Number(bookingData.price).toFixed(2),
     item_name: `${brand.name} ${serviceData.name}`,
     item_description: `Cleaning service scheduled for ${parseDateTimeString(bookingData.scheduledDate).toISOString().split("T")[0]}`,
     custom_str1: bookingData.id, // Store booking ID for reference
   };
 
-  // Generate signature
-  const signature = generateSignature(data, credentials.passphrase);
-
-  // Build URL manually to ensure encoding is consistent with signature generation
-  let queryString = "";
-  const keys = Object.keys(data).sort();
-
-  keys.forEach((key) => {
-    if (data[key] !== "") {
-      // Use the same encoding as in generateSignature
-      const encodedValue = encodeURIComponent(data[key]).replace(/%20/g, "+");
-      queryString += `${key}=${encodedValue}&`;
-    }
-  });
-
-  // Add signature
-  queryString += `signature=${signature}`;
-
-  return `${PAYFAST_URL}?${queryString}`;
-}
-
-/**
- * Generate a signature for PayFast payment data
- * @param data The payment data
- * @param passphrase Optional passphrase for additional security
- * @returns MD5 hash signature
- */
-function generateSignature(
-  data: Record<string, string>,
-  passphrase: string | null = null,
-): string {
-  try {
-    // Define sections of parameters based on PayFast documentation
-    const sections = [
-      // Merchant details
-      [
-        "merchant_id",
-        "merchant_key",
-        "return_url",
-        "cancel_url",
-        "notify_url",
-        "fica_idnumber",
-      ],
-      // Customer details
-      ["name_first", "name_last", "email_address", "cell_number"],
-      // Transaction details
-      ["m_payment_id", "amount", "item_name", "item_description"],
-      // Custom variables
-      [
-        "custom_str1",
-        "custom_str2",
-        "custom_str3",
-        "custom_str4",
-        "custom_str5",
-        "custom_int1",
-        "custom_int2",
-        "custom_int3",
-        "custom_int4",
-        "custom_int5",
-      ],
-      // Transaction options
-      ["email_confirmation", "confirmation_address", "payment_method"],
-      // Recurring Billing
-      [
-        "subscription_type",
-        "billing_date",
-        "recurring_amount",
-        "frequency",
-        "cycles",
-        "subscription_notify_email",
-        "subscription_notify_webhook",
-        "subscription_notify_buyer",
-      ],
-    ];
-
-    // Create parameter string
-    let pfOutput = "";
-
-    // Create a set to track processed parameters
-    const processedParams = new Set<string>();
-
-    // Add parameters in the defined sections if they exist in the data
-    for (const section of sections) {
-      for (const key of section) {
-        if (data[key] && data[key] !== "" && key !== "signature") {
-          const encodedValue = encodeURIComponent(data[key]).replace(
-            /%20/g,
-            "+",
-          );
-          pfOutput += `${key}=${encodedValue}&`;
-          processedParams.add(key);
-        }
-      }
-    }
-
-    // Add any remaining parameters not in the defined sections
-    for (const key in data) {
-      if (
-        !processedParams.has(key) &&
-        data[key] !== "" &&
-        key !== "signature" &&
-        data.hasOwnProperty(key)
-      ) {
-        const encodedValue = encodeURIComponent(data[key]).replace(/%20/g, "+");
-        pfOutput += `${key}=${encodedValue}&`;
-      }
-    }
-
-    // Remove last ampersand
-    pfOutput = pfOutput.slice(0, -1);
-
-    // Add passphrase if provided
-    if (passphrase !== null && passphrase !== "") {
-      const encodedPassphrase = encodeURIComponent(passphrase).replace(
-        /%20/g,
-        "+",
-      );
-      pfOutput += `&passphrase=${encodedPassphrase}`;
-    }
-
-    // Log the pre-hash string for debugging
-    console.log(
-      "Pre-hash signature string (without passphrase):",
-      pfOutput.replace(/&passphrase=.*$/, "&passphrase=HIDDEN"),
-    );
-
-    // Generate MD5 hash
-    return crypto.createHash("md5").update(pfOutput).digest("hex");
-  } catch (error) {
-    console.error("Error generating PayFast signature:", error);
-    throw error;
-  }
-}
-
-/**
- * Validate an IPN request from PayFast
- * @param pfData The data from PayFast
- * @param pfParamString The original parameter string
- * @returns True if the request is valid, false otherwise
- */
-export async function validateIpnRequest(
-  pfData: Record<string, string>,
-  pfParamString: string,
-): Promise<boolean> {
-  // Use sandbox host for testing
-  const pfHost = USE_SANDBOX ? "sandbox.payfast.co.za" : "www.payfast.co.za";
-
-  try {
-    console.log("Validating IPN request from PayFast");
-
-    // Verify security signature
-    const pfParamsToInclude = { ...pfData };
-
-    // Remove signature from data to verify
-    delete pfParamsToInclude.signature;
-
-    // Regenerate signature
-    const signature = generateSignature(
-      pfParamsToInclude,
-      getPayFastPassphrase(),
-    );
-
-    if (pfData.signature !== signature) {
-      console.error("IPN request signature validation failed");
-      return false;
-    }
-
-    console.log("IPN signature validated successfully");
-
-    // Skip server verification in sandbox mode if testing locally
-    if (USE_SANDBOX && process.env.NODE_ENV === "development") {
-      console.log(
-        "Skipping server verification in sandbox mode for local development",
-      );
-      return true;
-    }
-
-    // Verify data with PayFast server
-    const verifyUrl = `https://${pfHost}/eng/query/validate`;
-
-    console.log(`Verifying IPN with PayFast at: ${verifyUrl}`);
-
-    const response = await fetch(verifyUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: pfParamString,
-    });
-
-    const text = await response.text();
-
-    if (text !== "VALID") {
-      console.error(`PayFast server validation failed: ${text}`);
-      return false;
-    }
-
-    console.log("IPN request verified successfully with PayFast server");
-    return true;
-  } catch (error) {
-    console.error("Error validating IPN request:", error);
-    return false;
-  }
-}
-
-/**
- * Process a successful payment
- * @param paymentId The ID of the payment
- * @returns The updated booking and user information, or null if the payment cannot be processed
- */
-export async function processSuccessfulPayment(
-  paymentId: string,
-): Promise<{ booking: any; user: any } | null> {
-  try {
-    console.log(`Processing successful payment: ${paymentId}`);
-
-    // Update payment status to completed
-    await db
-      .update(payment)
-      .set({
-        status: "COMPLETED",
-        updatedAt: new Date(),
-      })
-      .where(eq(payment.id, paymentId));
-
-    console.log(`Updated payment status to COMPLETED: ${paymentId}`);
-
-    // Persist the payout breakdown (PayFast fee, commission, cleaner payout)
-    await paymentProcessorService.ensurePayoutFields(paymentId);
-
-    // Get the booking ID and user info for this payment
-    const paymentResult = await db
-      .select()
-      .from(payment)
-      .where(eq(payment.id, paymentId))
-      .limit(1);
-
-    if (!paymentResult || paymentResult.length === 0) {
-      console.error(`Payment not found: ${paymentId}`);
-      return null;
-    }
-
-    const paymentData = paymentResult[0];
-    const bookingId = paymentData.bookingId;
-
-    // Update booking status to CONFIRMED
-    await db
-      .update(booking)
-      .set({
-        status: "CONFIRMED",
-        updatedAt: new Date(),
-      })
-      .where(eq(booking.id, bookingId));
-
-    console.log(`Updated booking status to CONFIRMED: ${bookingId}`);
-
-    // Get booking with all needed details for email
-    const bookingResult = await db
-      .select({
-        id: booking.id,
-        scheduledDate: booking.scheduledDate,
-        price: booking.price,
-        userId: booking.userId,
-        service: {
-          id: service.id,
-          name: service.name,
-        },
-        address: {
-          street: sql<string>`coalesce(${address.street}, ${booking.guestAddress}->>'street', '(guest address)')`,
-          city: sql<string>`coalesce(${address.city}, ${booking.guestAddress}->>'city', '')`,
-          state: sql<string>`coalesce(${address.state}, ${booking.guestAddress}->>'state', '')`,
-          zipCode: sql<string>`coalesce(${address.zipCode}, ${booking.guestAddress}->>'zipCode', '')`,
-        },
-      })
-      .from(booking)
-      .innerJoin(service, eq(booking.serviceId, service.id))
-      .leftJoin(address, eq(booking.addressId, address.id))
-      .where(eq(booking.id, bookingId))
-      .limit(1);
-
-    if (!bookingResult || bookingResult.length === 0) {
-      console.error(`Booking details not found: ${bookingId}`);
-      return null;
-    }
-
-    // Get user details
-    const userData = await db
-      .select()
-      .from(user)
-      .where(eq(user.id, paymentData.userId))
-      .limit(1);
-
-    if (!userData || userData.length === 0) {
-      console.error(`User not found: ${paymentData.userId}`);
-      return null;
-    }
-
-    // Run post-payment hooks (in the background)
-    // We don't await this to avoid blocking the response
-    postPaymentHooks.runAll(bookingId).catch((error) => {
-      console.error(`Error running post-payment hooks: ${error}`);
-    });
-
-    return {
-      booking: bookingResult[0],
-      user: userData[0],
-    };
-  } catch (error) {
-    console.error("Error processing successful payment:", error);
-    return null;
-  }
+  return `${PAYFAST_URL}?${signedCheckoutQuery(data, credentials.passphrase)}`;
 }

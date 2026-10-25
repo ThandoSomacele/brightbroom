@@ -5,6 +5,7 @@
   import { enhance } from "$app/forms";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
+  import { safeRedirectPath } from "$lib/utils/safe-redirect";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import {
@@ -23,8 +24,10 @@
   export let form: ActionData;
 
   // Get redirectTo url param if it exists, default to profile/addresses
-  $: redirectTo =
-    $page.url.searchParams.get("redirectTo") || "/profile/addresses";
+  $: redirectTo = safeRedirectPath(
+    $page.url.searchParams.get("redirectTo"),
+    "/profile/addresses",
+  );
 
   // Track form state
   let isLoading = false;

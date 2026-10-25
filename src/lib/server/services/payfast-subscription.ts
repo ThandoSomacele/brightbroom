@@ -1,8 +1,8 @@
 // src/lib/server/services/payfast-subscription.ts
 
 import { env } from '$env/dynamic/private';
-import crypto from 'crypto';
 import { brand } from '$lib/config/brand';
+import { apiSignature, signedCheckoutQuery } from '$lib/server/payfast-signature';
 import type { Subscription, NewSubscription, SubscriptionPayment } from '../db/schema';
 
 // PayFast subscription endpoints
@@ -52,9 +52,6 @@ interface PayFastSubscriptionParams {
   m_payment_id: string; // Our subscription ID
   item_name: string;
   item_description?: string;
-
-  // Security signature
-  signature?: string;
 }
 
 interface PayFastSubscriptionResponse {
@@ -65,15 +62,6 @@ interface PayFastSubscriptionResponse {
   cycles_complete: number;
   cycles_total: number;
   next_run_date: string;
-}
-
-// PHP-style urlencode, which PayFast's API signature is defined against:
-// spaces become +, and the characters encodeURIComponent leaves bare
-// (! ' ( ) * ~) are percent-encoded too.
-function phpUrlencode(value: string): string {
-  return encodeURIComponent(value)
-    .replace(/%20/g, '+')
-    .replace(/[!'()*~]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());
 }
 
 // PayFast wants Y-m-d\TH:i:sO - seconds precision, zone offset, no colon
@@ -90,109 +78,6 @@ function apiTimestamp(): string {
   );
 }
 
-// Generate PayFast signature using PayFast's specific parameter order
-function generateSignature(params: Record<string, any>, passphrase?: string): string {
-  // Remove signature if present
-  const { signature: _unusedSignature, ...data } = params;
-
-  // Define sections of parameters based on PayFast documentation
-  // Parameters MUST be in this specific order, NOT alphabetical
-  const sections = [
-    // Merchant details
-    [
-      "merchant_id",
-      "merchant_key",
-      "return_url",
-      "cancel_url",
-      "notify_url",
-      "fica_idnumber",
-    ],
-    // Customer details
-    ["name_first", "name_last", "email_address", "cell_number"],
-    // Transaction details
-    ["m_payment_id", "amount", "item_name", "item_description"],
-    // Custom variables
-    [
-      "custom_str1",
-      "custom_str2",
-      "custom_str3",
-      "custom_str4",
-      "custom_str5",
-      "custom_int1",
-      "custom_int2",
-      "custom_int3",
-      "custom_int4",
-      "custom_int5",
-    ],
-    // Transaction options
-    ["email_confirmation", "confirmation_address", "payment_method"],
-    // Recurring Billing
-    [
-      "subscription_type",
-      "billing_date",
-      "recurring_amount",
-      "frequency",
-      "cycles",
-      "subscription_notify_email",
-      "subscription_notify_webhook",
-      "subscription_notify_buyer",
-    ],
-  ];
-
-  // Create parameter string
-  let pfOutput = "";
-
-  // Create a set to track processed parameters
-  const processedParams = new Set<string>();
-
-  // Add parameters in the defined sections if they exist in the data
-  for (const section of sections) {
-    for (const key of section) {
-      // Check for undefined/null, but allow 0 and false values
-      if (data[key] !== undefined && data[key] !== null && data[key] !== "" && key !== "signature") {
-        const encodedValue = encodeURIComponent(data[key].toString().trim()).replace(
-          /%20/g,
-          "+",
-        );
-        pfOutput += `${key}=${encodedValue}&`;
-        processedParams.add(key);
-      }
-    }
-  }
-
-  // Add any remaining parameters not in the defined sections
-  for (const key in data) {
-    if (
-      !processedParams.has(key) &&
-      data[key] !== undefined &&
-      data[key] !== null &&
-      data[key] !== "" &&
-      key !== "signature" &&
-      data.hasOwnProperty(key)
-    ) {
-      const encodedValue = encodeURIComponent(data[key].toString().trim()).replace(/%20/g, "+");
-      pfOutput += `${key}=${encodedValue}&`;
-    }
-  }
-
-  // Remove last ampersand
-  pfOutput = pfOutput.slice(0, -1);
-
-  // Add passphrase if provided
-  if (passphrase && passphrase !== "") {
-    const encodedPassphrase = encodeURIComponent(passphrase.trim()).replace(
-      /%20/g,
-      "+",
-    );
-    pfOutput += `&passphrase=${encodedPassphrase}`;
-  }
-
-  // Generate MD5 signature
-  const signature = crypto.createHash('md5').update(pfOutput).digest('hex');
-
-  return signature;
-}
-
 export class PayFastSubscriptionService {
   private merchantId: string;
   private merchantKey: string;
@@ -202,7 +87,7 @@ export class PayFastSubscriptionService {
   constructor() {
     this.merchantId = env.PAYFAST_MERCHANT_ID || '';
     this.merchantKey = env.PAYFAST_MERCHANT_KEY || '';
-    this.passphrase = env.PAYFAST_PASSPHRASE;
+    this.passphrase = env.PAYFAST_PASSPHRASE?.trim();
     this.apiKey = env.PAYFAST_API_KEY;
   }
 
@@ -235,8 +120,8 @@ export class PayFastSubscriptionService {
     this.assertConfigured();
     const finalPrice = parseFloat(subscription.finalPrice.toString());
 
-    // Build params in PayFast's required order - CRITICAL!
-    // The object insertion order MUST match the signature generation order
+    // signedCheckoutQuery signs these in PayFast's field order, whatever the
+    // order here
     const params: PayFastSubscriptionParams = {
       // 1. Merchant details
       merchant_id: this.merchantId,
@@ -263,26 +148,15 @@ export class PayFastSubscriptionService {
       email_confirmation: "1",
       confirmation_address: customer.email,
 
-      // 5. Recurring Billing (must match generateSignature section order!)
+      // 5. Recurring Billing
       // Ad-hoc agreement: no frequency, cycles or billing_date - PayFast
       // never initiates a charge, we do.
       subscription_type: 2,
     };
 
-    // Generate signature
-    params.signature = generateSignature(params, this.passphrase);
-
-    // Create form data
-    const formData = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== '') {
-        formData.append(key, value.toString());
-      }
-    });
-
     // Return redirect URL for PayFast payment page
     return {
-      redirectUrl: `${PAYFAST_SUBSCRIPTION_URL}?${formData.toString()}`,
+      redirectUrl: `${PAYFAST_SUBSCRIPTION_URL}?${signedCheckoutQuery(params, this.passphrase ?? '')}`,
     };
   }
 
@@ -363,18 +237,7 @@ export class PayFastSubscriptionService {
    * is why no API call from this service had ever succeeded.
    */
   apiSignature(params: Record<string, string>): string {
-    const data: Record<string, string> = { ...params };
-    if (this.passphrase && this.passphrase !== '') {
-      data.passphrase = this.passphrase.trim();
-    }
-
-    const paramString = Object.keys(data)
-      .filter((key) => key !== 'signature')
-      .sort()
-      .map((key) => `${key}=${phpUrlencode(data[key])}`)
-      .join('&');
-
-    return crypto.createHash('md5').update(paramString).digest('hex');
+    return apiSignature(params, this.passphrase ?? '');
   }
 
   private async apiRequest(
@@ -418,56 +281,6 @@ export class PayFastSubscriptionService {
         body: error instanceof Error ? error.message : 'network error',
       };
     }
-  }
-
-  // Generate API signature for authenticated requests
-
-  // Validate webhook signature
-  validateWebhookSignature(params: Record<string, any>, signature: string): boolean {
-    const calculatedSignature = generateSignature(params, this.passphrase);
-    return calculatedSignature === signature;
-  }
-
-  /**
-   * Validate the signature on an ITN (webhook) post from PayFast.
-   *
-   * ITN signatures are calculated over the posted fields in the order they
-   * were sent, stopping at the signature field, with the passphrase appended —
-   * a different scheme from the checkout signature above, which uses PayFast's
-   * documented attribute order. Validating webhooks with the checkout scheme
-   * rejected every genuine ITN, which left paid subscriptions PENDING with no
-   * booking ever created.
-   *
-   * Works on the raw body rather than decoded params so the bytes hashed here
-   * are exactly the bytes PayFast signed — no re-encoding to get subtly wrong.
-   */
-  validateItnSignature(rawBody: string): boolean {
-    let paramString = "";
-    let received: string | null = null;
-
-    for (const pair of rawBody.split("&")) {
-      const eq = pair.indexOf("=");
-      const key = eq === -1 ? pair : pair.slice(0, eq);
-      if (key === "signature") {
-        received = eq === -1 ? "" : pair.slice(eq + 1);
-        break; // PayFast signs only the fields posted before the signature
-      }
-      paramString += (paramString ? "&" : "") + pair;
-    }
-
-    // 32 hex chars is an md5 digest; anything else cannot match
-    if (!received || !/^[0-9a-fA-F]{32}$/.test(received)) return false;
-
-    if (this.passphrase && this.passphrase !== "") {
-      const encodedPassphrase = encodeURIComponent(this.passphrase.trim()).replace(/%20/g, "+");
-      paramString += `&passphrase=${encodedPassphrase}`;
-    }
-
-    const expected = crypto.createHash("md5").update(paramString).digest("hex");
-    return crypto.timingSafeEqual(
-      Buffer.from(expected),
-      Buffer.from(received.toLowerCase()),
-    );
   }
 
   /**

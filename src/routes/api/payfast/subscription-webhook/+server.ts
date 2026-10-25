@@ -5,6 +5,7 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { subscription, subscriptionPayment, booking, service, user } from '$lib/server/db/schema';
 import { payFastSubscriptionService } from '$lib/server/services/payfast-subscription';
+import { amountMatches, checkItn, confirmWithPayFast } from '$lib/server/payfast-itn';
 import { sendSubscriptionCancelledEmail } from '$lib/server/email-service';
 import { tenantService } from '$lib/server/services/tenant.service';
 import { eq } from 'drizzle-orm';
@@ -13,24 +14,15 @@ import { toNaiveDateTimeString } from '$lib/utils/date-utils';
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    // Get the raw body for signature verification
-    const body = await request.text();
-    const params = new URLSearchParams(body);
-    const paramsObject: Record<string, string> = {};
-
-    params.forEach((value, key) => {
-      paramsObject[key] = value;
-    });
-
-    // Validate the ITN signature over the raw body. ITN posts are signed in
-    // the order the fields were sent — not the checkout attribute order — so
-    // this must not go through the checkout signature path.
-    if (!payFastSubscriptionService.validateItnSignature(body)) {
-      console.error('Invalid PayFast webhook signature', {
-        keys: [...params.keys()].filter((k) => k !== 'signature'),
-      });
+    // Signature (over the fields in posted order) and merchant first;
+    // nothing in an unverified post is trusted
+    const check = checkItn(await request.text());
+    if (!check.ok) {
+      console.error(`Refused PayFast subscription webhook: ${check.reason}`);
       return text('Invalid signature', { status: 400 });
     }
+    const { itn } = check;
+    const paramsObject = itn.fields;
 
     // Extract relevant data
     const {
@@ -71,6 +63,21 @@ export const POST: RequestHandler = async ({ request }) => {
 
       console.error('Subscription not found:', subscriptionId);
       return text('Subscription not found', { status: 404 });
+    }
+
+    // PayFast's own confirmation that it sent this ITN, before any change
+    if (!(await confirmWithPayFast(itn))) {
+      console.error('PayFast did not confirm the subscription ITN:', subscriptionId);
+      return text('Invalid ITN', { status: 400 });
+    }
+
+    // The first payment is the subscription price; later cycles carry their
+    // own payment id and were acknowledged above
+    if (payment_status === 'COMPLETE' && !amountMatches(amount_gross, subscriptionData.finalPrice)) {
+      console.error(
+        `Subscription ITN amount mismatch for ${subscriptionId}: PayFast R${amount_gross}, expected R${subscriptionData.finalPrice}`,
+      );
+      return text('Amount mismatch', { status: 400 });
     }
 
     // Handle different payment statuses

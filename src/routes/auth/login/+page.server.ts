@@ -6,6 +6,7 @@ import {
   setSessionTokenCookie
 } from '$lib/server/auth';
 import { validateCSRFToken } from '$lib/server/csrf';
+import { safeRedirectPath } from '$lib/utils/safe-redirect';
 import { fail, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
 import type { Actions, PageServerLoad } from './$types';
@@ -26,9 +27,7 @@ export const actions: Actions = {
     if (csrfError) return csrfError;
     const email = formData.get('email')?.toString().toLowerCase();
     const password = formData.get('password')?.toString();
-    const redirectTo = formData.get('redirectTo')?.toString() || '/profile';
-    
-    console.log('Login attempt:', { email, redirectTo });
+    const redirectTo = safeRedirectPath(formData.get('redirectTo'), '/profile');
     
     try {
       // Validate form data with Zod
@@ -38,7 +37,7 @@ export const actions: Actions = {
       const userData = await getUserByEmail(credentials.email);
         
       if (!userData) {
-        console.log('User not found:', email);
+        console.log('Login failed: no such user');
         return fail(400, { 
           error: 'Invalid email or password',
           email
@@ -51,14 +50,14 @@ export const actions: Actions = {
       const validPassword = await hasher.verify(userData.passwordHash, credentials.password);
       
       if (!validPassword) {
-        console.log('Invalid password for user:', email);
+        console.log(`Login failed: wrong password for user ${userData.id}`);
         return fail(400, { 
           error: 'Invalid email or password',
           email
         });
       }
       
-      console.log('Login successful for user:', email);
+      console.log(`Login successful for user ${userData.id}`);
       
       // Generate a session token and create a session
       const token = generateSessionToken();
@@ -87,13 +86,8 @@ export const actions: Actions = {
       });
     }
     
-    // After successful authentication and session creation, redirect
-    // Only follow same-site paths: a crafted redirectTo must not send a fresh login
-    // to another site ("//host" and "/\\host" are both read as other hosts)
-    const safeRedirect =
-      redirectTo.startsWith('/') && !redirectTo.startsWith('//') && !redirectTo.startsWith('/\\')
-        ? redirectTo
-        : '/profile';
-    throw redirect(302, safeRedirect);
+    // After successful authentication and session creation, redirect.
+    // redirectTo is already a path on this site (safeRedirectPath)
+    throw redirect(302, redirectTo);
   }
 };

@@ -94,9 +94,6 @@ export async function sendPasswordResetEmail(
     // Generate the email template
     const template = getPasswordResetTemplate(email, resetToken, EMAIL_CONFIG);
 
-    // Log the generated URL for debugging
-    console.log(`Password reset URL generated: ${template.resetUrl}`);
-
     // Send email with Resend
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
@@ -174,7 +171,6 @@ export async function sendBookingConfirmationEmail(
       bookingId: bookingDetails.id,
       paymentStatus: bookingDetails.paymentStatus || "Not provided",
       bookingStatus: bookingDetails.status,
-      email: email,
     });
 
     // Check if the booking is cancelled - don't send confirmation for cancelled bookings
@@ -275,7 +271,7 @@ export async function sendBookingConfirmationEmail(
 
     // We've confirmed payment is complete, proceed with sending email
     console.log(
-      `[EMAIL SERVICE] Payment complete, sending confirmation email for booking ${bookingDetails.id} to ${email}`,
+      `[EMAIL SERVICE] Payment complete, sending confirmation email for booking ${bookingDetails.id}`,
     );
 
     // Generate the email template
@@ -756,7 +752,7 @@ export async function sendAdminNewBookingEmail(bookingData: {
     }
 
     console.log(
-      `Admin booking notification sent to ${notificationEmail}:`,
+      "Admin booking notification sent:",
       data?.id,
     );
     return true;
@@ -778,9 +774,7 @@ export async function sendCleanerApplicationEmail(
       return false;
     }
 
-    console.log(
-      `Sending cleaner application notification for: ${data.firstName} ${data.lastName}`,
-    );
+    console.log("Sending cleaner application notification");
 
     // Use the proper email template function
     const template = getCleanerApplicationTemplate(

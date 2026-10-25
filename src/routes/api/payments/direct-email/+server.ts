@@ -93,7 +93,7 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ success: false, message: 'This booking has no customer email' }, { status: 400 });
     }
 
-    console.log(`[DIRECT EMAIL] Sending confirmation email to ${bookingData.user.email}`);
+    console.log(`[DIRECT EMAIL] Sending confirmation email for booking ${bookingId}`);
     
     // Force payment status to COMPLETED (this is crucial)
     const success = await sendBookingConfirmationEmail(
