@@ -11,6 +11,7 @@ import { user } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
 import { validateHoneypot, logBotDetection } from "$lib/server/honeypot-validator";
 import { checkRateLimit } from "$lib/server/rate-limiter";
+import { safeRedirectPath } from "$lib/utils/safe-redirect";
 import { fail, redirect } from "@sveltejs/kit";
 import { z } from "zod";
 import type { Actions, PageServerLoad } from "./$types";
@@ -47,9 +48,7 @@ export const actions: Actions = {
     const phone = formData.get("phone")?.toString();
     const password = formData.get("password")?.toString();
     const terms = formData.get("terms")?.toString();
-    const redirectTo = formData.get("redirectTo")?.toString() || "/profile";
-
-    console.log("Registration attempt:", { firstName, lastName, email });
+    const redirectTo = safeRedirectPath(formData.get("redirectTo"), "/profile");
 
     try {
       // Validate form data
@@ -68,9 +67,6 @@ export const actions: Actions = {
       if (honeypotResult.isBot) {
         const clientIP = getClientAddress();
         logBotDetection(honeypotResult, clientIP, "register", {
-          email,
-          firstName,
-          lastName,
           reason: honeypotResult.reason
         });
 
@@ -106,7 +102,7 @@ export const actions: Actions = {
       const existingUser = await getUserByEmail(email!);
 
       if (existingUser) {
-        console.log("User already exists:", email);
+        console.log("Registration refused: email already in use");
         return fail(400, {
           error: "Email already in use",
           firstName,
@@ -138,7 +134,7 @@ export const actions: Actions = {
         })
         .returning();
 
-      console.log("User created successfully:", email);
+      console.log(`User created: ${newUser.id}`);
 
       // Create session
       const token = generateSessionToken();
@@ -207,8 +203,8 @@ export const actions: Actions = {
       });
     }
     
-    // After successful registration and session creation, redirect
-    // This matches the pattern in login.server.ts
+    // After successful registration and session creation, redirect.
+    // redirectTo is already a path on this site (safeRedirectPath)
     throw redirect(302, redirectTo);
   },
 };
