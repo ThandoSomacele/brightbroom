@@ -2,8 +2,10 @@
 import { tenantService } from "$lib/server/services/tenant.service";
 import { error, redirect } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 export const load: PageServerLoad = async ({ locals }) => {
+  requireAdmin(locals);
   const tenantId = locals.tenant?.id;
   if (!tenantId) {
     // Platform admins have no company of their own to verify

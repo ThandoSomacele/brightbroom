@@ -6,6 +6,7 @@ import { error, fail, redirect } from "@sveltejs/kit";
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 // Helper function to fetch applications with filters
 async function getApplications(
@@ -96,6 +97,7 @@ async function getApplications(
 }
 
 export const load: PageServerLoad = async ({ url, locals }) => {
+  requireAdmin(locals);
   if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
     throw redirect(302, "/auth/login?redirectTo=/admin/applications");
   }
@@ -122,7 +124,8 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 
 export const actions: Actions = {
   // View application details
-  viewApplication: async ({ request, url }) => {
+  viewApplication: async ({ request, url, locals }) => {
+    requireAdmin(locals);
     const formData = await request.formData();
     const id = formData.get("id")?.toString();
 
@@ -134,7 +137,8 @@ export const actions: Actions = {
   },
 
   // Approve application
-  approveApplication: async ({ request }) => {
+  approveApplication: async ({ request, locals }) => {
+    requireAdmin(locals);
     const formData = await request.formData();
     const id = formData.get("id")?.toString();
 
@@ -185,7 +189,8 @@ export const actions: Actions = {
   },
 
   // Reject application
-  rejectApplication: async ({ request }) => {
+  rejectApplication: async ({ request, locals }) => {
+    requireAdmin(locals);
     const formData = await request.formData();
     const id = formData.get("id")?.toString();
 

@@ -13,6 +13,7 @@ import { hash } from "@node-rs/argon2";
 import { fail, redirect } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 type IdType = (typeof idTypeEnum.enumValues)[number];
 type PetCompatibility = (typeof petCompatibilityEnum.enumValues)[number];
@@ -27,6 +28,7 @@ function toPetCompatibility(value: string): PetCompatibility {
 }
 
 export const load: PageServerLoad = async ({ locals }) => {
+  requireAdmin(locals, { platformOnly: true });
   if (!locals.user || locals.user.role !== "ADMIN") {
     throw redirect(302, "/auth/login?redirectTo=/admin/applications/new");
   }
@@ -36,6 +38,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
   create: async ({ request, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (!locals.user || locals.user.role !== "ADMIN") {
       // `data: undefined` stops TypeScript folding the failures below (which
       // echo the submitted values) into this one, so the page can read form.data

@@ -2,8 +2,10 @@
 import { tenantService } from "$lib/server/services/tenant.service";
 import { error, redirect } from "@sveltejs/kit";
 import type { PageServerLoad, Actions } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 export const load: PageServerLoad = async ({ locals }) => {
+  requireAdmin(locals, { platformOnly: true });
   if (locals.user?.role !== "ADMIN") {
     throw error(403, "Only platform administrators can manage tenants");
   }
@@ -24,6 +26,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
   toggleActive: async ({ request, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (locals.user?.role !== "ADMIN") {
       throw error(403, "Only platform administrators can manage tenants");
     }

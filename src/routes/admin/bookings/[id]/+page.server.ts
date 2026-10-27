@@ -18,6 +18,7 @@ import { sendCleanerAssignmentNotifications } from "$lib/server/services/notific
 import { error, fail, redirect } from "@sveltejs/kit";
 import { and, desc, eq, sql } from "drizzle-orm"; // Added sql import
 import type { Actions, PageServerLoad } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 // Helper function to fetch all booking data
 async function getBookingData(bookingId: string, tenantId: string | null) {
@@ -266,6 +267,7 @@ async function getBookingData(bookingId: string, tenantId: string | null) {
 }
 
 export const load: PageServerLoad = async ({ params, locals }) => {
+  requireAdmin(locals);
   const bookingId = params.id;
 
   // Make sure the current user is an admin or tenant admin
@@ -291,6 +293,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 export const actions: Actions = {
   // Action to change booking status
   changeStatus: async ({ params, request, locals }) => {
+    requireAdmin(locals);
     // Verify admin role
     if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
       return fail(403, { error: "Unauthorized" });
@@ -401,6 +404,7 @@ export const actions: Actions = {
 
   // Action to assign cleaner to booking
   assignCleaner: async ({ params, request, locals }) => {
+    requireAdmin(locals);
     // Verify admin role
     if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
       return fail(403, { error: "Unauthorized" });
@@ -532,6 +536,7 @@ export const actions: Actions = {
 
   // Action to add admin note
   addNote: async ({ params, request, locals }) => {
+    requireAdmin(locals);
     // Verify admin role
     if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
       return fail(403, { error: "Unauthorized" });
@@ -571,6 +576,7 @@ export const actions: Actions = {
 
   // Action to add communication
   addCommunication: async ({ params, request, locals }) => {
+    requireAdmin(locals);
     // Verify admin role
     if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
       return fail(403, { error: "Unauthorized" });
@@ -685,6 +691,7 @@ export const actions: Actions = {
   },
 
   autoAssignCleaner: async ({ params, locals }) => {
+    requireAdmin(locals);
     // Verify admin role
     if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
       return fail(403, { error: "Unauthorized" });
@@ -732,6 +739,7 @@ export const actions: Actions = {
 
   // Action to send cleaner changed notification email
   sendCleanerChangeNotification: async ({ params, request, locals }) => {
+    requireAdmin(locals);
     // Verify admin role
     if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
       return fail(403, { error: "Unauthorized" });

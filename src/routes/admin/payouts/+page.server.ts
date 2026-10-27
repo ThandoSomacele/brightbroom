@@ -12,6 +12,7 @@ import { tenantService } from "$lib/server/services/tenant.service";
 import { fail } from "@sveltejs/kit";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 // Helper function to get payout data
 async function getPayoutData(tenantId: string | null) {
@@ -161,6 +162,7 @@ async function getPayoutData(tenantId: string | null) {
 }
 
 export const load: PageServerLoad = async ({ locals }) => {
+  requireAdmin(locals);
   // Tenant scoping
   const tenantId = locals.user?.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
   const isPlatformAdmin = locals.user?.role === 'ADMIN';
@@ -182,6 +184,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions: Actions = {
   // Settle a cleaning company's outstanding share
   markTenantAsPaid: async ({ request, locals }) => {
+    requireAdmin(locals);
     if (locals.user?.role !== "ADMIN") {
       return fail(403, { error: "Only platform administrators can pay companies" });
     }
@@ -206,7 +209,8 @@ export const actions: Actions = {
   },
 
   // Mark selected payouts as paid
-  markAsPaid: async ({ request }) => {
+  markAsPaid: async ({ request, locals }) => {
+    requireAdmin(locals);
     const formData = await request.formData();
     const cleanerIdsJson = formData.get("cleanerIds")?.toString();
     const payoutReference = formData.get("payoutReference")?.toString();

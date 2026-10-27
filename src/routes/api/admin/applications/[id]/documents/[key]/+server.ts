@@ -5,11 +5,13 @@ import { s3 } from "$lib/server/s3";
 import { error, json } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import type { RequestHandler } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 /**
  * Handle document deletion
  */
 export const DELETE: RequestHandler = async ({ params, locals }) => {
+  requireAdmin(locals);
   // Defence in depth. hooks.server.ts already gates /api/admin, but this
   // endpoint writes identity documents, so it does not rely on that alone.
   if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {

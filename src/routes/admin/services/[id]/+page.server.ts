@@ -5,11 +5,13 @@ import { error, redirect } from "@sveltejs/kit";
 import { eq, and, desc } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import type { PageServerLoad, Actions } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 /**
  * Load detailed information about a specific service and its related data
  */
 export const load: PageServerLoad = async ({ params, locals }) => {
+  requireAdmin(locals, { platformOnly: true });
   // Check if user is authenticated and is an admin
   if (!locals.user || locals.user.role !== "ADMIN") {
     throw redirect(302, '/auth/login?redirectTo=/admin');
@@ -119,6 +121,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 export const actions: Actions = {
   // Action to toggle service availability
   toggleAvailability: async ({ params, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (!locals.user || locals.user.role !== "ADMIN") {
       throw error(403, "Unauthorized");
     }

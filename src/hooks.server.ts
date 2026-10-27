@@ -4,6 +4,7 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { env as publicEnv } from '$env/dynamic/public';
 import { isSingleCompany, missingBrandSettings } from '$lib/config/brand';
 import { validateSessionToken } from '$lib/server/auth';
+import { isPlatformOnlyAdminPath, requireAdmin, routingPath } from '$lib/server/route-guards';
 import type { User } from '$lib/server/db/schema';
 import { tenantService } from '$lib/server/services/tenant.service';
 import { randomBytes } from 'crypto';
@@ -87,7 +88,7 @@ const handleErrors: Handle = async ({ event, resolve }) => {
  * CSRF Protection hook - generates and validates CSRF tokens
  */
 const handleCSRF: Handle = async ({ event, resolve }) => {
-  const path = event.url.pathname;
+  const path = routingPath(event.url.pathname);
 
   // Exempt PayFast IPN webhook and API endpoints that need external access
   const exemptPaths = [
@@ -225,8 +226,9 @@ function isMarketplaceOnlyPath(path: string): boolean {
  * Custom routing hook to handle specific error cases
  */
 const handleRouting: Handle = async ({ event, resolve }) => {
-  // Get the requested path
-  const path = event.url.pathname;
+  // The path SvelteKit routes on, decoded. Checking the raw pathname let
+  // "/%61dmin/..." past every guard below while still reaching /admin.
+  const path = routingPath(event.url.pathname);
 
 // IMPORTANT: Completely exempt PayFast IPN webhook from all checks
 if (path === '/api/payments/ipn') {
@@ -276,34 +278,10 @@ if (path.includes('//')) {
   // its endpoints checked the caller themselves, so anyone unauthenticated
   // could upload or delete documents on a cleaner application.
   if (path.startsWith('/admin') || path.startsWith('/api/admin')) {
-    const user = event.locals.user;
-
-    // Check if not authenticated
-    if (!user) {
-      throw error(401, "Authentication required");
-    }
-
-    // Platform admins and tenant admins can access admin routes
-    if (user.role !== 'ADMIN' && user.role !== 'TENANT_ADMIN') {
-      throw error(403, "You don't have permission to access this area");
-    }
-
-    // Tenant admins must have a valid tenant membership
-    if (user.role === 'TENANT_ADMIN' && !event.locals.tenant) {
-      throw error(403, "No tenant association found for your account");
-    }
-
-    // Platform-only admin routes that tenant admins cannot access.
-    // Keep this in sync with the `platformOnly` nav items in admin/+layout.svelte.
-    const platformOnlyPaths = [
-      '/admin/tenants',
-      '/admin/pricing',
-      '/admin/users',
-      '/admin/services',
-    ];
-    if (user.role === 'TENANT_ADMIN' && platformOnlyPaths.some(p => path.startsWith(p))) {
-      throw error(403, "This area is restricted to platform administrators");
-    }
+    // Platform admins, and tenant admins with a company outside the
+    // platform-only areas. Each admin load, action and handler checks again
+    // with requireAdmin, so a path this guard misses is still refused.
+    requireAdmin(event.locals, { platformOnly: isPlatformOnlyAdminPath(path) });
   }
   
   // Continue with normal request handling

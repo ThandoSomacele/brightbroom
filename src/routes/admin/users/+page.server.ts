@@ -5,6 +5,7 @@ import { error } from "@sveltejs/kit";
 import { and, desc, eq, inArray, like, or, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 type UserRole = (typeof userRoleEnum.enumValues)[number];
 
@@ -122,6 +123,7 @@ async function getUsers(
 }
 
 export const load: PageServerLoad = async ({ url, locals }) => {
+  requireAdmin(locals, { platformOnly: true });
   // The platform user directory spans every tenant, so it is platform-admin
   // only. hooks.server.ts blocks the route too; this is defence in depth.
   if (locals.user?.role !== "ADMIN") {
