@@ -5,6 +5,7 @@ import { redirect } from "@sveltejs/kit";
 import { and, eq, gte, lt, sql, desc } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 // Helper to build tenant-scoped booking condition
 function bookingTenantCondition(tenantId: string | null): SQL | undefined {
@@ -50,6 +51,7 @@ async function getReportMetrics(startDateObj: Date, endDateObj: Date, period: st
 }
 
 export const load: PageServerLoad = async ({ url, locals }) => {
+  requireAdmin(locals);
   // Verify admin or tenant admin role
   if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
     throw redirect(302, "/auth/login?redirectTo=/admin/reports");

@@ -2,8 +2,10 @@
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { emailRecoveryService } from "$lib/server/services/email-recovery.service";
+import { requireAdmin } from "$lib/server/route-guards";
 
 export const POST: RequestHandler = async ({ request, locals }) => {
+  requireAdmin(locals, { platformOnly: true });
   // Check if user is admin
   if (!locals.user || locals.user.role !== "ADMIN") {
     return json({ error: "Unauthorized" }, { status: 403 });

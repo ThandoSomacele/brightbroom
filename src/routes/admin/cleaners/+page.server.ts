@@ -8,6 +8,7 @@ import { redirect } from "@sveltejs/kit";
 import { and, desc, eq, like, or, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 // Helper function to fetch cleaners with filters
 async function getCleaners(
@@ -146,6 +147,7 @@ async function getCleaners(
 }
 
 export const load: PageServerLoad = async ({ url, locals }) => {
+  requireAdmin(locals);
   if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
     throw redirect(302, "/auth/login?redirectTo=/admin/cleaners");
   }

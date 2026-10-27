@@ -2,12 +2,14 @@
 import { cleanerApplicationService } from "$lib/server/services/cleaner-application.service";
 import { error, isHttpError, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 /**
  * API endpoint for approving or rejecting cleaner applications
  * POST: Approve or reject an application
  */
 export const POST: RequestHandler = async ({ request, params, locals }) => {
+  requireAdmin(locals, { platformOnly: true });
   // Check authorization
   if (!locals.user || locals.user.role !== "ADMIN") {
     throw error(403, "Unauthorized access");
@@ -63,6 +65,7 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
  * PATCH: Add notes to an application
  */
 export const PATCH: RequestHandler = async ({ request, params, locals }) => {
+  requireAdmin(locals, { platformOnly: true });
   // Check authorization
   if (!locals.user || locals.user.role !== "ADMIN") {
     throw error(403, "Unauthorized access");

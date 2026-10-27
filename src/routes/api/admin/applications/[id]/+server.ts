@@ -4,6 +4,7 @@ import { cleanerApplication } from "$lib/server/db/schema";
 import { error, json } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import type { RequestHandler } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 type ApplicationUpdate = Partial<typeof cleanerApplication.$inferInsert>;
 
@@ -11,6 +12,7 @@ type ApplicationUpdate = Partial<typeof cleanerApplication.$inferInsert>;
  * Update an application
  */
 export const PATCH: RequestHandler = async ({ request, params, locals }) => {
+  requireAdmin(locals, { platformOnly: true });
   // Ensure admin access
   if (!locals.user || locals.user.role !== "ADMIN") {
     throw error(403, "Unauthorized access");

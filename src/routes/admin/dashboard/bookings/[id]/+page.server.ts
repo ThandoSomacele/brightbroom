@@ -5,8 +5,10 @@ import { booking, service, user, address, payment, cleanerProfile } from '$lib/s
 import { eq, and, desc } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { error, fail, isHttpError } from '@sveltejs/kit';
+import { requireAdmin } from '$lib/server/route-guards';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
+  requireAdmin(locals);
   const bookingId = params.id;
 
   if (!bookingId) {
@@ -119,7 +121,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 export const actions: Actions = {
   // Action to change booking status
-  changeStatus: async ({ params, request }) => {
+  changeStatus: async ({ params, request, locals }) => {
+    requireAdmin(locals);
     const bookingId = params.id;
     const formData = await request.formData();
     const status = formData.get('status')?.toString();
@@ -160,7 +163,8 @@ export const actions: Actions = {
   },
   
   // Action to assign cleaner to booking
-  assignCleaner: async ({ params, request }) => {
+  assignCleaner: async ({ params, request, locals }) => {
+    requireAdmin(locals);
     const bookingId = params.id;
     const formData = await request.formData();
     const cleanerId = formData.get('cleanerId')?.toString();

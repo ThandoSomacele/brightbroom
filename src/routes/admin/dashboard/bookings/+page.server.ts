@@ -5,6 +5,7 @@ import { booking, service, user, address, bookingStatusEnum } from '$lib/server/
 import { eq, and, gte, lte, like, or, desc } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
+import { requireAdmin } from '$lib/server/route-guards';
 
 type BookingStatus = (typeof bookingStatusEnum.enumValues)[number];
 
@@ -13,6 +14,7 @@ function isBookingStatus(value: string): value is BookingStatus {
 }
 
 export const load: PageServerLoad = async ({ url, locals }) => {
+  requireAdmin(locals);
   // Get search and filter parameters
   const search = url.searchParams.get('search') || '';
   const status = url.searchParams.get('status') || '';

@@ -7,11 +7,13 @@ import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import type { RequestHandler } from "./$types";
 import mime from "mime-types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 /**
  * Handle document upload for cleaner applications
  */
 export const POST: RequestHandler = async ({ request, params, locals }) => {
+  requireAdmin(locals);
   // Defence in depth. hooks.server.ts already gates /api/admin, but this
   // endpoint writes identity documents, so it does not rely on that alone.
   if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {

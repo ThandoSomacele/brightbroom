@@ -4,6 +4,7 @@ import { address, booking, payment, user } from "$lib/server/db/schema";
 import { error, fail } from "@sveltejs/kit";
 import { desc, eq, sql } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 // Helper function to fetch user data
 async function getUserData(userId: string) {
@@ -100,7 +101,8 @@ async function getUserData(userId: string) {
   };
 }
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
+  requireAdmin(locals, { platformOnly: true });
   const userId = params.id;
 
   if (!userId) {
@@ -117,7 +119,8 @@ export const load: PageServerLoad = async ({ params }) => {
 
 export const actions: Actions = {
   // Action to update user information
-  updateUser: async ({ request, params }) => {
+  updateUser: async ({ request, params, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     const userId = params.id;
     const formData = await request.formData();
 

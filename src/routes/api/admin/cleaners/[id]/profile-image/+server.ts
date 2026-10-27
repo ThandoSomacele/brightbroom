@@ -7,11 +7,13 @@ import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import type { RequestHandler } from "./$types";
 import sharp from "sharp";
+import { requireAdmin } from "$lib/server/route-guards";
 
 /**
  * Handle profile image upload for cleaners
  */
 export const POST: RequestHandler = async ({ request, params, locals }) => {
+  requireAdmin(locals);
   // Defence in depth. hooks.server.ts already gates /api/admin, but this
   // endpoint writes identity documents, so it does not rely on that alone.
   if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
@@ -109,6 +111,7 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
  * Delete profile image for cleaner
  */
 export const DELETE: RequestHandler = async ({ params, locals }) => {
+  requireAdmin(locals);
   // Defence in depth. hooks.server.ts already gates /api/admin, but this
   // endpoint writes identity documents, so it does not rely on that alone.
   if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {

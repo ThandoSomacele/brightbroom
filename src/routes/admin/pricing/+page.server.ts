@@ -9,6 +9,7 @@ import {
   type PayFastFeeRule,
 } from '$lib/utils/payout-calculator';
 import type { Actions, PageServerLoad } from './$types';
+import { requireAdmin } from '$lib/server/route-guards';
 
 // Payment methods shown in the Fees & Commission editor (OTHER is the
 // fallback used for unknown methods and kept editable for completeness).
@@ -80,6 +81,7 @@ async function getPricingData() {
 }
 
 export const load: PageServerLoad = async ({ locals }) => {
+  requireAdmin(locals, { platformOnly: true });
   // Ensure user is authenticated and is admin
   if (!locals.user || locals.user.role !== 'ADMIN') {
     throw redirect(302, '/auth/login');
@@ -94,6 +96,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
   updatePricing: async ({ request, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     // Ensure user is authenticated and is admin
     if (!locals.user || locals.user.role !== 'ADMIN') {
       return { success: false, error: 'Unauthorized' };
@@ -180,6 +183,7 @@ export const actions: Actions = {
   },
 
   updatePayoutConfig: async ({ request, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     // Ensure user is authenticated and is admin
     if (!locals.user || locals.user.role !== 'ADMIN') {
       return { success: false, error: 'Unauthorized' };
@@ -262,6 +266,7 @@ export const actions: Actions = {
   },
 
   createAddon: async ({ request, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (!locals.user || locals.user.role !== 'ADMIN') {
       return { success: false, error: 'Unauthorized' };
     }
@@ -301,6 +306,7 @@ export const actions: Actions = {
   },
 
   updateAddon: async ({ request, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (!locals.user || locals.user.role !== 'ADMIN') {
       return { success: false, error: 'Unauthorized' };
     }
@@ -338,6 +344,7 @@ export const actions: Actions = {
   },
 
   deleteAddon: async ({ request, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (!locals.user || locals.user.role !== 'ADMIN') {
       return { success: false, error: 'Unauthorized' };
     }
@@ -359,6 +366,7 @@ export const actions: Actions = {
   },
 
   toggleAddonStatus: async ({ request, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (!locals.user || locals.user.role !== 'ADMIN') {
       return { success: false, error: 'Unauthorized' };
     }

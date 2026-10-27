@@ -13,6 +13,7 @@ import { hash } from "@node-rs/argon2";
 import { error, fail } from "@sveltejs/kit";
 import { and, desc, eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 type IdType = (typeof idTypeEnum.enumValues)[number];
 type PetCompatibility = (typeof petCompatibilityEnum.enumValues)[number];
@@ -58,6 +59,7 @@ async function getApplicationData(applicationId: string, tenantId: string | null
 }
 
 export const load: PageServerLoad = async ({ params, locals }) => {
+  requireAdmin(locals);
   const applicationId = params.id;
 
   if (!applicationId) {
@@ -78,6 +80,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 export const actions: Actions = {
   // Add note to application
   addNote: async ({ request, params, locals }) => {
+    requireAdmin(locals);
     const applicationId = params.id;
     const adminUser = locals.user;
 
@@ -125,6 +128,7 @@ export const actions: Actions = {
   // Approve application
   // Updated approve action in src/routes/admin/applications/[id]/+page.server.ts
   approve: async ({ params, locals }) => {
+    requireAdmin(locals);
     const applicationId = params.id;
     const adminUser = locals.user;
 
@@ -279,6 +283,7 @@ export const actions: Actions = {
 
   // Reject application
   reject: async ({ params, locals }) => {
+    requireAdmin(locals);
     const applicationId = params.id;
     const adminUser = locals.user;
 

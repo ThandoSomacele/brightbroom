@@ -4,12 +4,14 @@ import { cleanerProfile, user } from "$lib/server/db/schema";
 import { error, json } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import type { RequestHandler } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 /**
  * Admin debug endpoint to check if a cleaner user has a profile
  * GET: Check if a user has a profile
  */
 export const GET: RequestHandler = async ({ url, locals }) => {
+  requireAdmin(locals, { platformOnly: true });
   // Ensure admin access
   if (!locals.user || locals.user.role !== "ADMIN") {
     throw error(403, "Unauthorized access");
@@ -55,6 +57,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
  * POST: Create a profile for a user
  */
 export const POST: RequestHandler = async ({ request, locals }) => {
+  requireAdmin(locals, { platformOnly: true });
   // Ensure admin access
   if (!locals.user || locals.user.role !== "ADMIN") {
     throw error(403, "Unauthorized access");

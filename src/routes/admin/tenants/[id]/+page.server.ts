@@ -9,8 +9,10 @@ import { tenantService } from "$lib/server/services/tenant.service";
 import { error } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import type { PageServerLoad, Actions } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 export const load: PageServerLoad = async ({ params, locals }) => {
+  requireAdmin(locals, { platformOnly: true });
   if (locals.user?.role !== "ADMIN") {
     throw error(403, "Only platform administrators can manage tenants");
   }
@@ -72,6 +74,7 @@ async function notifyTenant(
 
 export const actions: Actions = {
   update: async ({ request, params, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (locals.user?.role !== "ADMIN") {
       throw error(403, "Only platform administrators can manage tenants");
     }
@@ -124,6 +127,7 @@ export const actions: Actions = {
   },
 
   approve: async ({ params, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (locals.user?.role !== "ADMIN") {
       throw error(403, "Only platform administrators can manage tenants");
     }
@@ -160,6 +164,7 @@ export const actions: Actions = {
   },
 
   reject: async ({ request, params, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (locals.user?.role !== "ADMIN") {
       throw error(403, "Only platform administrators can manage tenants");
     }
@@ -189,6 +194,7 @@ export const actions: Actions = {
   },
 
   addMember: async ({ request, params, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (locals.user?.role !== "ADMIN") {
       throw error(403, "Only platform administrators can manage tenants");
     }
@@ -256,6 +262,7 @@ export const actions: Actions = {
   },
 
   removeMember: async ({ request, params, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (locals.user?.role !== "ADMIN") {
       throw error(403, "Only platform administrators can manage tenants");
     }

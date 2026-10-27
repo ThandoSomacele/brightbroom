@@ -4,6 +4,7 @@ import { booking, payment, user, cleanerProfile, subscription, subscriptionPayme
 import { and, desc, eq, gte, lt, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 // Helper to build tenant-scoped booking conditions
 function bookingTenantCondition(tenantId: string | null): SQL | undefined {
@@ -367,6 +368,7 @@ async function getRecentActivity(tenantId: string | null) {
 }
 
 export const load: PageServerLoad = async ({ locals }) => {
+  requireAdmin(locals);
   // Tenant scoping
   const tenantId = locals.user?.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
 

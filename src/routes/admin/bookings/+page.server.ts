@@ -5,6 +5,7 @@ import { eq, and, gte, lte, like, or, desc } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
+import { requireAdmin } from '$lib/server/route-guards';
 
 type BookingStatus = (typeof bookingStatusEnum.enumValues)[number];
 
@@ -160,6 +161,7 @@ async function getBookings(
 }
 
 export const load: PageServerLoad = async ({ url, locals }) => {
+  requireAdmin(locals);
   const search = url.searchParams.get('search') || '';
   const status = url.searchParams.get('status') || '';
   const dateStart = url.searchParams.get('dateStart') || '';

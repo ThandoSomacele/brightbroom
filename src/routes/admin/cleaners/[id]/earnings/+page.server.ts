@@ -10,6 +10,7 @@ import {
 import { error, fail, redirect } from "@sveltejs/kit";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 /**
  * Run an optional query, degrading to a fallback (and logging) on failure.
@@ -30,6 +31,7 @@ async function safeQuery<T>(
 }
 
 export const load: PageServerLoad = async ({ params, locals }) => {
+  requireAdmin(locals);
   // Ensure admin or tenant admin access
   if (!locals.user || (locals.user.role !== "ADMIN" && locals.user.role !== "TENANT_ADMIN")) {
     throw redirect(302, "/auth/login?redirectTo=/admin");
@@ -147,7 +149,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 export const actions: Actions = {
   // Process payout to cleaner
-  processPayout: async ({ params, request }) => {
+  processPayout: async ({ params, request, locals }) => {
+    requireAdmin(locals);
     const cleanerId = params.id;
     
     if (!cleanerId) {

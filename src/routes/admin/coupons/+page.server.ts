@@ -3,6 +3,7 @@ import { error, fail } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 import { couponService } from "$lib/server/services/coupon.service";
 import type { Coupon } from "$lib/server/db/schema";
+import { requireAdmin } from "$lib/server/route-guards";
 
 interface CouponWithStats extends Coupon {
   totalDiscountAmount?: number;
@@ -32,6 +33,7 @@ async function getCoupons(): Promise<CouponWithStats[]> {
 }
 
 export const load: PageServerLoad = async ({ locals }) => {
+  requireAdmin(locals, { platformOnly: true });
   // Check if user is authenticated and is an admin
   if (!locals.user || locals.user.role !== "ADMIN") {
     throw error(403, "Unauthorized");
@@ -48,6 +50,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions: Actions = {
   // Create a new coupon
   create: async ({ request, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (!locals.user || locals.user.role !== "ADMIN") {
       return fail(403, { error: "Unauthorized" });
     }
@@ -122,6 +125,7 @@ export const actions: Actions = {
 
   // Update an existing coupon
   update: async ({ request, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (!locals.user || locals.user.role !== "ADMIN") {
       return fail(403, { error: "Unauthorized" });
     }
@@ -197,6 +201,7 @@ export const actions: Actions = {
 
   // Toggle coupon active status
   toggleActive: async ({ request, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (!locals.user || locals.user.role !== "ADMIN") {
       return fail(403, { error: "Unauthorized" });
     }
@@ -226,6 +231,7 @@ export const actions: Actions = {
 
   // Delete a coupon (soft delete)
   delete: async ({ request, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (!locals.user || locals.user.role !== "ADMIN") {
       return fail(403, { error: "Unauthorized" });
     }
@@ -254,6 +260,7 @@ export const actions: Actions = {
 
   // Generate a new coupon code
   generateCode: async ({ request, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (!locals.user || locals.user.role !== "ADMIN") {
       return fail(403, { error: "Unauthorized" });
     }

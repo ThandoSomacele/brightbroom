@@ -4,6 +4,7 @@ import { service } from "$lib/server/db/schema";
 import { error, fail } from "@sveltejs/kit";
 import { desc, eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 // Helper function to fetch services
 async function getServices() {
@@ -20,6 +21,7 @@ async function getServices() {
 }
 
 export const load: PageServerLoad = async ({ locals }) => {
+  requireAdmin(locals, { platformOnly: true });
   // Check if user is authenticated and is an admin
   if (!locals.user || locals.user.role !== "ADMIN") {
     throw error(403, "Unauthorized");
@@ -36,6 +38,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions: Actions = {
   // Create a new service
   create: async ({ request, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (!locals.user || locals.user.role !== "ADMIN") {
       return fail(403, { error: "Unauthorized" });
     }
@@ -89,6 +92,7 @@ export const actions: Actions = {
 
   // Update an existing service
   update: async ({ request, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (!locals.user || locals.user.role !== "ADMIN") {
       return fail(403, { error: "Unauthorized" });
     }
@@ -144,6 +148,7 @@ export const actions: Actions = {
 
   // Delete a service
   delete: async ({ request, locals }) => {
+    requireAdmin(locals, { platformOnly: true });
     if (!locals.user || locals.user.role !== "ADMIN") {
       return fail(403, { error: "Unauthorized" });
     }

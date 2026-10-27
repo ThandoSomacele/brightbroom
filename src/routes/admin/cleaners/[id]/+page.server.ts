@@ -12,6 +12,7 @@ import { hash } from "@node-rs/argon2";
 import { error, fail } from "@sveltejs/kit";
 import { and, desc, eq, sql } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
+import { requireAdmin } from "$lib/server/route-guards";
 
 // Helper function to fetch cleaner data
 async function getCleanerData(cleanerId: string, tenantId: string | null) {
@@ -86,6 +87,7 @@ async function getCleanerData(cleanerId: string, tenantId: string | null) {
 }
 
 export const load: PageServerLoad = async ({ params, locals }) => {
+  requireAdmin(locals);
   const cleanerId = params.id;
 
   if (!cleanerId) {
@@ -105,7 +107,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 export const actions: Actions = {
   // Update personal information
-  updatePersonalInfo: async ({ params, request }) => {
+  updatePersonalInfo: async ({ params, request, locals }) => {
+    requireAdmin(locals);
     const cleanerId = params.id;
 
     if (!cleanerId) {
@@ -144,7 +147,8 @@ export const actions: Actions = {
   },
 
   // Update training status action
-  updateTraining: async ({ params, request }) => {
+  updateTraining: async ({ params, request, locals }) => {
+    requireAdmin(locals);
     const cleanerId = params.id;
 
     if (!cleanerId) {
@@ -181,7 +185,8 @@ export const actions: Actions = {
   },
 
   // Update active status action
-  updateActivation: async ({ params, request }) => {
+  updateActivation: async ({ params, request, locals }) => {
+    requireAdmin(locals);
     const cleanerId = params.id;
 
     if (!cleanerId) {
@@ -251,6 +256,7 @@ export const actions: Actions = {
 
   // Update cleaner profile
   updateProfile: async ({ params, request, locals }) => {
+    requireAdmin(locals);
     const cleanerId = params.id;
 
     if (!cleanerId) {
@@ -370,7 +376,8 @@ export const actions: Actions = {
   },
 
   // Update credentials (email, password, activation)
-  updateCredentials: async ({ params, request }) => {
+  updateCredentials: async ({ params, request, locals }) => {
+    requireAdmin(locals);
     const cleanerId = params.id;
 
     if (!cleanerId) {
@@ -465,7 +472,8 @@ export const actions: Actions = {
   },
 
   // Update payout settings
-  updatePayoutSettings: async ({ params, request }) => {
+  updatePayoutSettings: async ({ params, request, locals }) => {
+    requireAdmin(locals);
     const cleanerId = params.id;
 
     if (!cleanerId) {
