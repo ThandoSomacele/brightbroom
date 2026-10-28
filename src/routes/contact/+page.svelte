@@ -106,8 +106,8 @@
                     WhatsApp Us
                   </h3>
                   <p class="mt-1 text-gray-600 dark:text-gray-300">
-                    <a href="https://wa.me/0693915277" class="hover:underline">
-                      +27 69 391 1577
+                    <a href="https://wa.me/27722251491" class="hover:underline">
+                      +27 72 225 1491
                     </a>
                   </p>
                   <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">

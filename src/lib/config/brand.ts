@@ -45,7 +45,7 @@ export const brand = {
     env.PUBLIC_HELP_EMAIL,
     value(env.PUBLIC_SUPPORT_EMAIL, own("support@brightbroom.com")),
   ),
-  supportPhone: value(env.PUBLIC_SUPPORT_PHONE, own("069 391 5277")),
+  supportPhone: value(env.PUBLIC_SUPPORT_PHONE, own("072 225 1491")),
   address: value(env.PUBLIC_BRAND_ADDRESS, own("0B Cedar Avenue West, Fourways, Randburg, 2191")),
   informationOfficer: value(env.PUBLIC_INFORMATION_OFFICER, own("Thando Somacele")),
   /** Absolute or site-relative URL of the logo image; empty = show the name as text */
