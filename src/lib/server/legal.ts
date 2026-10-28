@@ -18,7 +18,8 @@ export type LegalDocumentSlug =
   | "privacy"
   | "partner-agreement"
   | "terms-single"
-  | "privacy-single";
+  | "privacy-single"
+  | "paia";
 
 export type { LegalDocument, LegalSection } from "$lib/types/legal";
 import type { LegalDocument } from "$lib/types/legal";

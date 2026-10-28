@@ -372,6 +372,14 @@
           class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >Privacy</a
         >
+        <!-- BrightBroom's own PAIA manual; a company's site does not serve it -->
+        {#if !isSingleCompany}
+          <a
+            href="/paia"
+            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+            >PAIA Manual</a
+          >
+        {/if}
         <a
           href="/cookie-preferences"
           class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"

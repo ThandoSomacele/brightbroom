@@ -212,6 +212,7 @@ const handlePostHogProxy: Handle = async ({ event, resolve }) => {
 const MARKETPLACE_ONLY_PATHS = [
   '/join/company',
   '/partner-terms',
+  '/paia',
   '/admin/tenants',
   '/admin/verification',
   '/api/tenant',

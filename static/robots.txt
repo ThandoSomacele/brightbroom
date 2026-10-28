@@ -17,6 +17,7 @@ Allow: /contact
 Allow: /magazine
 Allow: /privacy
 Allow: /terms
+Allow: /paia
 Allow: /join
 Allow: /service-areas
 

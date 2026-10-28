@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { brand } from "$lib/config/brand";
 import { fillPlaceholders, getLegalDocument, type LegalDocumentSlug } from "./legal";
 
-const SLUGS: LegalDocumentSlug[] = ["terms", "privacy", "partner-agreement", "terms-single", "privacy-single"];
+const SLUGS: LegalDocumentSlug[] = ["terms", "privacy", "partner-agreement", "terms-single", "privacy-single", "paia"];
 
 describe("legal documents", () => {
   it("fills brand placeholders and leaves unknown ones visible", () => {

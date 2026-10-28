@@ -123,7 +123,7 @@ After these periods we delete the information or anonymise it so that it no long
 
 10.1 Under POPIA you have the right to:
 
-1. ask whether we hold personal information about you and to request a copy of it (see our PAIA manual, available on request);
+1. ask whether we hold personal information about you and to request a copy of it (see our PAIA manual at [brightbroom.com/paia](https://brightbroom.com/paia));
 2. ask us to correct or delete information that is inaccurate, irrelevant, excessive, out of date, incomplete, misleading or unlawfully obtained;
 3. object to processing based on our legitimate interests, and to direct marketing at any time;
 4. withdraw consent where we rely on it, without affecting processing that has already taken place; and
@@ -133,7 +133,7 @@ After these periods we delete the information or anonymise it so that it no long
 
 10.3 Some information cannot be deleted immediately because the law requires us to keep it (for example payment records), or because it is needed for an open complaint or claim.
 
-10.4 **Information Regulator (South Africa).** Website: inforegulator.org.za. Complaints: complaints.IR@inforegulator.org.za.
+10.4 **Information Regulator (South Africa).** Website: inforegulator.org.za. Complaints: POPIAComplaints@inforegulator.org.za.
 
 ## 11. Direct marketing
 
