@@ -401,40 +401,6 @@ export const postPaymentHooks = {
         success = await this.sendConfirmationEmail(bookingId, paymentStatus);
       }
 
-      // If all retries failed, try direct email endpoint as last resort
-      if (!success) {
-        console.log(
-          `[POST-PAYMENT HOOKS] All retry attempts failed, trying direct endpoint for booking ${bookingId}`,
-        );
-
-        try {
-          // Make a direct call to the direct-email endpoint
-          const response = await fetch(`/api/payments/direct-email`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              bookingId,
-              forceEmail: true,
-            }),
-          });
-
-          if (response.ok) {
-            const result = await response.json();
-            success = result.success;
-            console.log(
-              `[POST-PAYMENT HOOKS] Direct email endpoint result: ${success ? "Success" : "Failed"}`,
-            );
-          }
-        } catch (directError) {
-          console.error(
-            `[POST-PAYMENT HOOKS] Error calling direct email endpoint:`,
-            directError,
-          );
-        }
-      }
-
       // Record final result
       try {
         await db.insert(adminNote).values({

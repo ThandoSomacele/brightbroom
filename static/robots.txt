@@ -20,6 +20,7 @@ Allow: /terms
 Allow: /paia
 Allow: /join
 Allow: /service-areas
+Allow: /pricing
 
 # Allow location-specific service pages (High Priority for Local SEO)
 Allow: /cleaning-services-north-riding

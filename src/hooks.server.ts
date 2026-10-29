@@ -3,6 +3,7 @@ import { error, json, redirect, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { env as publicEnv } from '$env/dynamic/public';
 import { isSingleCompany, missingBrandSettings } from '$lib/config/brand';
+import { serviceAreaProblems } from '$lib/config/service-areas';
 import { validateSessionToken } from '$lib/server/auth';
 import { isPlatformOnlyAdminPath, requireAdmin, routingPath } from '$lib/server/route-guards';
 import type { User } from '$lib/server/db/schema';
@@ -17,6 +18,9 @@ import { randomBytes } from 'crypto';
 const missingBrand = missingBrandSettings();
 if (missingBrand.length) {
   console.error(`[brand] Single-company mode is missing: ${missingBrand.join(', ')}. These show blank on the site until set.`);
+}
+for (const problem of serviceAreaProblems()) {
+  console.error(`[service areas] ${problem}`);
 }
 
 const handleAuth: Handle = async ({ event, resolve }) => {
@@ -208,19 +212,30 @@ const handlePostHogProxy: Handle = async ({ event, resolve }) => {
   return resolve(event);
 };
 
-/** Routes that only make sense on the multi-company marketplace */
-const MARKETPLACE_ONLY_PATHS = [
+/**
+ * Routes that belong to BrightBroom's own site, not to a company's: the
+ * marketplace, BrightBroom's PAIA manual, its sales pricing and its suburb
+ * pages (written about BrightBroom's areas).
+ */
+const BRIGHTBROOM_ONLY_PATHS = [
   '/join/company',
   '/partner-terms',
   '/paia',
+  '/pricing',
   '/admin/tenants',
   '/admin/verification',
   '/api/tenant',
+  '/cleaning-services-bryanston',
+  '/cleaning-services-cosmo-city',
+  '/cleaning-services-fourways',
+  '/cleaning-services-midrand',
+  '/cleaning-services-north-riding',
+  '/cleaning-services-randburg',
 ];
 
 /** True for one of those routes or anything below it (not merely a shared prefix) */
-function isMarketplaceOnlyPath(path: string): boolean {
-  return MARKETPLACE_ONLY_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
+function isBrightBroomOnlyPath(path: string): boolean {
+  return BRIGHTBROOM_ONLY_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
 }
 
 /**
@@ -247,10 +262,11 @@ if (path.includes('//')) {
   throw error(404, "Invalid URL format");
 }
 
-  // A single cleaning company's own site has no marketplace: no company
-  // sign-up, no Cleaning Partner Agreement, no tenant management or company
-  // vetting. Those routes answer 404 as if they did not exist.
-  if (isSingleCompany && isMarketplaceOnlyPath(path)) {
+  // A single cleaning company's own site has no marketplace (no company
+  // sign-up, Cleaning Partner Agreement, tenant management or vetting) and
+  // none of BrightBroom's own pages. Those routes answer 404 as if they did
+  // not exist.
+  if (isSingleCompany && isBrightBroomOnlyPath(path)) {
     throw error(404, 'Not found');
   }
 
