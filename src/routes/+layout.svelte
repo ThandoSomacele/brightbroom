@@ -390,12 +390,17 @@
           class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >Join as a cleaner</a
         >
-        <!-- Company sign-up exists only on the multi-company marketplace -->
+        <!-- Company sign-up and BrightBroom's own pricing exist only on brightbroom.com -->
         {#if !isSingleCompany}
           <a
             href="/join/company"
             class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
             >Partner with us</a
+          >
+          <a
+            href="/pricing"
+            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+            >Pricing for companies</a
           >
         {/if}
         <a

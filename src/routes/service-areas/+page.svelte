@@ -28,7 +28,7 @@
         Our Service Areas
       </h1>
       <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
-        {brand.name} currently serves these areas around Gauteng, South Africa with varied coverage radiuses.
+        {brand.name} currently cleans in the areas below.
       </p>
     </div>
 
@@ -74,6 +74,10 @@
                     </p>
                   </button>
                 </li>
+              {:else}
+                <li class="text-gray-600 dark:text-gray-300">
+                  We haven't listed our areas yet. Contact us to check your address.
+                </li>
               {/each}
             </ul>
           </Card>
@@ -83,12 +87,11 @@
       <!-- Note about coverage -->
       <div class="rounded-lg bg-primary-50 p-6 dark:bg-primary-900/20">
         <h3 class="text-lg font-medium text-primary-800 dark:text-primary-300">
-          Extended Coverage
+          Not on the list?
         </h3>
         <p class="mt-2 text-primary-700 dark:text-primary-300">
-          We've expanded our coverage with special attention to areas like Diepsloot (100km radius) and 
-          Cosmo City/Roodepoort (50km radius). Our other service areas have a standard 15-30km radius, 
-          ensuring reliable and efficient service delivery.
+          If your address is just outside these areas, contact us and we'll see whether one of our
+          cleaners can reach you.
         </p>
         <div class="mt-4">
           <Button
@@ -117,8 +120,7 @@
           </button>
           <div class="p-4 pt-0">
             <p class="text-gray-600 dark:text-gray-300">
-              Our booking system will automatically verify if your address is within our service area during checkout. 
-              We have varying coverage radiuses based on location, with special extended coverage for areas like Diepsloot.
+              When you book, we check your address against these areas as soon as you enter it, before you pay.
             </p>
           </div>
         </div>
@@ -134,9 +136,7 @@
           </button>
           <div class="p-4 pt-0">
             <p class="text-gray-600 dark:text-gray-300">
-              With our expanded coverage in certain regions, most locations around Gauteng are now covered. 
-              If your address still falls outside our service areas, please contact our support team, 
-              and we'll do our best to accommodate your request.
+              Please contact our support team, and we'll do our best to accommodate your request.
             </p>
           </div>
         </div>

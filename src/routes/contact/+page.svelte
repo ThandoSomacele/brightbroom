@@ -3,6 +3,7 @@
   import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
+  import { page } from "$app/stores";
   import HoneypotField from "$lib/components/forms/HoneypotField.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import Card from "$lib/components/ui/Card.svelte";
@@ -312,6 +313,7 @@
                     type="text"
                     id="subject"
                     name="subject"
+                    value={$page.url.searchParams.get("subject") ?? ""}
                     required
                     class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   />

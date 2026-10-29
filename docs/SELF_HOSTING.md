@@ -51,6 +51,20 @@ server logs `[brand] Single-company mode is missing: …` at startup. Set them a
 defaults to the support email), `PUBLIC_SUPPORT_PHONE`, `PUBLIC_BRAND_ADDRESS`,
 `PUBLIC_INFORMATION_OFFICER`, `PUBLIC_BRAND_LOGO_URL`.
 
+**Service areas (runtime)**. `PUBLIC_SERVICE_AREAS` lists where the company
+takes bookings and recruits cleaners, as a JSON array. `radius` is in km and
+defaults to 15:
+
+```json
+[{"name":"Sea Point","lat":-33.9155,"lng":18.3876},
+ {"name":"Claremont","lat":-33.9804,"lng":18.4655,"radius":10}]
+```
+
+In single mode there is no fallback to BrightBroom's suburbs: with no valid
+areas, every address is refused, and the server logs `[service areas] …` at
+startup. A malformed entry is skipped and named in the same log. Changes take
+effect on restart.
+
 **Build variables**. These are compiled into the bundle, so a change only takes
 effect after a rebuild.
 
