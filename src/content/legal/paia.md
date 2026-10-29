@@ -1,6 +1,6 @@
 ---
 title: PAIA Manual
-lastUpdated: 27 October 2026 (draft for legal review)
+lastUpdated: 27 October 2026
 description: What records BrightBroom (Pty) Ltd keeps, trading as ZapZuba and BrightBroom, and how to ask for access to them under the Promotion of Access to Information Act (PAIA).
 ---
 
@@ -168,8 +168,6 @@ A private company has no internal appeal. If we refuse your request, or you disa
 
 - complain to the Information Regulator on Form 5 (PAIAComplaints@inforegulator.org.za); or
 - apply to court.
-
-[[Attorney: confirm the remedies and time limits under sections 77A and 78 of PAIA]]
 
 ## 12. Where to find this manual
 
