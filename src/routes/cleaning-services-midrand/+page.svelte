@@ -5,22 +5,22 @@
 </script>
 
 <svelte:head>
-  <title>Professional Cleaning Services in Fourways | {brand.name}</title>
+  <title>Professional Cleaning Services in Midrand | {brand.name}</title>
   <meta
     name="description"
-    content="Trusted home and office cleaning services in Fourways, Johannesburg. Book professional cleaners for regular or deep cleaning. Serving Fourways, Lonehill, Broadacres, and surrounding areas."
+    content="Trusted home and office cleaning services in Midrand. Book professional cleaners for regular or deep cleaning. Serving Halfway House, Carlswald, Vorna Valley, Noordwyk, Kyalami and surrounding areas."
   />
   <meta
     name="keywords"
-    content="cleaning services Fourways, house cleaning Fourways, office cleaning Fourways, domestic cleaning Fourways, cleaners near me Fourways"
+    content="cleaning services Midrand, house cleaning Midrand, office cleaning Midrand, domestic cleaning Midrand, cleaners near me Midrand"
   />
   <meta
     property="og:title"
-    content="Professional Cleaning Services in Fourways | {brand.name}"
+    content="Professional Cleaning Services in Midrand | {brand.name}"
   />
   <meta
     property="og:description"
-    content="Book trusted cleaning services in Fourways. Professional cleaners for your home or office. Easy online booking."
+    content="Book trusted cleaning services in Midrand. Professional cleaners for your home or office. Easy online booking."
   />
   <meta property="og:type" content="website" />
 </svelte:head>
@@ -31,11 +31,12 @@
     <section class="mb-12">
       <p class="section-eyebrow mb-3">Midrand</p>
       <h1 class="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-        Professional Cleaning Services in Fourways
+        Professional Cleaning Services in Midrand
       </h1>
       <p class="text-xl text-gray-600 mb-8">
-        Your trusted local cleaning service serving Fourways and surrounding
-        areas including Lonehill, Broadacres, Beverley, Norscot, and Craigavon.
+        Your trusted local cleaning service serving Midrand and surrounding
+        areas including Halfway House, Carlswald, Vorna Valley, Noordwyk, and
+        Kyalami.
       </p>
       <div class="flex flex-wrap gap-4">
         <Button href="/book" size="lg" variant="primary">
@@ -50,7 +51,7 @@
     <!-- Service Areas -->
     <Card as="section" padding="lg" class="mb-12">
       <h2 class="font-heading text-2xl font-bold text-gray-900 dark:text-white mb-4">
-        Areas We Serve in Fourways
+        Areas We Serve in Midrand
       </h2>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
         <div class="flex items-center">
@@ -65,7 +66,7 @@
               clip-rule="evenodd"
             ></path>
           </svg>
-          <span>Fourways Central</span>
+          <span>Halfway House</span>
         </div>
         <div class="flex items-center">
           <svg
@@ -79,7 +80,7 @@
               clip-rule="evenodd"
             ></path>
           </svg>
-          <span>Lonehill</span>
+          <span>Carlswald</span>
         </div>
         <div class="flex items-center">
           <svg
@@ -93,7 +94,7 @@
               clip-rule="evenodd"
             ></path>
           </svg>
-          <span>Broadacres</span>
+          <span>Vorna Valley</span>
         </div>
         <div class="flex items-center">
           <svg
@@ -107,7 +108,7 @@
               clip-rule="evenodd"
             ></path>
           </svg>
-          <span>Beverley</span>
+          <span>Noordwyk</span>
         </div>
         <div class="flex items-center">
           <svg
@@ -121,7 +122,7 @@
               clip-rule="evenodd"
             ></path>
           </svg>
-          <span>Norscot</span>
+          <span>Kyalami</span>
         </div>
         <div class="flex items-center">
           <svg
@@ -135,19 +136,19 @@
               clip-rule="evenodd"
             ></path>
           </svg>
-          <span>Craigavon</span>
+          <span>Waterfall</span>
         </div>
       </div>
       <p class="mt-4 text-gray-600 dark:text-gray-300">
-        We cover all areas within a 15km radius of Fourways, ensuring prompt and
-        reliable service to your doorstep.
+        We cover all areas within a 15km radius of central Midrand, ensuring
+        prompt and reliable service to your doorstep.
       </p>
     </Card>
 
     <!-- Services Overview -->
     <section class="mb-12">
       <h2 class="font-heading text-2xl font-bold text-gray-900 mb-6">
-        Our Cleaning Services in Fourways
+        Our Cleaning Services in Midrand
       </h2>
       <div class="grid md:grid-cols-2 gap-6">
         <Card hover>
@@ -155,7 +156,7 @@
             Regular Home Cleaning
           </h3>
           <p class="text-gray-600 dark:text-gray-300 mb-4">
-            Keep your Fourways home consistently clean with our regular cleaning
+            Keep your Midrand home consistently clean with our regular cleaning
             service. Perfect for busy professionals and families.
           </p>
           <ul class="space-y-2 text-gray-600 dark:text-gray-300">
@@ -179,8 +180,9 @@
             Deep Cleaning
           </h3>
           <p class="text-gray-600 dark:text-gray-300 mb-4">
-            Thorough deep cleaning for your home in Fourways. Ideal for spring
-            cleaning or move-in/move-out situations.
+            Thorough deep cleaning for your home in Midrand. Ideal for spring
+            cleaning, or before you move in to or out of a new apartment or
+            townhouse.
           </p>
           <ul class="space-y-2 text-gray-600 dark:text-gray-300">
             <li class="flex items-start">
@@ -203,7 +205,7 @@
     <!-- Why Choose Us -->
     <section class="mb-12">
       <h2 class="font-heading text-2xl font-bold text-gray-900 mb-6">
-        Why Fourways Residents Choose BrightBroom
+        Why Midrand Residents Choose {brand.name}
       </h2>
       <div class="grid md:grid-cols-3 gap-6">
         <Card hover class="text-center">
@@ -286,28 +288,28 @@
     <!-- Local Knowledge -->
     <section class="mb-12 bg-primary-50 rounded-lg p-8">
       <h2 class="font-heading text-2xl font-bold text-gray-900 mb-4">
-        Local Fourways Expertise
+        Local Midrand Expertise
       </h2>
       <p class="text-gray-700 mb-4">
-        As a local cleaning service, we understand the unique needs of Fourways
-        residents. From load-shedding schedules to estate access requirements,
-        we've got you covered.
+        Midrand sits between Johannesburg and Pretoria, and its homes range from
+        family houses in Vorna Valley and Noordwyk to apartments in Carlswald
+        and Halfway House and lifestyle estates in Kyalami and Waterfall.
       </p>
       <p class="text-gray-700">
-        Our cleaners are familiar with popular Fourways estates and complexes
-        including Cedar Creek, Dainfern, Fourways Gardens, and many more. We
-        work around your schedule and adapt to your specific requirements.
+        Whether you live in a gated estate or a complex with visitor
+        registration, add your gate code or access instructions when you book
+        and your cleaner will arrive ready. We work around your schedule and
+        adapt to your specific requirements.
       </p>
     </section>
 
     <!-- CTA Section -->
     <section class="text-center py-8 bg-gray-900 text-white rounded-lg">
       <h2 class="font-heading text-3xl font-bold mb-4">
-        Ready for a Cleaner Home in Fourways?
+        Ready for a Cleaner Home in Midrand?
       </h2>
       <p class="text-xl mb-8 text-gray-300">
-        Join hundreds of satisfied customers in Fourways who trust BrightBroom
-        for their cleaning needs.
+        Book a trusted, vetted cleaner for your Midrand home in a few minutes.
       </p>
       <div class="flex flex-wrap gap-4 justify-center">
         <Button
@@ -330,17 +332,17 @@
     <!-- FAQ Section -->
     <section class="mt-12">
       <h2 class="font-heading text-2xl font-bold text-gray-900 mb-6">
-        Frequently Asked Questions - Fourways
+        Frequently Asked Questions - Midrand
       </h2>
       <div class="space-y-4">
         <details class="card card-hover p-4">
           <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
-            >Do you service all estates in Fourways?</summary
+            >Do you clean in Midrand's estates and complexes?</summary
           >
           <p class="mt-3 text-gray-600 dark:text-gray-300">
-            Yes, we service all residential estates and complexes within the
-            Fourways area, including gated communities. Simply provide access
-            details when booking.
+            Yes, we clean in residential estates and complexes across Midrand,
+            including gated communities. Simply provide access details when
+            booking.
           </p>
         </details>
 
@@ -349,7 +351,7 @@
             >How do you handle load-shedding?</summary
           >
           <p class="mt-3 text-gray-600 dark:text-gray-300">
-            We track load-shedding schedules for all Fourways areas and plan our
+            We track load-shedding schedules for all Midrand areas and plan our
             cleaning appointments accordingly. If load-shedding affects your
             booking, we'll reschedule at no extra cost.
           </p>
@@ -367,7 +369,7 @@
 
         <details class="card card-hover p-4">
           <summary class="font-semibold text-gray-900 dark:text-white cursor-pointer"
-            >Can I book a same-day cleaning in Fourways?</summary
+            >Can I book a same-day cleaning in Midrand?</summary
           >
           <p class="mt-3 text-gray-600 dark:text-gray-300">
             We offer same-day bookings subject to availability. For the best
