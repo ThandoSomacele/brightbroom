@@ -1,5 +1,6 @@
 <!-- src/lib/components/services/ServiceDetailsModal.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import {
     formatDuration,
@@ -198,7 +199,7 @@
         class="mt-6 rounded-lg bg-gray-50 p-4 text-sm text-gray-600 dark:bg-gray-700/50 dark:text-gray-300"
       >
         <p>
-          <strong>Please note:</strong> Prices include VAT. Actual duration may vary
+          <strong>Please note:</strong>{#if brand.vatNumber} Prices include VAT.{/if} Actual duration may vary
           slightly depending on the specific requirements of your space.
         </p>
       </div>

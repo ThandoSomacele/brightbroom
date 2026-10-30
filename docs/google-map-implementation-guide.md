@@ -7,11 +7,10 @@ This guide explains how to implement the Google Maps address search functionalit
 The solution consists of several components:
 
 1. **GoogleMapsAutocomplete.svelte** - The core component that integrates with Google Places API for address search
-2. **serviceAreaValidator.ts** - Utility functions to validate if addresses are within service areas
-3. **addressStore.ts** - A Svelte store to manage address state across components
-4. **AddressSelect.svelte** - Enhanced address selection component with Google Maps integration
-5. **ServiceAreaMap.svelte** - Visualization of service areas on a map
-6. **ServiceAreasPage.svelte** - Public page displaying service coverage areas
+2. **src/lib/utils/service-areas.ts** - Pure functions that check an address against a list of service areas
+3. **src/lib/server/services/service-area.service.ts** - Reads and edits the `service_area` table
+4. **/admin/service-areas** - Where each company manages its own areas
+5. **/service-areas** - Public page listing the active areas
 
 ## Setup Instructions
 
@@ -63,22 +62,12 @@ The solution consists of several components:
 
 ### Service Areas
 
-The service areas are defined in `serviceAreaValidator.ts`. You can modify the coordinates and radii:
-
-```typescript
-export const SERVICE_AREAS: ServiceArea[] = [
-  { name: "Fourways", lat: -26.0274, lng: 28.0106, radius: 5 },
-  // { name: 'Sandton', lat: -26.1070, lng: 28.0567, radius: 6 },
-  { name: "North Riding", lat: -26.0469, lng: 27.951, radius: 4 },
-  // { name: 'Roodepoort', lat: -26.1625, lng: 27.8727, radius: 7 }
-];
-```
-
-Each area has:
-
-- `name`: Display name for the area
-- `lat`/`lng`: Center coordinates (latitude/longitude)
-- `radius`: Distance in kilometers from the center that's considered "in service area"
+Service areas are data, not code: each company adds, edits and switches off
+its own in `/admin/service-areas` (table `service_area`; each area is a centre
+and a radius in km). Pages that check addresses load the active areas on the
+server and pass them to `GoogleMapsAutocomplete` as `serviceAreas`; the
+booking and cleaner sign-up actions check again on the server. With no active
+areas, every address is refused and the admin dashboard says so.
 
 ### Address Processing
 

@@ -103,6 +103,18 @@
   </p>
 </div>
 
+{#if data.noServiceAreas}
+  <a
+    href="/admin/service-areas"
+    class="mb-8 block rounded-lg border border-amber-200 bg-amber-50 p-4 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-900/20 dark:hover:bg-amber-900/30"
+  >
+    <p class="text-sm font-medium text-amber-800 dark:text-amber-300">No service areas set</p>
+    <p class="text-sm text-amber-700 dark:text-amber-400">
+      Customers can't book until you add the areas you work in. Add them now.
+    </p>
+  </a>
+{/if}
+
 <!-- Metrics cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
   {#await data.streamed.metrics}

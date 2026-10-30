@@ -1,4 +1,5 @@
 // src/routes/api/payments/ipn/+server.ts
+import { parseItnFee } from "$lib/utils/payout-calculator";
 import { db } from "$lib/server/db";
 import { adminNote, booking, payment, address, user } from "$lib/server/db/schema";
 import { sendBookingConfirmationEmail } from "$lib/server/email-service";
@@ -64,6 +65,7 @@ export async function POST({ request }) {
       pf_payment_id: pfPaymentId,
       payment_status: paymentStatus,
       amount_gross: amountGross,
+      amount_fee: amountFee,
     } = itn.fields;
 
     console.log(
@@ -168,7 +170,9 @@ export async function POST({ request }) {
       }
 
       // Persist the payout breakdown (PayFast fee, commission, cleaner payout)
-      await paymentProcessorService.ensurePayoutFields(paymentId);
+      await paymentProcessorService.ensurePayoutFields(paymentId, {
+        actualPayFastFee: parseItnFee(amountFee, Number(amountGross)),
+      });
 
       if (action === "record-payment") {
         return json({ status: "success", message: "Payment recorded" });

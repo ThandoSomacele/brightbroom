@@ -1,6 +1,7 @@
 <!-- src/routes/magazine/+layout.svelte -->
 <script lang="ts">
   import { page } from "$app/stores";
+  import { brand } from "$lib/config/brand";
 
   // Get the current user data
   $: user = $page.data.user;
@@ -9,8 +10,8 @@
 <svelte:head>
   <title>
     {$page.url.pathname === "/magazine"
-      ? "Magazine | BrightBroom"
-      : `${$page.data.title || "Article"} | BrightBroom Magazine`}
+      ? `Magazine | ${brand.name}`
+      : `${$page.data.title || "Article"} | ${brand.name} Magazine`}
   </title>
   <meta
     name="description"

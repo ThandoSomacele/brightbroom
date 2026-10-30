@@ -5,7 +5,7 @@
   BRIGHTBROOM_ONLY_PATHS in hooks.server.ts).
 -->
 <script lang="ts">
-  import { brand, canonicalSiteUrl } from "$lib/config/brand";
+  import { brand, whatsappHref } from "$lib/config/brand";
   import Button from "$lib/components/ui/Button.svelte";
   import Card from "$lib/components/ui/Card.svelte";
   import Icon from "$lib/components/ui/Icon.svelte";
@@ -51,7 +51,7 @@
   const demoLink = (plan?: string) =>
     `/contact?subject=${encodeURIComponent(plan ? `Demo request: ${plan} plan` : "Demo request")}`;
 
-  const whatsappLink = `https://wa.me/27${brand.supportPhone.replace(/\D/g, "").replace(/^0/, "")}`;
+  const whatsappLink = whatsappHref();
 
   const title = `Pricing for cleaning companies | ${brand.name}`;
   const description = `Your own online booking system for your cleaning company, from ${rand(tiers[0].monthly)} a month. We set it up, host it and support it; your customers pay you directly through PayFast.`;
@@ -63,8 +63,6 @@
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="{canonicalSiteUrl}/pricing" />
-  <link rel="canonical" href="{canonicalSiteUrl}/pricing" />
 </svelte:head>
 
 <!-- Hero -->

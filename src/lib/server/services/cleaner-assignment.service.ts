@@ -4,7 +4,7 @@ import { address, booking, cleanerProfile, tenant, user } from "$lib/server/db/s
 import {
   getDistanceFromLatLonInKm,
   STANDARD_SERVICE_RADIUS_KM,
-} from "$lib/utils/serviceAreaValidator";
+} from "$lib/utils/service-areas";
 import { and, eq, gt, gte, isNull, lt, ne, or, sql } from "drizzle-orm";
 import { toNaiveDateTimeString } from "$lib/utils/date-utils";
 import { sendCleanerAssignmentNotifications } from "./notification.service";

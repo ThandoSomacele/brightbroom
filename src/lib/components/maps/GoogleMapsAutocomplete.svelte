@@ -1,11 +1,38 @@
 <!-- src/lib/components/maps/GoogleMapsAutocomplete.svelte -->
+<script context="module" lang="ts">
+  // One Maps script per page, however many pickers it has. Google calls the
+  // callback once the Places library is ready; with loading=async the
+  // script's own onload fires before that.
+  const MAPS_READY_CALLBACK = "__mapsPlacesReady";
+  let mapsReady: Promise<void> | null = null;
+
+  function loadMapsPlaces(apiKey: string): Promise<void> {
+    if (window.google?.maps?.places) return Promise.resolve();
+    mapsReady ??= new Promise<void>((resolve, reject) => {
+      (window as unknown as Record<string, () => void>)[MAPS_READY_CALLBACK] = () => resolve();
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&loading=async&callback=${MAPS_READY_CALLBACK}`;
+      script.async = true;
+      script.onerror = () => {
+        mapsReady = null; // let a later picker try again
+        reject(new Error("The Google Maps script failed to load"));
+      };
+      document.head.appendChild(script);
+    });
+    return mapsReady;
+  }
+</script>
+
 <script lang="ts">
   import Icon from "$lib/components/ui/Icon.svelte";
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
   import {
+    formatServiceAreaList,
     getOutOfServiceAreaMessage,
     isWithinServiceArea,
-  } from "$lib/utils/serviceAreaValidator";
+    serviceAreaBounds,
+    type ServiceArea,
+  } from "$lib/utils/service-areas";
 
   // Props
   export let apiKey: string;
@@ -17,6 +44,15 @@
   export let error = "";
   export let disabled = false;
   export let autoFocus = false;
+  /** This site's service areas, from the page's load data (serviceAreaService) */
+  export let serviceAreas: ServiceArea[];
+  /**
+   * Refuse addresses outside the service areas. Off for admin forms that pick
+   * a point anywhere, such as the centre of a new service area.
+   */
+  export let enforceServiceArea = true;
+  /** The input's id: give each picker on a page its own */
+  export let id = "address-autocomplete";
 
   // Bind to select specific fields if needed
   export let selectedAddress: {
@@ -43,10 +79,9 @@
     placeName: "",
   };
 
-  // Service areas come from $lib/utils/serviceAreaValidator — see the imports
-  // above. This component used to keep its own copy of the list, which meant a
-  // customer could be told they were covered by one list and rejected by the
-  // other.
+  // Service areas come from the serviceAreas prop: the same list the server
+  // checks against, so a customer can't be told one thing here and another
+  // at checkout.
 
   // Create custom dispatch events
   const dispatch = createEventDispatcher<{
@@ -190,11 +225,16 @@
     }
 
     try {
-      // Define service area bounds (covers Fourways, Bryanston, Randburg, Midrand, Centurion/Monaghan Farm)
-      const serviceAreaBounds = new google.maps.LatLngBounds(
-        new google.maps.LatLng(-26.3, 27.4),  // SW corner (covers Centurion/Monaghan Farm)
-        new google.maps.LatLng(-25.8, 28.3),  // NE corner (covers Midrand)
-      );
+      // Suggest addresses near the service areas first. A bias, not a limit:
+      // someone just outside still finds their address and gets the friendly
+      // "not in your area yet" message from the distance check below.
+      const box = serviceAreaBounds(serviceAreas);
+      const bounds = box
+        ? new google.maps.LatLngBounds(
+            new google.maps.LatLng(box.south, box.west),
+            new google.maps.LatLng(box.north, box.east),
+          )
+        : undefined;
 
       // Initialise the autocomplete (no types restriction to include addresses, estates, and office parks)
       autocomplete = new google.maps.places.Autocomplete(inputElement, {
@@ -206,12 +246,9 @@
           "name",
           "types",
         ],
-        bounds: serviceAreaBounds,
-        strictBounds: true, // Enforce bounds as restriction, not just bias
+        bounds,
+        strictBounds: false,
       });
-
-      // Set bounds for the autocomplete
-      autocomplete.setBounds(serviceAreaBounds);
 
       // Add the place_changed event listener
       autocomplete.addListener("place_changed", handlePlaceSelect);
@@ -248,8 +285,8 @@
       const lng = place.geometry.location?.lng() || 0;
 
       // Check if address is within our service areas
-      if (!isWithinServiceArea(lat, lng)) {
-        error = getOutOfServiceAreaMessage(lat, lng);
+      if (enforceServiceArea && !isWithinServiceArea(serviceAreas, lat, lng)) {
+        error = getOutOfServiceAreaMessage(serviceAreas, lat, lng);
         dispatch("outOfServiceArea", {
           address: place.formatted_address || "",
           lat,
@@ -288,39 +325,16 @@
     }
   }
 
-  // Load Google Maps script
+  // Load Google Maps (once per page) and attach the autocomplete
   function loadGoogleMapsScript() {
-    if (window.google && window.google.maps && window.google.maps.places) {
-      isScriptLoading = false;
-      isGoogleMapsLoaded = true;
-      initAutocomplete();
-      return;
-    }
-
     isScriptLoading = true;
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
-    script.async = true;
-    script.defer = true;
-
-    script.onload = () => {
-      setTimeout(() => {
-        if (window.google && window.google.maps && window.google.maps.places) {
-          initAutocomplete();
-        } else {
-          scriptError = true;
-          isScriptLoading = false;
-        }
-      }, 100);
-    };
-
-    script.onerror = () => {
-      isScriptLoading = false;
-      scriptError = true;
-      console.error("Failed to load Google Maps script");
-    };
-
-    document.head.appendChild(script);
+    loadMapsPlaces(apiKey)
+      .then(() => initAutocomplete())
+      .catch((loadError) => {
+        console.error(loadError);
+        scriptError = true;
+        isScriptLoading = false;
+      });
   }
 
   // Update clear button visibility when value changes
@@ -361,7 +375,7 @@
   <!-- Label -->
   {#if label}
     <label
-      for="google-maps-autocomplete"
+      for={id}
       class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
     >
       {label}
@@ -381,7 +395,7 @@
 
       <!-- Input field -->
       <input
-        id="google-maps-autocomplete"
+        {id}
         type="text"
         {placeholder}
         {required}
@@ -444,9 +458,13 @@
     {/if}
 
     <!-- Service area hint (show when no address selected and no error) -->
-    {#if !selectedAddress.formatted && !error && !isScriptLoading}
+    {#if enforceServiceArea && !selectedAddress.formatted && !error && !isScriptLoading}
       <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-        We currently serve Fourways, Bryanston, Randburg, Midrand, and surrounding areas.
+        {#if serviceAreas.length}
+          We currently serve {formatServiceAreaList(serviceAreas)}.
+        {:else}
+          {getOutOfServiceAreaMessage(serviceAreas)}
+        {/if}
       </div>
     {/if}
 

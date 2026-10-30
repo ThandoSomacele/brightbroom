@@ -1,4 +1,5 @@
 // src/routes/admin/dashboard/+page.server.ts
+import { serviceAreaService } from "$lib/server/services/service-area.service";
 import { db } from "$lib/server/db";
 import { booking, payment, user, cleanerProfile, subscription, subscriptionPayment } from "$lib/server/db/schema";
 import { and, desc, eq, gte, lt, sql } from "drizzle-orm";
@@ -371,8 +372,12 @@ export const load: PageServerLoad = async ({ locals }) => {
   requireAdmin(locals);
   // Tenant scoping
   const tenantId = adminTenantScope(locals);
+  const isPlatformAdmin = locals.user?.role === "ADMIN";
 
   return {
+    // A site with no active areas can't take a single booking; tell the
+    // admins who can fix it (/admin/service-areas is platform-only)
+    noServiceAreas: isPlatformAdmin ? (await serviceAreaService.countActive()) === 0 : false,
     streamed: {
       metrics: getMetrics(tenantId),
       pendingCleaners: getPendingCleaners(tenantId),

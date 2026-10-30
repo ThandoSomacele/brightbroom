@@ -51,19 +51,12 @@ server logs `[brand] Single-company mode is missing: …` at startup. Set them a
 defaults to the support email), `PUBLIC_SUPPORT_PHONE`, `PUBLIC_BRAND_ADDRESS`,
 `PUBLIC_INFORMATION_OFFICER`, `PUBLIC_BRAND_LOGO_URL`.
 
-**Service areas (runtime)**. `PUBLIC_SERVICE_AREAS` lists where the company
-takes bookings and recruits cleaners, as a JSON array. `radius` is in km and
-defaults to 15:
-
-```json
-[{"name":"Sea Point","lat":-33.9155,"lng":18.3876},
- {"name":"Claremont","lat":-33.9804,"lng":18.4655,"radius":10}]
-```
-
-In single mode there is no fallback to BrightBroom's suburbs: with no valid
-areas, every address is refused, and the server logs `[service areas] …` at
-startup. A malformed entry is skipped and named in the same log. Changes take
-effect on restart.
+Optional: `PUBLIC_SUPPORT_HOURS` (shown on the contact page, e.g.
+`Monday–Friday: 8am – 5pm`), `PUBLIC_BRAND_OG_IMAGE` (the picture shown when a
+page is shared; absolute or site-relative URL) and `PUBLIC_VAT_NUMBER`. Set the
+VAT number only if the company is VAT-registered: prices are then described as
+including VAT and receipts show the VAT in them. Without it, VAT is not
+mentioned anywhere.
 
 **Build variables**. These are compiled into the bundle, so a change only takes
 effect after a rebuild.
@@ -83,9 +76,11 @@ Leave them unset for none; a client never inherits BrightBroom's containers.
 API) and `PAYFAST_SANDBOX_MODE=false` for live payments. **Sandbox is the
 default** when this is unset.
 
-**Email (Resend)**: `RESEND_API_KEY`, `EMAIL_FROM` (on a domain verified in
-Resend, e.g. `Company <bookings@company.co.za>`), plus `ADMIN_BOOKINGS_EMAIL`
-and `RECRUITMENT_EMAIL` for the internal notifications.
+**Email (Resend)**: `RESEND_API_KEY` and `EMAIL_FROM` (required; on a domain
+verified in Resend, e.g. `Company <bookings@company.co.za>`; the server logs
+`[email] Single-company mode is missing: …` until both are set), plus
+`ADMIN_BOOKINGS_EMAIL` and `RECRUITMENT_EMAIL` for the internal notifications
+(both default to `PUBLIC_SUPPORT_EMAIL`; nothing goes to BrightBroom).
 
 **File storage (S3 or S3-compatible: MinIO, R2, Wasabi)**: `S3_BUCKET_NAME`,
 `AWS_S3_ACCESS_KEY_ID`, `AWS_S3_SECRET_ACCESS_KEY`, `AWS_S3_REGION`. For a
@@ -134,7 +129,10 @@ response and exits non-zero on failure, so Coolify shows the run as failed.
    (`SEED_DEFAULT_ADDONS=false` skips them). Running it again is safe: it never
    changes an existing user or password. Afterwards, remove
    `SEED_ADMIN_PASSWORD` from the variables.
-3. Log in at `/auth/login`, then set prices and add-ons in `/admin/pricing`.
+3. Log in at `/auth/login`. Add the company's service areas in
+   `/admin/service-areas` (until there is at least one, every address is
+   refused and the dashboard says so), then set prices and add-ons in
+   `/admin/pricing`.
 4. In the PayFast dashboard, check that the account's notify URL is allowed for
    the client's domain. The app sends `PUBLIC_URL` + `/api/payments/ipn`.
 

@@ -6,9 +6,11 @@ import { sendCleanerApplicationEmail } from "$lib/server/email-service";
 import { checkRateLimit } from "$lib/server/rate-limiter";
 import { validateHoneypot, logBotDetection } from "$lib/server/honeypot-validator";
 import { s3 } from "$lib/server/s3";
+import { serviceAreaService } from "$lib/server/services/service-area.service";
+import { getOutOfServiceAreaMessage, isWithinServiceArea } from "$lib/utils/service-areas";
 import { fail } from "@sveltejs/kit";
 import { z } from "zod";
-import type { Actions } from "./$types";
+import type { Actions, PageServerLoad } from "./$types";
 import mime from "mime-types";
 
 /**
@@ -93,6 +95,10 @@ const joinApplicationSchema = z.object({
     (d) => !EXPIRY_CATEGORIES.includes(d.workAuthorisation) || !!d.workAuthExpiry,
     { message: "Please give the expiry date shown on your permit", path: ["workAuthExpiry"] },
   );
+
+export const load: PageServerLoad = async () => ({
+  serviceAreas: await serviceAreaService.listActive(),
+});
 
 export const actions: Actions = {
   default: async ({ request, getClientAddress }) => {
@@ -219,6 +225,19 @@ export const actions: Actions = {
         workAuthExpiry: workAuthExpiry || undefined,
         terms,
       });
+
+      // Cleaners are recruited where the company works. The form checks this
+      // as the address is picked; this is the check that holds. (An address
+      // with no location, e.g. when Maps failed to load, is left to the admin.)
+      if (latitude && longitude) {
+        const serviceAreas = await serviceAreaService.listActive();
+        if (!isWithinServiceArea(serviceAreas, latitude, longitude)) {
+          return fail(400, {
+            error: getOutOfServiceAreaMessage(serviceAreas, latitude, longitude),
+            data: createFormDataObject(),
+          });
+        }
+      }
 
       // Honeypot validation - check for bot submissions
       const honeypotResult = validateHoneypot(formData, "cleaner");

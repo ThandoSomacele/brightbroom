@@ -4,7 +4,7 @@ import { db } from '$lib/server/db';
 import { user, cleanerProfile, tenant } from '$lib/server/db/schema';
 import { eq, and, gt, isNull, or, sql } from 'drizzle-orm';
 import { imageUrl } from '$lib/utils/media';
-import { STANDARD_SERVICE_RADIUS_KM } from '$lib/utils/serviceAreaValidator';
+import { STANDARD_SERVICE_RADIUS_KM } from '$lib/utils/service-areas';
 
 export const GET: RequestHandler = async ({ url }) => {
   try {

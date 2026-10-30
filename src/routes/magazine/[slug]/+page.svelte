@@ -2,6 +2,7 @@
 <script lang="ts">
   import Icon from "$lib/components/ui/Icon.svelte";
   import { page } from "$app/stores";
+  import { brand } from "$lib/config/brand";
   import Button from "$lib/components/ui/Button.svelte";
   import Card from "$lib/components/ui/Card.svelte";
   import { CustomerSkeleton } from "$lib/components/ui/skeletons";
@@ -78,28 +79,23 @@
   {#if data.meta.keywords}
     <meta name="keywords" content={data.meta.keywords.join(", ")} />
   {/if}
-  <link rel="canonical" href={data.meta.url} />
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="article" />
-  <meta property="og:url" content={data.meta.url} />
   <meta property="og:title" content={data.meta.title} />
   <meta property="og:description" content={data.meta.description} />
   <meta property="og:image" content={data.meta.ogImage} />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content={article.frontmatter.imageAlt} />
-  <meta property="og:site_name" content="BrightBroom" />
   <meta property="og:locale" content="en_ZA" />
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image" />
-  <meta property="twitter:url" content={data.meta.url} />
   <meta property="twitter:title" content={data.meta.title} />
   <meta property="twitter:description" content={data.meta.description} />
   <meta property="twitter:image" content={data.meta.ogImage} />
   <meta property="twitter:image:alt" content={article.frontmatter.imageAlt} />
-  <meta property="twitter:site" content="@BrightBroom" />
 
   <!-- Article metadata -->
   <meta
@@ -318,7 +314,7 @@
       >
         <h3 class="text-2xl font-bold mb-4">Ready to transform your space?</h3>
         <p class="text-primary-100 mb-6">
-          Let BrightBroom's professional cleaners help you maintain your
+          Let {brand.name}'s professional cleaners help you maintain your
           beautifully organised home.
         </p>
         <Button variant="secondary" href={cta.href} size="lg">

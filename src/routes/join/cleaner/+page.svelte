@@ -1,9 +1,8 @@
 <!-- src/routes/join/cleaner/+page.svelte -->
 <script lang="ts">
-  import { brand, canonicalSiteUrl } from "$lib/config/brand";
+  import { absoluteSiteUrl, brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
-  import { page } from "$app/stores";
   import HoneypotField from "$lib/components/forms/HoneypotField.svelte";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
@@ -14,7 +13,11 @@
     formatServiceAreaList,
     getClosestServiceArea,
     isWithinServiceArea,
-  } from "$lib/utils/serviceAreaValidator";
+  } from "$lib/utils/service-areas";
+  import type { PageData } from "./$types";
+
+  // This site's service areas (from the load)
+  export let data: PageData;
   
   // Environment variables
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -128,12 +131,14 @@
     // Check if address is within service area
     if (selectedAddress.lat && selectedAddress.lng) {
       isOutOfServiceArea = !isWithinServiceArea(
+        data.serviceAreas,
         selectedAddress.lat,
         selectedAddress.lng,
       );
 
       if (isOutOfServiceArea) {
         const closest = getClosestServiceArea(
+          data.serviceAreas,
           selectedAddress.lat,
           selectedAddress.lng,
         );
@@ -192,24 +197,25 @@
       return true;
     }
   }
-  const siteUrl = import.meta.env.VITE_SITE_URL || canonicalSiteUrl;
-  const ogImageUrl = `${siteUrl}/images/join-cleaning-team-og.jpg`;
+  // BrightBroom's recruiting image; a company's site uses its own share image
+  const ogImageUrl = absoluteSiteUrl(
+    brand.ogImageUrl.includes("brightbroom") ? "/images/join-cleaning-team-og.jpg" : brand.ogImageUrl,
+  );
 </script>
 
 <svelte:head>
   <title>Join Our Cleaner Team | {brand.name}</title>
   <meta
     name="description"
-    content="Join the BrightBroom team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
+    content="Join the {brand.name} team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
   />
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content={$page.url.href} />
   <meta property="og:title" content="Join Our Cleaner Team | {brand.name}" />
   <meta
     property="og:description"
-    content="Join the BrightBroom team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
+    content="Join the {brand.name} team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
   />
   <meta property="og:image" content={ogImageUrl} />
 
@@ -218,7 +224,7 @@
   <meta name="twitter:title" content="Join Our Cleaner Team | {brand.name}" />
   <meta
     name="twitter:description"
-    content="Join the BrightBroom team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
+    content="Join the {brand.name} team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
   />
   <meta name="twitter:image" content={ogImageUrl} />
 </svelte:head>
@@ -233,7 +239,7 @@
         </h1>
         <p class="mb-8 text-lg text-primary-50">
           Flexible hours, competitive pay, and a supportive work environment.
-          Join BrightBroom and start making a living with us.
+          Join {brand.name} and start making a living with us.
         </p>
         <Button variant="secondary" size="lg" href="#apply">Apply Now</Button>
       </div>
@@ -243,7 +249,7 @@
   <!-- Benefits Section -->
   <section class="py-12 bg-gray-50 dark:bg-gray-800">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
-      <SectionHeading eyebrow="Benefits" title="Why Join BrightBroom?" />
+      <SectionHeading eyebrow="Benefits" title="Why Join {brand.name}?" />
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <!-- Benefit 1 -->
@@ -365,101 +371,6 @@
     </div>
   </div>
 
-  <!-- Testimonials Section -->
-  <!-- <div class="py-16">
-    <div class="container mx-auto px-4">
-      <h2
-        class="mb-12 text-center text-3xl font-bold text-gray-900 dark:text-white"
-      >
-        What Our Cleaners Say
-      </h2>
-
-      <div class="grid gap-8 md:grid-cols-3">
-        Testimonial 1
-        <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-          <div class="mb-4 flex">
-            <div
-              class="mr-4 h-12 w-12 overflow-hidden rounded-full bg-gray-200"
-            >
-              <div
-                class="flex h-full w-full items-center justify-center bg-primary-50 text-primary-800"
-              >
-                <span class="text-xl font-bold">N</span>
-              </div>
-            </div>
-            <div>
-              <h3 class="font-medium text-gray-900 dark:text-white">
-                Nomsa M.
-              </h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Cleaner since 2022
-              </p>
-            </div>
-          </div>
-          <p class="text-gray-600 dark:text-gray-300">
-            "Working with BrightBroom has completely changed my life. I can now
-            manage my own schedule and earn a good income while still having
-            time for my family."
-          </p>
-        </div>
-
-        Testimonial 2
-        <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-          <div class="mb-4 flex">
-            <div
-              class="mr-4 h-12 w-12 overflow-hidden rounded-full bg-gray-200"
-            >
-              <div
-                class="flex h-full w-full items-center justify-center bg-primary-50 text-primary-800"
-              >
-                <span class="text-xl font-bold">S</span>
-              </div>
-            </div>
-            <div>
-              <h3 class="font-medium text-gray-900 dark:text-white">
-                Simon P.
-              </h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Cleaner since 2021
-              </p>
-            </div>
-          </div>
-          <p class="text-gray-600 dark:text-gray-300">
-            "The app is so easy to use, and I get paid quickly after each job.
-            The support team is always there when I need help with anything."
-          </p>
-        </div>
-
-        Testimonial 3
-        <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-          <div class="mb-4 flex">
-            <div
-              class="mr-4 h-12 w-12 overflow-hidden rounded-full bg-gray-200"
-            >
-              <div
-                class="flex h-full w-full items-center justify-center bg-primary-50 text-primary-800"
-              >
-                <span class="text-xl font-bold">T</span>
-              </div>
-            </div>
-            <div>
-              <h3 class="font-medium text-gray-900 dark:text-white">
-                Thandi K.
-              </h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Cleaner since 2023
-              </p>
-            </div>
-          </div>
-          <p class="text-gray-600 dark:text-gray-300">
-            "I was worried about finding consistent work, but with BrightBroom I
-            now have regular work. It's been a great experience."
-          </p>
-        </div>
-      </div>
-    </div>
-  </div> -->
-
   <!-- Application Form Section -->
   <div id="apply" class="bg-gray-100 py-16 dark:bg-gray-800">
     <div class="container mx-auto px-4">
@@ -467,7 +378,7 @@
         <SectionHeading
           eyebrow="Application"
           title="Apply to Join"
-          subtitle="Fill out the application form below to start your journey with BrightBroom. Our team will review your application and get back to you within 2-3 business days."
+          subtitle="Fill out the application form below to start your journey with {brand.name}. Our team will review your application and get back to you within 2-3 business days."
         />
 
         {#if formSuccess}
@@ -500,7 +411,7 @@
               Application Submitted!
             </h3>
             <p class="mb-6 text-gray-600 dark:text-gray-300">
-              Thank you for applying to join the BrightBroom team. We've
+              Thank you for applying to join the {brand.name} team. We've
               received your application and will review it shortly. You'll hear
               back from us within 2-3 business days.
             </p>
@@ -675,6 +586,7 @@
                   <div>
                     <GoogleMapsAutocomplete
                       apiKey={googleMapsApiKey}
+                      serviceAreas={data.serviceAreas}
                       label="Home Address"
                       placeholder="Enter your address"
                       required
@@ -690,7 +602,7 @@
                         class="mt-2 text-sm text-amber-600 dark:text-amber-400"
                       >
                         <p>
-                          We're only taking on cleaners who live in {formatServiceAreaList()}
+                          We're only taking on cleaners who live in {formatServiceAreaList(data.serviceAreas)}
                           at the moment, so we can match you to jobs close to home.
                         </p>
                         <p class="mt-1">
@@ -1196,7 +1108,7 @@
                       for="hearAboutUs"
                       class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
-                      How did you hear about BrightBroom?
+                      How did you hear about {brand.name}?
                     </label>
                     <select
                       id="hearAboutUs"
@@ -1329,7 +1241,7 @@
             What equipment or supplies do I need?
           </h3>
           <p class="text-gray-600 dark:text-gray-300">
-            BrightBroom customers provide all necessary cleaning supplies and
+            {brand.name} customers provide all necessary cleaning supplies and
             equipment. You just need reliable transportation to get to your jobs
             and a smartphone to use our app.
           </p>
@@ -1366,7 +1278,7 @@
         <h2 class="mb-4 text-3xl font-bold">Ready to Join Our Team?</h2>
         <p class="mb-8 text-lg text-primary-50">
           Apply today and take the first step towards a flexible cleaning career
-          with BrightBroom.
+          with {brand.name}.
         </p>
         <Button variant="secondary" size="lg" href="#apply">Apply Now</Button>
       </div>

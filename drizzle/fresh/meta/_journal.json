@@ -15,6 +15,13 @@
       "when": 1792093801026,
       "tag": "0001_seed_defaults",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793342965571,
+      "tag": "0002_add_service_areas",
+      "breakpoints": true
     }
   ]
 }

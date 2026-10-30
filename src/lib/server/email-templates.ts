@@ -20,6 +20,8 @@ function receiptAddressHtml(): string {
 export interface EmailTemplateData {
   appUrl: string;
   brandName: string;
+  /** VAT number when the business is VAT-registered; empty means no VAT on receipts */
+  vatNumber?: string;
   primaryColor: string;
   secondaryColor: string;
   [key: string]: any;
@@ -1048,9 +1050,12 @@ export function getPaymentReceiptTemplate(
       ? paymentDetails.amount
       : parseFloat(String(paymentDetails.amount));
 
-  // Calculate VAT (if applicable)
-  const vatRate = paymentDetails.vatRate || 15; // Default to 15% VAT for South Africa
-  const vatAmount = totalAmount * (vatRate / 100);
+  // VAT only for a VAT-registered business. Prices include VAT, so the VAT
+  // in a total is total × rate / (100 + rate): R115 at 15% holds R15 VAT,
+  // not R17.25 (the old total × 15%).
+  const vatRegistered = Boolean(data.vatNumber);
+  const vatRate = paymentDetails.vatRate || 15;
+  const vatAmount = vatRegistered ? (totalAmount * vatRate) / (100 + vatRate) : 0;
   const subtotal = totalAmount - vatAmount;
 
   // Format currency values
@@ -1223,10 +1228,12 @@ ${receiptAddressHtml()}
             </div>
           </div>
           
+          ${vatRegistered ? `
           <div class="invoice-row">
-            <div>VAT (${vatRate}%)</div>
+            <div>VAT (${vatRate}%, included) · VAT no. ${escapeHtml(data.vatNumber ?? "")}</div>
             <div>${formatCurrency(vatAmount)}</div>
           </div>
+          ` : ""}
           
           <div class="invoice-row total">
             <div>Total</div>
@@ -1282,9 +1289,9 @@ SERVICE DETAILS:
 ${paymentDetails.booking.service.name}
 Scheduled for ${formattedScheduledDate} at ${formattedScheduledTime}
 
-Subtotal: ${formatCurrency(subtotal)}
-VAT (${vatRate}%): ${formatCurrency(vatAmount)}
-Total: ${formatCurrency(totalAmount)}
+${vatRegistered ? `Subtotal: ${formatCurrency(subtotal)}
+VAT (${vatRate}%, included), VAT no. ${data.vatNumber}: ${formatCurrency(vatAmount)}
+` : ""}Total: ${formatCurrency(totalAmount)}
 
 Payment Method: ${paymentDetails.paymentMethod || "Credit Card"}
 Payment Status: Completed
@@ -2355,7 +2362,6 @@ export function getTenantRejectedEmailTemplate(
   details: { companyName: string; reason: string; contactFirstName?: string },
   data: EmailTemplateData,
 ): { subject: string; html: string; text: string } {
-  const verificationUrl = `${data.appUrl}/admin/verification`;
   const escapedEmail = escapeHtml(recipientEmail);
   const companyName = escapeHtml(details.companyName);
   const reason = escapeHtml(details.reason);
@@ -2397,16 +2403,10 @@ export function getTenantRejectedEmailTemplate(
       </div>
 
       <p>
-        Replace the document on your verification page and we will take another
-        look. Nothing else about your account has changed, and your team and
-        cleaners are still there.
+        Reply to this email with the corrected document and we will take another
+        look. If you are not sure what we need, ask in your reply and we will
+        explain.
       </p>
-
-      <p style="text-align: center; margin: 30px 0;">
-        <a href="${verificationUrl}" class="button">Update your documents</a>
-      </p>
-
-      <p>If you are not sure what we need, reply to this email and we will explain.</p>
       <p>Thanks,<br>The ${data.brandName} Team</p>
     </div>
     <div class="footer">
@@ -2428,13 +2428,8 @@ We reviewed the documents for ${details.companyName} and cannot approve it just 
 What needs fixing:
 ${details.reason}
 
-Replace the document on your verification page and we will take another look.
-Nothing else about your account has changed, and your team and cleaners are
-still there.
-
-Update your documents: ${verificationUrl}
-
-If you are not sure what we need, reply to this email and we will explain.
+Reply to this email with the corrected document and we will take another look.
+If you are not sure what we need, ask in your reply and we will explain.
 
 Thanks,
 The ${data.brandName} Team

@@ -1,5 +1,6 @@
 <!-- src/lib/components/booking/BookingForm.svelte -->
 <script lang="ts">
+  import { brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import ServiceDetailsModal from "$lib/components/booking/ServiceDetailsModal.svelte";
@@ -455,9 +456,11 @@
               >
               <span class="font-bold text-primary-700">{formattedPrice}</span>
             </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Prices include VAT.
-            </p>
+            {#if brand.vatNumber}
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Prices include VAT.
+              </p>
+            {/if}
           </div>
         </div>
 

@@ -25,7 +25,7 @@ import {
   getWelcomeEmailTemplate,
 } from "./email-templates";
 
-import { brand } from "$lib/config/brand";
+import { brand, isSingleCompany } from "$lib/config/brand";
 import { brandColors } from "$lib/config/theme";
 // Initialise Resend with API key from environment variable
 const RESEND_API_KEY = env.RESEND_API_KEY;
@@ -37,8 +37,18 @@ const APP_URL = env.PUBLIC_URL || brand.siteUrl;
 
 // The sender address. EMAIL_FROM must be on a domain verified with Resend for
 // this deployment, e.g. "Sparkle Clean <bookings@sparkleclean.co.za>".
+// A company's site has no fallback: it can't send from BrightBroom's domain.
 const FROM_EMAIL =
-  env.EMAIL_FROM?.trim() || `${brand.name} <notifications@brightbroom.com>`;
+  env.EMAIL_FROM?.trim() || (isSingleCompany ? "" : `${brand.name} <notifications@brightbroom.com>`);
+
+/** Email settings a company's deployment must set, for the startup log */
+export function missingEmailSettings(): string[] {
+  if (!isSingleCompany) return [];
+  const missing: string[] = [];
+  if (!env.RESEND_API_KEY?.trim()) missing.push("RESEND_API_KEY");
+  if (!env.EMAIL_FROM?.trim()) missing.push("EMAIL_FROM");
+  return missing;
+}
 
 /**
  * Inboxes that receive internal notifications (contact form, new bookings,
@@ -48,7 +58,9 @@ const FROM_EMAIL =
  */
 function internalInbox(specific: string | undefined, brightBroomInbox: string): string {
   if (specific?.trim()) return specific.trim();
-  return publicEnv.PUBLIC_SUPPORT_EMAIL?.trim() ? brand.supportEmail : brightBroomInbox;
+  // A company's site never mails BrightBroom: its support address (required) is the fallback
+  if (isSingleCompany || publicEnv.PUBLIC_SUPPORT_EMAIL?.trim()) return brand.supportEmail;
+  return brightBroomInbox;
 }
 
 interface CleanerApplicationEmailData {
@@ -69,6 +81,7 @@ interface CleanerApplicationEmailData {
 const EMAIL_CONFIG = {
   appUrl: APP_URL,
   brandName: brand.name,
+  vatNumber: brand.vatNumber,
   primaryColor: brandColors.primary,
   secondaryColor: brandColors.secondary,
 };

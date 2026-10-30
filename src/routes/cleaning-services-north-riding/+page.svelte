@@ -26,10 +26,6 @@
   />
   <meta property="og:type" content="website" />
   <meta
-    property="og:url"
-    content="https://brightbroom.com/cleaning-services-north-riding"
-  />
-  <meta
     property="og:image"
     content="https://brightbroom.com/images/brightbroom-og-image.jpg"
   />

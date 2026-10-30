@@ -27,7 +27,7 @@
   import Button from "$lib/components/ui/Button.svelte";
   import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
   import { imageUrl } from "$lib/utils/media";
-  import { isWithinServiceArea } from "$lib/utils/serviceAreaValidator";
+  import { isWithinServiceArea } from "$lib/utils/service-areas";
   
   export let data;
 
@@ -256,6 +256,7 @@
   <div class="card p-6 mb-6">
     <ApplicationEditForm
       {application}
+      serviceAreas={data.serviceAreas}
       isEditing={true}
       {isProcessing}
       on:save={saveChanges}
@@ -441,7 +442,7 @@
 
             <!-- Service area status indicator -->
             <div class="mt-3">
-              {#if isWithinServiceArea(parseFloat(application.latitude), parseFloat(application.longitude))}
+              {#if isWithinServiceArea(data.serviceAreas, parseFloat(application.latitude), parseFloat(application.longitude))}
                 <div
                   class="inline-flex items-center rounded-md bg-green-50 px-3 py-1 text-sm font-medium text-green-700 dark:bg-green-900/20 dark:text-green-300"
                 >

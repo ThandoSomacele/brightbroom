@@ -7,6 +7,7 @@ import { cleanerEarningsService } from "./cleaner-earnings.service";
 import { payoutConfigService } from "./payout-config.service";
 import {
   calculatePayout,
+  calculatePayoutFromStoredFee,
   PLATFORM_COMMISSION_RATE,
   type PaymentMethodType
 } from "$lib/utils/payout-calculator";
@@ -178,7 +179,13 @@ export const paymentProcessorService = {
    * @param paymentId The payment ID
    * @returns true if fields were populated (or already present)
    */
-  async ensurePayoutFields(paymentId: string): Promise<boolean> {
+  async ensurePayoutFields(
+    paymentId: string,
+    // What PayFast actually charged (the ITN's amount_fee). Without it the fee
+    // is estimated from the configured rates, at the card rate, since the
+    // payment method isn't known.
+    { actualPayFastFee }: { actualPayFastFee?: number | null } = {},
+  ): Promise<boolean> {
     try {
       const [pymt] = await db
         .select({
@@ -186,8 +193,10 @@ export const paymentProcessorService = {
           amount: payment.amount,
           paymentMethod: payment.paymentMethod,
           cleanerPayoutAmount: payment.cleanerPayoutAmount,
+          tenantId: booking.tenantId,
         })
         .from(payment)
+        .leftJoin(booking, eq(payment.bookingId, booking.id))
         .where(eq(payment.id, paymentId))
         .limit(1);
 
@@ -198,7 +207,14 @@ export const paymentProcessorService = {
       const gross = Number(pymt.amount) || 0;
       const method = (pymt.paymentMethod as PaymentMethodType) || "CREDIT_CARD";
       const payoutConfig = await payoutConfigService.getPayoutConfig();
-      const breakdown = calculatePayout(gross, method, payoutConfig);
+      // A cleaning company's booking uses its own commission and goes to the company
+      const terms = await tenantService.getPayoutTerms(pymt.tenantId);
+      const commissionRate = terms.commissionRate ?? payoutConfig.commissionRate;
+
+      const breakdown =
+        actualPayFastFee != null
+          ? calculatePayoutFromStoredFee(gross, actualPayFastFee, commissionRate, terms.isPlatformOwner)
+          : calculatePayout(gross, method, { ...payoutConfig, commissionRate }, terms.isPlatformOwner);
 
       await db
         .update(payment)
@@ -207,6 +223,7 @@ export const paymentProcessorService = {
           platformCommissionAmount: breakdown.commissionAmount.toString(),
           payFastFeeAmount: breakdown.payFastFee.toString(),
           cleanerPayoutAmount: breakdown.cleanerPayout.toString(),
+          tenantPayoutAmount: breakdown.tenantPayout.toString(),
           updatedAt: new Date(),
         })
         .where(eq(payment.id, paymentId));

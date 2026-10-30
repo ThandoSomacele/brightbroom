@@ -1,4 +1,5 @@
 // src/routes/book/address/+page.server.ts
+import { serviceAreaService } from "$lib/server/services/service-area.service";
 import { MAX_ADDRESSES } from '$lib/constants/address';
 import { db } from '$lib/server/db';
 import { address } from '$lib/server/db/schema';
@@ -8,12 +9,14 @@ import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
+  const serviceAreas = await serviceAreaService.listActive();
   // For authenticated users, load their saved addresses
   if (locals.user) {
     try {
       const addresses = await addressService.getUserAddresses(locals.user.id);
       
       return {
+        serviceAreas,
         addresses,
         maxAddresses: MAX_ADDRESSES,
         hasReachedLimit: addresses.length >= MAX_ADDRESSES,
@@ -23,6 +26,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     } catch (err) {
       console.error('Error loading addresses:', err);
       return {
+        serviceAreas,
         addresses: [],
         maxAddresses: MAX_ADDRESSES,
         hasReachedLimit: false,
@@ -34,6 +38,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   
   // For guest users, return empty state - they'll enter address manually
   return {
+    serviceAreas,
     addresses: [],
     maxAddresses: MAX_ADDRESSES,
     hasReachedLimit: false,
