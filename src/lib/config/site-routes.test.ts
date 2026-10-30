@@ -1,4 +1,5 @@
 // src/lib/config/site-routes.test.ts
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   ADMIN_NAV,
@@ -8,6 +9,7 @@ import {
   isBrightBroomOnlyPath,
   isPlatformOnlyAdminPath,
   isRetiredPath,
+  RETIRED_PATHS,
   siteNav,
 } from "./site-routes";
 import { buildSitemapEntries, sitemapXml } from "$lib/seo/sitemap";
@@ -34,6 +36,13 @@ describe("retired pages", () => {
     expect(isRetiredPath("/magazine/some-article")).toBe(true);
     expect(isRetiredPath("/cleaning-services-fourways")).toBe(true);
     expect(isRetiredPath("/services")).toBe(false);
+  });
+
+  it("each redirect to the home page on Netlify too (split functions skip the hook)", () => {
+    const toml = readFileSync("netlify.toml", "utf8");
+    const redirected = [...toml.matchAll(/from = "([^"]+)"\s+to = "\/"\s+status = 301/g)].map((m) => m[1]);
+    for (const path of RETIRED_PATHS) expect(redirected, path).toContain(path);
+    expect(redirected, "articles").toContain("/magazine/*");
   });
 });
 
