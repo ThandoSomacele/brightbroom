@@ -6,7 +6,8 @@
   import CookieConsentBanner from "$lib/components/CookieConsentBanner.svelte";
   import ErrorBoundary from "$lib/components/ErrorBoundary.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import { brand, canonicalSiteUrl, isSingleCompany } from "$lib/config/brand";
+  import { brand, canonicalSiteUrl } from "$lib/config/brand";
+  import { FOOTER_LINKS, PUBLIC_NAV, linksForSite } from "$lib/config/site-routes";
   import { performanceMonitor } from "$lib/utils/performance";
   import posthog from "posthog-js";
   import { onMount } from "svelte";
@@ -20,9 +21,13 @@
   $: bookingsPaused = $page.data.bookingsPaused;
   $: bookHref = bookingsPaused ? "/bookings-paused" : "/book";
 
-  // Get site URL for canonical URLs
-  const siteUrl = import.meta.env.VITE_SITE_URL || canonicalSiteUrl;
-  $: canonicalUrl = `${siteUrl}${$page.url.pathname}`;
+  // Only links to pages this site serves (none of BrightBroom's own pages on
+  // a company's site)
+  const navLinks = linksForSite(PUBLIC_NAV);
+  const footerLinks = linksForSite(FOOTER_LINKS);
+
+  // One canonical address per page, on this site's own domain
+  $: canonicalUrl = `${canonicalSiteUrl}${$page.url.pathname}`;
 
   // Check if current page is in booking flow (hide footer on mobile for these)
   $: isBookingFlow = $page.url.pathname.startsWith("/book");
@@ -81,8 +86,13 @@
     name="description"
     content="{brand.tagline}. Book professional cleaning services online in minutes and get your space sparkling clean."
   />
-  <!-- Canonical URL -->
-  <link rel="canonical" href={canonicalUrl} />
+  <!-- One canonical address per page (pages don't add their own). Error
+       pages have none: they are not pages to index. -->
+  {#if !$page.error}
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:url" content={canonicalUrl} />
+  {/if}
+  <meta property="og:site_name" content={brand.name} />
 </svelte:head>
 
 <!-- Google Tag Manager (noscript) -->
@@ -129,31 +139,13 @@
 
       <!-- Desktop navigation links -->
       <nav class="hidden space-x-4 lg:flex">
-        <a
-          href="/"
-          class="px-3 py-2 text-gray-700 hover:text-primary-700 dark:text-gray-200"
-          >Home</a
-        >
-        <a
-          href="/services"
-          class="px-3 py-2 text-gray-700 hover:text-primary-700 dark:text-gray-200"
-          >Services</a
-        >
-        <a
-          href="/about"
-          class="px-3 py-2 text-gray-700 hover:text-primary-700 dark:text-gray-200"
-          >About</a
-        >
-        <a
-          href="/magazine"
-          class="px-3 py-2 text-gray-700 hover:text-primary-700 dark:text-gray-200"
-          >Magazine</a
-        >
-        <a
-          href="/contact"
-          class="px-3 py-2 text-gray-700 hover:text-primary-700 dark:text-gray-200"
-          >Contact</a
-        >
+        {#each navLinks as link (link.href)}
+          <a
+            href={link.href}
+            class="px-3 py-2 text-gray-700 hover:text-primary-700 dark:text-gray-200"
+            >{link.label}</a
+          >
+        {/each}
         {#if user && user.role === "ADMIN"}
           <a
             href="/admin/dashboard"
@@ -240,37 +232,14 @@
   {#if isMenuOpen}
     <div class="lg:hidden">
       <div class="space-y-1 px-2 pb-3 pt-2">
-        <a
-          href="/"
-          on:click={closeMenu}
-          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-200 dark:hover:bg-gray-700"
-          >Home</a
-        >
-        <a
-          href="/services"
-          on:click={closeMenu}
-          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-200 dark:hover:bg-gray-700"
-          >Services</a
-        >
-        <a
-          href="/about"
-          on:click={closeMenu}
-          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-200 dark:hover:bg-gray-700"
-          >About</a
-        >
-        <a
-          href="/magazine"
-          on:click={closeMenu}
-          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-200 dark:hover:bg-gray-700"
-          >Magazine</a
-        >
-
-        <a
-          href="/contact"
-          on:click={closeMenu}
-          class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-200 dark:hover:bg-gray-700"
-          >Contact</a
-        >
+        {#each navLinks as link (link.href)}
+          <a
+            href={link.href}
+            on:click={closeMenu}
+            class="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary-700 dark:text-gray-200 dark:hover:bg-gray-700"
+            >{link.label}</a
+          >
+        {/each}
       </div>
 
       <div class="border-t border-gray-200 pb-3 pt-4 dark:border-gray-700">
@@ -362,47 +331,13 @@
       </div>
 
       <div class="flex flex-wrap justify-center gap-4">
-        <a
-          href="/terms"
-          class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          >Terms</a
-        >
-        <a
-          href="/privacy"
-          class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          >Privacy</a
-        >
-        <!-- BrightBroom's own PAIA manual; a company's site does not serve it -->
-        {#if !isSingleCompany}
+        {#each footerLinks as link (link.href)}
           <a
-            href="/paia"
+            href={link.href}
             class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-            >PAIA Manual</a
+            >{link.label}</a
           >
-        {/if}
-        <a
-          href="/cookie-preferences"
-          class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          >Cookie Preferences</a
-        >
-        <a
-          href="/join/cleaner"
-          class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          >Join as a cleaner</a
-        >
-        <!-- BrightBroom's own pricing for cleaning companies exists only on brightbroom.com -->
-        {#if !isSingleCompany}
-          <a
-            href="/pricing"
-            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-            >Pricing for companies</a
-          >
-        {/if}
-        <a
-          href="/contact"
-          class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          >Contact</a
-        >
+        {/each}
       </div>
     </div>
 

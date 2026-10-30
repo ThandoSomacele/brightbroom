@@ -1,6 +1,6 @@
 <!-- src/routes/book/+page.svelte -->
 <script lang="ts">
-  import { brand, canonicalSiteUrl } from "$lib/config/brand";
+  import { absoluteSiteUrl, brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
@@ -20,8 +20,7 @@
   let { data }: { data: PageData } = $props();
   const { pricingConfig, addons, user, isAuthenticated } = data;
 
-  const siteUrl = import.meta.env.VITE_SITE_URL || canonicalSiteUrl;
-  const ogImageUrl = `${siteUrl}/images/brightbroom-og-image.jpg`;
+  const ogImageUrl = absoluteSiteUrl(brand.ogImageUrl);
 
   // Room selection state using $state for reactivity
   let bedroomCount = $state(1);
@@ -99,7 +98,6 @@
     content="Cleaner Bookings Made Simple. Build your perfect cleaning package by selecting rooms and add-ons."
   />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content={$page.url.href} />
   <meta property="og:title" content="{brand.name} | Build Your Perfect Clean" />
   <meta
     property="og:description"
@@ -107,7 +105,6 @@
   />
   <meta property="og:image" content={ogImageUrl} />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:url" content={$page.url.href} />
   <meta name="twitter:title" content="{brand.name} | Build Your Perfect Clean" />
   <meta
     name="twitter:description"

@@ -24,24 +24,9 @@ export function routingPath(pathname: string): string {
   }
 }
 
-/**
- * Admin areas for platform admins only; tenant admins get a 403. Keep this in
- * sync with the `platformOnly` nav items in admin/+layout.svelte.
- */
-const PLATFORM_ONLY_ADMIN_PATHS = [
-  "/admin/tenants",
-  "/admin/pricing",
-  "/admin/users",
-  "/admin/services",
-  "/admin/coupons",
-  "/admin/test-emails",
-  "/admin/applications/new",
-];
-
-/** True for a platform-only admin area. Pass the routingPath, not the raw pathname */
-export function isPlatformOnlyAdminPath(path: string): boolean {
-  return PLATFORM_ONLY_ADMIN_PATHS.some((p) => path.startsWith(p));
-}
+// The platform-only list lives with the other route lists, so the admin menu
+// and this guard can't drift apart
+export { isPlatformOnlyAdminPath } from "$lib/config/site-routes";
 
 /**
  * The signed-in admin, or a 401 (signed out) / 403 (not allowed).

@@ -46,10 +46,14 @@ export const brand = {
     value(env.PUBLIC_SUPPORT_EMAIL, own("support@brightbroom.com")),
   ),
   supportPhone: value(env.PUBLIC_SUPPORT_PHONE, own("072 225 1491")),
+  /** When the support line is answered, shown on the contact page; optional */
+  supportHours: value(env.PUBLIC_SUPPORT_HOURS, own("Monday–Friday: 8am – 6pm")),
   address: value(env.PUBLIC_BRAND_ADDRESS, own("0B Cedar Avenue West, Fourways, Randburg, 2191")),
   informationOfficer: value(env.PUBLIC_INFORMATION_OFFICER, own("Thando Somacele")),
   /** Absolute or site-relative URL of the logo image; empty = show the name as text */
   logoUrl: value(env.PUBLIC_BRAND_LOGO_URL, ""),
+  /** Image shown when a page is shared (Open Graph); absolute or site-relative */
+  ogImageUrl: value(env.PUBLIC_BRAND_OG_IMAGE, own("/images/brightbroom-og-image.jpg")),
   /** Public site URL without a trailing slash */
   siteUrl: value(env.PUBLIC_URL, own("https://brightbroom.com")).replace(/\/$/, ""),
   mode,
@@ -76,6 +80,24 @@ export const canonicalSiteUrl = env.PUBLIC_BRAND_NAME?.trim() || mode === "singl
 
 /** The site's host name, e.g. "brightbroom.com" */
 export const brandDomain = canonicalSiteUrl.replace(/^https?:\/\//, "");
+
+/** An absolute URL on this site for a path ("/images/x.jpg"); absolute URLs pass through */
+export function absoluteSiteUrl(pathOrUrl: string): string {
+  if (!pathOrUrl) return "";
+  if (/^https?:\/\//.test(pathOrUrl)) return pathOrUrl;
+  return `${canonicalSiteUrl}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`;
+}
+
+/**
+ * A wa.me link for a South African number written as people write it
+ * ("072 225 1491" or "+27 72 225 1491"). Empty when there is no number.
+ */
+export function whatsappHref(phone: string = brand.supportPhone, text?: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return "";
+  const international = digits.startsWith("0") ? `27${digits.slice(1)}` : digits;
+  return `https://wa.me/${international}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
+}
 
 /**
  * Settings a company's deployment must set (single mode). Empty in marketplace

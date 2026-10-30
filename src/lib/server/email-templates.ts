@@ -2355,7 +2355,6 @@ export function getTenantRejectedEmailTemplate(
   details: { companyName: string; reason: string; contactFirstName?: string },
   data: EmailTemplateData,
 ): { subject: string; html: string; text: string } {
-  const verificationUrl = `${data.appUrl}/admin/verification`;
   const escapedEmail = escapeHtml(recipientEmail);
   const companyName = escapeHtml(details.companyName);
   const reason = escapeHtml(details.reason);
@@ -2397,16 +2396,10 @@ export function getTenantRejectedEmailTemplate(
       </div>
 
       <p>
-        Replace the document on your verification page and we will take another
-        look. Nothing else about your account has changed, and your team and
-        cleaners are still there.
+        Reply to this email with the corrected document and we will take another
+        look. If you are not sure what we need, ask in your reply and we will
+        explain.
       </p>
-
-      <p style="text-align: center; margin: 30px 0;">
-        <a href="${verificationUrl}" class="button">Update your documents</a>
-      </p>
-
-      <p>If you are not sure what we need, reply to this email and we will explain.</p>
       <p>Thanks,<br>The ${data.brandName} Team</p>
     </div>
     <div class="footer">
@@ -2428,13 +2421,8 @@ We reviewed the documents for ${details.companyName} and cannot approve it just 
 What needs fixing:
 ${details.reason}
 
-Replace the document on your verification page and we will take another look.
-Nothing else about your account has changed, and your team and cleaners are
-still there.
-
-Update your documents: ${verificationUrl}
-
-If you are not sure what we need, reply to this email and we will explain.
+Reply to this email with the corrected document and we will take another look.
+If you are not sure what we need, ask in your reply and we will explain.
 
 Thanks,
 The ${data.brandName} Team

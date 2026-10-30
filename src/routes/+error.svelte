@@ -6,7 +6,7 @@
   import { onMount } from 'svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import Forbidden403 from '$lib/components/errors/Forbidden403.svelte';
-  import { brand, canonicalSiteUrl } from "$lib/config/brand";
+  import { absoluteSiteUrl, brand } from "$lib/config/brand";
     
   // Get error information from the page store
   $: status = $page.status;
@@ -58,8 +58,7 @@
     ? 'The page you\'re looking for couldn\'t be found. Browse our cleaning services in South Africa.'
     : 'We encountered an error. Please try again or contact our support team.'
   } />
-  <meta property="og:image" content="{canonicalSiteUrl}/images/og-default.jpg" />
-  <meta property="og:url" content="{canonicalSiteUrl}{$page.url.pathname}" />
+  <meta property="og:image" content={absoluteSiteUrl(brand.ogImageUrl)} />
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -68,10 +67,10 @@
     ? 'Page not found - Browse our cleaning services in South Africa.'
     : 'We encountered an error. Please try again or contact support.'
   } />
-  <meta name="twitter:image" content="{canonicalSiteUrl}/images/og-default.jpg" />
-  
-  <!-- Canonical URL to home page -->
-  <link rel="canonical" href="{canonicalSiteUrl}/" />
+  <meta name="twitter:image" content={absoluteSiteUrl(brand.ogImageUrl)} />
+
+  <!-- An error page is not a page to index (and has no canonical address) -->
+  <meta name="robots" content="noindex" />
 </svelte:head>
 
 {#if is403}

@@ -5,50 +5,28 @@
   import Button from '$lib/components/ui/Button.svelte';
   import Card from '$lib/components/ui/Card.svelte';
   import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
-  </script>
+  import JsonLd from "$lib/components/seo/JsonLd.svelte";
+  import { serviceJsonLd } from "$lib/seo/structured-data";
+
+  const description = "Professional home cleaning services with flexible booking. Choose your hours, rooms, and add-ons.";
+</script>
 
 <svelte:head>
   <title>Cleaning Services | {brand.name}</title>
-  <meta name="description" content="Book professional home cleaning services in Gauteng. Build your own booking - choose your hours, rooms, and add-ons. Trusted cleaners, flexible scheduling." />
+  <meta name="description" content="Book professional home cleaning services with {brand.name}. Build your own booking - choose your hours, rooms, and add-ons. Trusted cleaners, flexible scheduling." />
 
-  <!-- Open Graph -->
+  <!-- Open Graph (og:url comes from the root layout) -->
   <meta property="og:title" content="Professional Cleaning Services | {brand.name}" />
   <meta property="og:description" content="Build your own cleaning booking. Choose hours, rooms, and add-ons for a personalised clean." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://brightbroom.com/services" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Professional Cleaning Services | {brand.name}" />
   <meta name="twitter:description" content="Build your own cleaning booking. Choose hours, rooms, and add-ons for a personalised clean." />
-
-  <!-- Structured Data -->
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Service",
-      "name": "Professional Cleaning Services",
-      "provider": {
-        "@type": "LocalBusiness",
-        "name": "BrightBroom",
-        "url": "https://brightbroom.com"
-      },
-      "serviceType": "Cleaning Service",
-      "description": "Professional home cleaning services with flexible booking. Choose your hours, rooms, and add-ons.",
-      "areaServed": [
-        "Fourways",
-        "Bryanston",
-        "Randburg",
-        "Midrand",
-        "North Riding",
-        "Cosmo City",
-        "Diepsloot",
-        "Honeydew",
-        "Centurion"
-      ]
-    }
-  </script>
 </svelte:head>
+
+<JsonLd data={serviceJsonLd(description)} />
 
 <div class="bg-gray-50 dark:bg-gray-900">
   <!-- Hero Section -->

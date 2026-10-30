@@ -1,6 +1,6 @@
 <!-- src/routes/contact/+page.svelte -->
 <script lang="ts">
-  import { brand } from "$lib/config/brand";
+  import { brand, whatsappHref } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { page } from "$app/stores";
@@ -25,24 +25,23 @@
   <title>Contact Us | {brand.name}</title>
   <meta
     name="description"
-    content="Get in touch with BrightBroom cleaning services for questions, support, or to join our team of professional cleaners."
+    content="Get in touch with {brand.name} for questions, support, or to join our team of professional cleaners."
   />
 
   <!-- Open Graph -->
   <meta property="og:title" content="Contact Us | {brand.name}" />
   <meta
     property="og:description"
-    content="Get in touch with BrightBroom cleaning services for questions, support, or to join our team of professional cleaners."
+    content="Get in touch with {brand.name} for questions, support, or to join our team of professional cleaners."
   />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://brightbroom.com/contact" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Contact Us | {brand.name}" />
   <meta
     name="twitter:description"
-    content="Get in touch with BrightBroom cleaning services for questions, support, or to join our team of professional cleaners."
+    content="Get in touch with {brand.name} for questions, support, or to join our team of professional cleaners."
   />
 </svelte:head>
 
@@ -86,16 +85,17 @@
                   </h3>
                   <p class="mt-1 text-gray-600 dark:text-gray-300">
                     <a
-                      href="mailto:info@brightbroom.com"
+                      href="mailto:{brand.supportEmail}"
                       class="hover:underline"
                     >
-                      info@brightbroom.com
+                      {brand.supportEmail}
                     </a>
                   </p>
                 </div>
               </div>
 
               <!-- Phone -->
+              {#if brand.supportPhone}
               <div class="flex">
                 <div
                   class="icon-chip mr-4 h-12 w-12 flex-shrink-0"
@@ -107,17 +107,21 @@
                     WhatsApp Us
                   </h3>
                   <p class="mt-1 text-gray-600 dark:text-gray-300">
-                    <a href="https://wa.me/27722251491" class="hover:underline">
-                      +27 72 225 1491
+                    <a href={whatsappHref()} class="hover:underline">
+                      {brand.supportPhone}
                     </a>
                   </p>
-                  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Monday-Friday: 8am - 6pm
-                  </p>
+                  {#if brand.supportHours}
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      {brand.supportHours}
+                    </p>
+                  {/if}
                 </div>
               </div>
+              {/if}
 
               <!-- Office -->
+              {#if brand.address}
               <div class="flex">
                 <div
                   class="icon-chip mr-4 h-12 w-12 flex-shrink-0"
@@ -129,12 +133,12 @@
                     Address
                   </h3>
                   <p class="mt-1 text-gray-600 dark:text-gray-300">
-                    0B Cedar Avenue West<br />
-                    Fourways, 2191<br />
+                    {brand.address}<br />
                     South Africa
                   </p>
                 </div>
               </div>
+              {/if}
             </div>
 
             <!-- Join Our Team Section -->
@@ -367,7 +371,7 @@
                       class="h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary"
                     />
                     <span class="ml-2 text-sm text-gray-600 dark:text-gray-300">
-                      I'm interested in joining the BrightBroom team as a
+                      I'm interested in joining the {brand.name} team as a
                       cleaner
                     </span>
                   </label>

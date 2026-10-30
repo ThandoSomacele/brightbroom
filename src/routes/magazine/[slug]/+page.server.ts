@@ -1,6 +1,6 @@
 // src/routes/magazine/[slug]/+page.server.ts
 import { ArticleService } from "$lib/services/article.service";
-import { error } from "@sveltejs/kit";
+import { error, isHttpError } from "@sveltejs/kit";
 import type { ArticleCategory } from "$lib/types/article";
 import type { PageServerLoad } from "./$types";
 
@@ -45,9 +45,8 @@ export const load: PageServerLoad = async ({ params, url }) => {
   } catch (err) {
     console.error("Error loading article:", err);
 
-    if (err instanceof Error && "status" in err) {
-      throw err; // Re-throw SvelteKit errors
-    }
+    // SvelteKit's HttpError (e.g. the 404 above) is not an Error subclass
+    if (isHttpError(err)) throw err;
 
     throw error(500, "Failed to load article");
   }

@@ -23,10 +23,6 @@
     content="Book trusted cleaning services in Fourways. Professional cleaners for your home or office. Easy online booking."
   />
   <meta property="og:type" content="website" />
-  <meta
-    property="og:url"
-    content="https://brightbroom.com/cleaning-services-fourways"
-  />
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8 md:py-12">

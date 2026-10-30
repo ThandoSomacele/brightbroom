@@ -1,135 +1,41 @@
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
-  import { brand, canonicalSiteUrl } from "$lib/config/brand";
+  import { absoluteSiteUrl, brand } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
-  import { page } from "$app/stores";
+  import JsonLd from "$lib/components/seo/JsonLd.svelte";
+  import { localBusinessJsonLd } from "$lib/seo/structured-data";
+  import type { PageData } from "./$types";
   import heroImage from "$lib/image-assets/hero.webp";
   import kitchenImage from "$lib/image-assets/kitchen.webp";
   import livingRoomImage from "$lib/image-assets/living-room.webp";
   
-  // Get user data from loader
-  // Layout data (user, bookingsPaused). The generated PageData resolves to {}
-  // for this page, so type loosely rather than fight stale codegen.
-  export let data: Record<string, any>;
+  // Root layout data (user, bookingsPaused)
+  export let data: PageData;
 
   $: user = data.user;
 
-  const siteUrl = import.meta.env.VITE_SITE_URL || canonicalSiteUrl;
-  const ogImageUrl = `${siteUrl}/images/brightbroom-og-image.jpg`;
+  const ogImageUrl = absoluteSiteUrl(brand.ogImageUrl);
+  const description = `${brand.tagline}. Book professional cleaning services online in minutes and get your space sparkling clean.`;
 </script>
 
 <svelte:head>
   <title>{brand.name} | {brand.tagline}</title>
-  <meta
-    name="description"
-    content="Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean."
-  />
+  <meta name="description" content={description} />
 
-  <!-- Open Graph / Facebook -->
+  <!-- Open Graph / Facebook (og:url and the canonical come from the root layout) -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content={$page.url.href} />
-  <meta
-    property="og:title"
-    content="{brand.name} | {brand.tagline}"
-  />
-  <meta
-    property="og:description"
-    content="Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean."
-  />
+  <meta property="og:title" content="{brand.name} | {brand.tagline}" />
+  <meta property="og:description" content={description} />
   <meta property="og:image" content={ogImageUrl} />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:url" content={$page.url.href} />
-  <meta
-    name="twitter:title"
-    content="{brand.name} | {brand.tagline}"
-  />
-  <meta
-    name="twitter:description"
-    content="Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean."
-  />
+  <meta name="twitter:title" content="{brand.name} | {brand.tagline}" />
+  <meta name="twitter:description" content={description} />
   <meta name="twitter:image" content={ogImageUrl} />
-
-  <!-- Structured Data -->
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": "BrightBroom",
-      "image": "{ogImageUrl}",
-      "description": "Cleaner Bookings Made Simple. Book professional cleaning services online in minutes and get your space sparkling clean.",
-      "@id": "https://brightbroom.com",
-      "url": "https://brightbroom.com",
-      "telephone": "+27-11-123-4567",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "123 Main Street",
-        "addressLocality": "Johannesburg",
-        "addressRegion": "Gauteng",
-        "postalCode": "2000",
-        "addressCountry": "ZA"
-      },
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": -26.2041,
-        "longitude": 28.0473
-      },
-      "openingHoursSpecification": {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-          "Sunday"
-        ],
-        "opens": "07:00",
-        "closes": "19:00"
-      },
-      "sameAs": [
-        "https://www.facebook.com/brightbroom",
-        "https://www.instagram.com/brightbroom",
-        "https://twitter.com/brightbroom"
-      ],
-      "areaServed": ["Johannesburg", "Cape Town", "Durban", "Pretoria"],
-      "priceRange": "$$",
-      "serviceType": "Cleaning Service",
-      "hasOfferCatalog": {
-        "@type": "OfferCatalog",
-        "name": "Cleaning Services",
-        "itemListElement": [
-          {
-            "@type": "Offer",
-            "itemOffered": {
-              "@type": "Service",
-              "name": "Regular Cleaning",
-              "description": "Perfect for maintaining a clean and tidy home on a regular basis."
-            }
-          },
-          {
-            "@type": "Offer",
-            "itemOffered": {
-              "@type": "Service",
-              "name": "Extended Cleaning",
-              "description": "A thorough cleaning service that reaches every corner and detail."
-            }
-          },
-          {
-            "@type": "Offer",
-            "itemOffered": {
-              "@type": "Service",
-              "name": "Office Cleaning",
-              "description": "Professional cleaning for your office space or commercial property."
-            }
-          }
-        ]
-      }
-    }
-  </script>
 </svelte:head>
+
+<JsonLd data={localBusinessJsonLd(description)} />
 
 <!-- Hero section -->
 <section class="relative overflow-hidden">
@@ -137,7 +43,7 @@
   <div class="absolute inset-0">
     <img
       src={heroImage}
-      alt="Professional cleaner organising a modern living room with cleaning supplies, showcasing BrightBroom's quality service"
+      alt="Professional cleaner organising a modern living room with cleaning supplies, showcasing {brand.name}'s quality service"
       class="w-full h-full object-cover object-center"
     />
     <!-- Full overlay on mobile for text readability -->
@@ -155,7 +61,7 @@
         <span class="text-primary-700"> Made&nbsp;Simple</span>
       </h1>
       <p class="text-base sm:text-lg text-gray-900 md:text-gray-700 dark:text-gray-200 mb-8 sm:mb-10 leading-relaxed">
-        BrightBroom connects you with professional cleaners for your home or
+        {brand.name} connects you with professional cleaners for your home or
         office. Book online in minutes and get your space sparkling clean.
       </p>
 
@@ -370,223 +276,6 @@
   </div>
 </section>
 
-<!-- Testimonials section -->
-<!-- <section class="bg-gray-50 py-16 dark:bg-gray-900">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="mb-12 text-center">
-      <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
-        What Our Customers Say
-      </h2>
-      <p class="mt-4 text-lg text-gray-700 dark:text-gray-200">
-        Hear from people who've experienced our services
-      </p>
-    </div>
-
-    <div class="grid gap-8 md:grid-cols-3">
-      Testimonial 1
-      <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-        <div class="mb-4 flex text-yellow-400">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-        </div>
-        <p class="mb-4 text-gray-700 dark:text-gray-200">
-          "BrightBroom exceeded my expectations! The cleaners were professional,
-          thorough, and paid attention to every detail. My home has never looked
-          better."
-        </p>
-        <div class="flex items-center">
-          <div class="font-medium text-gray-900 dark:text-white">Sarah M.</div>
-          <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
-            Cape Town
-          </div>
-        </div>
-      </div>
-
-      Testimonial 2
-      <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-        <div class="mb-4 flex text-yellow-400">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-        </div>
-        <p class="mb-4 text-gray-700 dark:text-gray-200">
-          "I love how easy it is to book a cleaning. The app is user-friendly
-          and the cleaners are always on time and do an amazing job. Highly
-          recommend!"
-        </p>
-        <div class="flex items-center">
-          <div class="font-medium text-gray-900 dark:text-white">John D.</div>
-          <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
-            Johannesburg
-          </div>
-        </div>
-      </div>
-
-      Testimonial 3
-      <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-        <div class="mb-4 flex text-yellow-400">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-            />
-          </svg>
-        </div>
-        <p class="mb-4 text-gray-700 dark:text-gray-200">
-          "As a busy business owner, BrightBroom has been a lifesaver for our
-          office. The team is reliable, efficient, and our office has never been
-          cleaner. Worth every penny!"
-        </p>
-        <div class="flex items-center">
-          <div class="font-medium text-gray-900 dark:text-white">Emma L.</div>
-          <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">
-            Durban
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section> -->
-
 <!-- CTA section -->
 <section class="py-16 lg:py-24 bg-primary-700">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -595,7 +284,7 @@
         Ready for a sparkling clean space?
       </h2>
       <p class="mt-4 text-lg text-primary-50 leading-relaxed">
-        Join happy customers who've discovered the BrightBroom
+        Join happy customers who've discovered the {brand.name}
         difference.
       </p>
       <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">

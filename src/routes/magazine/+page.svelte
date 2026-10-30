@@ -3,6 +3,7 @@
   import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
+  import { brand } from "$lib/config/brand";
   import Button from "$lib/components/ui/Button.svelte";
   import Card from "$lib/components/ui/Card.svelte";
   import { CustomerSkeleton } from "$lib/components/ui/skeletons";
@@ -89,7 +90,7 @@
   <div class="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
     <div class="text-center">
       <p class="section-eyebrow mb-3 text-primary-50">Magazine</p>
-      <h1 class="font-heading text-4xl md:text-6xl font-bold mb-6">BrightBroom Magazine</h1>
+      <h1 class="font-heading text-4xl md:text-6xl font-bold mb-6">{brand.name} Magazine</h1>
       <p class="text-xl md:text-2xl mb-8 text-primary-100 max-w-3xl mx-auto">
         Transform your space with expert tips on organisation, design, and
         maintenance for South African homes and apartments.
