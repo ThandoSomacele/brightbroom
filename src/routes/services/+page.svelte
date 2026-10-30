@@ -1,6 +1,7 @@
 <!-- src/routes/services/+page.svelte -->
 <script lang="ts">
-  import { brand } from "$lib/config/brand";
+  import { brand, isSingleCompany } from "$lib/config/brand";
+  import DemoNotice from "$lib/components/marketing/DemoNotice.svelte";
   import Icon from "$lib/components/ui/Icon.svelte";
   import Button from '$lib/components/ui/Button.svelte';
   import Card from '$lib/components/ui/Card.svelte';
@@ -9,24 +10,33 @@
   import { serviceJsonLd } from "$lib/seo/structured-data";
 
   const description = "Professional home cleaning services with flexible booking. Choose your hours, rooms, and add-ons.";
+  // brightbroom.com: this page is the live demo of a company's services page
+  const metaTitle = isSingleCompany
+    ? `Professional Cleaning Services | ${brand.name}`
+    : `Live demo: your services page | ${brand.name} for cleaning companies`;
+  const metaDescription = isSingleCompany
+    ? "Build your own cleaning booking. Choose hours, rooms, and add-ons for a personalised clean."
+    : `See the services page a ${brand.name} booking website gives your customers: room-based pricing, add-ons and booking in a few taps.`;
 </script>
 
 <svelte:head>
-  <title>Cleaning Services | {brand.name}</title>
-  <meta name="description" content="Book professional home cleaning services with {brand.name}. Build your own booking - choose your hours, rooms, and add-ons. Trusted cleaners, flexible scheduling." />
+  <title>{isSingleCompany ? `Cleaning Services | ${brand.name}` : metaTitle}</title>
+  <meta name="description" content={isSingleCompany ? `Book professional home cleaning services with ${brand.name}. Build your own booking - choose your hours, rooms, and add-ons. Trusted cleaners, flexible scheduling.` : metaDescription} />
 
   <!-- Open Graph (og:url comes from the root layout) -->
-  <meta property="og:title" content="Professional Cleaning Services | {brand.name}" />
-  <meta property="og:description" content="Build your own cleaning booking. Choose hours, rooms, and add-ons for a personalised clean." />
+  <meta property="og:title" content={metaTitle} />
+  <meta property="og:description" content={metaDescription} />
   <meta property="og:type" content="website" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Professional Cleaning Services | {brand.name}" />
-  <meta name="twitter:description" content="Build your own cleaning booking. Choose hours, rooms, and add-ons for a personalised clean." />
+  <meta name="twitter:title" content={metaTitle} />
+  <meta name="twitter:description" content={metaDescription} />
 </svelte:head>
 
-<JsonLd data={serviceJsonLd(description)} />
+{#if isSingleCompany}<JsonLd data={serviceJsonLd(description)} />{/if}
+
+<DemoNotice what="services page" />
 
 <div class="bg-gray-50 dark:bg-gray-900">
   <!-- Hero Section -->

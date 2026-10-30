@@ -1,6 +1,7 @@
 <!-- src/routes/join/cleaner/+page.svelte -->
 <script lang="ts">
-  import { absoluteSiteUrl, brand } from "$lib/config/brand";
+  import { absoluteSiteUrl, brand, isSingleCompany } from "$lib/config/brand";
+  import DemoNotice from "$lib/components/marketing/DemoNotice.svelte";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import HoneypotField from "$lib/components/forms/HoneypotField.svelte";
@@ -197,6 +198,14 @@
       return true;
     }
   }
+  // brightbroom.com: the live demo of the form a company's recruits fill in
+  const joinTitle = isSingleCompany
+    ? `Join Our Cleaner Team | ${brand.name}`
+    : `Live demo: your cleaner application form | ${brand.name} for cleaning companies`;
+  const joinDescription = isSingleCompany
+    ? `Join the ${brand.name} team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment.`
+    : `See the cleaner application form a ${brand.name} website gives your company: ID and right-to-work details, availability and bank details, ready for you to approve.`;
+
   // BrightBroom's recruiting image; a company's site uses its own share image
   const ogImageUrl = absoluteSiteUrl(
     brand.ogImageUrl.includes("brightbroom") ? "/images/join-cleaning-team-og.jpg" : brand.ogImageUrl,
@@ -204,30 +213,32 @@
 </script>
 
 <svelte:head>
-  <title>Join Our Cleaner Team | {brand.name}</title>
+  <title>{joinTitle}</title>
   <meta
     name="description"
-    content="Join the {brand.name} team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
+    content={joinDescription}
   />
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Join Our Cleaner Team | {brand.name}" />
+  <meta property="og:title" content={joinTitle} />
   <meta
     property="og:description"
-    content="Join the {brand.name} team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
+    content={joinDescription}
   />
   <meta property="og:image" content={ogImageUrl} />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Join Our Cleaner Team | {brand.name}" />
+  <meta name="twitter:title" content={joinTitle} />
   <meta
     name="twitter:description"
-    content="Join the {brand.name} team as a professional cleaner. Flexible hours, competitive pay, and a supportive work environment."
+    content={joinDescription}
   />
   <meta name="twitter:image" content={ogImageUrl} />
 </svelte:head>
+
+<DemoNotice what="cleaner application form" />
 
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
   <!-- Hero Section -->

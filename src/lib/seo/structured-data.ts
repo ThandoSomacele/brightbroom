@@ -60,6 +60,30 @@ export function localBusinessJsonLd(description?: string): JsonLd {
   }) as JsonLd;
 }
 
+/**
+ * brightbroom.com's own product: booking software sold to cleaning companies,
+ * with the plan prices as one offer range (ZAR a month).
+ */
+export function platformJsonLd(description: string): JsonLd {
+  return compact({
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: brand.name,
+    description,
+    url: canonicalSiteUrl,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "ZAR",
+      lowPrice: "1500",
+      highPrice: "4000",
+      offerCount: 3,
+    },
+    publisher: { "@type": "Organization", name: brand.legalName, url: canonicalSiteUrl },
+  }) as JsonLd;
+}
+
 /** The cleaning service this business offers, for the services page */
 export function serviceJsonLd(description: string): JsonLd {
   return compact({

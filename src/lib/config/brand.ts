@@ -34,7 +34,7 @@ export const brand = {
   name: value(env.PUBLIC_BRAND_NAME, own("BrightBroom")),
   legalName: value(env.PUBLIC_BRAND_LEGAL_NAME, own("BrightBroom (Pty) Ltd")),
   registrationNumber: value(env.PUBLIC_BRAND_REG_NUMBER, own("2020/440020/07")),
-  tagline: value(env.PUBLIC_BRAND_TAGLINE, own("Cleaner Bookings Made Simple")),
+  tagline: value(env.PUBLIC_BRAND_TAGLINE, own("Booking software for cleaning companies")),
   supportEmail: value(env.PUBLIC_SUPPORT_EMAIL, own("info@brightbroom.com")),
   /**
    * Where customers send problems and complaints. BrightBroom keeps a separate

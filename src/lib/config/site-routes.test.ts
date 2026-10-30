@@ -2,19 +2,19 @@
 import { describe, expect, it } from "vitest";
 import {
   ADMIN_NAV,
-  FOOTER_LINKS,
-  PUBLIC_NAV,
   adminNavFor,
+  footerLinks,
   isAvailableOnSite,
   isBrightBroomOnlyPath,
   isPlatformOnlyAdminPath,
-  linksForSite,
+  isRetiredPath,
+  siteNav,
 } from "./site-routes";
 import { buildSitemapEntries, sitemapXml } from "$lib/seo/sitemap";
 
 describe("BrightBroom-only pages", () => {
   it("are off on a company's site and on at brightbroom.com", () => {
-    for (const path of ["/pricing", "/magazine", "/magazine/some-article", "/paia", "/cleaning-services-fourways"]) {
+    for (const path of ["/pricing", "/demo", "/paia", "/partner-terms"]) {
       expect(isAvailableOnSite(path, true), path).toBe(false);
       expect(isAvailableOnSite(path, false), path).toBe(true);
     }
@@ -28,14 +28,29 @@ describe("BrightBroom-only pages", () => {
   });
 });
 
+describe("retired pages", () => {
+  it("cover the old suburb pages and the magazine, articles included", () => {
+    expect(isRetiredPath("/magazine")).toBe(true);
+    expect(isRetiredPath("/magazine/some-article")).toBe(true);
+    expect(isRetiredPath("/cleaning-services-fourways")).toBe(true);
+    expect(isRetiredPath("/services")).toBe(false);
+  });
+});
+
 describe("menus", () => {
-  it("never link a company's site to a page it doesn't serve", () => {
-    for (const link of [...linksForSite(PUBLIC_NAV, true), ...linksForSite(FOOTER_LINKS, true)]) {
-      expect(isAvailableOnSite(link.href, true), link.href).toBe(true);
+  it("speak to customers on a company's site", () => {
+    const nav = siteNav(true).map((l) => l.href);
+    expect(nav).toEqual(["/", "/services", "/about", "/contact"]);
+    expect(footerLinks(true).map((l) => l.label)).toContain("Join as a cleaner");
+    for (const link of [...siteNav(true), ...footerLinks(true)]) {
+      expect(isAvailableOnSite(link.href.split("#")[0] || "/", true), link.href).toBe(true);
     }
-    expect(linksForSite(PUBLIC_NAV, true).map((l) => l.label)).not.toContain("Magazine");
-    expect(linksForSite(FOOTER_LINKS, true).map((l) => l.label)).not.toContain("Pricing for companies");
-    expect(linksForSite(PUBLIC_NAV, false)).toHaveLength(PUBLIC_NAV.length);
+  });
+
+  it("speak to cleaning companies on brightbroom.com", () => {
+    const labels = siteNav(false).map((l) => l.label);
+    expect(labels).toEqual(expect.arrayContaining(["Pricing", "Live demo"]));
+    expect(footerLinks(false).map((l) => l.label)).not.toContain("Join as a cleaner");
   });
 
   it("show platform-only admin areas to platform admins only", () => {
@@ -55,21 +70,18 @@ describe("menus", () => {
 });
 
 describe("sitemap", () => {
-  const articles = [{ slug: "tidy-kitchen", publishedAt: "2026-05-01" }];
-
-  it("lists only a company's own pages, and no magazine", () => {
-    const paths = buildSitemapEntries(true, articles).map((e) => e.path);
+  it("lists a company's customer pages", () => {
+    const paths = buildSitemapEntries(true).map((e) => e.path);
     expect(paths).toContain("/services");
     expect(paths).not.toContain("/pricing");
-    expect(paths).not.toContain("/magazine");
-    expect(paths).not.toContain("/magazine/tidy-kitchen");
-    expect(paths.some((p) => p.startsWith("/cleaning-services-"))).toBe(false);
   });
 
-  it("lists BrightBroom's pages and articles on brightbroom.com", () => {
-    const entries = buildSitemapEntries(false, articles);
-    expect(entries.map((e) => e.path)).toContain("/pricing");
-    expect(entries.find((e) => e.path === "/magazine/tidy-kitchen")?.lastmod).toBe("2026-05-01");
+  it("lists brightbroom.com's pages for cleaning companies, not the demo", () => {
+    const paths = buildSitemapEntries(false).map((e) => e.path);
+    expect(paths).toContain("/pricing");
+    expect(paths).not.toContain("/services");
+    expect(paths).not.toContain("/demo");
+    expect(paths.some((p) => p.startsWith("/magazine") || p.startsWith("/cleaning-services-"))).toBe(false);
   });
 
   it("uses the site's own domain", () => {

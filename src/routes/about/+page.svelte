@@ -4,11 +4,17 @@
   import Button from "$lib/components/ui/Button.svelte";
   import Card from "$lib/components/ui/Card.svelte";
   import JsonLd from "$lib/components/seo/JsonLd.svelte";
-  import { brand } from "$lib/config/brand";
+  import { brand, isSingleCompany } from "$lib/config/brand";
+  import PlatformAbout from "$lib/components/about/PlatformAbout.svelte";
   import { organizationJsonLd } from "$lib/seo/structured-data";
 
-  const title = `About ${brand.name} | Professional Cleaning Services`;
-  const description = `Learn about ${brand.name}, our mission and values, and how we deliver professional cleaning services.`;
+  // A company's site: about the cleaning company. brightbroom.com: about the software company.
+  const title = isSingleCompany
+    ? `About ${brand.name} | Professional Cleaning Services`
+    : `About ${brand.name} | Booking software for cleaning companies`;
+  const description = isSingleCompany
+    ? `Learn about ${brand.name}, our mission and values, and how we deliver professional cleaning services.`
+    : `${brand.name} builds booking software for South African cleaning companies: their own booking website, PayFast payments, recurring cleans and a cleaner portal.`;
   
   const coreValues = [
     {
@@ -52,6 +58,9 @@
 
 <JsonLd data={organizationJsonLd()} />
 
+{#if !isSingleCompany}
+  <PlatformAbout />
+{:else}
 <!-- Hero Section -->
 <section class="bg-white py-16 dark:bg-gray-800">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -124,3 +133,4 @@
     </Card>
   </div>
 </section>
+{/if}
