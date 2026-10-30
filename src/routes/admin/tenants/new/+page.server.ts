@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
   default: async ({ request, locals }) => {
-    requireAdmin(locals, { platformOnly: true });
+    const admin = requireAdmin(locals, { platformOnly: true });
     if (locals.user?.role !== "ADMIN") {
       throw error(403, "Only platform administrators can create tenants");
     }
@@ -67,6 +67,12 @@ export const actions: Actions = {
       commissionRate,
       isActive: true,
       isPlatformOwner: false,
+      // A company a platform admin adds has been vetted offline. Left PENDING,
+      // its admins would be locked out of /admin (requireAdmin) with no way to
+      // finish verification.
+      verificationStatus: "APPROVED",
+      verifiedAt: new Date(),
+      verifiedBy: admin.id,
     });
 
     throw redirect(302, `/admin/tenants/${tenant.id}`);

@@ -2,12 +2,13 @@
 import {
   createSession,
   generateSessionToken,
-  getUserByEmail,
+  authenticate,
   setSessionTokenCookie
 } from '$lib/server/auth';
 import { validateCSRFToken } from '$lib/server/csrf';
 import { safeRedirectPath } from '$lib/utils/safe-redirect';
 import { fail, redirect } from '@sveltejs/kit';
+import { checkRateLimit } from '$lib/server/rate-limiter';
 import { z } from 'zod';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -33,35 +34,32 @@ export const actions: Actions = {
       // Validate form data with Zod
       const credentials = loginSchema.parse({ email, password });
       
-      // Find the user by email
-      const userData = await getUserByEmail(credentials.email);
-        
-      if (!userData) {
-        console.log('Login failed: no such user');
-        return fail(400, { 
-          error: 'Invalid email or password',
+      // Slow down password guessing, per IP and per account
+      const ipLimit = await checkRateLimit('login', event.getClientAddress());
+      const emailLimit = await checkRateLimit('login', credentials.email);
+      if (!ipLimit.allowed || !emailLimit.allowed) {
+        return fail(429, {
+          error: 'Too many sign-in attempts. Please wait 15 minutes and try again.',
           email
         });
       }
-      
-      // Verify password
-      const { Argon2id } = await import('oslo/password');
-      const hasher = new Argon2id();
-      const validPassword = await hasher.verify(userData.passwordHash, credentials.password);
-      
-      if (!validPassword) {
-        console.log(`Login failed: wrong password for user ${userData.id}`);
-        return fail(400, { 
-          error: 'Invalid email or password',
+
+      const result = await authenticate(credentials.email, credentials.password);
+      if (!result.ok) {
+        console.log(`Login failed: ${result.reason}`);
+        return fail(400, {
+          error: result.reason === 'inactive'
+            ? 'This account has been deactivated. Please contact us.'
+            : 'Invalid email or password',
           email
         });
       }
-      
-      console.log(`Login successful for user ${userData.id}`);
-      
+
+      console.log(`Login successful for user ${result.user.id}`);
+
       // Generate a session token and create a session
       const token = generateSessionToken();
-      const session = await createSession(token, userData.id);
+      const session = await createSession(token, result.user.id);
       
       // Set the session cookie
       setSessionTokenCookie(event, token, session.expiresAt);

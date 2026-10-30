@@ -8,8 +8,9 @@ import {
   user,
 } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
+import { unusablePasswordHash } from "$lib/server/auth";
+import { createPasswordSetupToken } from "$lib/server/password-reset";
 import { tenantService } from "$lib/server/services/tenant.service";
-import { generateStrongPassword } from "$lib/utils/auth-utils";
 import { and, desc, eq, like, or } from "drizzle-orm";
 
 /**
@@ -150,13 +151,8 @@ export const cleanerApplicationService = {
       }
 
       // 1. Create user account
-      // Generate random password that will require reset
-      const tempPassword = generateStrongPassword();
-
-      // Hash password
-      const { Argon2id } = await import("oslo/password");
-      const hasher = new Argon2id();
-      const hashedPassword = await hasher.hash(tempPassword);
+      // No temporary password: the cleaner sets their own from the welcome email
+      const hashedPassword = await unusablePasswordHash();
 
       // Create user with CLEANER role
       const userId = crypto.randomUUID();
@@ -234,11 +230,16 @@ export const cleanerApplicationService = {
 
       // 5. Send welcome email
       try {
-        await sendWelcomeEmail(application.email, {
-          firstName: application.firstName,
-          lastName: application.lastName,
-          role: "CLEANER",
-        });
+        const setPasswordToken = await createPasswordSetupToken(userId);
+        await sendWelcomeEmail(
+          application.email,
+          {
+            firstName: application.firstName,
+            lastName: application.lastName,
+            role: "CLEANER",
+          },
+          { setPasswordToken },
+        );
       } catch (emailError) {
         console.error("Error sending welcome email:", emailError);
         // Continue even if email fails - we don't want to roll back the approval

@@ -8,6 +8,7 @@ import { nanoid } from "nanoid";
 import type { RequestHandler } from "./$types";
 import sharp from "sharp";
 import { requireAdmin } from "$lib/server/route-guards";
+import { getScopedCleaner } from "$lib/server/admin-scope";
 
 /**
  * Handle profile image upload for cleaners
@@ -21,6 +22,8 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
   }
 
   const cleanerId = params.id;
+  // This admin's own cleaners only, checked before anything reaches S3
+  await getScopedCleaner(locals, cleanerId);
 
   if (!cleanerId) {
     throw error(400, "Cleaner ID is required");
@@ -119,6 +122,8 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
   }
 
   const cleanerId = params.id;
+  // This admin's own cleaners only, checked before anything reaches S3
+  await getScopedCleaner(locals, cleanerId);
 
   if (!cleanerId) {
     throw error(400, "Cleaner ID is required");

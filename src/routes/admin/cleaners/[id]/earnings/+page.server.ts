@@ -11,6 +11,7 @@ import { error, fail, redirect } from "@sveltejs/kit";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
 import { requireAdmin } from "$lib/server/route-guards";
+import { getScopedCleaner } from "$lib/server/admin-scope";
 
 /**
  * Run an optional query, degrading to a fallback (and logging) on failure.
@@ -41,6 +42,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   if (!cleanerId) {
     throw error(404, "Cleaner not found");
   }
+  await getScopedCleaner(locals, cleanerId);
 
   // Get cleaner details. A genuine "not found" must surface as a 404 — it is
   // intentionally NOT wrapped in a try/catch that would mask it as a 500.
@@ -152,10 +154,7 @@ export const actions: Actions = {
   processPayout: async ({ params, request, locals }) => {
     requireAdmin(locals);
     const cleanerId = params.id;
-    
-    if (!cleanerId) {
-      return fail(400, { error: "Cleaner ID is required" });
-    }
+    await getScopedCleaner(locals, cleanerId);
     
     // Process form data
     const formData = await request.formData();
@@ -175,15 +174,19 @@ export const actions: Actions = {
       
       // Calculate total payout amount. cleanerPayoutAmount may be null on older
       // payments, so fall back to computing it from amount + method.
+      // Only this cleaner's own unpaid payments, whatever ids were posted
       const selectedPayments = await db
         .select({
+          id: payment.id,
           amount: payment.amount,
           paymentMethod: payment.paymentMethod,
           cleanerPayoutAmount: payment.cleanerPayoutAmount,
         })
         .from(payment)
+        .innerJoin(booking, eq(payment.bookingId, booking.id))
         .where(and(
           inArray(payment.id, paymentIds),
+          eq(booking.cleanerId, cleanerId),
           eq(payment.status, "COMPLETED"),
           eq(payment.isPaidToProvider, false)
         ));
@@ -199,9 +202,9 @@ export const actions: Actions = {
       
       // Record the payout
       const success = await cleanerEarningsService.recordCleanerPayout(
-        cleanerId, 
-        payoutAmount, 
-        paymentIds
+        cleanerId,
+        payoutAmount,
+        selectedPayments.map((p) => p.id)
       );
       
       if (!success) {

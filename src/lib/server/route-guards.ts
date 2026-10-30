@@ -1,6 +1,6 @@
 // src/lib/server/route-guards.ts
 import { error } from "@sveltejs/kit";
-import type { User } from "$lib/server/db/schema";
+import type { SessionUser } from "$lib/server/auth";
 
 /**
  * The path SvelteKit routes on.
@@ -33,6 +33,9 @@ const PLATFORM_ONLY_ADMIN_PATHS = [
   "/admin/pricing",
   "/admin/users",
   "/admin/services",
+  "/admin/coupons",
+  "/admin/test-emails",
+  "/admin/applications/new",
 ];
 
 /** True for a platform-only admin area. Pass the routingPath, not the raw pathname */
@@ -43,16 +46,16 @@ export function isPlatformOnlyAdminPath(path: string): boolean {
 /**
  * The signed-in admin, or a 401 (signed out) / 403 (not allowed).
  *
- * Platform admins (ADMIN) always pass. Tenant admins (TENANT_ADMIN) pass when
- * they belong to a company, unless the area is platform-only. Call it first
- * in every admin load, form action and /api/admin handler: the hook guards by
- * path and the admin layout's load does not run for form actions, so neither
- * alone protects an action.
+ * Platform admins (ADMIN) always pass. Tenant admins (TENANT_ADMIN) pass only
+ * when their company is approved and active, and never into a platform-only
+ * area. Call it first in every admin load, form action and /api/admin
+ * handler: the hook guards by path and the admin layout's load does not run
+ * for form actions, so neither alone protects an action.
  */
 export function requireAdmin(
   locals: App.Locals,
   { platformOnly = false }: { platformOnly?: boolean } = {},
-): User {
+): SessionUser {
   const user = locals.user;
   if (!user) {
     throw error(401, "Authentication required");
@@ -69,5 +72,36 @@ export function requireAdmin(
   if (!locals.tenant) {
     throw error(403, "No tenant association found for your account");
   }
+  // A company that signed itself up is not trusted until it has been vetted
+  if (locals.tenant.verificationStatus !== "APPROVED" || !locals.tenant.isActive) {
+    throw error(403, "Your company has not been approved yet");
+  }
   return user;
+}
+
+/**
+ * Which company's records this admin may see: null for a platform admin (all
+ * of them), the company id for a tenant admin. Fails closed: a tenant admin
+ * without a company never gets null, which would mean "everything".
+ */
+export function adminTenantScope(locals: App.Locals): string | null {
+  const user = requireAdmin(locals);
+  if (user.role === "ADMIN") return null;
+  if (!locals.tenant) throw error(403, "No tenant association found for your account");
+  return locals.tenant.id;
+}
+
+/**
+ * 404 unless this admin may act on a record owned by recordTenantId. Platform
+ * admins may act on anything; a tenant admin only on its own company's
+ * records. A record with no company (null) is a platform record. It answers
+ * 404 rather than 403 so another company's ids can't be probed.
+ */
+export function assertTenantAccess(
+  locals: App.Locals,
+  recordTenantId: string | null | undefined,
+): void {
+  const scope = adminTenantScope(locals);
+  if (scope === null) return;
+  if (recordTenantId !== scope) throw error(404, "Not found");
 }

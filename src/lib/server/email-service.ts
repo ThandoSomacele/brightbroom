@@ -17,7 +17,6 @@ import {
   getCleanerWelcomeEmailTemplate,
   getTenantApprovedEmailTemplate,
   getTenantRejectedEmailTemplate,
-  getTenantWelcomeEmailTemplate,
   getContactFormTemplate,
   getPasswordResetConfirmationTemplate,
   getPasswordResetTemplate,
@@ -370,6 +369,7 @@ export async function sendWelcomeEmail(
     lastName: string;
     role?: string; // Add optional role parameter
   },
+  options: { setPasswordToken?: string } = {},
 ): Promise<boolean> {
   try {
     if (!resend) {
@@ -380,7 +380,7 @@ export async function sendWelcomeEmail(
     // Choose template based on user role
     let template;
     if (user.role === "CLEANER") {
-      template = getCleanerWelcomeEmailTemplate(email, user, EMAIL_CONFIG);
+      template = getCleanerWelcomeEmailTemplate(email, user, EMAIL_CONFIG, options.setPasswordToken);
     } else {
       template = getWelcomeEmailTemplate(email, user, EMAIL_CONFIG);
     }
@@ -409,49 +409,6 @@ export async function sendWelcomeEmail(
     return false;
   }
 }
-/**
- * Send a welcome email to a cleaning company that has just signed up
- */
-export async function sendTenantWelcomeEmail(
-  email: string,
-  details: {
-    firstName: string;
-    companyName: string;
-    commissionRate: string;
-  },
-): Promise<boolean> {
-  try {
-    if (!resend) {
-      console.error("Resend API key not configured");
-      return false;
-    }
-
-    const template = getTenantWelcomeEmailTemplate(email, details, EMAIL_CONFIG);
-
-    const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
-      to: email,
-      subject: template.subject,
-      html: template.html,
-      text: template.text,
-    });
-
-    if (error) {
-      console.error("Resend API error:", error);
-      return false;
-    }
-
-    console.log("Tenant welcome email sent successfully:", {
-      company: details.companyName,
-      emailId: data?.id,
-    });
-    return true;
-  } catch (error) {
-    console.error("Error sending tenant welcome email:", error);
-    return false;
-  }
-}
-
 /**
  * Tell a cleaning company it has passed verification and is now active
  */

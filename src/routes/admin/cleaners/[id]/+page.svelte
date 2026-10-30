@@ -1737,6 +1737,15 @@
                 </p>
               </div>
             </div>
+            {#if cleaner.isActive && !hasPlaceholderEmail}
+              <!-- The cleaner chooses their own password; admins never need to know it -->
+              <form method="POST" action="?/sendSetPasswordLink" use:enhance class="pt-1">
+                <Button type="submit" variant="outline" size="sm">
+                  <Icon name="envelope-simple" size={16} class="mr-2" />
+                  Email a set-password link
+                </Button>
+              </form>
+            {/if}
           </div>
         {/if}
       </div>

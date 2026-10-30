@@ -1,10 +1,11 @@
 // src/app.d.ts
-import type { Session, User, Tenant, TenantMember } from '$lib/server/db/schema';
+import type { Session, Tenant, TenantMember } from '$lib/server/db/schema';
+import type { SessionUser } from '$lib/server/auth';
 
 declare global {
   namespace App {
     interface Locals {
-      user: User | null;
+      user: SessionUser | null;
       session: Session | null;
       csrf: string;
       tenant: Tenant | null;

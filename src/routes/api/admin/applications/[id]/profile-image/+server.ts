@@ -8,6 +8,7 @@ import { nanoid } from "nanoid";
 import type { RequestHandler } from "./$types";
 import sharp from "sharp";
 import { requireAdmin } from "$lib/server/route-guards";
+import { getScopedApplication } from "$lib/server/admin-scope";
 
 /**
  * Handle profile image upload for applicants
@@ -21,6 +22,8 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
   }
 
   const applicationId = params.id;
+  // This admin's own applications only, checked before anything reaches S3
+  await getScopedApplication(locals, applicationId);
 
   if (!applicationId) {
     throw error(400, "Application ID is required");
@@ -117,6 +120,8 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
   }
 
   const applicationId = params.id;
+  // This admin's own applications only, checked before anything reaches S3
+  await getScopedApplication(locals, applicationId);
 
   if (!applicationId) {
     throw error(400, "Application ID is required");

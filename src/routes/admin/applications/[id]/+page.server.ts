@@ -3,17 +3,14 @@ import { db } from "$lib/server/db";
 import {
   applicationNote,
   cleanerApplication,
-  cleanerProfile,
   idTypeEnum,
   petCompatibilityEnum,
-  user,
 } from "$lib/server/db/schema";
-import { sendWelcomeEmail } from "$lib/server/email-service";
-import { hash } from "@node-rs/argon2";
 import { error, fail } from "@sveltejs/kit";
 import { and, desc, eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
-import { requireAdmin } from "$lib/server/route-guards";
+import { adminTenantScope, requireAdmin } from "$lib/server/route-guards";
+import { getScopedApplication } from "$lib/server/admin-scope";
 
 type IdType = (typeof idTypeEnum.enumValues)[number];
 type PetCompatibility = (typeof petCompatibilityEnum.enumValues)[number];
@@ -67,7 +64,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   }
 
   // Tenant scoping
-  const tenantId = locals.user?.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+  const tenantId = adminTenantScope(locals);
 
   return {
     applicationId,
@@ -82,6 +79,7 @@ export const actions: Actions = {
   addNote: async ({ request, params, locals }) => {
     requireAdmin(locals);
     const applicationId = params.id;
+    await getScopedApplication(locals, applicationId);
     const adminUser = locals.user;
 
     if (!applicationId) {
@@ -122,207 +120,6 @@ export const actions: Actions = {
     } catch (err) {
       console.error("Error adding note:", err);
       return fail(500, { error: "Failed to add note" });
-    }
-  },
-
-  // Approve application
-  // Updated approve action in src/routes/admin/applications/[id]/+page.server.ts
-  approve: async ({ params, locals }) => {
-    requireAdmin(locals);
-    const applicationId = params.id;
-    const adminUser = locals.user;
-
-    if (!applicationId) {
-      return fail(400, { error: "Application ID is required" });
-    }
-
-    if (!adminUser) {
-      return fail(401, { error: "Not authorized" });
-    }
-
-    try {
-      // Fetch the application
-      const [application] = await db
-        .select()
-        .from(cleanerApplication)
-        .where(eq(cleanerApplication.id, applicationId))
-        .limit(1);
-
-      if (!application) {
-        return fail(404, { error: "Application not found" });
-      }
-
-      if (application.status !== "PENDING") {
-        return fail(400, { error: "Application has already been processed" });
-      }
-
-      // Update application status
-      await db
-        .update(cleanerApplication)
-        .set({
-          status: "APPROVED",
-          updatedAt: new Date(),
-        })
-        .where(eq(cleanerApplication.id, applicationId));
-
-      // Determine if this is a placeholder email
-      const isPlaceholderEmail = application.email.includes("@internal.brightbroom.com");
-
-      // Generate a temporary password
-      const temporaryPassword = `BrightBroom${crypto.randomUUID().split("-")[0]}`;
-
-      // Create user account
-      const userId = crypto.randomUUID();
-      const passwordHash = await hash(temporaryPassword);
-
-      // Insert new user with CLEANER role
-      // If placeholder email, set inactive so they can't log in until real credentials are set
-      await db.insert(user).values({
-        id: userId,
-        email: application.email,
-        passwordHash,
-        firstName: application.firstName,
-        lastName: application.lastName,
-        phone: application.phone,
-        role: "CLEANER",
-        isActive: !isPlaceholderEmail,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      // Parse availability array from application
-      let availabilityArray: string[] = [];
-      try {
-        availabilityArray = JSON.parse(application.availability || "[]");
-      } catch (error) {
-        console.error("Error parsing availability:", error);
-        // Default to weekdays if parsing fails
-        availabilityArray = [
-          "MONDAY",
-          "TUESDAY",
-          "WEDNESDAY",
-          "THURSDAY",
-          "FRIDAY",
-        ];
-      }
-
-      // Create cleaner profile with data from application
-      const profileId = crypto.randomUUID();
-      try {
-        await db.insert(cleanerProfile).values({
-          id: profileId,
-          userId,
-          tenantId: application.tenantId, // Inherit tenant from application
-          idType: toIdType(application.idType),
-          idNumber: application.idNumber || "PENDING",
-          // Carried across so the expiry guard applies from the moment they
-          // become a cleaner, not just while they were an applicant
-          workAuthorisation: application.workAuthorisation,
-          workAuthExpiry: application.workAuthExpiry,
-          workAuthDocumentUrl: application.workAuthDocumentUrl,
-          workAddress: application.formattedAddress || application.city,
-          workLocationLat: application.latitude || "0",
-          workLocationLng: application.longitude || "0",
-          workRadius: "10",
-          bio: application.bio || "",
-          petCompatibility: toPetCompatibility(application.petCompatibility),
-          availableDays: availabilityArray,
-          trainingCompleted: [],
-          isAvailable: false,
-          profileImageUrl: application.profileImageUrl,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
-
-        console.log(`Successfully created cleaner profile for user ${userId}`);
-      } catch (profileError) {
-        console.error("Error creating cleaner profile:", profileError);
-        // Continue execution even if profile creation fails - we can fix it later
-        // Add note about the profile creation error
-        await db.insert(applicationNote).values({
-          id: crypto.randomUUID(),
-          applicationId,
-          content: `WARNING: Error creating cleaner profile: ${(profileError instanceof Error && profileError.message) || "Unknown error"}. Please create the profile manually.`,
-          addedBy: `System`,
-          createdAt: new Date(),
-        });
-      }
-
-      // Add a note about the approval
-      await db.insert(applicationNote).values({
-        id: crypto.randomUUID(),
-        applicationId,
-        content: `Application approved by ${adminUser.firstName} ${adminUser.lastName}. User account and cleaner profile created.`,
-        addedBy: `${adminUser.firstName} ${adminUser.lastName}`,
-        createdAt: new Date(),
-      });
-
-      // Send welcome email only if the cleaner has a real email
-      if (!isPlaceholderEmail) {
-        try {
-          await sendWelcomeEmail(application.email, {
-            firstName: application.firstName,
-            lastName: application.lastName,
-            role: "CLEANER",
-          });
-        } catch (emailError) {
-          console.error("Error sending welcome email:", emailError);
-        }
-      }
-
-      return {
-        success: true,
-        message: "Application approved and cleaner account created",
-        userId,
-      };
-    } catch (err) {
-      console.error("Error approving application:", err);
-      return fail(500, { error: "Failed to approve application" });
-    }
-  },
-
-  // Reject application
-  reject: async ({ params, locals }) => {
-    requireAdmin(locals);
-    const applicationId = params.id;
-    const adminUser = locals.user;
-
-    if (!applicationId) {
-      return fail(400, { error: "Application ID is required" });
-    }
-
-    if (!adminUser) {
-      return fail(401, { error: "Not authorized" });
-    }
-
-    try {
-      // Update application status
-      await db
-        .update(cleanerApplication)
-        .set({
-          status: "REJECTED",
-          updatedAt: new Date(),
-        })
-        .where(eq(cleanerApplication.id, applicationId));
-
-      // Add a note about the rejection
-      await db.insert(applicationNote).values({
-        id: crypto.randomUUID(),
-        applicationId,
-        content: `Application rejected by ${adminUser.firstName} ${adminUser.lastName}.`,
-        addedBy: `${adminUser.firstName} ${adminUser.lastName}`,
-        createdAt: new Date(),
-      });
-
-      // In a real implementation, you might send a notification email
-
-      return {
-        success: true,
-        message: "Application rejected",
-      };
-    } catch (err) {
-      console.error("Error rejecting application:", err);
-      return fail(500, { error: "Failed to reject application" });
     }
   },
 };

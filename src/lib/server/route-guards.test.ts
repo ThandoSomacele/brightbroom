@@ -1,6 +1,12 @@
 // src/lib/server/route-guards.test.ts
 import { describe, expect, it } from "vitest";
-import { isPlatformOnlyAdminPath, requireAdmin, routingPath } from "./route-guards";
+import {
+  adminTenantScope,
+  assertTenantAccess,
+  isPlatformOnlyAdminPath,
+  requireAdmin,
+  routingPath,
+} from "./route-guards";
 
 /** The HTTP status requireAdmin threw, or "passed" */
 function statusOf(locals: Partial<App.Locals>, platformOnly = false): number | "passed" {
@@ -12,10 +18,25 @@ function statusOf(locals: Partial<App.Locals>, platformOnly = false): number | "
   }
 }
 
-const as = (role: string, withTenant = false): Partial<App.Locals> => ({
+type TenantState = { verificationStatus?: string; isActive?: boolean };
+
+/** A user with a role; withTenant gives them an approved, active company "t1" */
+const as = (role: string, withTenant = false, tenant: TenantState = {}): Partial<App.Locals> => ({
   user: { id: "u1", role } as App.Locals["user"],
-  tenant: withTenant ? ({ id: "t1" } as App.Locals["tenant"]) : null,
+  tenant: withTenant
+    ? ({ id: "t1", verificationStatus: "APPROVED", isActive: true, ...tenant } as App.Locals["tenant"])
+    : null,
 });
+
+/** The HTTP status a call threw, or "passed" */
+function statusOfCall(fn: () => unknown): number | "passed" {
+  try {
+    fn();
+    return "passed";
+  } catch (e) {
+    return (e as { status: number }).status;
+  }
+}
 
 describe("routingPath", () => {
   it("decodes the path the way SvelteKit routes on it", () => {
@@ -61,6 +82,13 @@ describe("requireAdmin", () => {
     expect(statusOf(as("TENANT_ADMIN", true), true)).toBe(403);
   });
 
+  it("keeps out tenant admins whose company is not approved and active", () => {
+    for (const verificationStatus of ["PENDING", "SUBMITTED", "REJECTED"]) {
+      expect(statusOf(as("TENANT_ADMIN", true, { verificationStatus }))).toBe(403);
+    }
+    expect(statusOf(as("TENANT_ADMIN", true, { isActive: false }))).toBe(403);
+  });
+
   it("returns the admin it checked", () => {
     const locals = as("ADMIN") as App.Locals;
     expect(requireAdmin(locals)).toBe(locals.user);
@@ -75,5 +103,49 @@ describe("isPlatformOnlyAdminPath", () => {
     expect(isPlatformOnlyAdminPath("/admin/bookings")).toBe(false);
     // Only on the decoded path: the raw one would slip past
     expect(isPlatformOnlyAdminPath(routingPath("/admin/%75sers/1"))).toBe(true);
+  });
+});
+
+describe("adminTenantScope", () => {
+  it("is null (everything) for a platform admin and the company for a tenant admin", () => {
+    expect(adminTenantScope(as("ADMIN") as App.Locals)).toBeNull();
+    expect(adminTenantScope(as("TENANT_ADMIN", true) as App.Locals)).toBe("t1");
+  });
+
+  it("fails closed for a tenant admin without a company", () => {
+    expect(statusOfCall(() => adminTenantScope(as("TENANT_ADMIN") as App.Locals))).toBe(403);
+  });
+});
+
+describe("assertTenantAccess", () => {
+  const tenantAdmin = as("TENANT_ADMIN", true) as App.Locals;
+
+  it("lets a tenant admin act on its own company's records only", () => {
+    expect(statusOfCall(() => assertTenantAccess(tenantAdmin, "t1"))).toBe("passed");
+    expect(statusOfCall(() => assertTenantAccess(tenantAdmin, "t2"))).toBe(404);
+  });
+
+  it("treats a record with no company as a platform record", () => {
+    expect(statusOfCall(() => assertTenantAccess(tenantAdmin, null))).toBe(404);
+    expect(statusOfCall(() => assertTenantAccess(tenantAdmin, undefined))).toBe(404);
+  });
+
+  it("lets a platform admin act on any record", () => {
+    const admin = as("ADMIN") as App.Locals;
+    expect(statusOfCall(() => assertTenantAccess(admin, "t2"))).toBe("passed");
+    expect(statusOfCall(() => assertTenantAccess(admin, null))).toBe("passed");
+  });
+
+  it("refuses non-admins before looking at the record", () => {
+    expect(statusOfCall(() => assertTenantAccess(as("CLEANER") as App.Locals, "t1"))).toBe(403);
+  });
+});
+
+describe("platform-only areas", () => {
+  it("covers coupons, test emails and walk-in applications", () => {
+    expect(isPlatformOnlyAdminPath("/admin/coupons")).toBe(true);
+    expect(isPlatformOnlyAdminPath("/admin/test-emails")).toBe(true);
+    expect(isPlatformOnlyAdminPath("/admin/applications/new")).toBe(true);
+    expect(isPlatformOnlyAdminPath("/admin/applications/abc")).toBe(false);
   });
 });

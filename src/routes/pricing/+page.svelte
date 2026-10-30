@@ -10,7 +10,8 @@
   import Card from "$lib/components/ui/Card.svelte";
   import Icon from "$lib/components/ui/Icon.svelte";
 
-  // Rand, excluding VAT. Paying yearly = 12 months for the price of 10.
+  // Rand. BrightBroom is not VAT-registered, so these are what clients pay.
+  // Paying yearly = 12 months for the price of 10.
   const tiers = [
     { name: "Starter", cleaners: 5, monthly: 1500, setup: 7500 },
     { name: "Growth", cleaners: 15, monthly: 2500, setup: 10000 },
@@ -130,7 +131,7 @@
     </div>
 
     <ul class="mt-8 space-y-1 text-sm text-gray-600 dark:text-gray-300">
-      <li>Prices exclude VAT. Every plan has a 12-month minimum term.</li>
+      <li>Every plan has a 12-month minimum term.</li>
       <li>
         Pay yearly and get 12 months for the price of {MONTHS_PAID_PER_YEAR}.
       </li>

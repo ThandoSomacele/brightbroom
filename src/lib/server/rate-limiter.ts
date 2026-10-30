@@ -65,12 +65,12 @@ const limits = {
     // Max 1 cleaner application per email in a 24 hour window
     emailLimit: { max: 1, window: 24 * 60 * 60 * 1000 },
   },
-  companySignup: {
-    // Max 3 company signups per IP in a 24 hour window — self-serve tenant
-    // creation is cheap to abuse, so this is tighter than user registration
-    ipLimit: { max: 3, window: 24 * 60 * 60 * 1000 },
-    // Max 1 company signup per email in a 24 hour window
-    emailLimit: { max: 1, window: 24 * 60 * 60 * 1000 },
+  login: {
+    // Max 10 sign-in attempts per IP in a 15 minute window
+    ipLimit: { max: 10, window: 15 * 60 * 1000 },
+    // Max 5 sign-in attempts per email in a 15 minute window: slows password
+    // guessing against one account without locking its owner out for long
+    emailLimit: { max: 5, window: 15 * 60 * 1000 },
   },
   registration: {
     // Max 5 registrations per IP in a 1 hour window

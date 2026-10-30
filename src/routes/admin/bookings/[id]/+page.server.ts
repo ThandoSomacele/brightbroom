@@ -18,7 +18,8 @@ import { sendCleanerAssignmentNotifications } from "$lib/server/services/notific
 import { error, fail, redirect } from "@sveltejs/kit";
 import { and, desc, eq, sql } from "drizzle-orm"; // Added sql import
 import type { Actions, PageServerLoad } from "./$types";
-import { requireAdmin } from "$lib/server/route-guards";
+import { adminTenantScope, requireAdmin } from "$lib/server/route-guards";
+import { getScopedBooking, getScopedCleaner } from "$lib/server/admin-scope";
 
 // Helper function to fetch all booking data
 async function getBookingData(bookingId: string, tenantId: string | null) {
@@ -280,7 +281,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   }
 
   // Tenant scoping
-  const tenantId = locals.user.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+  const tenantId = adminTenantScope(locals);
 
   return {
     bookingId,
@@ -300,6 +301,7 @@ export const actions: Actions = {
     }
 
     const bookingId = params.id;
+    await getScopedBooking(locals, bookingId);
     const formData = await request.formData();
     const status = formData.get("status")?.toString();
 
@@ -411,8 +413,10 @@ export const actions: Actions = {
     }
 
     const bookingId = params.id;
+    await getScopedBooking(locals, bookingId);
     const formData = await request.formData();
     const cleanerId = formData.get("cleanerId")?.toString();
+    if (cleanerId) await getScopedCleaner(locals, cleanerId);
 
     if (!bookingId) {
       return fail(400, {
@@ -543,6 +547,7 @@ export const actions: Actions = {
     }
 
     const bookingId = params.id;
+    await getScopedBooking(locals, bookingId);
     const formData = await request.formData();
     const content = formData.get("content")?.toString();
 
@@ -583,6 +588,7 @@ export const actions: Actions = {
     }
 
     const bookingId = params.id;
+    await getScopedBooking(locals, bookingId);
     const formData = await request.formData();
     const method = formData.get("method")?.toString();
     const content = formData.get("content")?.toString();
@@ -698,6 +704,7 @@ export const actions: Actions = {
     }
 
     const bookingId = params.id;
+    await getScopedBooking(locals, bookingId);
 
     if (!bookingId) {
       return fail(400, {
@@ -746,6 +753,7 @@ export const actions: Actions = {
     }
 
     const bookingId = params.id;
+    await getScopedBooking(locals, bookingId);
     const formData = await request.formData();
     const originalCleanerFirstName = formData.get("originalCleanerFirstName")?.toString() || null;
     const originalCleanerLastName = formData.get("originalCleanerLastName")?.toString() || null;

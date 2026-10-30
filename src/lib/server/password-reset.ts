@@ -31,50 +31,53 @@ export function generateResetToken(): string {
   return bytes.toString('hex');
 }
 
+/**
+ * Issue a single-use link token for this user, retiring any earlier ones.
+ * Reset links last a day; first-time "set your password" links a week, since
+ * a new cleaner may not read their welcome email straight away.
+ */
+async function issueToken(userId: string, expiresInHours: number): Promise<string> {
+  await db.update(passwordResetToken)
+    .set({ used: true })
+    .where(eq(passwordResetToken.userId, userId));
+
+  const token = generateResetToken();
+  const expiresAt = new Date(Date.now() + expiresInHours * 60 * 60 * 1000);
+  await db.insert(passwordResetToken).values({
+    id: crypto.randomUUID(),
+    userId,
+    token,
+    expiresAt,
+    used: false,
+    createdAt: new Date()
+  });
+  return token;
+}
+
 // Create a password reset token for a user
 export async function createPasswordResetToken(userEmail: string): Promise<string | null> {
   try {
-    // Find the user by email
-    const users = await db.select()
+    const [foundUser] = await db.select({ id: user.id })
       .from(user)
       .where(eq(user.email, userEmail))
       .limit(1);
-    
-    if (users.length === 0) {
+
+    if (!foundUser) {
       return null; // User not found
     }
-    
-    const foundUser = users[0];
-    
-    // Expire any existing tokens for this user
-    await db.update(passwordResetToken)
-      .set({ used: true })
-      .where(eq(passwordResetToken.userId, foundUser.id));
-    
-    // Generate a new token
-    const token = generateResetToken();
-    
-    // Set expiration time (24 hours from now)
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 24);
-    
-    // Store the token
-    const [resetToken] = await db.insert(passwordResetToken)
-      .values({
-        id: crypto.randomUUID(),
-        userId: foundUser.id,
-        token,
-        expiresAt,
-        used: false,
-        createdAt: new Date()
-      })
-      .returning();
-    
-    return token;
+    return await issueToken(foundUser.id, 24);
   } catch (error) {
     console.error('Error creating password reset token:', error);
     return null;
   }
+}
+
+/**
+ * A link token for an account an admin created: the person chooses their own
+ * password instead of being given a temporary one. Valid for 7 days.
+ */
+export async function createPasswordSetupToken(userId: string): Promise<string> {
+  return issueToken(userId, 7 * 24);
 }
 
 // Validate a reset token

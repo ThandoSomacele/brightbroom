@@ -1,11 +1,22 @@
 // src/lib/server/auth.ts
+import { dev } from '$app/environment';
 import { sha256 } from "@oslojs/crypto/sha2";
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from "@oslojs/encoding";
-import { eq } from 'drizzle-orm';
+import { eq, getTableColumns } from 'drizzle-orm';
+import { Argon2id } from 'oslo/password';
 import { db } from './db';
 import { session, user } from './db/schema';
 import type { RequestEvent } from '@sveltejs/kit';
 import type { Session, User } from './db/schema';
+
+/**
+ * The signed-in user as the app sees it. It never carries the password hash:
+ * locals.user is returned to pages by layout loads, and anything a load
+ * returns is serialised into the HTML.
+ */
+export type SessionUser = Omit<User, 'passwordHash'>;
+
+const { passwordHash: _passwordHash, ...sessionUserColumns } = getTableColumns(user);
 
 // Generate a random session token
 export function generateSessionToken(): string {
@@ -47,7 +58,7 @@ export async function createSession(token: string, userId: string): Promise<Sess
 }
 
 // Validate a session token
-export async function validateSessionToken(token: string): Promise<{ session: Session | null; user: User | null }> {
+export async function validateSessionToken(token: string): Promise<{ session: Session | null; user: SessionUser | null }> {
   if (!token) {
     return { session: null, user: null };
   }
@@ -58,7 +69,7 @@ export async function validateSessionToken(token: string): Promise<{ session: Se
     
     // Get the session and user
     const result = await db
-      .select({ session, user })
+      .select({ session, user: sessionUserColumns })
       .from(session)
       .where(eq(session.id, sessionId))
       .innerJoin(user, eq(session.userId, user.id))
@@ -75,6 +86,12 @@ export async function validateSessionToken(token: string): Promise<{ session: Se
     if (new Date() > sessionData.expiresAt) {
       console.log('Session has expired');
       await db.delete(session).where(eq(session.id, sessionId));
+      return { session: null, user: null };
+    }
+
+    // A deactivated account loses its sessions at once, not when they expire
+    if (!userData.isActive) {
+      await db.delete(session).where(eq(session.userId, userData.id));
       return { session: null, user: null };
     }
     
@@ -123,7 +140,9 @@ export function setSessionTokenCookie(event: RequestEvent, token: string, expire
       path: "/",
       sameSite: "lax",
       expires: expiresAt,
-      secure: process.env.NODE_ENV === 'production' // Only secure in production
+      // Secure everywhere but the local dev server. Not NODE_ENV: Netlify's
+      // production runtime reports "development".
+      secure: !dev
     });
     console.log('Session cookie set successfully');
   } catch (error) {
@@ -161,4 +180,48 @@ export async function getUserByEmail(email: string): Promise<User | null> {
     console.error('Error getting user by email:', error);
     return null;
   }
+}
+
+/** Every session a user has, e.g. after their password or email changes */
+export async function invalidateUserSessions(userId: string): Promise<void> {
+  await db.delete(session).where(eq(session.userId, userId));
+}
+
+let dummyHash: Promise<string> | null = null;
+
+/**
+ * Check an email and password. A wrong email costs the same hash verification
+ * as a wrong password, so response times don't reveal which accounts exist,
+ * and "inactive" is only reported once the password is right.
+ */
+export async function authenticate(
+  email: string,
+  password: string,
+): Promise<{ ok: true; user: SessionUser } | { ok: false; reason: 'invalid' | 'inactive' }> {
+  const hasher = new Argon2id();
+  const found = await getUserByEmail(email.trim().toLowerCase());
+
+  if (!found) {
+    dummyHash ??= hasher.hash(encodeBase32LowerCaseNoPadding(crypto.getRandomValues(new Uint8Array(20))));
+    await hasher.verify(await dummyHash, password);
+    return { ok: false, reason: 'invalid' };
+  }
+
+  if (!(await hasher.verify(found.passwordHash, password))) {
+    return { ok: false, reason: 'invalid' };
+  }
+  if (!found.isActive) {
+    return { ok: false, reason: 'inactive' };
+  }
+
+  const { passwordHash: _hash, ...safeUser } = found;
+  return { ok: true, user: safeUser };
+}
+
+/**
+ * A hash nobody can log in with: for accounts created by an admin, which get
+ * their password through a set-password link instead of a temporary one.
+ */
+export async function unusablePasswordHash(): Promise<string> {
+  return new Argon2id().hash(encodeBase32LowerCaseNoPadding(crypto.getRandomValues(new Uint8Array(32))));
 }

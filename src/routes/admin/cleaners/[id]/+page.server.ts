@@ -12,7 +12,10 @@ import { hash } from "@node-rs/argon2";
 import { error, fail } from "@sveltejs/kit";
 import { and, desc, eq, sql } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
-import { requireAdmin } from "$lib/server/route-guards";
+import { adminTenantScope, requireAdmin } from "$lib/server/route-guards";
+import { getScopedCleaner } from "$lib/server/admin-scope";
+import { invalidateUserSessions } from "$lib/server/auth";
+import { createPasswordSetupToken, sendPasswordResetEmail } from "$lib/server/password-reset";
 
 // Helper function to fetch cleaner data
 async function getCleanerData(cleanerId: string, tenantId: string | null) {
@@ -95,7 +98,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   }
 
   // Tenant scoping
-  const tenantId = locals.user?.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+  const tenantId = adminTenantScope(locals);
 
   return {
     cleanerId,
@@ -110,6 +113,7 @@ export const actions: Actions = {
   updatePersonalInfo: async ({ params, request, locals }) => {
     requireAdmin(locals);
     const cleanerId = params.id;
+    await getScopedCleaner(locals, cleanerId);
 
     if (!cleanerId) {
       return fail(400, { error: "Cleaner ID is required" });
@@ -150,6 +154,7 @@ export const actions: Actions = {
   updateTraining: async ({ params, request, locals }) => {
     requireAdmin(locals);
     const cleanerId = params.id;
+    await getScopedCleaner(locals, cleanerId);
 
     if (!cleanerId) {
       return fail(400, { error: "Cleaner ID is required" });
@@ -188,6 +193,7 @@ export const actions: Actions = {
   updateActivation: async ({ params, request, locals }) => {
     requireAdmin(locals);
     const cleanerId = params.id;
+    await getScopedCleaner(locals, cleanerId);
 
     if (!cleanerId) {
       return fail(400, { error: "Cleaner ID is required" });
@@ -258,6 +264,7 @@ export const actions: Actions = {
   updateProfile: async ({ params, request, locals }) => {
     requireAdmin(locals);
     const cleanerId = params.id;
+    await getScopedCleaner(locals, cleanerId);
 
     if (!cleanerId) {
       return fail(400, { error: "Cleaner ID is required" });
@@ -379,13 +386,14 @@ export const actions: Actions = {
   updateCredentials: async ({ params, request, locals }) => {
     requireAdmin(locals);
     const cleanerId = params.id;
+    await getScopedCleaner(locals, cleanerId);
 
     if (!cleanerId) {
       return fail(400, { error: "Cleaner ID is required" });
     }
 
     const formData = await request.formData();
-    const newEmail = formData.get("newEmail")?.toString()?.trim() || "";
+    const newEmail = formData.get("newEmail")?.toString()?.trim().toLowerCase() || "";
     const newPassword = formData.get("newPassword")?.toString() || "";
     const activate = formData.has("activate");
 
@@ -443,17 +451,29 @@ export const actions: Actions = {
         .set(updates)
         .where(eq(user.id, cleanerId));
 
+      // New credentials: whoever was signed in with the old ones is signed out
+      if (updates.email || updates.passwordHash) {
+        await invalidateUserSessions(cleanerId);
+      }
+
       // Send welcome email if activating with real email
       const finalEmail = (updates.email as string) || currentUser.email;
       const isPlaceholder = finalEmail.includes("@internal.brightbroom.com");
 
       if (activate && !isPlaceholder) {
         try {
-          await sendWelcomeEmail(finalEmail, {
-            firstName: currentUser.firstName,
-            lastName: currentUser.lastName,
-            role: "CLEANER",
-          });
+          // A password the admin typed reaches the cleaner some other way;
+          // otherwise the cleaner chooses one from the email
+          const setPasswordToken = newPassword ? undefined : await createPasswordSetupToken(cleanerId);
+          await sendWelcomeEmail(
+            finalEmail,
+            {
+              firstName: currentUser.firstName,
+              lastName: currentUser.lastName,
+              role: "CLEANER",
+            },
+            { setPasswordToken },
+          );
         } catch (emailError) {
           console.error("Error sending welcome email:", emailError);
         }
@@ -471,10 +491,31 @@ export const actions: Actions = {
     }
   },
 
+  // Email the cleaner a link to choose a new password (7 days, single use)
+  sendSetPasswordLink: async ({ params, locals }) => {
+    requireAdmin(locals);
+    const cleaner = await getScopedCleaner(locals, params.id);
+
+    if (!cleaner.isActive || cleaner.email.includes("@internal.brightbroom.com")) {
+      return fail(400, { error: "Activate this cleaner with a real email address first" });
+    }
+
+    try {
+      const token = await createPasswordSetupToken(cleaner.id);
+      const sent = await sendPasswordResetEmail(cleaner.email, token);
+      if (!sent) return fail(500, { error: "The email could not be sent" });
+      return { success: true, message: `Set-password link sent to ${cleaner.email}` };
+    } catch (err) {
+      console.error("Error sending set-password link:", err);
+      return fail(500, { error: "The email could not be sent" });
+    }
+  },
+
   // Update payout settings
   updatePayoutSettings: async ({ params, request, locals }) => {
     requireAdmin(locals);
     const cleanerId = params.id;
+    await getScopedCleaner(locals, cleanerId);
 
     if (!cleanerId) {
       return fail(400, { error: "Cleaner ID is required" });

@@ -6,6 +6,7 @@ import { error, json } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import type { RequestHandler } from "./$types";
 import { requireAdmin } from "$lib/server/route-guards";
+import { getScopedApplication } from "$lib/server/admin-scope";
 
 /**
  * Handle document deletion
@@ -19,6 +20,8 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
   }
 
   const { id: applicationId, key: documentKey } = params;
+  // This admin's own applications only, checked before anything reaches S3
+  await getScopedApplication(locals, applicationId);
 
   if (!applicationId || !documentKey) {
     throw error(400, "Application ID and document key are required");

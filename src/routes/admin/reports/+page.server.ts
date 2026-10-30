@@ -5,7 +5,7 @@ import { redirect } from "@sveltejs/kit";
 import { and, eq, gte, lt, sql, desc } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
-import { requireAdmin } from "$lib/server/route-guards";
+import { adminTenantScope, requireAdmin } from "$lib/server/route-guards";
 
 // Helper to build tenant-scoped booking condition
 function bookingTenantCondition(tenantId: string | null): SQL | undefined {
@@ -58,7 +58,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
   }
 
   // Tenant scoping
-  const tenantId = locals.user.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+  const tenantId = adminTenantScope(locals);
 
   // Get filter parameters from URL
   const period = url.searchParams.get("period") || "month";

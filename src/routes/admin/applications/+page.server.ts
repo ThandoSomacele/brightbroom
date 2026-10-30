@@ -1,12 +1,11 @@
 // src/routes/admin/applications/+page.server.ts
 import { db } from "$lib/server/db";
-import { cleanerApplication, user } from "$lib/server/db/schema";
-import { hash } from "@node-rs/argon2";
-import { error, fail, redirect } from "@sveltejs/kit";
+import { cleanerApplication } from "$lib/server/db/schema";
+import { error, redirect } from "@sveltejs/kit";
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
-import type { Actions, PageServerLoad } from "./$types";
-import { requireAdmin } from "$lib/server/route-guards";
+import type { PageServerLoad } from "./$types";
+import { adminTenantScope, requireAdmin } from "$lib/server/route-guards";
 
 // Helper function to fetch applications with filters
 async function getApplications(
@@ -108,7 +107,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
   const limit = 10;
 
   // Tenant scoping
-  const tenantId = locals.user.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+  const tenantId = adminTenantScope(locals);
 
   return {
     filters: {
@@ -121,100 +120,3 @@ export const load: PageServerLoad = async ({ url, locals }) => {
     },
   };
 };
-
-export const actions: Actions = {
-  // View application details
-  viewApplication: async ({ request, url, locals }) => {
-    requireAdmin(locals);
-    const formData = await request.formData();
-    const id = formData.get("id")?.toString();
-
-    if (!id) {
-      return fail(400, { error: "Application ID is required" });
-    }
-
-    throw redirect(302, `/admin/applications/${id}`);
-  },
-
-  // Approve application
-  approveApplication: async ({ request, locals }) => {
-    requireAdmin(locals);
-    const formData = await request.formData();
-    const id = formData.get("id")?.toString();
-
-    if (!id) {
-      return fail(400, { error: "Application ID is required" });
-    }
-
-    try {
-      const [application] = await db
-        .select()
-        .from(cleanerApplication)
-        .where(eq(cleanerApplication.id, id))
-        .limit(1);
-
-      if (!application) {
-        return fail(404, { error: "Application not found" });
-      }
-
-      await db
-        .update(cleanerApplication)
-        .set({
-          status: "APPROVED",
-          updatedAt: new Date(),
-        })
-        .where(eq(cleanerApplication.id, id));
-
-      const userId = crypto.randomUUID();
-      await db.insert(user).values({
-        id: userId,
-        email: application.email,
-        passwordHash: await hash("temporaryPassword123"),
-        firstName: application.firstName,
-        lastName: application.lastName,
-        phone: application.phone,
-        role: "CLEANER",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      return {
-        success: true,
-        message: "Application approved and cleaner account created",
-      };
-    } catch (err) {
-      console.error("Error approving application:", err);
-      return fail(500, { error: "Failed to approve application" });
-    }
-  },
-
-  // Reject application
-  rejectApplication: async ({ request, locals }) => {
-    requireAdmin(locals);
-    const formData = await request.formData();
-    const id = formData.get("id")?.toString();
-
-    if (!id) {
-      return fail(400, { error: "Application ID is required" });
-    }
-
-    try {
-      await db
-        .update(cleanerApplication)
-        .set({
-          status: "REJECTED",
-          updatedAt: new Date(),
-        })
-        .where(eq(cleanerApplication.id, id));
-
-      return {
-        success: true,
-        message: "Application rejected",
-      };
-    } catch (err) {
-      console.error("Error rejecting application:", err);
-      return fail(500, { error: "Failed to reject application" });
-    }
-  },
-};
-

@@ -8,7 +8,7 @@ import { redirect } from "@sveltejs/kit";
 import { and, desc, eq, like, or, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import type { PageServerLoad } from "./$types";
-import { requireAdmin } from "$lib/server/route-guards";
+import { adminTenantScope, requireAdmin } from "$lib/server/route-guards";
 
 // Helper function to fetch cleaners with filters
 async function getCleaners(
@@ -160,7 +160,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
   const limit = 10;
 
   // Tenant scoping
-  const tenantId = locals.user.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+  const tenantId = adminTenantScope(locals);
 
   return {
     filters: {

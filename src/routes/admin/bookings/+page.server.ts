@@ -5,7 +5,7 @@ import { eq, and, gte, lte, like, or, desc } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
-import { requireAdmin } from '$lib/server/route-guards';
+import { adminTenantScope, requireAdmin } from '$lib/server/route-guards';
 
 type BookingStatus = (typeof bookingStatusEnum.enumValues)[number];
 
@@ -170,7 +170,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
   const limit = 10;
 
   // Tenant scoping: tenant admins see only their tenant's bookings
-  const tenantId = locals.user?.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+  const tenantId = adminTenantScope(locals);
 
   const statusOptions = [
     { value: 'ALL', label: 'All Statuses' },

@@ -12,7 +12,8 @@ import { tenantService } from "$lib/server/services/tenant.service";
 import { fail } from "@sveltejs/kit";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
-import { requireAdmin } from "$lib/server/route-guards";
+import { adminTenantScope, requireAdmin } from "$lib/server/route-guards";
+import { getScopedCleaner } from "$lib/server/admin-scope";
 
 // Helper function to get payout data
 async function getPayoutData(tenantId: string | null) {
@@ -164,7 +165,7 @@ async function getPayoutData(tenantId: string | null) {
 export const load: PageServerLoad = async ({ locals }) => {
   requireAdmin(locals);
   // Tenant scoping
-  const tenantId = locals.user?.role === 'TENANT_ADMIN' ? locals.tenant?.id || null : null;
+  const tenantId = adminTenantScope(locals);
   const isPlatformAdmin = locals.user?.role === 'ADMIN';
 
   // Return streamed data
@@ -230,6 +231,12 @@ export const actions: Actions = {
       return fail(400, { error: "No cleaners selected" });
     }
 
+    // Only cleaners this admin may manage, and for a company only its own bookings
+    const scope = adminTenantScope(locals);
+    for (const cleanerId of cleanerIds) {
+      await getScopedCleaner(locals, cleanerId);
+    }
+
     try {
       const now = new Date();
       let totalProcessed = 0;
@@ -244,6 +251,7 @@ export const actions: Actions = {
           .where(
             and(
               eq(booking.cleanerId, cleanerId),
+              scope ? eq(booking.tenantId, scope) : undefined,
               eq(payment.status, "COMPLETED"),
               eq(payment.isPaidToProvider, false)
             )

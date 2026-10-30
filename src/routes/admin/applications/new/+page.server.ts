@@ -9,7 +9,8 @@ import {
   user,
 } from "$lib/server/db/schema";
 import { sendWelcomeEmail } from "$lib/server/email-service";
-import { hash } from "@node-rs/argon2";
+import { unusablePasswordHash } from "$lib/server/auth";
+import { createPasswordSetupToken } from "$lib/server/password-reset";
 import { fail, redirect } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import type { Actions, PageServerLoad } from "./$types";
@@ -214,8 +215,8 @@ export const actions: Actions = {
 
       // If auto-approve, run the approval flow
       if (autoApprove) {
-        const temporaryPassword = `BrightBroom${crypto.randomUUID().split("-")[0]}`;
-        const passwordHash = await hash(temporaryPassword);
+        // No temporary password: the cleaner sets their own from the welcome email
+        const passwordHash = await unusablePasswordHash();
         const userId = crypto.randomUUID();
 
         // Create user account
@@ -272,11 +273,12 @@ export const actions: Actions = {
         // Send welcome email only if real email
         if (!isPlaceholderEmail) {
           try {
-            await sendWelcomeEmail(email, {
-              firstName,
-              lastName,
-              role: "CLEANER",
-            });
+            const setPasswordToken = await createPasswordSetupToken(userId);
+            await sendWelcomeEmail(
+              email,
+              { firstName, lastName, role: "CLEANER" },
+              { setPasswordToken },
+            );
           } catch (emailError) {
             console.error("Error sending welcome email:", emailError);
           }

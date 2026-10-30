@@ -2,6 +2,7 @@
 import { s3 } from "$lib/server/s3";
 import { tenantService } from "$lib/server/services/tenant.service";
 import { error, json } from "@sveltejs/kit";
+import { requireAdmin } from "$lib/server/route-guards";
 import mime from "mime-types";
 import { nanoid } from "nanoid";
 import type { RequestHandler } from "./$types";
@@ -22,8 +23,10 @@ const ALLOWED = ["application/pdf", "image/jpeg", "image/png", "image/heic", "im
  * request, so one company cannot write documents onto another.
  */
 export const POST: RequestHandler = async ({ request, locals }) => {
+  // A company admin of an approved company (requireAdmin), uploading for its own company
+  const user = requireAdmin(locals);
   const tenantId = locals.tenant?.id;
-  if (!locals.user || !tenantId) {
+  if (user.role !== "TENANT_ADMIN" || !tenantId) {
     throw error(403, "You must be signed in as a company admin");
   }
 
@@ -73,8 +76,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
  * Remove one of the caller's own documents, so a wrong file can be replaced.
  */
 export const DELETE: RequestHandler = async ({ request, locals }) => {
+  // A company admin of an approved company (requireAdmin), uploading for its own company
+  const user = requireAdmin(locals);
   const tenantId = locals.tenant?.id;
-  if (!locals.user || !tenantId) {
+  if (user.role !== "TENANT_ADMIN" || !tenantId) {
     throw error(403, "You must be signed in as a company admin");
   }
 
