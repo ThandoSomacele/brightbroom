@@ -1,5 +1,5 @@
 // src/lib/config/site-routes.test.ts
-import { readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   ADMIN_NAV,
@@ -38,11 +38,9 @@ describe("retired pages", () => {
     expect(isRetiredPath("/services")).toBe(false);
   });
 
-  it("each redirect to the home page on Netlify too (split functions skip the hook)", () => {
-    const toml = readFileSync("netlify.toml", "utf8");
-    const redirected = [...toml.matchAll(/from = "([^"]+)"\s+to = "\/"\s+status = 301/g)].map((m) => m[1]);
-    for (const path of RETIRED_PATHS) expect(redirected, path).toContain(path);
-    expect(redirected, "articles").toContain("/magazine/*");
+  it("each have a route, so Netlify sends them to the hook that redirects them", () => {
+    for (const path of RETIRED_PATHS) expect(existsSync(`src/routes${path}/+server.ts`), path).toBe(true);
+    expect(existsSync("src/routes/magazine/[slug]/+server.ts"), "articles").toBe(true);
   });
 });
 
