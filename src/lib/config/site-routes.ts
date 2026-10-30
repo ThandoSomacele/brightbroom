@@ -72,6 +72,7 @@ export const PUBLIC_NAV: NavLink[] = [
   { label: "Services", href: "/services" },
   { label: "About", href: "/about" },
   { label: "Magazine", href: "/magazine" },
+  { label: "For companies", href: "/pricing" },
   { label: "Contact", href: "/contact" },
 ];
 

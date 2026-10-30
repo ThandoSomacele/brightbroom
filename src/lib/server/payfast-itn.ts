@@ -6,16 +6,43 @@
 // Nothing here depends on NODE_ENV: an ITN that fails is refused everywhere,
 // because Netlify functions do not reliably see the NODE_ENV a build used.
 import { env } from "$env/dynamic/private";
+import { env as publicEnv } from "$env/dynamic/public";
 import { itnSignatureMatches, parseItn, type ParsedItn } from "./payfast-signature";
+
+/**
+ * brightbroom.com as a sales demo (PUBLIC_DEMO_MODE=true): every payment goes
+ * to PayFast's sandbox with the separate PAYFAST_SANDBOX_* credentials, so no
+ * real money can move while the live credentials stay in place for later.
+ * Never on a company's own site.
+ */
+export function payFastDemo(): boolean {
+  return publicEnv.PUBLIC_DEMO_MODE === "true" && publicEnv.PUBLIC_PLATFORM_MODE !== "single";
+}
 
 /** The account passphrase, or "" when the PayFast account has none */
 export function payFastPassphrase(): string {
-  return (env.PAYFAST_PASSPHRASE ?? "").trim();
+  return ((payFastDemo() ? env.PAYFAST_SANDBOX_PASSPHRASE : env.PAYFAST_PASSPHRASE) ?? "").trim();
 }
 
-/** Sandbox unless PAYFAST_SANDBOX_MODE is "false" - the checkout's rule */
+/** Sandbox in demo mode, otherwise unless PAYFAST_SANDBOX_MODE is "false" - the checkout's rule */
 export function payFastSandbox(): boolean {
-  return env.PAYFAST_SANDBOX_MODE !== "false";
+  return payFastDemo() || env.PAYFAST_SANDBOX_MODE !== "false";
+}
+
+/**
+ * The merchant to take payments into. In demo mode only the sandbox merchant:
+ * missing sandbox credentials mean no payment at all, never a live one.
+ */
+export function payFastMerchant(): { merchantId: string; merchantKey: string } {
+  return payFastDemo()
+    ? {
+        merchantId: (env.PAYFAST_SANDBOX_MERCHANT_ID ?? "").trim(),
+        merchantKey: (env.PAYFAST_SANDBOX_MERCHANT_KEY ?? "").trim(),
+      }
+    : {
+        merchantId: (env.PAYFAST_MERCHANT_ID ?? "").trim(),
+        merchantKey: (env.PAYFAST_MERCHANT_KEY ?? "").trim(),
+      };
 }
 
 export type ItnCheck =
@@ -33,7 +60,7 @@ export function checkItn(rawBody: string): ItnCheck {
     return { ok: false, reason: "signature mismatch" };
   }
 
-  const merchantId = (env.PAYFAST_MERCHANT_ID ?? "").trim();
+  const { merchantId } = payFastMerchant();
   if (!merchantId || itn.fields.merchant_id !== merchantId) {
     return { ok: false, reason: "merchant_id is not ours" };
   }

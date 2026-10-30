@@ -6,7 +6,7 @@
   import CookieConsentBanner from "$lib/components/CookieConsentBanner.svelte";
   import ErrorBoundary from "$lib/components/ErrorBoundary.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import { brand, canonicalSiteUrl } from "$lib/config/brand";
+  import { brand, canonicalSiteUrl, isDemoSite } from "$lib/config/brand";
   import { FOOTER_LINKS, PUBLIC_NAV, linksForSite } from "$lib/config/site-routes";
   import { performanceMonitor } from "$lib/utils/performance";
   import posthog from "posthog-js";
@@ -117,6 +117,15 @@
 >
   Skip to main content
 </a>
+
+{#if isDemoSite}
+  <!-- Sales demo: bookings work end to end, but only with PayFast test payments -->
+  <div class="bg-secondary-700 px-4 py-2 text-center text-sm text-white">
+    <strong>Demo:</strong> this is {brand.name}, the booking platform for cleaning companies. Bookings here
+    are not real and no money is taken.
+    <a href="/pricing" class="ml-1 font-semibold underline hover:no-underline">Get it for your company</a>
+  </div>
+{/if}
 
 <!-- Header with navigation -->
 <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm dark:bg-gray-800/95">
