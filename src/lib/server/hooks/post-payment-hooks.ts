@@ -13,6 +13,7 @@ import {
   sendBookingConfirmationEmail,
 } from "$lib/server/email-service";
 import { cleanerAssignmentService } from "$lib/server/services/cleaner-assignment.service";
+import { payFastDemo } from "$lib/server/payfast-itn";
 import { eq, sql } from "drizzle-orm";
 
 /**
@@ -476,11 +477,22 @@ export const postPaymentHooks = {
       );
       await this.sendConfirmationEmailWithRetry(bookingId, paymentStatus);
 
-      // 2. Attempt cleaner assignment
-      console.log(
-        `[POST-PAYMENT HOOKS] Executing step 2: Attempt cleaner assignment`,
-      );
-      await this.attemptCleanerAssignment(bookingId);
+      // 2. Attempt cleaner assignment. Not for a demo booking: it was paid on
+      // PayFast's sandbox, and no real cleaner should be sent to it.
+      if (payFastDemo()) {
+        await db.insert(adminNote).values({
+          id: crypto.randomUUID(),
+          bookingId,
+          content: "Demo booking: paid with a test payment on PayFast's sandbox. No cleaner was assigned.",
+          addedBy: "System (Demo)",
+          createdAt: new Date(),
+        });
+      } else {
+        console.log(
+          `[POST-PAYMENT HOOKS] Executing step 2: Attempt cleaner assignment`,
+        );
+        await this.attemptCleanerAssignment(bookingId);
+      }
 
       console.log(
         `[POST-PAYMENT HOOKS] All hooks completed for booking ${bookingId}`,

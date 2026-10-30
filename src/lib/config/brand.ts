@@ -75,6 +75,13 @@ export const brand = {
 export const isSingleCompany = brand.mode === "single";
 
 /**
+ * brightbroom.com as a sales demo (PUBLIC_DEMO_MODE=true): the booking flow
+ * works end to end on PayFast's sandbox, and every page says it is a demo.
+ * Never on a company's own site.
+ */
+export const isDemoSite = env.PUBLIC_DEMO_MODE === "true" && !isSingleCompany;
+
+/**
  * The address shown to people and search engines (canonical links, og:url,
  * the domain printed on pages and legal documents). BrightBroom's own deploys
  * always say brightbroom.com, even a preview whose PUBLIC_URL is a Netlify

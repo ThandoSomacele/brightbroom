@@ -3,17 +3,21 @@
 import { env } from '$env/dynamic/private';
 import { brand } from '$lib/config/brand';
 import { apiSignature, signedCheckoutQuery } from '$lib/server/payfast-signature';
+import { payFastMerchant, payFastPassphrase, payFastSandbox } from '$lib/server/payfast-itn';
 import type { Subscription, NewSubscription, SubscriptionPayment } from '../db/schema';
 
+// Sandbox or live, and which merchant: the same rule as one-off checkout
+// (payfast-itn.ts), including demo mode. It used to be "sandbox only when
+// PAYFAST_SANDBOX_MODE is 'true'", the opposite default of the checkout.
+const PAYFAST_SANDBOX = payFastSandbox();
+
 // PayFast subscription endpoints
-const PAYFAST_SUBSCRIPTION_URL = (env.PAYFAST_SANDBOX_MODE === 'true' || env.PAYFAST_USE_SANDBOX === 'true')
+const PAYFAST_SUBSCRIPTION_URL = PAYFAST_SANDBOX
   ? 'https://sandbox.payfast.co.za/eng/process'
   : 'https://www.payfast.co.za/eng/process';
 
 // One API host for live and sandbox; sandbox is selected per request with the
 // testing=true query parameter, which must also be part of the signature.
-const PAYFAST_SANDBOX =
-  env.PAYFAST_SANDBOX_MODE === 'true' || env.PAYFAST_USE_SANDBOX === 'true';
 const PAYFAST_API_BASE = 'https://api.payfast.co.za/subscriptions';
 
 interface PayFastSubscriptionParams {
@@ -85,9 +89,10 @@ export class PayFastSubscriptionService {
   private apiKey?: string;
 
   constructor() {
-    this.merchantId = env.PAYFAST_MERCHANT_ID || '';
-    this.merchantKey = env.PAYFAST_MERCHANT_KEY || '';
-    this.passphrase = env.PAYFAST_PASSPHRASE?.trim();
+    const { merchantId, merchantKey } = payFastMerchant();
+    this.merchantId = merchantId;
+    this.merchantKey = merchantKey;
+    this.passphrase = payFastPassphrase() || undefined;
     this.apiKey = env.PAYFAST_API_KEY;
   }
 

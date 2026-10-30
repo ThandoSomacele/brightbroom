@@ -1,4 +1,5 @@
 // src/routes/book/review/+page.server.ts
+import { payFastDemo } from '$lib/server/payfast-itn';
 import { db } from '$lib/server/db';
 import { service, address, booking, pricingConfig, addon, bookingAddon, recurringFrequencyEnum } from '$lib/server/db/schema';
 import { error, redirect } from '@sveltejs/kit';
@@ -116,7 +117,8 @@ export const actions: Actions = {
     const serviceId = formData.get('serviceId')?.toString();
     const scheduledDate = formData.get('scheduledDate')?.toString();
     const notes = formData.get('notes')?.toString();
-    const cleanerId = formData.get('cleanerId')?.toString() || null;
+    // A demo booking (test payment) is never attached to a real cleaner
+    const cleanerId = payFastDemo() ? null : formData.get('cleanerId')?.toString() || null;
 
     // Room-based pricing data
     const bedroomCount = parseInt(formData.get('bedroomCount')?.toString() || '1', 10);

@@ -1,5 +1,6 @@
 // src/routes/api/subscription/create/+server.ts
 
+import { payFastDemo } from '$lib/server/payfast-itn';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
@@ -195,7 +196,8 @@ export const POST: RequestHandler = async (event) => {
         userId: locals.user.id,
         addressId,
         serviceId,
-        cleanerId: cleanerId || null,
+        // A demo subscription (test payments) is never attached to a real cleaner
+        cleanerId: payFastDemo() ? null : cleanerId || null,
         frequency,
         status: 'PENDING',
         preferredDays: preferredDays || [],

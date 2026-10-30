@@ -1,11 +1,10 @@
 // src/lib/server/payment.ts
 import { db } from "$lib/server/db";
 import { booking, payment, service, user, type Payment } from "$lib/server/db/schema";
-import { payFastPassphrase, payFastSandbox } from "$lib/server/payfast-itn";
+import { payFastDemo, payFastMerchant, payFastPassphrase, payFastSandbox } from "$lib/server/payfast-itn";
 import { signedCheckoutQuery, type CheckoutData } from "$lib/server/payfast-signature";
 import crypto from "crypto";
 import { eq } from "drizzle-orm";
-import { env } from "$env/dynamic/private";
 import { parseDateTimeString } from "$lib/utils/date-utils";
 import { brand } from "$lib/config/brand";
 
@@ -19,11 +18,12 @@ function getPayFastCredentials(): {
   merchantKey: string;
   passphrase: string;
 } {
-  const merchantId = env.PAYFAST_MERCHANT_ID ?? "";
-  const merchantKey = env.PAYFAST_MERCHANT_KEY ?? "";
-  if (!merchantId.trim() || !merchantKey.trim()) {
+  const { merchantId, merchantKey } = payFastMerchant();
+  if (!merchantId || !merchantKey) {
     throw new Error(
-      "PayFast is not configured: set PAYFAST_MERCHANT_ID and PAYFAST_MERCHANT_KEY (and PAYFAST_PASSPHRASE if the PayFast account has one)",
+      payFastDemo()
+        ? "Demo mode needs PayFast sandbox credentials: set PAYFAST_SANDBOX_MERCHANT_ID and PAYFAST_SANDBOX_MERCHANT_KEY (and PAYFAST_SANDBOX_PASSPHRASE if the sandbox account has one)"
+        : "PayFast is not configured: set PAYFAST_MERCHANT_ID and PAYFAST_MERCHANT_KEY (and PAYFAST_PASSPHRASE if the PayFast account has one)",
     );
   }
   return { merchantId, merchantKey, passphrase: payFastPassphrase() };
@@ -130,29 +130,45 @@ export async function createPaymentForBooking(
 
     const serviceData = serviceResult[0];
 
-    // Create payment record
-    const paymentId = crypto.randomUUID();
-    console.log(`Generated payment ID: ${paymentId}`);
+    // One payment per booking (payment_booking_id_unique). A customer who
+    // left PayFast and comes back to pay gets the same, still-unpaid payment
+    // again; inserting a second one failed and blocked the retry.
+    const [existingPayment] = await db
+      .select()
+      .from(payment)
+      .where(eq(payment.bookingId, bookingData.id))
+      .limit(1);
 
-    const [newPayment] = await db
-      .insert(payment)
-      .values({
-        id: paymentId,
-        userId: bookingData.userId,
-        bookingId: bookingData.id,
-        amount: bookingData.price,
-        status: "PENDING",
-        paymentMethod: "CREDIT_CARD",
-        // Informational only: nothing parses this back (the IPN finds the
-        // payment by m_payment_id and the booking by custom_str1), so older
-        // "BrightBroom-<id>" rows and new "<Brand>-<id>" rows coexist safely.
-        merchantReference: `${merchantReferencePrefix()}-${bookingData.id}`,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .returning();
+    if (existingPayment && (existingPayment.status === "COMPLETED" || existingPayment.status === "REFUNDED")) {
+      throw new Error("This booking has already been paid");
+    }
 
-    console.log(`Created payment record: ${newPayment.id}`);
+    const [newPayment] = existingPayment
+      ? await db
+          .update(payment)
+          .set({ amount: bookingData.price, status: "PENDING", updatedAt: new Date() })
+          .where(eq(payment.id, existingPayment.id))
+          .returning()
+      : await db
+          .insert(payment)
+          .values({
+            id: crypto.randomUUID(),
+            userId: bookingData.userId,
+            bookingId: bookingData.id,
+            amount: bookingData.price,
+            status: "PENDING",
+            paymentMethod: "CREDIT_CARD",
+            // Informational only: nothing parses this back (the IPN finds the
+            // payment by m_payment_id and the booking by custom_str1), so older
+            // "BrightBroom-<id>" rows and new "<Brand>-<id>" rows coexist safely.
+            merchantReference: `${merchantReferencePrefix()}-${bookingData.id}`,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .returning();
+
+    const paymentId = newPayment.id;
+    console.log(`${existingPayment ? "Reusing" : "Created"} payment record: ${paymentId}`);
 
     // Generate PayFast URL with dynamic callback URLs
     const redirectUrl = generatePayFastUrl(
