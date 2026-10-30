@@ -5,7 +5,6 @@ import { env as publicEnv } from '$env/dynamic/public';
 import { missingBrandSettings } from '$lib/config/brand';
 import { isAvailableOnSite } from '$lib/config/site-routes';
 import { missingEmailSettings } from '$lib/server/email-service';
-import { serviceAreaProblems } from '$lib/config/service-areas';
 import { validateSessionToken } from '$lib/server/auth';
 import { isPlatformOnlyAdminPath, requireAdmin, routingPath } from '$lib/server/route-guards';
 import type { User } from '$lib/server/db/schema';
@@ -24,9 +23,6 @@ if (missingBrand.length) {
 const missingEmail = missingEmailSettings();
 if (missingEmail.length) {
   console.error(`[email] Single-company mode is missing: ${missingEmail.join(', ')}. No email is sent until they are set.`);
-}
-for (const problem of serviceAreaProblems()) {
-  console.error(`[service areas] ${problem}`);
 }
 
 const handleAuth: Handle = async ({ event, resolve }) => {

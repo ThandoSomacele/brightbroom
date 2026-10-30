@@ -383,6 +383,21 @@ export const addon = pgTable("addon", {
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
 
+// Where this deployment takes bookings and recruits cleaners. Managed by the
+// company itself in /admin/service-areas. Each area is a circle: a centre and
+// a radius in km.
+export const serviceArea = pgTable("service_area", {
+  id: text("id").primaryKey().notNull(),
+  name: text("name").notNull().unique(),
+  lat: decimal("lat", { precision: 10, scale: 6 }).notNull(),
+  lng: decimal("lng", { precision: 10, scale: 6 }).notNull(),
+  radiusKm: decimal("radius_km", { precision: 5, scale: 2 }).default("15.00").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
 // Junction table for bookings and addons
 export const bookingAddon = pgTable("booking_addon", {
   id: text("id").primaryKey().notNull(),
@@ -831,6 +846,8 @@ export type NewService = typeof service.$inferInsert;
 export type PricingConfig = typeof pricingConfig.$inferSelect;
 export type NewPricingConfig = typeof pricingConfig.$inferInsert;
 
+export type ServiceAreaRow = typeof serviceArea.$inferSelect;
+export type NewServiceAreaRow = typeof serviceArea.$inferInsert;
 export type Addon = typeof addon.$inferSelect;
 export type NewAddon = typeof addon.$inferInsert;
 

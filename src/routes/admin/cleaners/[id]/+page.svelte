@@ -11,11 +11,11 @@
   import Button from "$lib/components/ui/Button.svelte";
   import { DetailPageSkeleton } from "$lib/components/ui/skeletons";
   import { parseDateTimeString } from "$lib/utils/date-utils.js";
-  import { STANDARD_SERVICE_RADIUS_KM } from "$lib/utils/serviceAreaValidator";
   import {
     getClosestServiceArea,
     isWithinServiceArea,
-  } from "$lib/utils/serviceAreaValidator";
+    STANDARD_SERVICE_RADIUS_KM,
+  } from "$lib/utils/service-areas";
   
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -374,6 +374,7 @@
     // Check if address is within service area
     if (selectedAddress.lat && selectedAddress.lng) {
       isOutOfServiceArea = !isWithinServiceArea(
+        data.serviceAreas,
         selectedAddress.lat,
         selectedAddress.lng,
       );
@@ -382,6 +383,7 @@
         // Returns { name, distance } (or null), not { area, distance }: the old
         // destructure threw on `area.name` for every out-of-area address
         const closest = getClosestServiceArea(
+          data.serviceAreas,
           selectedAddress.lat,
           selectedAddress.lng,
         );
@@ -722,8 +724,12 @@
             <div class="space-y-4">
               <!-- Work Address -->
               <div>
+                <!-- An admin may record any address; out-of-area ones are flagged below -->
                 <GoogleMapsAutocomplete
                   apiKey={googleMapsApiKey}
+                  serviceAreas={data.serviceAreas}
+                  enforceServiceArea={false}
+                  id="cleaner-work-address"
                   label="Work Address"
                   placeholder="Enter cleaner's home/work address"
                   required
@@ -1070,7 +1076,7 @@
 
                     <!-- Add a small service area status indicator -->
                     {#if cleaner.cleanerProfile.workLocationLat && cleaner.cleanerProfile.workLocationLng}
-                      {#if isWithinServiceArea(cleaner.cleanerProfile.workLocationLat, cleaner.cleanerProfile.workLocationLng)}
+                      {#if isWithinServiceArea(data.serviceAreas, cleaner.cleanerProfile.workLocationLat, cleaner.cleanerProfile.workLocationLng)}
                         <p
                           class="text-xs text-green-600 dark:text-green-400 mt-1"
                         >

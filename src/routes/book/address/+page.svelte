@@ -341,6 +341,7 @@
           <div>
             <GoogleMapsAutocomplete
               apiKey={googleMapsApiKey}
+              serviceAreas={data.serviceAreas}
               label="Address"
               placeholder="Enter your address, estate, or complex name"
               required={true}

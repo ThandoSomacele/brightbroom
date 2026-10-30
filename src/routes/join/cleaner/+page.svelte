@@ -13,7 +13,11 @@
     formatServiceAreaList,
     getClosestServiceArea,
     isWithinServiceArea,
-  } from "$lib/utils/serviceAreaValidator";
+  } from "$lib/utils/service-areas";
+  import type { PageData } from "./$types";
+
+  // This site's service areas (from the load)
+  export let data: PageData;
   
   // Environment variables
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -127,12 +131,14 @@
     // Check if address is within service area
     if (selectedAddress.lat && selectedAddress.lng) {
       isOutOfServiceArea = !isWithinServiceArea(
+        data.serviceAreas,
         selectedAddress.lat,
         selectedAddress.lng,
       );
 
       if (isOutOfServiceArea) {
         const closest = getClosestServiceArea(
+          data.serviceAreas,
           selectedAddress.lat,
           selectedAddress.lng,
         );
@@ -580,6 +586,7 @@
                   <div>
                     <GoogleMapsAutocomplete
                       apiKey={googleMapsApiKey}
+                      serviceAreas={data.serviceAreas}
                       label="Home Address"
                       placeholder="Enter your address"
                       required
@@ -595,7 +602,7 @@
                         class="mt-2 text-sm text-amber-600 dark:text-amber-400"
                       >
                         <p>
-                          We're only taking on cleaners who live in {formatServiceAreaList()}
+                          We're only taking on cleaners who live in {formatServiceAreaList(data.serviceAreas)}
                           at the moment, so we can match you to jobs close to home.
                         </p>
                         <p class="mt-1">

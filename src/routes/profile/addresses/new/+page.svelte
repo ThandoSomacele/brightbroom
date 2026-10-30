@@ -11,7 +11,7 @@
   import {
     getClosestServiceArea,
     isWithinServiceArea,
-  } from "$lib/utils/serviceAreaValidator";
+  } from "$lib/utils/service-areas";
   import type { ActionData, PageData } from "./$types";
   
   // Environment variables
@@ -66,12 +66,14 @@
     // Check if address is within service area
     if (selectedAddress.lat && selectedAddress.lng) {
       isOutOfServiceArea = !isWithinServiceArea(
+        data.serviceAreas,
         selectedAddress.lat,
         selectedAddress.lng,
       );
 
       if (isOutOfServiceArea) {
         const closest = getClosestServiceArea(
+          data.serviceAreas,
           selectedAddress.lat,
           selectedAddress.lng,
         );
@@ -200,6 +202,7 @@
         <div class="mb-4">
           <GoogleMapsAutocomplete
             apiKey={googleMapsApiKey}
+            serviceAreas={data.serviceAreas}
             label="Address"
             placeholder="Enter your address, estate, or complex name"
             required

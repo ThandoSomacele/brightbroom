@@ -5,8 +5,9 @@
   import { enhance } from "$app/forms";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import type { ActionData } from "./$types";
+  import type { ActionData, PageData } from "./$types";
 
+  export let data: PageData;
   export let form: ActionData;
 
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -242,8 +243,11 @@
 
           <!-- Work Address -->
           <div>
+            <!-- A walk-in applicant may live anywhere; the admin decides -->
             <GoogleMapsAutocomplete
               apiKey={googleMapsApiKey}
+              serviceAreas={data.serviceAreas}
+              enforceServiceArea={false}
               label="Work Address"
               placeholder="Search for an address"
               bind:value={selectedAddress.formatted}

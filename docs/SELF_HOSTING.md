@@ -51,20 +51,6 @@ server logs `[brand] Single-company mode is missing: …` at startup. Set them a
 defaults to the support email), `PUBLIC_SUPPORT_PHONE`, `PUBLIC_BRAND_ADDRESS`,
 `PUBLIC_INFORMATION_OFFICER`, `PUBLIC_BRAND_LOGO_URL`.
 
-**Service areas (runtime)**. `PUBLIC_SERVICE_AREAS` lists where the company
-takes bookings and recruits cleaners, as a JSON array. `radius` is in km and
-defaults to 15:
-
-```json
-[{"name":"Sea Point","lat":-33.9155,"lng":18.3876},
- {"name":"Claremont","lat":-33.9804,"lng":18.4655,"radius":10}]
-```
-
-In single mode there is no fallback to BrightBroom's suburbs: with no valid
-areas, every address is refused, and the server logs `[service areas] …` at
-startup. A malformed entry is skipped and named in the same log. Changes take
-effect on restart.
-
 **Build variables**. These are compiled into the bundle, so a change only takes
 effect after a rebuild.
 
@@ -134,7 +120,10 @@ response and exits non-zero on failure, so Coolify shows the run as failed.
    (`SEED_DEFAULT_ADDONS=false` skips them). Running it again is safe: it never
    changes an existing user or password. Afterwards, remove
    `SEED_ADMIN_PASSWORD` from the variables.
-3. Log in at `/auth/login`, then set prices and add-ons in `/admin/pricing`.
+3. Log in at `/auth/login`. Add the company's service areas in
+   `/admin/service-areas` (until there is at least one, every address is
+   refused and the dashboard says so), then set prices and add-ons in
+   `/admin/pricing`.
 4. In the PayFast dashboard, check that the account's notify URL is allowed for
    the client's domain. The app sends `PUBLIC_URL` + `/api/payments/ipn`.
 

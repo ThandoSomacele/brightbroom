@@ -14,7 +14,8 @@ import { calculateCleaningPrice, validateRoomSelection } from '$lib/utils/pricin
 import {
   getOutOfServiceAreaMessage,
   isWithinServiceArea,
-} from '$lib/utils/serviceAreaValidator';
+} from '$lib/utils/service-areas';
+import { serviceAreaService } from '$lib/server/services/service-area.service';
 
 type RecurringFrequency = (typeof recurringFrequencyEnum.enumValues)[number];
 
@@ -269,10 +270,11 @@ export const actions: Actions = {
         !(bookingLat === 0 && bookingLng === 0);
 
       if (hasUsableCoordinates) {
-        if (!isWithinServiceArea(bookingLat, bookingLng)) {
+        const serviceAreas = await serviceAreaService.listActive();
+        if (!isWithinServiceArea(serviceAreas, bookingLat, bookingLng)) {
           return {
             success: false,
-            error: getOutOfServiceAreaMessage(bookingLat, bookingLng),
+            error: getOutOfServiceAreaMessage(serviceAreas, bookingLat, bookingLng),
           };
         }
       } else {

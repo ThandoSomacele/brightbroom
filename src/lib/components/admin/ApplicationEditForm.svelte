@@ -5,7 +5,7 @@
   import ProfileImageUpload from "$lib/components/admin/ProfileImageUpload.svelte";
   import GoogleMapsAutocomplete from "$lib/components/maps/GoogleMapsAutocomplete.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import { isWithinServiceArea } from "$lib/utils/serviceAreaValidator";
+  import { isWithinServiceArea, type ServiceArea } from "$lib/utils/service-areas";
 
   import { createEventDispatcher } from "svelte";
 
@@ -13,6 +13,8 @@
   export let application: any;
   export let isEditing = false;
   export let isProcessing = false;
+  /** This site's service areas, for the out-of-area note */
+  export let serviceAreas: ServiceArea[];
 
   // Create a copy of the application for editing
   let editableApplication = isEditing ? { ...application } : null;
@@ -43,7 +45,7 @@
 
     // Check if address is within service area
     if (address.lat && address.lng) {
-      isOutOfServiceArea = !isWithinServiceArea(address.lat, address.lng);
+      isOutOfServiceArea = !isWithinServiceArea(serviceAreas, address.lat, address.lng);
 
       if (isOutOfServiceArea) {
         addressError = "This address is outside our current service areas.";
@@ -199,8 +201,12 @@
             Address
           </label>
 
+          <!-- An admin may record any address; the note below flags one outside the areas -->
           <GoogleMapsAutocomplete
             apiKey={googleMapsApiKey}
+            {serviceAreas}
+            enforceServiceArea={false}
+            id="application-address"
             value={editableApplication.formattedAddress ?? ""}
             error={addressError}
             on:select={handleAddressSelect}

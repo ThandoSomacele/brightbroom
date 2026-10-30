@@ -1,4 +1,5 @@
 // src/routes/admin/cleaners/[id]/+page.server.ts
+import { serviceAreaService } from "$lib/server/services/service-area.service";
 import { db } from "$lib/server/db";
 import {
   booking,
@@ -90,6 +91,7 @@ async function getCleanerData(cleanerId: string, tenantId: string | null) {
 }
 
 export const load: PageServerLoad = async ({ params, locals }) => {
+  const serviceAreas = await serviceAreaService.listActive();
   requireAdmin(locals);
   const cleanerId = params.id;
 
@@ -101,6 +103,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   const tenantId = adminTenantScope(locals);
 
   return {
+    serviceAreas,
     cleanerId,
     streamed: {
       cleanerData: getCleanerData(cleanerId, tenantId),

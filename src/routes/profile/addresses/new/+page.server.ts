@@ -1,4 +1,5 @@
 // src/routes/profile/addresses/new/+page.server.ts
+import { serviceAreaService } from "$lib/server/services/service-area.service";
 import {
   addressService,
   MAX_ADDRESSES,
@@ -8,6 +9,7 @@ import { fail, redirect } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals, url }) => {
+  const serviceAreas = await serviceAreaService.listActive();
   // Check if user is logged in
   if (!locals.user) {
     throw redirect(302, "/auth/login?redirectTo=/profile/addresses/new");
@@ -27,6 +29,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     }
 
     return {
+      serviceAreas,
       redirectTo,
       addresses,
       maxAddresses: MAX_ADDRESSES,
@@ -41,6 +44,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
     console.error("Error loading address data:", err);
     return {
+      serviceAreas,
       redirectTo,
       addresses: [],
       maxAddresses: MAX_ADDRESSES,

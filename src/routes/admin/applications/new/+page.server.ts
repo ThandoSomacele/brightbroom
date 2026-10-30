@@ -1,4 +1,5 @@
 // src/routes/admin/applications/new/+page.server.ts
+import { serviceAreaService } from "$lib/server/services/service-area.service";
 import { db } from "$lib/server/db";
 import {
   applicationNote,
@@ -29,12 +30,13 @@ function toPetCompatibility(value: string): PetCompatibility {
 }
 
 export const load: PageServerLoad = async ({ locals }) => {
+  const serviceAreas = await serviceAreaService.listActive();
   requireAdmin(locals, { platformOnly: true });
   if (!locals.user || locals.user.role !== "ADMIN") {
     throw redirect(302, "/auth/login?redirectTo=/admin/applications/new");
   }
 
-  return {};
+  return { serviceAreas };
 };
 
 export const actions: Actions = {

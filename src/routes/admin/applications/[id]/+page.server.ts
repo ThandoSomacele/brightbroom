@@ -1,4 +1,5 @@
 // src/routes/admin/applications/[id]/+page.server.ts
+import { serviceAreaService } from "$lib/server/services/service-area.service";
 import { db } from "$lib/server/db";
 import {
   applicationNote,
@@ -68,6 +69,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
   return {
     applicationId,
+    serviceAreas: await serviceAreaService.listActive(),
     streamed: {
       applicationData: getApplicationData(applicationId, tenantId),
     },

@@ -5,8 +5,11 @@
   import Button from "$lib/components/ui/Button.svelte";
   import Card from "$lib/components/ui/Card.svelte";
   import SectionHeading from "$lib/components/ui/SectionHeading.svelte";
-  import { SERVICE_AREAS } from "$lib/utils/serviceAreaValidator";
-  
+  import type { PageData } from "./$types";
+
+  // This site's service areas, managed in /admin/service-areas
+  export let data: PageData;
+
   // Local state
   let selectedArea: string | null = null;
 
@@ -43,7 +46,7 @@
             </h2>
 
             <ul class="space-y-3">
-              {#each SERVICE_AREAS as area}
+              {#each data.serviceAreas as area (area.id)}
                 <li>
                   <button
                     class={`card card-hover w-full border-2 p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700
@@ -70,7 +73,7 @@
                     </div>
 
                     <p class="mt-1 pl-8 text-sm text-gray-500 dark:text-gray-400">
-                      Service radius: {area.radius} km
+                      Service radius: {area.radiusKm} km
                     </p>
                   </button>
                 </li>
