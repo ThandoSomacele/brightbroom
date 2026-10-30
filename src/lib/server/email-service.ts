@@ -81,6 +81,7 @@ interface CleanerApplicationEmailData {
 const EMAIL_CONFIG = {
   appUrl: APP_URL,
   brandName: brand.name,
+  vatNumber: brand.vatNumber,
   primaryColor: brandColors.primary,
   secondaryColor: brandColors.secondary,
 };

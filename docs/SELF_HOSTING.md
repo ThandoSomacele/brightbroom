@@ -51,6 +51,13 @@ server logs `[brand] Single-company mode is missing: …` at startup. Set them a
 defaults to the support email), `PUBLIC_SUPPORT_PHONE`, `PUBLIC_BRAND_ADDRESS`,
 `PUBLIC_INFORMATION_OFFICER`, `PUBLIC_BRAND_LOGO_URL`.
 
+Optional: `PUBLIC_SUPPORT_HOURS` (shown on the contact page, e.g.
+`Monday–Friday: 8am – 5pm`), `PUBLIC_BRAND_OG_IMAGE` (the picture shown when a
+page is shared; absolute or site-relative URL) and `PUBLIC_VAT_NUMBER`. Set the
+VAT number only if the company is VAT-registered: prices are then described as
+including VAT and receipts show the VAT in them. Without it, VAT is not
+mentioned anywhere.
+
 **Build variables**. These are compiled into the bundle, so a change only takes
 effect after a rebuild.
 
@@ -69,9 +76,11 @@ Leave them unset for none; a client never inherits BrightBroom's containers.
 API) and `PAYFAST_SANDBOX_MODE=false` for live payments. **Sandbox is the
 default** when this is unset.
 
-**Email (Resend)**: `RESEND_API_KEY`, `EMAIL_FROM` (on a domain verified in
-Resend, e.g. `Company <bookings@company.co.za>`), plus `ADMIN_BOOKINGS_EMAIL`
-and `RECRUITMENT_EMAIL` for the internal notifications.
+**Email (Resend)**: `RESEND_API_KEY` and `EMAIL_FROM` (required; on a domain
+verified in Resend, e.g. `Company <bookings@company.co.za>`; the server logs
+`[email] Single-company mode is missing: …` until both are set), plus
+`ADMIN_BOOKINGS_EMAIL` and `RECRUITMENT_EMAIL` for the internal notifications
+(both default to `PUBLIC_SUPPORT_EMAIL`; nothing goes to BrightBroom).
 
 **File storage (S3 or S3-compatible: MinIO, R2, Wasabi)**: `S3_BUCKET_NAME`,
 `AWS_S3_ACCESS_KEY_ID`, `AWS_S3_SECRET_ACCESS_KEY`, `AWS_S3_REGION`. For a

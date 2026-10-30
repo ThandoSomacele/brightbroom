@@ -970,7 +970,7 @@
           Recurring subscription will be processed securely via PayFast. You can
           cancel or pause anytime with 48 hours notice.
         {:else}
-          Prices include VAT. Payment will be processed securely via PayFast.
+          {#if brand.vatNumber}Prices include VAT.{/if} Payment will be processed securely via PayFast.
         {/if}
       </p>
     </div>

@@ -52,6 +52,12 @@ export const brand = {
   informationOfficer: value(env.PUBLIC_INFORMATION_OFFICER, own("Thando Somacele")),
   /** Absolute or site-relative URL of the logo image; empty = show the name as text */
   logoUrl: value(env.PUBLIC_BRAND_LOGO_URL, ""),
+  /**
+   * VAT registration number. Set it only when the business is VAT-registered:
+   * prices are then described as including VAT and receipts show the VAT in
+   * them. Empty (BrightBroom is not registered) means no VAT is mentioned.
+   */
+  vatNumber: value(env.PUBLIC_VAT_NUMBER, ""),
   /** Image shown when a page is shared (Open Graph); absolute or site-relative */
   ogImageUrl: value(env.PUBLIC_BRAND_OG_IMAGE, own("/images/brightbroom-og-image.jpg")),
   /** Public site URL without a trailing slash */

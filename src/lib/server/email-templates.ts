@@ -20,6 +20,8 @@ function receiptAddressHtml(): string {
 export interface EmailTemplateData {
   appUrl: string;
   brandName: string;
+  /** VAT number when the business is VAT-registered; empty means no VAT on receipts */
+  vatNumber?: string;
   primaryColor: string;
   secondaryColor: string;
   [key: string]: any;
@@ -1048,9 +1050,12 @@ export function getPaymentReceiptTemplate(
       ? paymentDetails.amount
       : parseFloat(String(paymentDetails.amount));
 
-  // Calculate VAT (if applicable)
-  const vatRate = paymentDetails.vatRate || 15; // Default to 15% VAT for South Africa
-  const vatAmount = totalAmount * (vatRate / 100);
+  // VAT only for a VAT-registered business. Prices include VAT, so the VAT
+  // in a total is total × rate / (100 + rate): R115 at 15% holds R15 VAT,
+  // not R17.25 (the old total × 15%).
+  const vatRegistered = Boolean(data.vatNumber);
+  const vatRate = paymentDetails.vatRate || 15;
+  const vatAmount = vatRegistered ? (totalAmount * vatRate) / (100 + vatRate) : 0;
   const subtotal = totalAmount - vatAmount;
 
   // Format currency values
@@ -1223,10 +1228,12 @@ ${receiptAddressHtml()}
             </div>
           </div>
           
+          ${vatRegistered ? `
           <div class="invoice-row">
-            <div>VAT (${vatRate}%)</div>
+            <div>VAT (${vatRate}%, included) · VAT no. ${escapeHtml(data.vatNumber ?? "")}</div>
             <div>${formatCurrency(vatAmount)}</div>
           </div>
+          ` : ""}
           
           <div class="invoice-row total">
             <div>Total</div>
@@ -1282,9 +1289,9 @@ SERVICE DETAILS:
 ${paymentDetails.booking.service.name}
 Scheduled for ${formattedScheduledDate} at ${formattedScheduledTime}
 
-Subtotal: ${formatCurrency(subtotal)}
-VAT (${vatRate}%): ${formatCurrency(vatAmount)}
-Total: ${formatCurrency(totalAmount)}
+${vatRegistered ? `Subtotal: ${formatCurrency(subtotal)}
+VAT (${vatRate}%, included), VAT no. ${data.vatNumber}: ${formatCurrency(vatAmount)}
+` : ""}Total: ${formatCurrency(totalAmount)}
 
 Payment Method: ${paymentDetails.paymentMethod || "Credit Card"}
 Payment Status: Completed
