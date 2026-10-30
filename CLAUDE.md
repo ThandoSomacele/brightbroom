@@ -172,7 +172,7 @@ Executed in sequence:
 #### Payout System
 
 - Platform commission: 15% of net amount (after PayFast fees)
-- PayFast fees by method: Credit cards (3.5% + R2), EFT (2% min R2), SnapScan/Zapper (2.5%)
+- PayFast fee: the actual fee from the ITN (`amount_fee`, via `parseItnFee`) is used for the payout split; the per-method rates (defaults in `payout-calculator.ts`, editable in `/admin/pricing`) are only an estimate when it is missing
 - Cleaner earnings tracked in `cleanerPayoutSummary` table
 - Payment processor: `src/lib/server/services/payment-processor.service.ts`
 - Earnings service: `src/lib/server/services/cleaner-earnings.service.ts`
@@ -185,8 +185,9 @@ Executed in sequence:
 
 #### Service Areas & Addresses
 
-- Validates addresses against defined service areas
-- Uses Google Maps API for address autocomplete
+- Service areas are data: table `service_area` (centre + radius in km), managed per deployment in `/admin/service-areas`. brightbroom.com's rows came from migration 0023; a client database starts empty, and with no active areas every address is refused.
+- Pure checks in `src/lib/utils/service-areas.ts` take the areas as an argument; pages load them with `serviceAreaService.listActive()` and pass them to `GoogleMapsAutocomplete` (`serviceAreas`, `enforceServiceArea`). Booking and cleaner sign-up check again on the server.
+- Uses Google Maps API for address autocomplete (suggestions biased to the areas, not restricted)
 - Coordinates stored for cleaner assignments
 
 #### Error Handling
@@ -247,6 +248,9 @@ Key environment variables (see .env.example):
 
 ### Important Notes
 
+- **Which pages exist where**: `src/lib/config/site-routes.ts` is the one list of BrightBroom-only pages (404 on a client's site), platform-only admin areas, and the site/footer/admin menus; the hooks, layouts and `sitemap.xml`/`robots.txt` routes all use it. Client sites are fully white-label: business details come from `brand` (`src/lib/config/brand.ts`), never literals.
+- **Admin actions**: start with `requireAdmin(locals)`, then scope the record with `getScopedCleaner/Application/Booking` (`src/lib/server/admin-scope.ts`); list loads use `adminTenantScope(locals)`.
+
 - Always use `$lib/` imports for internal modules
 - Maintain TypeScript strict mode compliance
 - Follow existing component patterns when creating new features
@@ -266,7 +270,7 @@ Key environment variables (see .env.example):
 - **Image optimization**: Uses `vite-imagetools` plugin
 - **Prettier**: Uses `prettier-plugin-tailwindcss` for automatic Tailwind class sorting
 - **Netlify build**: Runs `netlify/scripts/` pre-build diagnostics and `deploy-db.sh` for migrations
-- **Branch deploys**: Enable `GENERATE_MIGRATIONS=true`; production skips migration generation
+- **Migrations on deploy**: no context generates migrations; `deploy-db.sh` only applies the committed ones (on every context, including production)
 
 ## Netlify Deployment Notes
 
@@ -286,7 +290,7 @@ Key environment variables (see .env.example):
 
 This repo is the **cleaning marketplace** (brightbroom.com). The driver / vehicle-relocation marketplace lives in its own repo (`ThandoSomacele/zuba`, remote `driver` here) with its own Netlify site and Neon database.
 
-- The migration journal here ends at `0022_add_payout_config`. New cleaning migrations are hand-written, idempotent `0023+` files with cleaning names. Migrations `0023_add_driver_role`–`0026_add_trip_handover` belong to the driver product only (tag `split/driver-marketplace`) and must never be applied to this database.
+- The migration journal here ends at `0023_add_service_areas` (when 1793300000000). New cleaning migrations are hand-written, idempotent `0024+` files with cleaning names and a `when` above that. Client databases use `drizzle/fresh` (`pnpm db:fresh:generate`); ship every schema change in both. Migrations `0023_add_driver_role`–`0026_add_trip_handover` belong to the driver product only (tag `split/driver-marketplace`) and must never be applied to this database.
 - Never `git merge` from the `driver` remote. Carry a fix across with `git cherry-pick -n <sha>` and review the diff; never take anything under `drizzle/`.
 - Run `pnpm db:introspect` before planning any migration; the prod ledger must equal the journal.
 
