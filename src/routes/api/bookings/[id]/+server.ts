@@ -15,6 +15,14 @@ export const GET: RequestHandler = async ({ params, locals }) => {
   if (!bookingId) {
     return json({ error: 'Booking ID is required' }, { status: 400 });
   }
+
+  // A booking holds the customer's address and notes, so only the customer
+  // who booked it (or a platform admin) may read it. Paying requires signing
+  // in, and moves a guest booking onto the payer's account, so the payer is
+  // always signed in when the payment success page asks for their booking.
+  if (!locals.user) {
+    return json({ error: 'Authentication required' }, { status: 401 });
+  }
   
   try {
     console.log(`Fetching booking details for ID: ${bookingId}`);
@@ -131,20 +139,16 @@ export const GET: RequestHandler = async ({ params, locals }) => {
     
     const bookingData = results[0];
     
-    // If user is logged in, check authorization
-    if (locals.user && bookingData.userId !== locals.user.id) {
-      // Only check auth for logged-in users to allow payment callbacks to work
-      console.error(`Unauthorized access to booking: ${bookingId}`);
-      return json({ error: 'Unauthorized access to booking' }, { status: 403 });
+    // Someone else's booking answers like a missing one, so ids can't be probed
+    if (bookingData.userId !== locals.user.id && locals.user.role !== 'ADMIN') {
+      console.warn(`Refused booking ${bookingId} to user ${locals.user.id}`);
+      return json({ error: 'Booking not found' }, { status: 404 });
     }
     
     console.log(`Successfully retrieved booking: ${bookingData.id}`);
     return json(bookingData);
   } catch (error) {
     console.error('Error fetching booking details:', error);
-    return json({ 
-      error: 'Failed to fetch booking details',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return json({ error: 'Failed to fetch booking details' }, { status: 500 });
   }
 };

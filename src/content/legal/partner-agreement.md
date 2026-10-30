@@ -1,12 +1,12 @@
 ---
 title: Cleaning Partner Agreement
-lastUpdated: 14 October 2026
+lastUpdated: 30 October 2026
 description: The agreement between {{brand.name}} and cleaning companies that offer their services through the {{brand.name}} marketplace.
 ---
 
-This Cleaning Partner Agreement ("**Agreement**") is between {{brand.legalName}}, registration number {{brand.registrationNumber}} ("**{{brand.name}}**", "**we**", "**us**"), and the cleaning business that signs up at {{brand.domain}}/join/company ("**Partner**", "**you**").
+This Cleaning Partner Agreement ("**Agreement**") is between {{brand.legalName}}, registration number {{brand.registrationNumber}} ("**{{brand.name}}**", "**we**", "**us**"), and the cleaning business that we accept as a Cleaning Partner on the Platform ("**Partner**", "**you**").
 
-The person who signs up confirms that they are authorised to bind the Partner. The Partner accepts this Agreement electronically by ticking the acceptance box at sign-up, which is a valid signature under the Electronic Communications and Transactions Act 25 of 2002. Our customer [Terms of Use](/terms) and [Privacy Policy](/privacy) also apply.
+The person who accepts this Agreement for the Partner confirms that they are authorised to bind the Partner. The Partner accepts this Agreement by signing it, or by accepting it in writing or electronically (for example by email), before we add the Partner to the Platform. An electronic acceptance is a valid signature under the Electronic Communications and Transactions Act 25 of 2002. Our customer [Terms of Use](/terms) and [Privacy Policy](/privacy) also apply.
 
 ## 1. Definitions
 
@@ -30,7 +30,7 @@ In this Agreement:
 
 ## 3. Joining and verification
 
-3.1 After signing up, your account is created but **cannot receive Bookings until we have verified and approved your business**. To be approved you must upload:
+3.1 **We add your business to the Platform, and you can receive Bookings, only after we have verified and approved it.** To be approved you must give us:
 
 1. your company registration documents (CIPC), or proof of registration as a sole proprietor;
 2. the identity document of a director, member or owner;
@@ -39,7 +39,7 @@ In this Agreement:
 
 3.2 We may ask for further information, and we may decline an application at our discretion. If we decline, we will tell you the reason.
 
-3.3 You must keep your information up to date. If your bank details, ownership or address change, upload new supporting documents. A change of bank details takes effect only once we have verified it.
+3.3 You must keep your information up to date. If your bank details, ownership or address change, send us new supporting documents. A change of bank details takes effect only once we have verified it.
 
 ## 4. Your Cleaners
 
@@ -145,7 +145,7 @@ We will:
 
 ## 13. Term and termination
 
-13.1 This Agreement starts when you sign up and continues until it is ended under this section.
+13.1 This Agreement starts when you accept it and continues until it is ended under this section.
 
 13.2 Either party may end this Agreement for any reason by giving 30 days' written notice.
 

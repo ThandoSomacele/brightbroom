@@ -306,8 +306,7 @@
         Ready for a Cleaner Home in Fourways?
       </h2>
       <p class="text-xl mb-8 text-gray-300">
-        Join hundreds of satisfied customers in Fourways who trust BrightBroom
-        for their cleaning needs.
+        Book a trusted, vetted cleaner for your Fourways home in a few minutes.
       </p>
       <div class="flex flex-wrap gap-4 justify-center">
         <Button
