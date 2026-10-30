@@ -1,6 +1,7 @@
 <!-- src/routes/book/+page.svelte -->
 <script lang="ts">
-  import { absoluteSiteUrl, brand } from "$lib/config/brand";
+  import { absoluteSiteUrl, brand, isSingleCompany } from "$lib/config/brand";
+  import DemoNotice from "$lib/components/marketing/DemoNotice.svelte";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
@@ -21,6 +22,13 @@
   const { pricingConfig, addons, user, isAuthenticated } = data;
 
   const ogImageUrl = absoluteSiteUrl(brand.ogImageUrl);
+  // brightbroom.com: this is the live demo of a company's booking flow
+  const bookTitle = isSingleCompany
+    ? `Book a Cleaning | ${brand.name}`
+    : `Live demo: your booking page | ${brand.name} for cleaning companies`;
+  const bookDescription = isSingleCompany
+    ? `${brand.tagline}. Build your perfect clean by choosing bedrooms, bathrooms and optional add-ons, then book online.`
+    : `Try the booking flow a ${brand.name} website gives your customers: rooms, add-ons, date and time, an instant price, and online payment.`;
 
   // Room selection state using $state for reactivity
   let bedroomCount = $state(1);
@@ -92,26 +100,19 @@
 </script>
 
 <svelte:head>
-  <title>Book a Cleaning | {brand.name}</title>
-  <meta
-    name="description"
-    content="Cleaner Bookings Made Simple. Build your perfect cleaning package by selecting rooms and add-ons."
-  />
+  <title>{bookTitle}</title>
+  <meta name="description" content={bookDescription} />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="{brand.name} | Build Your Perfect Clean" />
-  <meta
-    property="og:description"
-    content="Cleaner Bookings Made Simple. Customise your cleaning based on your home's bedrooms, bathrooms, and optional add-ons."
-  />
+  <meta property="og:title" content={bookTitle} />
+  <meta property="og:description" content={bookDescription} />
   <meta property="og:image" content={ogImageUrl} />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="{brand.name} | Build Your Perfect Clean" />
-  <meta
-    name="twitter:description"
-    content="Cleaner Bookings Made Simple. Customise your cleaning based on your home's bedrooms, bathrooms, and optional add-ons."
-  />
+  <meta name="twitter:title" content={bookTitle} />
+  <meta name="twitter:description" content={bookDescription} />
   <meta name="twitter:image" content={ogImageUrl} />
 </svelte:head>
+
+<DemoNotice what="booking page" />
 
 <div class="min-h-screen bg-gray-50 px-4 py-8 pb-28 lg:pb-8 dark:bg-gray-900">
   <div class="mx-auto max-w-5xl">

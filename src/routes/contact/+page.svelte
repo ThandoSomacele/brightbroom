@@ -1,6 +1,6 @@
 <!-- src/routes/contact/+page.svelte -->
 <script lang="ts">
-  import { brand, whatsappHref } from "$lib/config/brand";
+  import { brand, isSingleCompany, whatsappHref } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import { enhance } from "$app/forms";
   import { page } from "$app/stores";
@@ -9,6 +9,13 @@
   import Card from "$lib/components/ui/Card.svelte";
 
   
+  // A company's site: its customers and cleaners get in touch. brightbroom.com:
+  // cleaning companies asking about BrightBroom.
+  const title = isSingleCompany ? `Contact Us | ${brand.name}` : `Talk to us | ${brand.name} for cleaning companies`;
+  const description = isSingleCompany
+    ? `Get in touch with ${brand.name} for questions, support, or to join our team of professional cleaners.`
+    : `Book a demo or ask about ${brand.name}, the booking website for cleaning companies: online bookings, PayFast payments, recurring cleans and a cleaner portal.`;
+
   // Form state
   let isSubmitting = false;
   let formSuccess = false;
@@ -22,27 +29,18 @@
 </script>
 
 <svelte:head>
-  <title>Contact Us | {brand.name}</title>
-  <meta
-    name="description"
-    content="Get in touch with {brand.name} for questions, support, or to join our team of professional cleaners."
-  />
+  <title>{title}</title>
+  <meta name="description" content={description} />
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Contact Us | {brand.name}" />
-  <meta
-    property="og:description"
-    content="Get in touch with {brand.name} for questions, support, or to join our team of professional cleaners."
-  />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
   <meta property="og:type" content="website" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Contact Us | {brand.name}" />
-  <meta
-    name="twitter:description"
-    content="Get in touch with {brand.name} for questions, support, or to join our team of professional cleaners."
-  />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 py-12 dark:bg-gray-900">
@@ -51,11 +49,16 @@
     <div class="mb-12 text-center">
       <p class="section-eyebrow mb-3">Get In Touch</p>
       <h1 class="mb-4 font-heading text-4xl font-bold text-gray-900 dark:text-white">
-        Contact Us
+        {isSingleCompany ? "Contact Us" : "Talk to us about your cleaning company"}
       </h1>
       <p class="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-300">
-        Have questions or need assistance? We're here to help. Fill out the form
-        below or use our contact information to reach out.
+        {#if isSingleCompany}
+          Have questions or need assistance? We're here to help. Fill out the form
+          below or use our contact information to reach out.
+        {:else}
+          Book a demo, ask about pricing, or tell us how you take bookings today. We'll show you how
+          {brand.name} would work for your company.
+        {/if}
       </p>
     </div>
 
@@ -141,7 +144,8 @@
               {/if}
             </div>
 
-            <!-- Join Our Team Section -->
+            <!-- Join Our Team Section: a company's site recruits cleaners; brightbroom.com doesn't -->
+            {#if isSingleCompany}
             <div
               class="mt-10 rounded-lg bg-secondary-50 p-5 dark:bg-secondary-900/20"
             >
@@ -172,6 +176,7 @@
                 </div>
               </div>
             </div>
+            {/if}
           </Card>
         </div>
 
@@ -362,7 +367,8 @@
                   </select>
                 </div>
 
-                <!-- Are you interested in joining as a cleaner? -->
+                <!-- Are you interested in joining as a cleaner? (a company's site only) -->
+                {#if isSingleCompany}
                 <div class="mb-6">
                   <label class="flex items-center">
                     <input
@@ -376,6 +382,7 @@
                     </span>
                   </label>
                 </div>
+                {/if}
 
                 <!-- Submit Button -->
                 <div>

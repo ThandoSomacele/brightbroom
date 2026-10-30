@@ -3,7 +3,7 @@ import { error, json, redirect, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { env as publicEnv } from '$env/dynamic/public';
 import { missingBrandSettings } from '$lib/config/brand';
-import { isAvailableOnSite } from '$lib/config/site-routes';
+import { isAvailableOnSite, isRetiredPath } from '$lib/config/site-routes';
 import { missingEmailSettings } from '$lib/server/email-service';
 import { validateSessionToken } from '$lib/server/auth';
 import { isPlatformOnlyAdminPath, requireAdmin, routingPath } from '$lib/server/route-guards';
@@ -237,6 +237,12 @@ if (path.includes('//')) {
   // Double slashes in URL path - redirect to corrected URL
   throw error(404, "Invalid URL format");
 }
+
+  // Retired customer pages (suburb pages, magazine): old links and search
+  // results land on the home page instead of a 404
+  if (isRetiredPath(path)) {
+    throw redirect(308, '/');
+  }
 
   // BrightBroom's own pages (src/lib/config/site-routes.ts) answer 404 on a
   // cleaning company's site, as if they did not exist

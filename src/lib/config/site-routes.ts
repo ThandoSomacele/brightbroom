@@ -10,17 +10,26 @@
 import { isSingleCompany } from "$lib/config/brand";
 
 /**
- * BrightBroom's own pages: its sales pricing, legal documents for the old
- * marketplace, its PAIA manual, its magazine and its suburb pages (written
- * about BrightBroom's areas). A company's site answers 404 for them.
+ * BrightBroom's own pages: its sales pricing, the live demo of a company's
+ * home page, legal documents for the old marketplace and its PAIA manual. A
+ * company's site answers 404 for them.
  */
 export const BRIGHTBROOM_ONLY_PATHS = [
   "/pricing",
+  "/demo",
   "/join/company",
   "/partner-terms",
   "/paia",
-  "/magazine",
   "/admin/tenants",
+] as const;
+
+/**
+ * Pages brightbroom.com no longer has: its customer-facing suburb pages and
+ * home-cleaning magazine, retired when it became the site for cleaning
+ * companies. Old links and search results are redirected to the home page.
+ */
+export const RETIRED_PATHS = [
+  "/magazine",
   "/cleaning-services-bryanston",
   "/cleaning-services-cosmo-city",
   "/cleaning-services-fourways",
@@ -46,6 +55,11 @@ function isUnder(path: string, paths: readonly string[]): boolean {
   return paths.some((p) => path === p || path.startsWith(`${p}/`));
 }
 
+/** A retired page (any site): answered with a redirect to the home page */
+export function isRetiredPath(path: string): boolean {
+  return isUnder(path, RETIRED_PATHS);
+}
+
 /** One of BrightBroom's own pages. Pass the decoded routing path */
 export function isBrightBroomOnlyPath(path: string): boolean {
   return isUnder(path, BRIGHTBROOM_ONLY_PATHS);
@@ -66,25 +80,52 @@ export function isAvailableOnSite(path: string, single: boolean = isSingleCompan
 
 export type NavLink = { label: string; href: string };
 
-/** Main menu, desktop and mobile */
-export const PUBLIC_NAV: NavLink[] = [
+/**
+ * The menus. A company's site speaks to its customers; brightbroom.com speaks
+ * to cleaning companies, with the customer pages kept as a live demo.
+ */
+const CLIENT_NAV: NavLink[] = [
   { label: "Home", href: "/" },
   { label: "Services", href: "/services" },
   { label: "About", href: "/about" },
-  { label: "Magazine", href: "/magazine" },
-  { label: "For companies", href: "/pricing" },
   { label: "Contact", href: "/contact" },
 ];
 
-export const FOOTER_LINKS: NavLink[] = [
+const BRIGHTBROOM_NAV: NavLink[] = [
+  { label: "Features", href: "/#features" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Live demo", href: "/demo" },
+  { label: "About", href: "/about" },
+  { label: "Contact", href: "/contact" },
+];
+
+const CLIENT_FOOTER: NavLink[] = [
+  { label: "Terms", href: "/terms" },
+  { label: "Privacy", href: "/privacy" },
+  { label: "Cookie Preferences", href: "/cookie-preferences" },
+  { label: "Join as a cleaner", href: "/join/cleaner" },
+  { label: "Contact", href: "/contact" },
+];
+
+const BRIGHTBROOM_FOOTER: NavLink[] = [
+  { label: "Pricing", href: "/pricing" },
+  { label: "Live demo", href: "/demo" },
   { label: "Terms", href: "/terms" },
   { label: "Privacy", href: "/privacy" },
   { label: "PAIA Manual", href: "/paia" },
   { label: "Cookie Preferences", href: "/cookie-preferences" },
-  { label: "Join as a cleaner", href: "/join/cleaner" },
-  { label: "Pricing for companies", href: "/pricing" },
   { label: "Contact", href: "/contact" },
 ];
+
+/** The main menu (desktop and mobile) for this site */
+export function siteNav(single: boolean = isSingleCompany): NavLink[] {
+  return single ? CLIENT_NAV : BRIGHTBROOM_NAV;
+}
+
+/** The footer links for this site */
+export function footerLinks(single: boolean = isSingleCompany): NavLink[] {
+  return single ? CLIENT_FOOTER : BRIGHTBROOM_FOOTER;
+}
 
 export const ADMIN_NAV: (NavLink & { icon: string })[] = [
   { label: "Dashboard", href: "/admin/dashboard", icon: "house" },
@@ -102,7 +143,7 @@ export const ADMIN_NAV: (NavLink & { icon: string })[] = [
 ];
 
 /** The links this site shows: none to pages it doesn't serve */
-export function linksForSite<T extends NavLink>(links: T[], single: boolean = isSingleCompany): T[] {
+function linksForSite<T extends NavLink>(links: T[], single: boolean): T[] {
   return links.filter((link) => isAvailableOnSite(link.href, single));
 }
 

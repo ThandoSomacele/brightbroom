@@ -6,7 +6,7 @@
   import { onMount } from 'svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import Forbidden403 from '$lib/components/errors/Forbidden403.svelte';
-  import { absoluteSiteUrl, brand } from "$lib/config/brand";
+  import { absoluteSiteUrl, brand, isSingleCompany } from "$lib/config/brand";
     
   // Get error information from the page store
   $: status = $page.status;
@@ -17,12 +17,20 @@
   $: is403 = status === 403;
 
   // Helpful pages for navigation
-  const helpfulPages = [
-    { title: 'Book Cleaning', href: '/book', description: 'Schedule your cleaning service', icon: "calendar-blank" },
-    { title: 'Our Services', href: '/services', description: 'View all cleaning services' },
-    { title: 'Contact Us', href: '/contact', description: 'Get help from our team', icon: "envelope-simple" },
-    { title: 'Join as Cleaner', href: '/join/cleaner', description: 'Start earning with us' },
-  ];
+  // A company's site points customers to booking; brightbroom.com to the product
+  const helpfulPages = isSingleCompany
+    ? [
+        { title: 'Book Cleaning', href: '/book', description: 'Schedule your cleaning service', icon: "calendar-blank" },
+        { title: 'Our Services', href: '/services', description: 'View all cleaning services' },
+        { title: 'Contact Us', href: '/contact', description: 'Get help from our team', icon: "envelope-simple" },
+        { title: 'Join as Cleaner', href: '/join/cleaner', description: 'Start earning with us' },
+      ]
+    : [
+        { title: 'Home', href: '/', description: 'Booking software for cleaning companies', icon: "house" },
+        { title: 'Pricing', href: '/pricing', description: 'Plans for 5 to 40 cleaners' },
+        { title: 'Live demo', href: '/demo', description: 'What your customers would see' },
+        { title: 'Contact Us', href: '/contact', description: 'Book a demo or ask a question', icon: "envelope-simple" },
+      ];
 
   function refresh() {
     if (typeof window !== 'undefined') {
@@ -45,7 +53,7 @@
   <meta 
     name="description" 
     content={is404 
-      ? 'The page you\'re looking for couldn\'t be found. Browse our cleaning services or contact us for assistance.'
+      ? 'The page you\'re looking for couldn\'t be found. Head back to the home page or contact us.'
       : 'We encountered an error while processing your request. Please try again or contact support.'
     } 
   />
@@ -55,7 +63,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:title" content="{is404 ? '404 - Page Not Found' : `${status} - Error`} | {brand.name}" />
   <meta property="og:description" content={is404 
-    ? 'The page you\'re looking for couldn\'t be found. Browse our cleaning services in South Africa.'
+    ? 'The page you\'re looking for couldn\'t be found.'
     : 'We encountered an error. Please try again or contact our support team.'
   } />
   <meta property="og:image" content={absoluteSiteUrl(brand.ogImageUrl)} />
@@ -64,7 +72,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="{is404 ? '404 - Page Not Found' : `${status} - Error`} | {brand.name}" />
   <meta property="twitter:description" content={is404 
-    ? 'Page not found - Browse our cleaning services in South Africa.'
+    ? 'The page you\'re looking for couldn\'t be found.'
     : 'We encountered an error. Please try again or contact support.'
   } />
   <meta name="twitter:image" content={absoluteSiteUrl(brand.ogImageUrl)} />
@@ -175,11 +183,13 @@
               {brand.helpEmail}
             </a>
           </p>
-          <p class="mt-2">
-            Looking for cleaning services in South Africa? 
-            <a href="/services" class="text-primary-700 hover:underline">View our services</a> or 
-            <a href="/book" class="text-primary-700 hover:underline">book now</a>.
-          </p>
+          {#if isSingleCompany}
+            <p class="mt-2">
+              Looking for a clean?
+              <a href="/services" class="text-primary-700 hover:underline">View our services</a> or
+              <a href="/book" class="text-primary-700 hover:underline">book now</a>.
+            </p>
+          {/if}
         </div>
       {/if}
 

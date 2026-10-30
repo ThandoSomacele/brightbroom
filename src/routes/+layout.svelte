@@ -6,8 +6,8 @@
   import CookieConsentBanner from "$lib/components/CookieConsentBanner.svelte";
   import ErrorBoundary from "$lib/components/ErrorBoundary.svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import { brand, canonicalSiteUrl, isDemoSite } from "$lib/config/brand";
-  import { FOOTER_LINKS, PUBLIC_NAV, linksForSite } from "$lib/config/site-routes";
+  import { brand, canonicalSiteUrl, isDemoSite, isSingleCompany } from "$lib/config/brand";
+  import { footerLinks as siteFooterLinks, siteNav } from "$lib/config/site-routes";
   import { performanceMonitor } from "$lib/utils/performance";
   import posthog from "posthog-js";
   import { onMount } from "svelte";
@@ -21,10 +21,14 @@
   $: bookingsPaused = $page.data.bookingsPaused;
   $: bookHref = bookingsPaused ? "/bookings-paused" : "/book";
 
-  // Only links to pages this site serves (none of BrightBroom's own pages on
-  // a company's site)
-  const navLinks = linksForSite(PUBLIC_NAV);
-  const footerLinks = linksForSite(FOOTER_LINKS);
+  // A company's site speaks to its customers; brightbroom.com to cleaning
+  // companies (src/lib/config/site-routes.ts)
+  const navLinks = siteNav();
+  const footerLinks = siteFooterLinks();
+  const demoRequest = `/contact?subject=${encodeURIComponent("Demo request")}`;
+  const defaultDescription = isSingleCompany
+    ? `${brand.tagline}. Book professional cleaning services online in minutes and get your space sparkling clean.`
+    : "Booking software for cleaning companies: online bookings, PayFast payments, recurring cleans and a cleaner portal, under your own name.";
 
   // One canonical address per page, on this site's own domain
   $: canonicalUrl = `${canonicalSiteUrl}${$page.url.pathname}`;
@@ -82,10 +86,7 @@
 <svelte:head>
   <!-- Basic meta tags -->
   <title>{brand.name} | {brand.tagline}</title>
-  <meta
-    name="description"
-    content="{brand.tagline}. Book professional cleaning services online in minutes and get your space sparkling clean."
-  />
+  <meta name="description" content={defaultDescription} />
   <!-- One canonical address per page (pages don't add their own). Error
        pages have none: they are not pages to index. -->
   {#if !$page.error}
@@ -182,9 +183,13 @@
           </form>
         {:else}
           <Button variant="outline" href="/auth/login">Login</Button>
-          <Button variant="secondary" href={bookHref}>
-            {bookingsPaused ? "Coming Soon" : "Book Now"}
-          </Button>
+          {#if isSingleCompany}
+            <Button variant="secondary" href={bookHref}>
+              {bookingsPaused ? "Coming Soon" : "Book Now"}
+            </Button>
+          {:else}
+            <Button variant="secondary" href={demoRequest}>Book a demo</Button>
+          {/if}
         {/if}
       </div>
 
@@ -305,10 +310,10 @@
               >Login</a
             >
             <a
-              href={bookHref}
+              href={isSingleCompany ? bookHref : demoRequest}
               on:click={closeMenu}
               class="block px-3 py-2 text-white bg-secondary hover:bg-secondary-600 hover:text-white dark:bg-secondary dark:hover:bg-secondary-600 rounded-md"
-              >{bookingsPaused ? "Coming Soon" : "Book Now"}</a
+              >{isSingleCompany ? (bookingsPaused ? "Coming Soon" : "Book Now") : "Book a demo"}</a
             >
           </div>
         {/if}
