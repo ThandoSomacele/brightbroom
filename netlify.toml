@@ -38,3 +38,46 @@
 
 [context.branch-deploy]
   environment = { NODE_ENV = "development" }
+
+# Retired pages (RETIRED_PATHS in src/lib/config/site-routes.ts). In split mode a
+# path with no SvelteKit route never reaches hooks.server.ts, so Netlify sends
+# these to the home page itself. site-routes.test.ts keeps the two lists in step.
+[[redirects]]
+  from = "/magazine"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/magazine/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/cleaning-services-bryanston"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/cleaning-services-cosmo-city"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/cleaning-services-fourways"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/cleaning-services-midrand"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/cleaning-services-north-riding"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/cleaning-services-randburg"
+  to = "/"
+  status = 301
