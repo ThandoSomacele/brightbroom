@@ -214,6 +214,19 @@ export function calculatePayoutFromStoredFee(
 }
 
 /**
+ * The fee PayFast actually deducted, from an ITN's amount_fee. PayFast sends
+ * it as a negative amount ("-4.60"). Null when it is missing or not
+ * believable (not a number, or not less than the payment), so the caller
+ * falls back to the estimate.
+ */
+export function parseItnFee(amountFee: string | null | undefined, gross: number): number | null {
+  if (amountFee == null || amountFee.trim() === "") return null;
+  const fee = Math.abs(Number(amountFee));
+  if (!Number.isFinite(fee) || fee >= gross) return null;
+  return roundToTwoDecimals(fee);
+}
+
+/**
  * Resolve the cleaner payout for a booking.
  *
  * Prefers the actual amount captured on the payment record at payment time;
