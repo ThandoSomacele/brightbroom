@@ -28,3 +28,9 @@ vite.config.ts.timestamp-*
 # Reports
 /reports
 backups/
+
+# Claude Code: share rules and skills with the repo, keep personal settings local
+!.claude/
+.claude/*
+!.claude/rules/
+!.claude/skills/
