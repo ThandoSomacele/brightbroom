@@ -18,6 +18,11 @@
     { name: "Pro", cleaners: 40, monthly: 4000, setup: 15000 },
   ];
   const MONTHS_PAID_PER_YEAR = 10;
+
+  // Summer offer: shown until the end of 31 January 2027 (SAST), then hidden
+  // so an expired offer never stays on the page
+  const OFFER_ENDS = new Date("2027-02-01T00:00:00+02:00");
+  const showOffer = Date.now() < OFFER_ENDS.getTime();
   const CUSTOM_WORK_PER_HOUR = 650;
 
   const included = [
@@ -81,7 +86,8 @@
   </div>
 </section>
 
-<!-- Founding offer -->
+<!-- Summer offer -->
+{#if showOffer}
 <section class="bg-gray-50 pt-12 dark:bg-gray-900">
   <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
     <div
@@ -89,12 +95,13 @@
     >
       <Icon name="gift" size={24} class="mt-0.5 text-secondary-700 dark:text-secondary-300" />
       <p class="text-secondary-900 dark:text-secondary-100">
-        <span class="font-semibold">Founding offer:</span> the first three companies get half-price
-        setup and their first month free, in exchange for a testimonial.
+        <span class="font-semibold">Summer offer:</span> sign up before 31 January 2027 and get
+        half-price setup and your first month free.
       </p>
     </div>
   </div>
 </section>
+{/if}
 
 <!-- Plans -->
 <section class="bg-gray-50 py-12 dark:bg-gray-900">
