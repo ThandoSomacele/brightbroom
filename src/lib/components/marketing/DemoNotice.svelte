@@ -1,7 +1,7 @@
 <!-- src/lib/components/marketing/DemoNotice.svelte -->
 <!--
-  On brightbroom.com the customer pages (/demo, /services, /book, /join/cleaner)
-  are the live demo of what a cleaning company's customers or cleaners see. This
+  On brightbroom.com the customer pages (/demo, /services, /book) are the live
+  demo of what a cleaning company's customers see. This
   says so. Renders nothing on a company's own site.
 -->
 <script lang="ts">

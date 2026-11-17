@@ -1,6 +1,6 @@
 <!-- src/routes/bookings-paused/+page.svelte -->
 <script lang="ts">
-  import { brand } from "$lib/config/brand";
+  import { brand, isSingleCompany } from "$lib/config/brand";
   import Icon from "$lib/components/ui/Icon.svelte";
   import Button from "$lib/components/ui/Button.svelte";
   </script>
@@ -33,10 +33,13 @@
     </p>
 
     <div class="flex flex-col justify-center gap-4 sm:flex-row">
-      <Button href="/join/cleaner" variant="primary" size="lg">
-        <Icon name="users" size={20} class="mr-2" />
-        Join as a cleaner
-      </Button>
+      <!-- brightbroom.com no longer hires cleaners; a company's site does -->
+      {#if isSingleCompany}
+        <Button href="/join/cleaner" variant="primary" size="lg">
+          <Icon name="users" size={20} class="mr-2" />
+          Join as a cleaner
+        </Button>
+      {/if}
       <Button href="/contact" variant="outline" size="lg">
         <Icon name="envelope-simple" size={20} class="mr-2" />
         Get notified when we relaunch

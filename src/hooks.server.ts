@@ -2,7 +2,7 @@
 import { error, json, redirect, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { env as publicEnv } from '$env/dynamic/public';
-import { missingBrandSettings } from '$lib/config/brand';
+import { isDemoSite, missingBrandSettings } from '$lib/config/brand';
 import { isAvailableOnSite, isRetiredPath } from '$lib/config/site-routes';
 import { missingEmailSettings } from '$lib/server/email-service';
 import { validateSessionToken } from '$lib/server/auth';
@@ -256,8 +256,10 @@ if (path.includes('//')) {
   // refuse, so no direct URL or scripted POST can take a customer's money.
   // Everything else - marketing, SEO pages, /join/cleaner, admin, cleaner
   // portal - stays up. The development branch deploy leaves this unset and
-  // keeps the full sandbox flow for showcasing.
-  if (publicEnv.PUBLIC_BOOKINGS_PAUSED === 'true') {
+  // keeps the full sandbox flow for showcasing. The sales demo
+  // (PUBLIC_DEMO_MODE) ignores it: its payments only ever go to PayFast's
+  // sandbox, and a paused demo is no demo.
+  if (publicEnv.PUBLIC_BOOKINGS_PAUSED === 'true' && !isDemoSite) {
     if (path === '/book' || path.startsWith('/book/')) {
       throw redirect(302, '/bookings-paused');
     }
