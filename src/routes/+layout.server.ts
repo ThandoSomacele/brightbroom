@@ -1,5 +1,6 @@
 // src/routes/+layout.server.ts
 import { env } from '$env/dynamic/public';
+import { isDemoSite } from '$lib/config/brand';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
@@ -10,7 +11,8 @@ export const load: LayoutServerLoad = async ({ locals }) => {
     // Set per Netlify context: true on production while there are no trained
     // cleaners; unset on the development branch so the sandbox demo keeps its
     // full booking flow. The hard gate lives in hooks.server.ts - this flag
-    // only softens the visible CTAs.
-    bookingsPaused: env.PUBLIC_BOOKINGS_PAUSED === 'true'
+    // only softens the visible CTAs. The sales demo ignores the pause, as the
+    // hook does.
+    bookingsPaused: env.PUBLIC_BOOKINGS_PAUSED === 'true' && !isDemoSite
   };
 };
