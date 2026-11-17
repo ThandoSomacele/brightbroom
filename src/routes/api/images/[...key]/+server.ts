@@ -42,7 +42,8 @@ export const GET: RequestHandler = async ({ params }) => {
     ? object.contentType
     : "application/octet-stream";
 
-  return new Response(object.body, {
+  // Copy into a plain ArrayBuffer-backed array, which is what Response's types accept
+  return new Response(new Uint8Array(object.body), {
     headers: {
       "Content-Type": contentType,
       "Content-Length": String(object.body.byteLength),

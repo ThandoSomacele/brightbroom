@@ -64,8 +64,7 @@ export const actions: Actions = {
       };
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errors = error.flatten().fieldErrors;
-        const firstError = Object.values(errors)[0]?.[0] || "Invalid email";
+        const firstError = error.issues[0]?.message || "Invalid email";
         return fail(400, { error: firstError, email });
       }
       

@@ -110,8 +110,7 @@ export const actions: Actions = {
       
       // Handle Zod validation errors
       if (error instanceof z.ZodError) {
-        const errors = error.flatten().fieldErrors;
-        const firstError = Object.values(errors)[0]?.[0] || 'Invalid input';
+        const firstError = error.issues[0]?.message || 'Invalid input';
         
         return fail(400, { 
           error: firstError,

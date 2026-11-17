@@ -32,9 +32,7 @@ const registerSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().optional(),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  terms: z.literal("on", {
-    errorMap: () => ({ message: "You must accept the Terms of Service" }),
-  }),
+  terms: z.literal("on", { error: "You must accept the Terms of Service" }),
 });
 
 export const actions: Actions = {
@@ -157,8 +155,7 @@ export const actions: Actions = {
 
       // Handle Zod validation errors
       if (error instanceof z.ZodError) {
-        const errors = error.flatten().fieldErrors;
-        const firstError = Object.values(errors)[0]?.[0] || "Invalid input";
+        const firstError = error.issues[0]?.message || "Invalid input";
         return fail(400, {
           error: firstError,
           firstName,
