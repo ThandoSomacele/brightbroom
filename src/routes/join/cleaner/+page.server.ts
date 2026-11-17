@@ -80,14 +80,10 @@ const joinApplicationSchema = z.object({
   bankAccountHolder: z.string().optional(),
 
   // Right to work in South Africa
-  workAuthorisation: z.enum(WORK_AUTH_CATEGORIES, {
-    errorMap: () => ({ message: "Please tell us your right to work in South Africa" }),
-  }),
+  workAuthorisation: z.enum(WORK_AUTH_CATEGORIES, { error: "Please tell us your right to work in South Africa" }),
   workAuthExpiry: z.string().optional(),
 
-  terms: z.literal("on", {
-    errorMap: () => ({ message: "You must accept the Terms of Service" }),
-  }),
+  terms: z.literal("on", { error: "You must accept the Terms of Service" }),
 })
   // Enforced here rather than only in the UI, so the rule still holds for a
   // form submitted without JavaScript or posted directly.
@@ -430,8 +426,7 @@ export const actions: Actions = {
     } catch (error) {
       // Handle validation errors
       if (error instanceof z.ZodError) {
-        const errors = error.flatten().fieldErrors;
-        const firstError = Object.values(errors)[0]?.[0] || "Invalid form data";
+        const firstError = error.issues[0]?.message || "Invalid form data";
         console.log(`Cleaner application validation error: ${firstError}`);
 
         return fail(400, {

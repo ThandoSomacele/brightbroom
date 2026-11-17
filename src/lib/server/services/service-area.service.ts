@@ -17,15 +17,15 @@ import { DEFAULT_SERVICE_AREA_RADIUS_KM, type ServiceArea } from "$lib/utils/ser
 export const serviceAreaInputSchema = z.object({
   name: z.string().trim().min(1, "Give the area a name").max(80, "Keep the name under 80 characters"),
   lat: z.coerce
-    .number({ invalid_type_error: "Pick the area's centre from the address search" })
+    .number({ error: "Pick the area's centre from the address search" })
     .min(-35, "That point is outside South Africa")
     .max(-22, "That point is outside South Africa"),
   lng: z.coerce
-    .number({ invalid_type_error: "Pick the area's centre from the address search" })
+    .number({ error: "Pick the area's centre from the address search" })
     .min(16, "That point is outside South Africa")
     .max(33, "That point is outside South Africa"),
   radiusKm: z.coerce
-    .number({ invalid_type_error: "Enter a radius in km" })
+    .number({ error: "Enter a radius in km" })
     .min(0.5, "The radius must be at least 0.5 km")
     .max(100, "The radius can be at most 100 km")
     .default(DEFAULT_SERVICE_AREA_RADIUS_KM),

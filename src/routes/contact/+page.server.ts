@@ -145,8 +145,7 @@ export const actions: Actions = {
     } catch (error) {
       // Handle validation errors
       if (error instanceof z.ZodError) {
-        const errors = error.flatten().fieldErrors;
-        const firstError = Object.values(errors)[0]?.[0] || "Please check your input";
+        const firstError = error.issues[0]?.message || "Please check your input";
         
         console.log(`Contact form validation error: ${firstError}`);
         
