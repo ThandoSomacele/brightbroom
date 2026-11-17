@@ -38,6 +38,13 @@ export const RETIRED_PATHS = [
   "/cleaning-services-randburg",
 ] as const;
 
+/**
+ * Pages retired on brightbroom.com only. BrightBroom no longer hires cleaners
+ * (it sells booking websites to cleaning companies), so its cleaner sign-up
+ * goes to the home page. A company's own site still recruits through it.
+ */
+export const BRIGHTBROOM_RETIRED_PATHS = ["/join/cleaner"] as const;
+
 /** Admin areas for platform admins only; a company admin gets a 403 */
 export const PLATFORM_ONLY_ADMIN_PATHS = [
   "/admin/tenants",
@@ -55,9 +62,9 @@ function isUnder(path: string, paths: readonly string[]): boolean {
   return paths.some((p) => path === p || path.startsWith(`${p}/`));
 }
 
-/** A retired page (any site): answered with a redirect to the home page */
-export function isRetiredPath(path: string): boolean {
-  return isUnder(path, RETIRED_PATHS);
+/** A retired page on this site: answered with a redirect to the home page */
+export function isRetiredPath(path: string, single: boolean = isSingleCompany): boolean {
+  return isUnder(path, RETIRED_PATHS) || (!single && isUnder(path, BRIGHTBROOM_RETIRED_PATHS));
 }
 
 /** One of BrightBroom's own pages. Pass the decoded routing path */

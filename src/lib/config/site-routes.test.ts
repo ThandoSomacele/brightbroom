@@ -38,8 +38,15 @@ describe("retired pages", () => {
     expect(isRetiredPath("/services")).toBe(false);
   });
 
+  it("include the cleaner sign-up on brightbroom.com only (it no longer hires cleaners)", () => {
+    expect(isRetiredPath("/join/cleaner", false)).toBe(true);
+    expect(isRetiredPath("/join/cleaner", true)).toBe(false);
+    expect(isRetiredPath("/magazine", true)).toBe(true);
+  });
+
   it("each have a route, so Netlify sends them to the hook that redirects them", () => {
     for (const path of RETIRED_PATHS) expect(existsSync(`src/routes${path}/+server.ts`), path).toBe(true);
+    expect(existsSync("src/routes/join/cleaner/+page.svelte"), "/join/cleaner").toBe(true);
     expect(existsSync("src/routes/magazine/[slug]/+server.ts"), "articles").toBe(true);
   });
 });
